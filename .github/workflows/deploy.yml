@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+  # For data that changes on a schedule (prices, standings), rebuild on a cron.
+  # The build step fetches and bakes it. Delete this block if the data is static.
+  # schedule:
+  #   - cron: '30 22 * * 1-5'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      # If the build dies with "Cannot find module '../lightningcss.linux-x64-gnu.node'"
+      # (Tailwind v4, or anything else with a platform binary the macOS lockfile
+      # skipped), install the Linux binary explicitly:
+      # - run: npm install --no-save lightningcss-linux-x64-gnu
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

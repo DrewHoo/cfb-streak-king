@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- scripts/prerender.mjs replaces the title and adds description, OG,
+         Twitter, canonical, JSON-LD, and the index-site embed scripts at
+         build time, all from site.config.js. Nothing owner-specific lives
+         in this file. -->
+    <title>dataviz project</title>
+
+    <!-- Vite prefixes these with the base path at build time. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- giscus mounts here; the embed appends to <body> if this is missing. -->
+    <div id="comments"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

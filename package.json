@@ -1,0 +1,25 @@
+{
+  "name": "dataviz-project-template",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/prerender.mjs",
+    "preview": "vite preview",
+    "gen:og": "node scripts/gen-og.mjs",
+    "gen:favicon": "node scripts/gen-favicon.mjs"
+  },
+  "dependencies": {
+    "d3-array": "^3.2.4",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.4",
+    "sharp": "^0.35.3",
+    "vite": "^8.2.0"
+  }
+}
