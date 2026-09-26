@@ -59,6 +59,7 @@ const oppWord = (dir) => (dir === 'W' ? 'loss' : 'win');
 
 function chipPhrase({ key, param }) {
   const c = chipByKey.get(key);
+  if (key === 'road') return 'hostile territory'; // reads as "in hostile territory + …"
   if (key === 'vsteam') return `vs ${teams[param]?.name ?? '?'}`;
   if (key === 'vsconf') return `vs the ${param}`;
   if (key === 'month') return `in ${MONTHS.find(([n]) => n === param)?.[1] ?? param}`;

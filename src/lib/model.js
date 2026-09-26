@@ -134,7 +134,7 @@ const sameState = (a, b) => a != null && a === b;
 
 export const CHIPS = [
   { key: 'home', label: 'at home', group: 'site', x: true, test: (x) => x.home && !x.neutral, pre: (x) => x.home && !x.neutral },
-  { key: 'road', label: 'on the road', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
+  { key: 'road', label: 'in hostile territory', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
   { key: 'neutral', label: 'neutral site', group: 'site', x: true, test: (x) => x.neutral, pre: (x) => x.neutral },
   { key: 'away', label: 'away from home', group: 'site', x: true, test: (x) => !(x.home && !x.neutral), pre: (x) => !(x.home && !x.neutral) },
   { key: 'ranked', label: 'vs ranked', group: 'opp rank', x: true, test: (x) => x.oppRank > 0, pre: (x) => x.oppRank > 0 },
