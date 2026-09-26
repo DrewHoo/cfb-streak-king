@@ -72,38 +72,75 @@ function siteWord(x) {
   return x.neutral ? 'vs' : x.home ? 'vs' : 'at';
 }
 
-function GameLog({ row, dir }) {
-  // the streak itself plus the game that ended the previous run — nothing older
-  const { qual, s } = row;
-  const start = qual.length - s.len;
-  const from = Math.max(0, start - 1);
-  const shown = qual.slice(from);
+const siteMark = (x) => (x.neutral ? 'N' : x.home ? '' : '@');
+const shortDate = (ep) => {
+  const d = new Date(ep * 86400000);
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${String(d.getUTCFullYear()).slice(2)}`;
+};
+
+/** The hostile-territory square: cream + ink mark for a win, dark + dim mark
+ *  for a loss, dashed for a tie. Opponents without a mark get their initial. */
+function Chip({ g }) {
+  const t = teams[g.oppIdx];
+  const cls = g.r === 'W' ? 'sq w' : g.r === 'L' ? 'sq l' : 'sq t';
+  const name = t?.name ?? '?';
   return (
-    <div className="detail">
-      {from > 0 && (
-        <div className="log-note">
-          {from} earlier qualifying game{from === 1 ? '' : 's'} not shown
+    <span className={cls} title={`${siteWord(g)} ${name} ${g.us}–${g.them}`}>
+      {t?.espn ? <img src={`${BASE}logos/${t.espn}.png`} alt={name} loading="lazy" /> : <b>{name[0]}</b>}
+    </span>
+  );
+}
+
+const CHIP_CAP = 12;
+
+function ColumnCollapsed({ row, onOpen }) {
+  const t = teams[row.ti];
+  const streak = [...row.qual.slice(-row.s.len)].reverse();
+  const shown = streak.slice(0, CHIP_CAP);
+  const more = row.s.len - shown.length;
+  return (
+    <button className="colbtn" onClick={onOpen} aria-label={`${t.name}: ${row.s.len} straight`}>
+      <span className={'colcount' + (row.onTheLine ? ' is-otl' : '')}>
+        {row.s.len}{row.s.atEdge ? '+' : ''}
+      </span>
+      <img className="colteam" src={`${BASE}logos-color/${t.espn}.png`} alt={t.name} loading="lazy" />
+      {shown.map((g) => <Chip key={g.i} g={g} />)}
+      {more > 0 && <span className="colmore">+{more}</span>}
+      {row.s.atEdge
+        ? <span className="coledge">’78</span>
+        : <span className="colender"><Chip g={row.s.ender} /></span>}
+    </button>
+  );
+}
+
+function ColumnExpanded({ row, dir, onClose }) {
+  const t = teams[row.ti];
+  const rows = [...row.qual.slice(-row.s.len)].reverse();
+  if (!row.s.atEdge) rows.push(row.s.ender);
+  return (
+    <div className="xcol">
+      <div className="xcol-head">
+        <span className={'colcount' + (row.onTheLine ? ' is-otl' : '')}>{row.s.len}{row.s.atEdge ? '+' : ''}</span>
+        <img className="colteam" src={`${BASE}logos-color/${t.espn}.png`} alt="" />
+        <div className="xcol-id">
+          <span className="xcol-name">{t.name}</span>
+          {row.onTheLine && <span className="otl-tag">on the line</span>}
         </div>
-      )}
-      {shown.map((x, j) => {
-        const idx = from + j;
-        const inStreak = idx >= start;
-        const isEnder = idx === start - 1;
-        return (
-          <div key={x.i + '-' + x.ep} className={'log-row' + (isEnder ? ' ender-row' : '')}>
-            <span className="d">{fmtDate(x.ep)}</span>
-            <span className="m">
-              {siteWord(x)} {x.oppRank > 0 ? `#${x.oppRank} ` : ''}
-              <b>{teams[x.oppIdx]?.name}</b>
-              {x.neutral ? ' (n)' : ''}
-              {isEnder ? ' — streak starts after this one' : ''}
-            </span>
-            <span className={'sc' + (x.r === 'W' ? ' w' : '')}>
-              {x.r} {x.us}–{x.them}{inStreak ? ' •' : ''}
-            </span>
-          </div>
-        );
-      })}
+        <button className="xcol-x" onClick={onClose} aria-label="collapse">×</button>
+      </div>
+      {rows.map((g) => (
+        <div key={g.i + '-' + g.ep} className={'xrow' + (g.r !== dir ? ' ender-row' : '')}>
+          <Chip g={g} />
+          <span className="xd">{shortDate(g.ep)}</span>
+          <span className="xown">{g.ownRank > 0 ? `#${g.ownRank}` : ''}</span>
+          <span className={'xsite' + (siteMark(g) === 'N' ? ' n' : '')}>{siteMark(g)}</span>
+          <span className="xopp">{g.oppRank > 0 ? `#${g.oppRank}` : ''}</span>
+          <span className={'xsc' + (g.r === 'W' ? ' w' : '')}>
+            {g.r === 'W' ? '' : g.r + ' '}{g.us}–{g.them}
+          </span>
+        </div>
+      ))}
+      {row.s.atEdge && <div className="log-note">runs past the start of the data (1978)</div>}
     </div>
   );
 }
@@ -267,7 +304,13 @@ export default function App() {
           <button className={sort === 'games' ? 'on' : ''} onClick={() => setSort('games')}>BY GAMES</button>
           <button className={sort === 'since' ? 'on' : ''} onClick={() => setSort('since')}>BY YEARS SINCE</button>
         </span>
-        <button className="sharebtn" onClick={share}>{copied ? 'COPIED ✓' : 'SHARE THIS BOARD'}</button>
+        <button className="sharebtn" onClick={share}>
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12.5" cy="3" r="2" /><circle cx="3.5" cy="8" r="2" /><circle cx="12.5" cy="13" r="2" />
+            <path d="M5.3 7l5.4-3M5.3 9l5.4 3" />
+          </svg>
+          {copied ? 'COPIED ✓' : 'SHARE THIS BOARD'}
+        </button>
       </div>
 
       <div className="presets">
@@ -303,39 +346,19 @@ export default function App() {
 
       <h2>The Board</h2>
       <p className="h2-note">
-        Current FBS teams, ranked by active {dirWord(dir)} streak under this definition. “N+” means the run
-        reaches the 1978 edge of the data. Tap a row for the game log.
+        Teams as columns, games as chips: cream = a win, dark = a loss, the streak-starting result at the
+        foot. A rust count is on the line this week. “N+” runs past the 1978 edge. Tap a column for dates,
+        ranks, and scores.
       </p>
-      <div className="board">
+      <div className="colwrap">
         {rows.length === 0 && <p className="empty">No team currently holds a {dirWord(dir)} streak under this definition.</p>}
-        {rows.map((row, idx) => {
-          const t = teams[row.ti];
-          const e = row.s.ender;
-          return (
-            <div key={t.id}>
-              <button className="row-btn" onClick={() => setExpanded(expanded === row.ti ? null : row.ti)}>
-                <span className="rk">{idx + 1}</span>
-                <img className="logo" src={`${BASE}logos/${t.espn}.png`} alt="" loading="lazy" />
-                <span className="tm">{t.name}</span>
-                <span className={'stk' + (dir === 'L' ? ' l' : '')}>
-                  {row.s.len}{row.s.atEdge ? '+' : ''}{dir}
-                </span>
-                <span className="ender">
-                  {row.s.atEdge ? (
-                    <>runs past the start of the data (1978)</>
-                  ) : (
-                    <>
-                      last {oppWord(dir)} {fmtDate(e.ep)} {siteWord(e)} {e.oppRank > 0 ? `#${e.oppRank} ` : ''}
-                      <b>{teams[e.oppIdx]?.name}</b> {e.us}–{e.them}
-                    </>
-                  )}
-                </span>
-                {row.onTheLine ? <span className="otl">on the line</span> : <span />}
-              </button>
-              {expanded === row.ti && <GameLog row={row} dir={dir} />}
-            </div>
-          );
-        })}
+        {rows.map((row) =>
+          expanded === row.ti ? (
+            <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} onClose={() => setExpanded(null)} />
+          ) : (
+            <ColumnCollapsed key={teams[row.ti].id} row={row} onOpen={() => setExpanded(row.ti)} />
+          ),
+        )}
       </div>
 
       <h2>This Week</h2>

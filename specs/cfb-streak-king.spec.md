@@ -82,7 +82,17 @@ Candidates, all verified by the research pass:
 
 ## Leaderboard UI
 
-One page. Chip picker on top, direction toggle (W streaks / L streaks), board below.
+One page. The definition line renders only selected chips as removable pills; the
+grouped catalog opens from a "+ constraint" button. Direction toggle (W streaks /
+L streaks) beside it, board below.
+
+The board draws teams as columns: streak count (rust when on the line) above the
+team's color mark, then one hostile-territory square chip per game, newest at top —
+cream ink mark for a win, dark dim mark for a loss — capped at 12 with a "+N"
+overflow, the streak-starting result at the foot ("'78" when the run hits the window
+edge). Tapping a column expands it in place into a ledger: chip · date · own rank ·
+site (@ road, N neutral, blank home — the Sports-Reference grammar) · opponent
+rank · score.
 
 Each row: rank, team (one-color logo per the hostile-territory pipeline), streak count,
 streak start date, and the **streak-ender**: the last opposite result, rendered like

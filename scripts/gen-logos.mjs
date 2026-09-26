@@ -10,11 +10,26 @@ const OUT = 'public/logos';
 mkdirSync(OUT, { recursive: true });
 const payload = JSON.parse(readFileSync('src/data/payload.json', 'utf8'));
 const fbs = payload.teams.filter((t) => t.fbs?.some(([a, b]) => a <= 2026 && b >= 2026));
+// mono ink marks for EVERY team with an espn id (opponent chips), color marks
+// for the current FBS set (column headers).
+mkdirSync('public/logos-color', { recursive: true });
 
 let made = 0;
 const missing = [];
 for (const t of fbs) {
   if (!t.espn) { missing.push(t.id); continue; }
+  const out = `public/logos-color/${t.espn}.png`;
+  if (existsSync(out)) continue;
+  const res = await fetch(`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.espn}.png`);
+  if (!res.ok) { missing.push(`${t.id} color (http ${res.status})`); continue; }
+  const buf = Buffer.from(await res.arrayBuffer());
+  await sharp(buf).resize(72, 72, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9 }).toFile(out);
+  made++;
+  await new Promise((r) => setTimeout(r, 150));
+}
+for (const t of payload.teams) {
+  if (!t.espn) continue;
   const out = `${OUT}/${t.espn}.png`;
   if (existsSync(out)) continue;
   const res = await fetch(`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.espn}.png`);
