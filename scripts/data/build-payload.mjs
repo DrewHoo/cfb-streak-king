@@ -170,12 +170,26 @@ function teamIdx(id, rawName) {
   return i;
 }
 
-const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [] };
+const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [] };
+// venue state: campus games take the home team's state; pre-2014 neutrals
+// take the state code off Repole's "@ City ST" tag; 2014+ neutrals unknown.
+const states = [''];
+const stateIdx = new Map([['', 0]]);
+function venueStateIdx(code) {
+  if (!code) return 0;
+  let i = stateIdx.get(code);
+  if (i === undefined) {
+    i = states.length;
+    stateIdx.set(code, i);
+    states.push(code);
+  }
+  return i;
+}
 const rivalByPair = new Map(rivalries.map((r, i) => [[r.a, r.b].sort().join('|'), i]));
 let joined0213 = 0;
 let total0213 = 0;
 
-function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutral, postseason, confGame, homeSpread, startHour }) {
+function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutral, postseason, confGame, homeSpread, startHour, info }) {
   const ep = epochDay(dateIso);
   cols.se.push(season);
   cols.ep.push(ep);
@@ -190,6 +204,13 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.hh.push(startHour ?? 31);
   const rv = rivalByPair.get([home, away].sort().join('|'));
   cols.rv.push(rv === undefined ? 0 : rv + 1);
+  let st = null;
+  if (!neutral) st = teamInfo[home]?.state ?? null;
+  else if (info) {
+    const m = /\b([A-Z]{2})$/.exec(info.trim());
+    if (m) st = m[1];
+  }
+  cols.vs.push(venueStateIdx(st));
 }
 
 // 1978-2013 from repole, enriched from schedules 2002+
@@ -214,7 +235,7 @@ for (const g of spine) {
     season: g.season, dateIso: g.date, home: g.home, away: g.away,
     homeRaw: g.homeRaw, awayRaw: g.awayRaw, hs: g.homeScore, as: g.awayScore,
     neutral: g.neutral, postseason: g.seasonType === 'postseason',
-    confGame, homeSpread: g.homeSpread, startHour,
+    confGame, homeSpread: g.homeSpread, startHour, info: g.info,
   });
 }
 
@@ -269,6 +290,7 @@ const payload = {
   lastBaseSeason: LAST_BASE_SEASON,
   floors: { night: 2002, spread: 1978 },
   confs,
+  states,
   teams,
   rivals: rivalries.map((r) => ({ n: r.name, a: teamsIdx.get(r.a) ?? -1, b: teamsIdx.get(r.b) ?? -1 })),
   games: cols,

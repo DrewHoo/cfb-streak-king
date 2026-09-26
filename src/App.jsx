@@ -22,6 +22,7 @@ const PRESETS = [
 
 const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'calendar', 'context', 'shape', 'kickoff'];
 const MONTHS = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
+const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
 const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent'];
 
 const fbsEver = teams
@@ -61,6 +62,7 @@ function chipPhrase({ key, param }) {
   const c = chipByKey.get(key);
   if (key === 'road') return 'hostile territory'; // reads as "in hostile territory + …"
   if (key === 'vsteam') return `vs ${teams[param]?.name ?? '?'}`;
+  if (key === 'state') return `in ${param}`;
   if (key === 'vsconf') return `vs the ${param}`;
   if (key === 'month') return `in ${MONTHS.find(([n]) => n === param)?.[1] ?? param}`;
   return c.label;
@@ -114,6 +116,7 @@ export default function App() {
   const [expanded, setExpanded] = useState(null);
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     setTodayEp(todayEpochDay());
@@ -148,10 +151,14 @@ export default function App() {
       const c = chipByKey.get(key);
       const withoutGroupX = c.x ? cur.filter((a) => !(chipByKey.get(a.key).x && chipByKey.get(a.key).group === c.group)) : cur;
       if (withoutGroupX.length >= 4) return cur;
-      const def = c.param === 'month' ? 11 : c.param === 'conf' ? 'SEC' : c.param === 'team'
+      const def = c.param === 'month' ? 11 : c.param === 'conf' ? 'SEC' : c.param === 'state' ? 'TX' : c.param === 'team'
         ? teams.findIndex((t) => t.id === 'alabama') : undefined;
       return [...withoutGroupX, c.param ? { key, param: def } : { key }];
     });
+  }
+  function remove(key) {
+    setExpanded(null);
+    setActive((cur) => cur.filter((a) => a.key !== key));
   }
   function setParam(key, param) {
     setActive((cur) => cur.map((a) => (a.key === key ? { ...a, param } : a)));
@@ -171,10 +178,6 @@ export default function App() {
     } catch {}
   }
 
-  const defWords = active.length
-    ? active.map((a) => chipPhrase(a)).join(' + ')
-    : 'all games';
-
   return (
     <main>
       <p className="dateline">drewhoover.com · 1978–{P.currentSeason} · updated {String(P.builtAt).slice(0, 10)}</p>
@@ -185,9 +188,75 @@ export default function App() {
         qualifying {oppWord(dir)} does.
       </p>
 
-      <p className="defline">
-        Longest active <b>{dirWord(dir)}</b> streaks in <b>{defWords}</b>
-      </p>
+      <div className="defbar">
+        <span className="defbar-lead">
+          Longest active <b>{dirWord(dir)}</b> streaks in
+        </span>
+        {active.length === 0 && <span className="defbar-all">all games</span>}
+        {active.map((a) => {
+          const c = chipByKey.get(a.key);
+          return (
+            <span className="pill" key={a.key}>
+              <span className="pill-label">{chipPhrase(a)}</span>
+              {c.param === 'team' && (
+                <select
+                  value={a.param}
+                  onChange={(e) => setParam(a.key, Number(e.target.value))}
+                  aria-label="opponent team"
+                >
+                  {fbsEver.map(({ t, i }) => (
+                    <option key={t.id} value={i}>{t.name}</option>
+                  ))}
+                </select>
+              )}
+              {c.param === 'conf' && (
+                <select
+                  value={a.param}
+                  onChange={(e) => setParam(a.key, e.target.value)}
+                  aria-label="opponent conference"
+                >
+                  {CONF_OPTIONS.filter((o) => confs.includes(o)).map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              )}
+              {c.param === 'state' && (
+                <select
+                  value={a.param}
+                  onChange={(e) => setParam(a.key, e.target.value)}
+                  aria-label="state"
+                >
+                  {STATE_OPTIONS.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              )}
+              {c.param === 'month' && (
+                <select
+                  value={a.param}
+                  onChange={(e) => setParam(a.key, Number(e.target.value))}
+                  aria-label="month"
+                >
+                  {MONTHS.map(([n, name]) => (
+                    <option key={n} value={n}>{name}</option>
+                  ))}
+                </select>
+              )}
+              <button className="pill-x" onClick={() => remove(a.key)} aria-label={`remove ${chipPhrase(a)}`}>×</button>
+            </span>
+          );
+        })}
+        {(active.length < 4 || pickerOpen) && (
+          <button
+            className={'addbtn' + (pickerOpen ? ' open' : '')}
+            onClick={() => setPickerOpen((o) => !o)}
+            aria-expanded={pickerOpen}
+          >
+            {pickerOpen ? 'done' : '+ constraint'}
+          </button>
+        )}
+        {active.length >= 4 && !pickerOpen && <span className="defbar-cap">4 of 4</span>}
+      </div>
 
       <div className="controls">
         <span className="toggle" role="group" aria-label="streak direction">
@@ -207,62 +276,30 @@ export default function App() {
         ))}
       </div>
 
-      <div className="picker">
-        {GROUPS.map((grp) => (
-          <div className="pick-row" key={grp}>
-            <span className="grp">{grp}</span>
-            {CHIPS.filter((c) => c.group === grp).map((c) => (
-              <span key={c.key}>
+      {pickerOpen && (
+        <div className="picker">
+          {GROUPS.map((grp) => (
+            <div className="pick-row" key={grp}>
+              <span className="grp">{grp}</span>
+              {CHIPS.filter((c) => c.group === grp).map((c) => (
                 <button
+                  key={c.key}
                   className={'chipbtn' + (isOn(c.key) ? ' on' : '')}
                   disabled={!isOn(c.key) && full}
                   onClick={() => toggle(c.key)}
                 >
                   {c.label}
                 </button>
-                {isOn(c.key) && c.param === 'team' && (
-                  <select
-                    value={active.find((a) => a.key === c.key)?.param}
-                    onChange={(e) => setParam(c.key, Number(e.target.value))}
-                    aria-label="opponent team"
-                  >
-                    {fbsEver.map(({ t, i }) => (
-                      <option key={t.id} value={i}>{t.name}</option>
-                    ))}
-                  </select>
-                )}
-                {isOn(c.key) && c.param === 'conf' && (
-                  <select
-                    value={active.find((a) => a.key === c.key)?.param}
-                    onChange={(e) => setParam(c.key, e.target.value)}
-                    aria-label="opponent conference"
-                  >
-                    {CONF_OPTIONS.filter((o) => confs.includes(o)).map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                )}
-                {isOn(c.key) && c.param === 'month' && (
-                  <select
-                    value={active.find((a) => a.key === c.key)?.param}
-                    onChange={(e) => setParam(c.key, Number(e.target.value))}
-                    aria-label="month"
-                  >
-                    {MONTHS.map(([n, name]) => (
-                      <option key={n} value={n}>{name}</option>
-                    ))}
-                  </select>
-                )}
-              </span>
-            ))}
-          </div>
-        ))}
-        <p className="pick-note">
-          <span className="cap">{active.length} of 4 constraints.</span>{' '}
-          Betting chips have lines for 1978–2025 (unlined games don't qualify). Night games are known from 2002,
-          solid from 2014. Ties (pre-1996) end streaks in both directions.
-        </p>
-      </div>
+              ))}
+            </div>
+          ))}
+          <p className="pick-note">
+            <span className="cap">{active.length} of 4 constraints.</span>{' '}
+            Betting chips have lines for 1978–2025 (unlined games don't qualify). Night games are known from
+            2002, solid from 2014. Ties (pre-1996) end streaks in both directions.
+          </p>
+        </div>
+      )}
 
       <h2>The Board</h2>
       <p className="h2-note">

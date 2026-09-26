@@ -122,7 +122,12 @@ function localParts(utcIso, tz) {
 // --- current-season games ---
 const rows = parseCsv(schedCsv).map(mapScheduleRow).filter(Boolean);
 const cols = base.games;
-const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [] };
+const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [], vs: [] };
+const stateIdxOf = (code) => {
+  if (!code) return 0;
+  const i = base.states.indexOf(code);
+  return i === -1 ? 0 : i;
+};
 let added = 0;
 for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? ''))) {
   const anyFbs = r.homeDiv === 'fbs' || r.awayDiv === 'fbs';
@@ -148,8 +153,10 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     cols.ar.push(rankOf(r.away, ep));
     cols.hh.push(hh);
     cols.rv.push(rv === undefined ? 0 : rv + 1);
+    cols.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));
     added++;
   } else if (!r.completed) {
+    upcoming.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));
     upcoming.ep.push(ep);
     upcoming.hi.push(hi);
     upcoming.ai.push(ai);

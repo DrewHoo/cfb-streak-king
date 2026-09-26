@@ -59,6 +59,7 @@ for (let i = 0; i < N; i++) {
       sp: spRaw === 9999 ? null : (home ? spRaw : -spRaw) / 2, // + = we were underdogs
       hh: g.hh[i],
       rv: g.rv[i],
+      vst: P.states[g.vs[i]] || null,
       month: monthOf(g.ep[i]),
     });
   }
@@ -108,6 +109,7 @@ for (let i = 0; i < upc.ep.length; i++) {
       ownRank: home ? upc.hr[i] : upc.ar[i],
       hh: upc.hh[i],
       rv: upc.rv[i],
+      vst: P.states[upc.vs?.[i] ?? 0] || null,
       month: monthOf(upc.ep[i]),
       sp: null,
     };
@@ -137,6 +139,7 @@ export const CHIPS = [
   { key: 'road', label: 'in hostile territory', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
   { key: 'neutral', label: 'neutral site', group: 'site', x: true, test: (x) => x.neutral, pre: (x) => x.neutral },
   { key: 'away', label: 'away from home', group: 'site', x: true, test: (x) => !(x.home && !x.neutral), pre: (x) => !(x.home && !x.neutral) },
+  { key: 'state', label: 'in state\u2026', group: 'site', param: 'state', test: (x, p) => x.vst === p, pre: (x, p) => x.vst === p },
   { key: 'ranked', label: 'vs ranked', group: 'opp rank', x: true, test: (x) => x.oppRank > 0, pre: (x) => x.oppRank > 0 },
   { key: 'top10', label: 'vs top 10', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 10, pre: (x) => x.oppRank >= 1 && x.oppRank <= 10 },
   { key: 'top5', label: 'vs top 5', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 5, pre: (x) => x.oppRank >= 1 && x.oppRank <= 5 },

@@ -39,15 +39,46 @@ h1 {
 .dateline { text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rust); margin-bottom: 24px; }
 .sub { color: var(--ink-muted); max-width: 640px; margin: 0 auto 34px; text-align: center; font-style: italic; }
 
-/* definition line: the sentence the chips build */
-.defline {
-  text-align: center; margin: 0 auto 22px; max-width: 700px;
-  font-size: 18px;
+/* definition bar: the sentence the chips build, plus the controls to build it */
+.defbar {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+  margin: 0 auto 22px; max-width: 760px; font-size: 18px;
 }
-.defline b { color: var(--cream); font-weight: 600; }
+.defbar-lead b { color: var(--cream); font-weight: 600; }
+.defbar-all { color: var(--cream); font-weight: 600; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--cream); color: #241d12; border-radius: 999px;
+  padding: 3px 6px 3px 12px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600;
+  box-shadow: 0 0 8px rgba(243, 226, 188, 0.25);
+}
+.pill select {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  background: rgba(36, 29, 18, 0.08); color: #241d12; border: 1px solid rgba(36, 29, 18, 0.25);
+  border-radius: 999px; padding: 1px 4px; max-width: 150px;
+}
+.pill-x {
+  background: transparent; border: none; cursor: pointer;
+  color: rgba(36, 29, 18, 0.55); font-size: 15px; line-height: 1; padding: 2px 5px;
+  border-radius: 50%;
+}
+.pill-x:hover { color: #241d12; background: rgba(36, 29, 18, 0.12); }
+.addbtn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.04em;
+  background: transparent; color: var(--rust); border: 1px dashed var(--rust);
+  border-radius: 999px; padding: 4px 12px; cursor: pointer;
+}
+.addbtn:hover, .addbtn.open { color: var(--cream); border-color: var(--cream); }
+.defbar-cap {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-faint);
+}
 
-/* chip picker */
-.picker { border-top: 3px double var(--line); border-bottom: 1px solid var(--line); padding: 14px 0 12px; margin-bottom: 10px; }
+/* chip picker (opens from + constraint) */
+.picker {
+  background: var(--bg-lift); border: 1px solid var(--line); border-radius: 4px;
+  padding: 14px 16px 10px; margin: 0 auto 18px; max-width: 760px;
+}
 .pick-row { display: flex; flex-wrap: wrap; gap: 6px 6px; align-items: center; margin-bottom: 8px; }
 .pick-row .grp {
   font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em;

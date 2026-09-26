@@ -42,7 +42,7 @@ noted. Users pick at most 4; chips within a group are mutually exclusive where m
 
 | group | chips | notes |
 | --- | --- | --- |
-| Site | home / road / neutral / away-from-home | exclusive. Alternate home stadiums (Legion Field, Little Rock) ruled home via overrides |
+| Site | home / road / neutral / away-from-home / in [state] | site chips exclusive; state combines. Venue state = campus state, or the Repole city tag on pre-2014 neutrals; 2014+ neutrals unknown pending a venue table. Alternate home stadiums (Legion Field, Little Rock) ruled home via overrides |
 | Opponent rank | vs ranked / vs top 10 / vs top 5 / vs unranked | AP poll in effect at kickoff |
 | Own rank | while ranked / while unranked | own AP rank at kickoff |
 | Betting | as favorite / as underdog / as 7+ dog / as 14+ dog / close spread (\|s\| ≤ 3) | closing line; unlined games skip |
