@@ -73,6 +73,7 @@ function siteWord(x) {
 }
 
 const siteMark = (x) => (x.neutral ? 'N' : x.home ? '' : '@');
+const yearOf = (ep) => new Date(ep * 86400000).getUTCFullYear();
 const shortDate = (ep) => {
   const d = new Date(ep * 86400000);
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${String(d.getUTCFullYear()).slice(2)}`;
@@ -85,13 +86,20 @@ function Chip({ g }) {
   const cls = g.r === 'W' ? 'sq w' : g.r === 'L' ? 'sq l' : 'sq t';
   const name = t?.name ?? '?';
   return (
-    <span className={cls} title={`${siteWord(g)} ${name} ${g.us}–${g.them}`}>
+    <span className={cls} title={`${siteWord(g)} ${name} ${g.us}–${g.them}, ${yearOf(g.ep)}`}>
       {t?.espn ? <img src={`${BASE}logos/${t.espn}.png`} alt={name} loading="lazy" /> : <b>{name[0]}</b>}
     </span>
   );
 }
 
 const CHIP_CAP = 12;
+const DESKTOP_CAP = 24;
+
+// data-coverage notes, surfaced as a popover on the picker group label
+const GROUP_NOTES = {
+  betting: 'Closing lines cover 1978–2025. Games without a line don’t qualify.',
+  kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
+};
 
 function ColumnCollapsed({ row, onOpen }) {
   const t = teams[row.ti];
@@ -108,7 +116,12 @@ function ColumnCollapsed({ row, onOpen }) {
       {more > 0 && <span className="colmore">+{more}</span>}
       {row.s.atEdge
         ? <span className="coledge">’78</span>
-        : <span className="colender"><Chip g={row.s.ender} /></span>}
+        : (
+          <span className="colender">
+            <Chip g={row.s.ender} />
+            <span className="colyr">’{String(yearOf(row.s.ender.ep)).slice(2)}</span>
+          </span>
+        )}
     </button>
   );
 }
@@ -151,7 +164,7 @@ function ColumnExpanded({ row, dir, onClose }) {
           <span className={'xsite' + (siteMark(g) === 'N' ? ' n' : '')}>{siteMark(g)}</span>
           <span className="xopp">{g.oppRank > 0 ? `#${g.oppRank}` : ''}</span>
           <span className={'xsc' + (g.r === 'W' ? ' w' : '')}>
-            {g.r === 'W' ? '' : g.r + ' '}{g.us}–{g.them}
+            {g.r !== dir ? g.r + ' ' : ''}{String(g.us).padStart(2, ' ')}–{String(g.them).padEnd(2, ' ')}
           </span>
         </div>
       ))}
@@ -175,8 +188,9 @@ function useIsMobile() {
 export default function App() {
   const [active, setActive] = useState([]);
   const [dir, setDir] = useState('W');
-  const [sort, setSort] = useState('games');
   const [todayEp, setTodayEp] = useState(builtEp);
+  const [showAll, setShowAll] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(null);
   const [expanded, setExpanded] = useState(null);
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -189,8 +203,6 @@ export default function App() {
     if (c.length) setActive(c);
     const d = readParam('dir');
     if (d === 'L') setDir('L');
-    const so = readParam('sort');
-    if (so === 'since') setSort('since');
     setHydrated(true);
   }, []);
 
@@ -198,11 +210,11 @@ export default function App() {
     if (!hydrated) return;
     writeParam('c', encodeChips(active) || null);
     writeParam('dir', dir === 'W' ? null : dir);
-    writeParam('sort', sort === 'games' ? null : sort);
+    writeParam('sort', null); // scrub the retired sort param from old links
     track('definition', { chips: encodeChips(active) || 'overall', dir });
-  }, [active, dir, sort, hydrated]);
+  }, [active, dir, hydrated]);
 
-  const rows = useMemo(() => board(active, dir, sort, todayEp), [active, dir, sort, todayEp]);
+  const rows = useMemo(() => board(active, dir, 'games', todayEp), [active, dir, todayEp]);
   const week = useMemo(() => thisWeek(active, dir, todayEp), [active, dir, todayEp]);
 
   const isOn = (key) => active.some((a) => a.key === key);
@@ -327,10 +339,6 @@ export default function App() {
           <button className={dir === 'W' ? 'on' : ''} onClick={() => setDir('W')}>WIN STREAKS</button>
           <button className={dir === 'L' ? 'on' : ''} onClick={() => setDir('L')}>LOSING STREAKS</button>
         </span>
-        <span className="toggle" role="group" aria-label="sort">
-          <button className={sort === 'games' ? 'on' : ''} onClick={() => setSort('games')}>BY GAMES</button>
-          <button className={sort === 'since' ? 'on' : ''} onClick={() => setSort('since')}>BY YEARS SINCE</button>
-        </span>
         <button className="sharebtn" onClick={share}>
           <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12.5" cy="3" r="2" /><circle cx="3.5" cy="8" r="2" /><circle cx="12.5" cy="13" r="2" />
@@ -350,7 +358,18 @@ export default function App() {
         <div className="picker">
           {GROUPS.map((grp) => (
             <div className="pick-row" key={grp}>
-              <span className="grp">{grp}</span>
+              <span className="grp">
+                {grp}
+                {GROUP_NOTES[grp] && (
+                  <button
+                    className={'grp-i' + (noteOpen === grp ? ' on' : '')}
+                    onClick={() => setNoteOpen((n) => (n === grp ? null : grp))}
+                    aria-label={`about ${grp} data`}
+                    aria-expanded={noteOpen === grp}
+                  >ⓘ</button>
+                )}
+              </span>
+              {noteOpen === grp && <span className="grp-note">{GROUP_NOTES[grp]}</span>}
               {CHIPS.filter((c) => c.group === grp).map((c) => (
                 <button
                   key={c.key}
@@ -364,9 +383,7 @@ export default function App() {
             </div>
           ))}
           <p className="pick-note">
-            <span className="cap">{active.length} of 4 constraints.</span>{' '}
-            Betting chips have lines for 1978–2025 (unlined games don't qualify). Night games are known from
-            2002, solid from 2014. Ties (pre-1996) end streaks in both directions.
+            <span className="cap">{active.length} of 4 constraints.</span>
           </p>
           <div className="pick-done">
             <button onClick={() => setPickerOpen(false)}>done</button>
@@ -384,7 +401,7 @@ export default function App() {
       )}
       <div className="colwrap">
         {rows.length === 0 && <p className="empty">No team currently holds a {dirWord(dir)} streak under this definition.</p>}
-        {rows.map((row) => {
+        {(isMobile || showAll ? rows : rows.slice(0, DESKTOP_CAP)).map((row) => {
           if (row.ti === expanded) {
             return isMobile ? null : (
               <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} onClose={() => setExpanded(null)} />
@@ -393,6 +410,13 @@ export default function App() {
           return <ColumnCollapsed key={teams[row.ti].id} row={row} onOpen={() => setExpanded(row.ti)} />;
         })}
       </div>
+      {!isMobile && rows.length > DESKTOP_CAP && (
+        <div className="showmore">
+          <button onClick={() => setShowAll((v) => !v)}>
+            {showAll ? 'show fewer' : `show all ${rows.length} teams`}
+          </button>
+        </div>
+      )}
 
       <h2>This Week</h2>
       <p className="h2-note">Qualifying games in the next eight days with a streak at stake.</p>
@@ -429,6 +453,7 @@ export default function App() {
           <li>
             A game qualifies when it matches every active constraint. Non-qualifying games neither extend nor
             break a streak — “hasn't lost to Auburn since 1998” stays alive through seasons they don't play.
+            Ties (pre-1996) end streaks in both directions.
           </li>
           <li>
             Scores and sites 1978–2013 come from Warren Repole's Sunshine Forecast archive (recovered via the

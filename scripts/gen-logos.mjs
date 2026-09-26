@@ -8,6 +8,12 @@ import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 
 const OUT = 'public/logos';
 mkdirSync(OUT, { recursive: true });
+// Teams whose primary mark carries black lettering or outlines that vanish on
+// the dark page (and blob up in the mono pipeline). Use ESPN's dark-background
+// variant as the source for these.
+const DARK_SOURCE = new Set(['194' /* ohio-state */, '2641' /* texas-tech */]);
+const srcUrl = (espn) =>
+  `https://a.espncdn.com/i/teamlogos/ncaa/${DARK_SOURCE.has(String(espn)) ? '500-dark' : '500'}/${espn}.png`;
 const payload = JSON.parse(readFileSync('src/data/payload.json', 'utf8'));
 const fbs = payload.teams.filter((t) => t.fbs?.some(([a, b]) => a <= 2026 && b >= 2026));
 // mono ink marks for EVERY team with an espn id (opponent chips), color marks
@@ -20,7 +26,7 @@ for (const t of fbs) {
   if (!t.espn) { missing.push(t.id); continue; }
   const out = `public/logos-color/${t.espn}.png`;
   if (existsSync(out)) continue;
-  const res = await fetch(`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.espn}.png`);
+  const res = await fetch(srcUrl(t.espn));
   if (!res.ok) { missing.push(`${t.id} color (http ${res.status})`); continue; }
   const buf = Buffer.from(await res.arrayBuffer());
   await sharp(buf).resize(72, 72, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
@@ -32,7 +38,7 @@ for (const t of payload.teams) {
   if (!t.espn) continue;
   const out = `${OUT}/${t.espn}.png`;
   if (existsSync(out)) continue;
-  const res = await fetch(`https://a.espncdn.com/i/teamlogos/ncaa/500/${t.espn}.png`);
+  const res = await fetch(srcUrl(t.espn));
   if (!res.ok) { missing.push(`${t.id} (http ${res.status})`); continue; }
   const buf = Buffer.from(await res.arrayBuffer());
   const { data, info } = await sharp(buf).raw().ensureAlpha().toBuffer({ resolveWithObject: true });

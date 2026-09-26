@@ -138,7 +138,7 @@ export const CHIPS = [
   { key: 'home', label: 'at home', group: 'site', x: true, test: (x) => x.home && !x.neutral, pre: (x) => x.home && !x.neutral },
   { key: 'road', label: 'in hostile territory', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
   { key: 'neutral', label: 'neutral site', group: 'site', x: true, test: (x) => x.neutral, pre: (x) => x.neutral },
-  { key: 'away', label: 'away from home', group: 'site', x: true, test: (x) => !(x.home && !x.neutral), pre: (x) => !(x.home && !x.neutral) },
+  { key: 'away', label: 'not at home', group: 'site', x: true, test: (x) => !(x.home && !x.neutral), pre: (x) => !(x.home && !x.neutral) },
   { key: 'state', label: 'in state\u2026', group: 'site', param: 'state', test: (x, p) => x.vst === p, pre: (x, p) => x.vst === p },
   { key: 'ranked', label: 'vs ranked', group: 'opp rank', x: true, test: (x) => x.oppRank > 0, pre: (x) => x.oppRank > 0 },
   { key: 'top10', label: 'vs top 10', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 10, pre: (x) => x.oppRank >= 1 && x.oppRank <= 10 },
@@ -166,6 +166,7 @@ export const CHIPS = [
   { key: 'afterbye', label: 'after a bye', group: 'context', test: (x) => x.rest != null && x.rest >= 13, pre: null },
   { key: 'onescore', label: 'one-score game', group: 'shape', x: true, test: (x) => x.margin <= 8, pre: null },
   { key: 'shootout', label: 'shootout (60+ pts)', group: 'shape', x: true, test: (x) => x.total >= 60, pre: null },
+  { key: 'rockfight', label: 'rock fight (< 40 pts)', group: 'shape', x: true, test: (x) => x.total < 40, pre: null },
   { key: 'night', label: 'night game (6pm+)', group: 'kickoff', test: (x) => x.hh !== 31 && x.hh >= 18, pre: (x) => x.hh !== 31 && x.hh >= 18, floor: 2002 },
 ];
 export const chipByKey = new Map(CHIPS.map((c) => [c.key, c]));
