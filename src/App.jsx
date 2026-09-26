@@ -248,9 +248,8 @@ export default function App() {
       <p className="dateline">drewhoover.com · 1978–{P.currentSeason} · updated {String(P.builtAt).slice(0, 10)}</p>
       <h1>Streak King</h1>
       <p className="sub">
-        Design a streak definition with up to four constraints, and see which of the {rows.length ? '136' : '136'} FBS
-        teams owns the longest active run under it. Games between constraints don't break a streak — only a
-        qualifying {oppWord(dir)} does.
+        Design a streak definition with up to four constraints, and see which of the 136 FBS teams owns the
+        longest active run under it.
       </p>
 
       <div className="defbar">
@@ -369,15 +368,13 @@ export default function App() {
             Betting chips have lines for 1978–2025 (unlined games don't qualify). Night games are known from
             2002, solid from 2014. Ties (pre-1996) end streaks in both directions.
           </p>
+          <div className="pick-done">
+            <button onClick={() => setPickerOpen(false)}>done</button>
+          </div>
         </div>
       )}
 
       <h2>The Board</h2>
-      <p className="h2-note">
-        Teams as columns, games as chips: cream = a win, dark = a loss, the streak-starting result at the
-        foot. A rust count is on the line this week. “N+” runs past the 1978 edge. Tap a column for dates,
-        ranks, and scores.
-      </p>
       {isMobile && rows.some((r) => r.ti === expanded) && (
         <ColumnExpanded
           row={rows.find((r) => r.ti === expanded)}
