@@ -145,6 +145,18 @@ function ColumnExpanded({ row, dir, onClose }) {
   );
 }
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const update = () => setMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return mobile;
+}
+
 export default function App() {
   const [active, setActive] = useState([]);
   const [dir, setDir] = useState('W');
@@ -154,6 +166,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setTodayEp(todayEpochDay());
@@ -350,15 +363,23 @@ export default function App() {
         foot. A rust count is on the line this week. “N+” runs past the 1978 edge. Tap a column for dates,
         ranks, and scores.
       </p>
+      {isMobile && rows.some((r) => r.ti === expanded) && (
+        <ColumnExpanded
+          row={rows.find((r) => r.ti === expanded)}
+          dir={dir}
+          onClose={() => setExpanded(null)}
+        />
+      )}
       <div className="colwrap">
         {rows.length === 0 && <p className="empty">No team currently holds a {dirWord(dir)} streak under this definition.</p>}
-        {rows.map((row) =>
-          expanded === row.ti ? (
-            <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} onClose={() => setExpanded(null)} />
-          ) : (
-            <ColumnCollapsed key={teams[row.ti].id} row={row} onOpen={() => setExpanded(row.ti)} />
-          ),
-        )}
+        {rows.map((row) => {
+          if (row.ti === expanded) {
+            return isMobile ? null : (
+              <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} onClose={() => setExpanded(null)} />
+            );
+          }
+          return <ColumnCollapsed key={teams[row.ti].id} row={row} onOpen={() => setExpanded(row.ti)} />;
+        })}
       </div>
 
       <h2>This Week</h2>

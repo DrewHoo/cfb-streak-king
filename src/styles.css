@@ -222,7 +222,15 @@ footer a { color: var(--ink-muted); }
 @media (max-width: 640px) {
   main { padding: 32px 16px 64px; }
   .pick-row .grp { width: 100%; }
-  .colwrap { gap: 16px 8px; justify-content: center; }
-  .xcol { width: 100%; }
+  /* the board is a sideways rail: rank order stays left-to-right, the cut-off
+     column at the screen edge is the scroll affordance. The expanded ledger
+     renders full-width ABOVE the rail, outside the swipe. */
+  .colwrap {
+    flex-wrap: nowrap; overflow-x: auto; gap: 16px 8px;
+    justify-content: flex-start; padding-bottom: 10px;
+    scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+  }
+  .colbtn { flex: none; }
+  .xcol { width: 100%; margin-bottom: 14px; }
   .tw-row { grid-template-columns: 70px 1fr auto; }
 }
