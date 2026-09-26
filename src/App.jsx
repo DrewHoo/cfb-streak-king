@@ -70,9 +70,10 @@ function siteWord(x) {
 }
 
 function GameLog({ row, dir }) {
+  // the streak itself plus the game that ended the previous run — nothing older
   const { qual, s } = row;
   const start = qual.length - s.len;
-  const from = Math.max(0, start - 6);
+  const from = Math.max(0, start - 1);
   const shown = qual.slice(from);
   return (
     <div className="detail">
