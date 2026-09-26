@@ -160,6 +160,9 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .sq.l b { color: var(--ink-muted); }
 .sq.t { background: transparent; border: 1px dashed var(--ink-faint); }
 .sq.t img { filter: brightness(0) invert(0.66); opacity: 0.85; }
+.sq.p { background: transparent; border: 1px dashed var(--rust); }
+.sq.p img { filter: brightness(0) invert(0.8); opacity: 0.9; }
+.sq.p b { color: var(--rust); }
 .colmore { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); }
 .colender { margin-top: 5px; }
 .coledge { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--rust); margin-top: 5px; }
@@ -188,6 +191,11 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
   font-family: 'IBM Plex Mono', monospace;
 }
 .xrow.ender-row { border-bottom: none; border-top: 1px dashed var(--rust); margin-top: 2px; padding-top: 6px; }
+.xrow.next-row { border-bottom: 1px dashed var(--rust); padding-bottom: 6px; margin-bottom: 2px; }
+.xnext {
+  font-size: 10px; text-align: right; color: var(--rust);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
 .xd { font-size: 10px; color: var(--ink-faint); }
 .xown { font-size: 10px; color: var(--ink-muted); text-align: right; }
 .xsite { font-size: 11px; color: var(--rust); text-align: center; }

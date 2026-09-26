@@ -117,6 +117,9 @@ function ColumnExpanded({ row, dir, onClose }) {
   const t = teams[row.ti];
   const rows = [...row.qual.slice(-row.s.len)].reverse();
   if (!row.s.atEdge) rows.push(row.s.ender);
+  const nxt = row.onTheLine ? row.next : null;
+  const nxtTeam = nxt ? teams[nxt.oppIdx] : null;
+  const kick = nxt && nxt.hh !== 31 ? `${nxt.hh % 12 || 12}${nxt.hh >= 12 ? 'pm' : 'am'}` : '';
   return (
     <div className="xcol">
       <div className="xcol-head">
@@ -128,6 +131,18 @@ function ColumnExpanded({ row, dir, onClose }) {
         </div>
         <button className="xcol-x" onClick={onClose} aria-label="collapse">×</button>
       </div>
+      {nxt && (
+        <div className="xrow next-row">
+          <span className="sq p" title={`next: ${siteWord(nxt)} ${nxtTeam?.name}`}>
+            {nxtTeam?.espn ? <img src={`${BASE}logos/${nxtTeam.espn}.png`} alt={nxtTeam?.name} /> : <b>{nxtTeam?.name?.[0]}</b>}
+          </span>
+          <span className="xd">{shortDate(nxt.ep)}</span>
+          <span className="xown">{nxt.ownRank > 0 ? `#${nxt.ownRank}` : ''}</span>
+          <span className={'xsite' + (siteMark(nxt) === 'N' ? ' n' : '')}>{siteMark(nxt)}</span>
+          <span className="xopp">{nxt.oppRank > 0 ? `#${nxt.oppRank}` : ''}</span>
+          <span className="xnext">{kick || 'next'}</span>
+        </div>
+      )}
       {rows.map((g) => (
         <div key={g.i + '-' + g.ep} className={'xrow' + (g.r !== dir ? ' ender-row' : '')}>
           <Chip g={g} />
