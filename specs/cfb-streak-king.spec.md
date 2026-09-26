@@ -51,7 +51,9 @@ noted. Users pick at most 4; chips within a group are mutually exclusive where m
 | Coach | under [own coach, incl. "current"] / vs [specific opposing coach] | per-game attribution for midseason changes; "vs Saban" spans his teams |
 | Calendar | in [month] / season opener / regular-season finale / bowl+postseason | month by local date; Week 0 folds into September |
 | Context | after a loss / after a win / after a bye | previous game in the team's own timeline; bye = 13+ days rest |
-| Game shape | one-score game (≤8) / blowout (21+) | post-hoc: the filter reads the outcome's margin. Famous framing ("won 9 straight one-score games") justifies keeping it |
+| Game shape | one-score game (≤8) / shootout (60+ combined) | post-hoc: the filter reads the final score. Famous framing ("won 9 straight one-score games") justifies keeping it |
+| Score state | leading at half / trailing at half | halftime score from CFBD quarter line scores. **floor: ~2001** (exact floor needs a key check). Anchor stat: Alabama 178-9 when leading at half under Saban |
+| Possession | dominated TOP (60%+ of clock) | CFBD team box stats. **floor: ~2004** (needs a key check) |
 | Kickoff | night game (7pm+ local) | **floor: 2002**, solid from 2014. Board shows "within available data (2002+)" |
 
 Cut from v1 after research: TV network (coverage unverified before the 2010s), weather
@@ -86,8 +88,15 @@ Each row: rank, team (one-color logo per the hostile-territory pipeline), streak
 streak start date, and the **streak-ender**: the last opposite result, rendered like
 "last loss: 11/30/2019 at #15 Auburn". Rows expand to the full qualifying-game list
 with the streak highlighted. During the season, a row gets an "on the line this week"
-marker when the team's next scheduled game qualifies under the active constraints
-(only for constraints knowable pre-game; a one-score chip can't mark anything).
+marker when the team's next scheduled game qualifies under the active constraints, and
+a **This Week panel** lists those unplayed matchups directly: date, kickoff, line, and
+both teams' streaks at stake ("Georgia's W17 vs unranked, at Auburn Sat 3:30"). Both
+features run the same test: does the upcoming game qualify? That's decidable for
+constraints knowable pre-game (site, opponent, ranks, conference, coach, calendar,
+betting once lines post, night unless kickoff is TBD) and undecidable for post-hoc
+chips (one-score, shootout, halftime, possession), which just exclude a matchup from
+the panel. The data is already in the weekly refresh: the schedules ship future games
+with completed=false, and the current poll, lines, and coaches all update in-season.
 
 Sort defaults to streak count. A secondary sort by years-since-ender rescues sparse
 constraint sets, where a 3-game opener streak spanning 2023–2025 and one spanning
@@ -130,10 +139,16 @@ line files, and the documented sign convention (homeSpread negative = home favor
    into team-pair + year-range records.
 10. **Night games**: cfbfastR start_date + venue timezone from CFBD /venues, 2002+,
     with 2001-style midnight placeholders treated as unknown.
-11. **Current schedule** for the on-the-line marker, refreshed in-season by the
-    scheduled workflow (dataviz-pages-site pattern).
+11. **Halftime scores**: CFBD /games homeLineScores/awayLineScores (quarter arrays;
+    halftime = q1+q2), ~25 calls for 2001+. Exact coverage floor needs a key check.
+12. **Possession time**: CFBD /games/teams per year (callable by year alone),
+    possessionTime stat, ~25 calls for the covered years, floor ~2004 pending a key
+    check. Nothing free carries either field before 2001 short of scraping 36k
+    Wayback box scores, so both chips are floored like night game.
+13. **Current schedule** for the on-the-line marker and the This Week panel,
+    refreshed in-season by the scheduled workflow (dataviz-pages-site pattern).
 
-CFBD budget: ~500 calls total, inside the 1,000/month free tier. CFBD's terms prohibit
+CFBD budget: ~550 calls total, inside the 1,000/month free tier. CFBD's terms prohibit
 republishing their data as a standalone dataset, so the shipped payload is our own
 compact encoding of a multi-source join, most of which (spine, lines, polls) isn't
 CFBD anyway. Raw CFBD pulls stay out of git.
@@ -142,7 +157,8 @@ CFBD anyway. Raw CFBD pulls stay out of git.
 
 ~36k games ship as columnar arrays: season, date, home/away team indices, scores,
 neutral, conf-game, homeSpread (half-points, sentinel for unlined), both AP ranks,
-both coach indices, bowl flag, night tri-state, rivalry id. Side tables: teams (name,
+both coach indices, bowl flag, night tri-state, rivalry id, halftime scores (2 bytes,
+sentinel pre-floor), possession seconds (2 shorts, sentinel pre-floor). Side tables: teams (name,
 state, slug, conference intervals), coaches, rivalry pairs, next-game schedule.
 Estimate 2–3 MB raw, a few hundred KB gzipped.
 
@@ -173,10 +189,15 @@ streaks) so crawlers see a real leaderboard.
 
 1. 4 chips or 3? The UI cost of 4 is nothing and famous streaks rarely need more than
    3, so I spec'd 4. Fine?
-2. The one-score / blowout chips leak the outcome into the filter (a "blowout win
-   streak" is close to a plain win streak). I kept them because the framing is
-   beloved. Drop them if they feel dishonest?
+2. The one-score / shootout chips are post-hoc: the filter reads the final score, so
+   an upcoming game can never qualify and the chips sit out of the This Week panel.
+   Kept because the framing is beloved. Shootout is spec'd as 60+ combined points;
+   raise to 70 if 60 is too common?
 3. "vs [specific opposing coach]" follows the coach across teams. "under [own coach]"
    includes an explicit "current coach" option that stays correct across data
    refreshes. Both feel right but double-check the interim-coach rule: interim games
    count toward the team's streaks but don't count as "under" anyone. WDYT?
+4. Thresholds for the new chips: halftime chips use the score after Q2, and
+   "dominated TOP" is spec'd as 60%+ of clock (36+ minutes). A softer "won the TOP
+   battle" (any majority) would fire on most games and make near-degenerate streaks,
+   so I went with dominance. Fine?
