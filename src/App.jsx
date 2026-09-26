@@ -32,7 +32,7 @@ const fbsEver = teams
 const builtEp = Math.floor(Date.parse(P.builtAt) / 86400000);
 
 const track = (name, props) => {
-  try { window.mixpanel?.track(name, props); } catch {}
+  try { window.dhAnalytics?.track(name, props); } catch {}
 };
 
 function encodeChips(active) {
