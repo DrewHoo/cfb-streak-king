@@ -1,0 +1,550 @@
+{
+ "version": 1,
+ "updated": "2026-09-26",
+ "teams": {
+  "alabama": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "auburn": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "uab": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "troy": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "south-alabama": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "jacksonville-state": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "arkansas": {
+   "state": "AR",
+   "tz": "America/Chicago"
+  },
+  "arkansas-state": {
+   "state": "AR",
+   "tz": "America/Chicago"
+  },
+  "arizona": {
+   "state": "AZ",
+   "tz": "America/Phoenix"
+  },
+  "arizona-state": {
+   "state": "AZ",
+   "tz": "America/Phoenix"
+  },
+  "california": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "ucla": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "usc": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "stanford": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "san-diego-state": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "san-jose-state": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "fresno-state": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "colorado": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "colorado-state": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "air-force": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "uconn": {
+   "state": "CT",
+   "tz": "America/New_York"
+  },
+  "delaware": {
+   "state": "DE",
+   "tz": "America/New_York"
+  },
+  "florida": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "florida-state": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "miami-fl": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "ucf": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "south-florida": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "florida-atlantic": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "florida-international": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "georgia": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "georgia-tech": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "georgia-southern": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "georgia-state": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "kennesaw-state": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "hawaii": {
+   "state": "HI",
+   "tz": "Pacific/Honolulu"
+  },
+  "iowa": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "iowa-state": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "boise-state": {
+   "state": "ID",
+   "tz": "America/Boise"
+  },
+  "illinois": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "northwestern": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "northern-illinois": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "indiana": {
+   "state": "IN",
+   "tz": "America/New_York"
+  },
+  "purdue": {
+   "state": "IN",
+   "tz": "America/New_York"
+  },
+  "notre-dame": {
+   "state": "IN",
+   "tz": "America/New_York"
+  },
+  "ball-state": {
+   "state": "IN",
+   "tz": "America/New_York"
+  },
+  "kansas": {
+   "state": "KS",
+   "tz": "America/Chicago"
+  },
+  "kansas-state": {
+   "state": "KS",
+   "tz": "America/Chicago"
+  },
+  "kentucky": {
+   "state": "KY",
+   "tz": "America/New_York"
+  },
+  "louisville": {
+   "state": "KY",
+   "tz": "America/New_York"
+  },
+  "western-kentucky": {
+   "state": "KY",
+   "tz": "America/Chicago"
+  },
+  "lsu": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "tulane": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "louisiana-tech": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "louisiana": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "louisiana-monroe": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "boston-college": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "umass": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "maryland": {
+   "state": "MD",
+   "tz": "America/New_York"
+  },
+  "navy": {
+   "state": "MD",
+   "tz": "America/New_York"
+  },
+  "michigan": {
+   "state": "MI",
+   "tz": "America/New_York"
+  },
+  "michigan-state": {
+   "state": "MI",
+   "tz": "America/New_York"
+  },
+  "central-michigan": {
+   "state": "MI",
+   "tz": "America/New_York"
+  },
+  "eastern-michigan": {
+   "state": "MI",
+   "tz": "America/New_York"
+  },
+  "western-michigan": {
+   "state": "MI",
+   "tz": "America/New_York"
+  },
+  "minnesota": {
+   "state": "MN",
+   "tz": "America/Chicago"
+  },
+  "missouri": {
+   "state": "MO",
+   "tz": "America/Chicago"
+  },
+  "missouri-state": {
+   "state": "MO",
+   "tz": "America/Chicago"
+  },
+  "ole-miss": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "mississippi-state": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "southern-miss": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "north-carolina": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "nc-state": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "duke": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "wake-forest": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "east-carolina": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "charlotte": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "appalachian-state": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "nebraska": {
+   "state": "NE",
+   "tz": "America/Chicago"
+  },
+  "rutgers": {
+   "state": "NJ",
+   "tz": "America/New_York"
+  },
+  "new-mexico": {
+   "state": "NM",
+   "tz": "America/Denver"
+  },
+  "new-mexico-state": {
+   "state": "NM",
+   "tz": "America/Denver"
+  },
+  "unlv": {
+   "state": "NV",
+   "tz": "America/Los_Angeles"
+  },
+  "nevada": {
+   "state": "NV",
+   "tz": "America/Los_Angeles"
+  },
+  "syracuse": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "buffalo": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "army": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "ohio-state": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "ohio": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "cincinnati": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "toledo": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "bowling-green": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "kent-state": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "akron": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "miami-oh": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "oklahoma": {
+   "state": "OK",
+   "tz": "America/Chicago"
+  },
+  "oklahoma-state": {
+   "state": "OK",
+   "tz": "America/Chicago"
+  },
+  "tulsa": {
+   "state": "OK",
+   "tz": "America/Chicago"
+  },
+  "oregon": {
+   "state": "OR",
+   "tz": "America/Los_Angeles"
+  },
+  "oregon-state": {
+   "state": "OR",
+   "tz": "America/Los_Angeles"
+  },
+  "penn-state": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "pittsburgh": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "temple": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "south-carolina": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "clemson": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "coastal-carolina": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "tennessee": {
+   "state": "TN",
+   "tz": "America/New_York"
+  },
+  "vanderbilt": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "memphis": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "middle-tennessee": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "texas": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "texas-am": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "texas-tech": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "tcu": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "smu": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "baylor": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "houston": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "rice": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "north-texas": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "utep": {
+   "state": "TX",
+   "tz": "America/Denver"
+  },
+  "utsa": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "texas-state": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "sam-houston": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "utah": {
+   "state": "UT",
+   "tz": "America/Denver"
+  },
+  "utah-state": {
+   "state": "UT",
+   "tz": "America/Denver"
+  },
+  "byu": {
+   "state": "UT",
+   "tz": "America/Denver"
+  },
+  "virginia": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "virginia-tech": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "old-dominion": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "james-madison": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "liberty": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "washington": {
+   "state": "WA",
+   "tz": "America/Los_Angeles"
+  },
+  "washington-state": {
+   "state": "WA",
+   "tz": "America/Los_Angeles"
+  },
+  "wisconsin": {
+   "state": "WI",
+   "tz": "America/Chicago"
+  },
+  "west-virginia": {
+   "state": "WV",
+   "tz": "America/New_York"
+  },
+  "marshall": {
+   "state": "WV",
+   "tz": "America/New_York"
+  },
+  "wyoming": {
+   "state": "WY",
+   "tz": "America/Denver"
+  }
+ }
+}

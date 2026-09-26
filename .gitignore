@@ -8,3 +8,7 @@ dist
 # If the build fetches data (see the dataviz-pages-site skill's build-time-data
 # reference), keep the fetched files out of git and let CI regenerate them:
 # public/data/
+
+# raw source caches (re-fetchable; some licensed against redistribution)
+data/raw/
+data/build/

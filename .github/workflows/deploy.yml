@@ -4,10 +4,11 @@ on:
   push:
     branches: ['main']
   workflow_dispatch:
-  # For data that changes on a schedule (prices, standings), rebuild on a cron.
-  # The build step fetches and bakes it. Delete this block if the data is static.
-  # schedule:
-  #   - cron: '30 22 * * 1-5'
+  # In-season weekly refresh: Sunday and Friday mornings ET, after Saturday
+  # slates and MACtion. build-current.mjs fetches the current schedules and
+  # AP poll and layers them onto the committed payload base.
+  schedule:
+    - cron: '0 14 * * 0,5'
 
 permissions:
   contents: read
@@ -28,10 +29,10 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
-      # If the build dies with "Cannot find module '../lightningcss.linux-x64-gnu.node'"
-      # (Tailwind v4, or anything else with a platform binary the macOS lockfile
-      # skipped), install the Linux binary explicitly:
-      # - run: npm install --no-save lightningcss-linux-x64-gnu
+      # Refresh the in-progress season (schedule + AP poll) onto the committed
+      # payload base. If the fetch fails, the committed payload still builds.
+      - run: node scripts/data/build-current.mjs
+        continue-on-error: true
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

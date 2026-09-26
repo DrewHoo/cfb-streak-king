@@ -54,7 +54,7 @@ noted. Users pick at most 4; chips within a group are mutually exclusive where m
 | Game shape | one-score game (≤8) / shootout (60+ combined) | post-hoc: the filter reads the final score. Famous framing ("won 9 straight one-score games") justifies keeping it |
 | Score state | leading at half / trailing at half | halftime score from CFBD quarter line scores. **floor: ~2001** (exact floor needs a key check). Anchor stat: Alabama 178-9 when leading at half under Saban |
 | Possession | dominated TOP (60%+ of clock) | CFBD team box stats. **floor: ~2004** (needs a key check) |
-| Kickoff | night game (7pm+ local) | **floor: 2002**, solid from 2014. Board shows "within available data (2002+)" |
+| Kickoff | night game (6pm+ local) | **floor: 2002**, solid from 2014. Board shows "within available data (2002+)" |
 
 Cut from v1 after research: TV network (coverage unverified before the 2010s), weather
 (paid tier only), attendance (zeroed for whole seasons), uniforms and homecoming

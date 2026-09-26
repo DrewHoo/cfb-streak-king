@@ -1,0 +1,93 @@
+// jhowell.net pages -> conference-by-season, conference-game marks, and
+// FBS ("major school") membership year spans.
+//   byconf.htm: "<a href='Team.htm'>Team Name (1916-1986, 1989-present)</a>"
+//   team pages: season header "<a name=1985>1985-Alabama (SEC)</a>", then one
+//   row per game: M/D | '@'|'vs.' | [*]Opponent link | W/L/T | pf | pa | [@ City, ST]
+//   '*' before the opponent marks a conference game.
+// Output:
+//   data/build/fbs-spans.json    { slug: [[start,end],...] }  (9999 = present)
+//   data/build/jhowell.json      { conf: {slug: {year: "SEC"}}, confGames: ["year|team|MM/DD|opp",...] }
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { ROOT, ensureDir, decodeEntities, stripTags } from '../lib/util.mjs';
+import { canon, slug, reportUnmatched } from '../lib/names.mjs';
+
+const RAW = path.join(ROOT, 'data', 'raw', 'jhowell');
+
+// --- byconf: FBS spans ---
+const byconf = fs.readFileSync(path.join(RAW, 'byconf.htm'), 'latin1');
+const fbsSpans = {};
+const linkRe = /<a href="([^"#]+\.htm)">([\s\S]*?)<\/a>/g;
+let m;
+while ((m = linkRe.exec(byconf))) {
+  const text = decodeEntities(stripTags(m[2])).replace(/\s+/g, ' ').trim();
+  const nm = /^(.*?)\s*\(([\d\s,\-present]+)\)\s*$/.exec(text);
+  if (!nm) continue;
+  const id = canon(nm[1], 'byconf') ?? `x:${slug(nm[1])}`;
+  const spans = [];
+  for (const part of nm[2].split(',')) {
+    const p = part.trim();
+    const range = /^(\d{4})\s*-\s*(\d{4}|present)$/.exec(p);
+    if (range) spans.push([Number(range[1]), range[2] === 'present' ? 9999 : Number(range[2])]);
+    else if (/^\d{4}$/.test(p)) spans.push([Number(p), Number(p)]);
+  }
+  if (!spans.length) continue;
+  // same team can appear under several conference sections; keep the union
+  fbsSpans[id] = [...(fbsSpans[id] ?? []), ...spans];
+}
+for (const id of Object.keys(fbsSpans)) {
+  const merged = [];
+  for (const s of fbsSpans[id].sort((a, b) => a[0] - b[0])) {
+    const last = merged.at(-1);
+    if (last && s[0] <= last[1] + 1) last[1] = Math.max(last[1], s[1]);
+    else merged.push([...s]);
+  }
+  fbsSpans[id] = merged;
+}
+
+// --- team pages: conference per season + conference-game marks ---
+const conf = {};
+const confGames = new Set();
+const files = fs.readdirSync(path.join(RAW, 'teams')).filter((f) => f.endsWith('.htm'));
+for (const f of files) {
+  const html = fs.readFileSync(path.join(RAW, 'teams', f), 'latin1');
+  const headRe = /<a name=(\d{4})>\d{4}-([^(<]+)\(([^)]*)\)<\/a>/g;
+  const heads = [];
+  let hm;
+  while ((hm = headRe.exec(html))) {
+    heads.push({ year: Number(hm[1]), name: hm[2].trim(), confName: hm[3].trim(), at: hm.index });
+  }
+  for (let i = 0; i < heads.length; i++) {
+    const h = heads[i];
+    if (h.year < 1978) continue;
+    const id = canon(h.name, 'jhowell') ?? `x:${slug(h.name)}`;
+    (conf[id] ??= {})[h.year] = h.confName;
+    const block = html.slice(h.at, heads[i + 1]?.at ?? html.length);
+    const rowRe = /<td[^>]*>(\d{1,2}\/\d{1,2})<\/td><td[^>]*>(@|vs\.)<\/td><td[^>]*><a href="[^"]*">(\*?)([\s\S]*?)<\/a>/g;
+    let rm;
+    while ((rm = rowRe.exec(block))) {
+      if (rm[3] !== '*') continue;
+      const opp = decodeEntities(stripTags(rm[4])).replace(/\s+/g, ' ').trim();
+      const oppId = canon(opp, 'jhowell') ?? `x:${slug(opp)}`;
+      confGames.add(`${h.year}|${id}|${rm[1]}|${oppId}`);
+    }
+  }
+}
+
+ensureDir(path.join(ROOT, 'data', 'build'));
+fs.writeFileSync(path.join(ROOT, 'data', 'build', 'fbs-spans.json'), JSON.stringify(fbsSpans, null, 1));
+fs.writeFileSync(
+  path.join(ROOT, 'data', 'build', 'jhowell.json'),
+  JSON.stringify({ conf, confGames: [...confGames] }),
+);
+
+const fbs2026 = Object.entries(fbsSpans).filter(([, s]) => s.some(([a, b]) => a <= 2026 && b >= 2026));
+const fbs1985 = Object.entries(fbsSpans).filter(([, s]) => s.some(([a, b]) => a <= 1985 && b >= 1985));
+console.log(
+  `byconf: ${Object.keys(fbsSpans).length} teams with spans; ${fbs2026.length} FBS in 2026, ${fbs1985.length} in 1985`,
+);
+console.log(`team pages: ${files.length} files, ${Object.keys(conf).length} teams with 1978+ seasons, ${confGames.size} conference-game marks`);
+const unkFbs = fbs2026.filter(([id]) => id.startsWith('x:')).map(([id]) => id);
+if (unkFbs.length) console.log('2026 FBS teams with no canonical name:', unkFbs.join(', '));
+reportUnmatched('jhowell');
