@@ -36,6 +36,18 @@ const track = (name, props) => {
   try { window.dhAnalytics?.track(name, props); } catch {}
 };
 
+// saved streaks live in localStorage until accounts exist (specs/accounts.spec.md)
+const FAV_KEY = 'sk-favs';
+const readFavs = () => {
+  try {
+    const f = JSON.parse(localStorage.getItem(FAV_KEY));
+    return Array.isArray(f) ? f : [];
+  } catch { return []; }
+};
+const writeFavs = (f) => {
+  try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch {}
+};
+
 function encodeChips(active) {
   return active.map(({ key, param }) => (param != null ? `${key}:${param}` : key)).join(',');
 }
@@ -193,6 +205,7 @@ export default function App() {
   const [noteOpen, setNoteOpen] = useState(null);
   const [expanded, setExpanded] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [favs, setFavs] = useState([]);
   const [hydrated, setHydrated] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -203,6 +216,7 @@ export default function App() {
     if (c.length) setActive(c);
     const d = readParam('dir');
     if (d === 'L') setDir('L');
+    setFavs(readFavs());
     setHydrated(true);
   }, []);
 
@@ -245,6 +259,31 @@ export default function App() {
     setActive(p.chips);
     setDir(p.dir);
     track('preset', { name: p.name });
+  }
+  const defC = encodeChips(active);
+  const isSaved = favs.some((f) => f.c === defC && f.dir === dir);
+  function toggleFav() {
+    setFavs((cur) => {
+      const next = cur.some((f) => f.c === defC && f.dir === dir)
+        ? cur.filter((f) => !(f.c === defC && f.dir === dir))
+        : [...cur, { c: defC, dir, name: `${dirWord(dir)} · ${active.map(chipPhrase).join(' + ') || 'all games'}` }];
+      writeFavs(next);
+      return next;
+    });
+    if (!isSaved) track('save streak', { chips: defC || 'overall', dir });
+  }
+  function applyFav(f) {
+    setExpanded(null);
+    setActive(decodeChips(f.c));
+    setDir(f.dir);
+    track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
+  }
+  function removeFav(f) {
+    setFavs((cur) => {
+      const next = cur.filter((x) => !(x.c === f.c && x.dir === f.dir));
+      writeFavs(next);
+      return next;
+    });
   }
   function share() {
     try {
@@ -339,6 +378,9 @@ export default function App() {
           <button className={dir === 'W' ? 'on' : ''} onClick={() => setDir('W')}>WIN STREAKS</button>
           <button className={dir === 'L' ? 'on' : ''} onClick={() => setDir('L')}>LOSING STREAKS</button>
         </span>
+        <button className={'sharebtn' + (isSaved ? ' saved' : '')} onClick={toggleFav} aria-pressed={isSaved}>
+          {isSaved ? '★ SAVED' : '☆ SAVE'}
+        </button>
         <button className="sharebtn" onClick={share}>
           <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12.5" cy="3" r="2" /><circle cx="3.5" cy="8" r="2" /><circle cx="12.5" cy="13" r="2" />
@@ -353,6 +395,18 @@ export default function App() {
           <button key={p.name} onClick={() => applyPreset(p)}>{p.name}</button>
         ))}
       </div>
+
+      {favs.length > 0 && (
+        <div className="favs">
+          <span className="favs-lead">your streaks</span>
+          {favs.map((f) => (
+            <span className="fav" key={(f.c || 'all') + f.dir}>
+              <button className="fav-apply" onClick={() => applyFav(f)}>{f.name}</button>
+              <button className="fav-x" onClick={() => removeFav(f)} aria-label={`remove ${f.name}`}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
 
       {pickerOpen && (
         <div className="picker">
