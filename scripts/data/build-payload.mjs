@@ -19,6 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, ensureDir } from '../lib/util.mjs';
 import { display } from '../lib/names.mjs';
+import { buildStints, markInterim } from '../lib/coach.mjs';
 import { currentStreak } from '../../src/lib/streaks.js';
 
 const BUILD = path.join(ROOT, 'data', 'build');
@@ -29,6 +30,7 @@ const spine = load('spine-1978-2013.json');
 const sched = load('schedules-2002-2026.json');
 const { conf: jhConf, confGames: jhMarks } = load('jhowell.json');
 const fbsSpans = load('fbs-spans.json');
+const coachSeasonsByTeam = load('coaches.json');
 const rivalries = load('rivalries.json');
 const polls = load('polls.json');
 const teamInfo = loadRef('team-info.json').teams;
@@ -284,6 +286,54 @@ for (const t of teams) {
   t.conf = runs.map(([start, ci, end]) => [start, end, ci]);
 }
 
+// ---------- coach stints ----------
+// Per team: CFBD coach-season rows resolved against our own result sequence
+// (scripts/lib/coach.mjs). Encoded as t.hc = [[ci, startSe, startOrd, interim]]
+// with ci indexing coachNames/coachIds; ci -1 = unresolved multi-coach season.
+const resultsBySeason = new Map(); // `${ti}|${se}` -> ['W','L',...] in ep order
+for (let i = 0; i < cols.se.length; i++) {
+  const se = cols.se[i];
+  const r = cols.hs[i] > cols.as[i] ? 'W' : cols.hs[i] < cols.as[i] ? 'L' : 'T';
+  const flip = r === 'W' ? 'L' : r === 'L' ? 'W' : 'T';
+  for (const [ti, res] of [[cols.hi[i], r], [cols.ai[i], flip]]) {
+    const k = `${ti}|${se}`;
+    const arr = resultsBySeason.get(k);
+    if (arr) arr.push(res); else resultsBySeason.set(k, [res]);
+  }
+}
+const coachNames = [];
+const coachIds = [];
+const coachIdxByK = new Map();
+const coachIdx = (k, n) => {
+  let i = coachIdxByK.get(k);
+  if (i === undefined) { i = coachNames.length; coachIdxByK.set(k, i); coachNames.push(n); coachIds.push(k); }
+  return i;
+};
+let stintCount = 0;
+let unresolved = 0;
+for (const [id, byYear] of Object.entries(coachSeasonsByTeam)) {
+  const ti = teamsIdx.get(id);
+  if (ti === undefined) continue;
+  const nameByK = new Map();
+  const seasons = new Map();
+  for (const [y, rows] of Object.entries(byYear)) {
+    const year = Number(y);
+    if (year > LAST_BASE_SEASON) continue;
+    seasons.set(year, rows);
+    for (const r of rows) nameByK.set(r.k, r.n);
+  }
+  if (!seasons.size) continue;
+  const res = new Map([...seasons.keys()].map((y) => [y, resultsBySeason.get(`${ti}|${y}`) ?? null]));
+  const stints = markInterim(buildStints(seasons, res, (year, rows) => {
+    unresolved++;
+    console.log(`  unresolved coach split: ${id} ${year} (${rows.map((r) => `${r.n} ${r.w}-${r.l}${r.t ? '-' + r.t : ''}`).join(', ')})`);
+  }));
+  if (!stints.length) continue;
+  teams[ti].hc = stints.map((s) => [s.k == null ? -1 : coachIdx(s.k, nameByK.get(s.k)), s.startSe, s.startOrd, s.interim ? 1 : 0]);
+  stintCount += stints.length;
+}
+console.log(`coaches: ${coachNames.length} coaches, ${stintCount} stints, ${unresolved} unresolved seasons`);
+
 const payload = {
   v: 1,
   builtAt: new Date().toISOString().slice(0, 10),
@@ -291,6 +341,8 @@ const payload = {
   floors: { night: 2002, spread: 1978 },
   confs,
   states,
+  coachNames,
+  coachIds,
   teams,
   rivals: rivalries.map((r) => ({ n: r.name, a: teamsIdx.get(r.a) ?? -1, b: teamsIdx.get(r.b) ?? -1 })),
   games: cols,
@@ -360,7 +412,17 @@ function gamesFor(teamId, filter) {
   console.log(`check Vanderbilt SEC: ${s.len}L entering 2022-11-12, ender ${ender.opp} (${ender.r}) — expect 26L, kentucky, W`);
   if (s.len !== 26 || ender.opp !== 'kentucky' || ender.r !== 'W') throw new Error('Vanderbilt check failed');
 }
-// 4. LSU home night games under the lights: 2002-2008 Saturday-night run (soft check).
+// 4. Nebraska 2022: Frost fired after 3 games (1-2), Joseph interim for the rest.
+{
+  const hc = teams[teamsIdx.get('nebraska')].hc ?? [];
+  const j = hc.findIndex(([, se, ord]) => se === 2022 && ord > 0);
+  const seg = (x) => (x ? `${coachNames[x[0]]}@${x[1]}:${x[2]}${x[3] ? ' (interim)' : ''}` : 'none');
+  console.log(`check Nebraska 2022 coach split: ${seg(hc[j - 1])} -> ${seg(hc[j])} — expect Scott Frost -> Mickey Joseph@2022:3 (interim)`);
+  const ok = j > 0 && coachNames[hc[j][0]] === 'Mickey Joseph' && hc[j][2] === 3 && hc[j][3] === 1
+    && coachNames[hc[j - 1][0]] === 'Scott Frost';
+  if (!ok) throw new Error('Nebraska 2022 coach check failed');
+}
+// 5. LSU home night games under the lights: 2002-2008 Saturday-night run (soft check).
 {
   const g = gamesFor('lsu', (x) => x.isHome && !x.neutral && !x.post);
   const night = g.filter((x) => {

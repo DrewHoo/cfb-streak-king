@@ -11,9 +11,11 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT, ensureDir, parseCsv, sleep } from '../lib/util.mjs';
+import { ROOT, ensureDir, parseCsv, sleep, readIfExists } from '../lib/util.mjs';
 import { parsePollPage, parseSeasonPolls } from '../lib/cpa.mjs';
 import { mapScheduleRow } from '../lib/sched.mjs';
+import { canon, slug } from '../lib/names.mjs';
+import { resolveSeason } from '../lib/coach.mjs';
 
 const SEASON = 2026;
 const CACHE = process.env.CACHE === '1';
@@ -119,8 +121,54 @@ function localParts(utcIso, tz) {
   return { date: `${parts.year}-${parts.month}-${parts.day}`, hour: Number(parts.hour) % 24 };
 }
 
+// --- CFBD layer: current-season spreads + coach changes (optional) ---
+// Runs with CFBD_API_KEY (CI secret / .env); CACHE=1 reads local copies.
+// Failures log and continue: the season layer still builds without them.
+try { process.loadEnvFile(path.join(ROOT, '.env')); } catch {}
+const CFBD_KEY = process.env.CFBD_API_KEY;
+async function cfbd(pathq, cacheFile) {
+  const f = path.join(ROOT, 'data', 'raw', cacheFile);
+  if (CACHE) {
+    const t = readIfExists(f);
+    return t ? JSON.parse(t) : null;
+  }
+  if (!CFBD_KEY) return null;
+  try {
+    const res = await fetch(`https://api.collegefootballdata.com${pathq}`, {
+      headers: { Authorization: `Bearer ${CFBD_KEY}` },
+    });
+    if (!res.ok) throw new Error(`http ${res.status}`);
+    const j = await res.json();
+    fs.writeFileSync(f, JSON.stringify(j));
+    return j;
+  } catch (e) {
+    console.error(`cfbd ${pathq} failed: ${e.message} (continuing without)`);
+    return null;
+  }
+}
+const linesRaw = await cfbd(`/lines?year=${SEASON}`, `cfbd-lines-${SEASON}.json`);
+let coachesRaw = await cfbd(`/coaches?year=${SEASON}`, `cfbd-coaches-${SEASON}.json`);
+if (!coachesRaw && CACHE) {
+  const full = readIfExists(path.join(ROOT, 'data', 'raw', 'cfbd-coaches.json'));
+  if (full) coachesRaw = JSON.parse(full);
+}
+const median = (a) => {
+  const s = [...a].sort((x, y) => x - y);
+  return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+};
+const lineByKey = new Map();
+for (const l of linesRaw ?? []) {
+  const spreads = (l.lines ?? []).map((x) => Number(x.spread)).filter(Number.isFinite);
+  if (!spreads.length || !l.startDate) continue;
+  const h = canon(l.homeTeam, 'cfbd-lines') ?? `x:${slug(l.homeTeam)}`;
+  const a = canon(l.awayTeam, 'cfbd-lines') ?? `x:${slug(l.awayTeam)}`;
+  const ep = epochDay(String(l.startDate).slice(0, 10));
+  for (const d of [ep - 1, ep, ep + 1]) lineByKey.set(`${h}|${a}|${d}`, median(spreads));
+}
+
 // --- current-season games ---
 const rows = parseCsv(schedCsv).map(mapScheduleRow).filter(Boolean);
+const res26 = new Map(); // ti -> ['W','L','T'...] in date order, for coach splits
 const cols = base.games;
 const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [], vs: [] };
 const stateIdxOf = (code) => {
@@ -148,7 +196,13 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     cols.hs.push(r.homeScore);
     cols.as.push(r.awayScore);
     cols.fl.push(fl);
-    cols.sp.push(9999);
+    const spv = lineByKey.get(`${r.home}|${r.away}|${ep}`);
+    cols.sp.push(spv == null ? 9999 : Math.round(spv * 2));
+    const rr = r.homeScore > r.awayScore ? 'W' : r.homeScore < r.awayScore ? 'L' : 'T';
+    for (const [ti, rv2] of [[hi, rr], [ai, rr === 'W' ? 'L' : rr === 'L' ? 'W' : 'T']]) {
+      const arr = res26.get(ti);
+      if (arr) arr.push(rv2); else res26.set(ti, [rv2]);
+    }
     cols.hr.push(rankOf(r.home, ep));
     cols.ar.push(rankOf(r.away, ep));
     cols.hh.push(hh);
@@ -169,8 +223,63 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
   }
 }
 
+// --- layer current-season coach changes onto the base stints ---
+const coachNames = base.coachNames ?? [];
+const coachIds = base.coachIds ?? [];
+if (coachesRaw) {
+  const ciOf = new Map(coachIds.map((k, i) => [k, i]));
+  const idx = (row) => {
+    let i = ciOf.get(row.k);
+    if (i === undefined) { i = coachNames.length; coachNames.push(row.n); coachIds.push(row.k); ciOf.set(row.k, i); }
+    return i;
+  };
+  const rowsByTeam = new Map();
+  for (const c of coachesRaw) {
+    for (const s of c.seasons ?? []) {
+      if (s.year !== SEASON || !s.school) continue;
+      const id = canon(s.school, 'cfbd-coaches') ?? `x:${slug(s.school)}`;
+      const ti = teamsIdx.get(id);
+      if (ti === undefined) continue;
+      const arr = rowsByTeam.get(ti) ?? [];
+      arr.push({ k: c.id, n: `${c.firstName} ${c.lastName}`.trim(), g: s.games, w: s.wins, l: s.losses, t: s.ties });
+      rowsByTeam.set(ti, arr);
+    }
+  }
+  let changes = 0;
+  let unresolved26 = 0;
+  for (const [ti, crows] of rowsByTeam) {
+    const t = teams[ti];
+    const hc = (t.hc ??= []);
+    while (hc.length && hc.at(-1)[1] === SEASON) hc.pop(); // idempotent relayering
+    const prev = hc.at(-1);
+    const prevK = prev && prev[0] >= 0 ? coachIds[prev[0]] : null;
+    const nonzero = crows.filter((r) => r.g > 0);
+    const single = crows.length === 1 ? crows[0] : nonzero.length === 1 ? nonzero[0] : null;
+    if (single) {
+      if (single.k !== prevK) { hc.push([idx(single), SEASON, 0, 0]); changes++; }
+    } else if (nonzero.length > 1) {
+      const segs = resolveSeason(res26.get(ti) ?? [], nonzero, prevK);
+      if (!segs) {
+        unresolved26++;
+        hc.push([-1, SEASON, 0, 0]);
+      } else {
+        let lk = prevK;
+        for (const s of segs) {
+          if (s.k === lk) continue;
+          hc.push([idx(nonzero.find((r) => r.k === s.k)), SEASON, s.startOrd, 0]);
+          lk = s.k;
+          changes++;
+        }
+      }
+    }
+  }
+  console.log(`coaches ${SEASON}: ${changes} stint changes layered${unresolved26 ? `, ${unresolved26} unresolved` : ''}`);
+}
+
 const out = {
   ...base,
+  coachNames,
+  coachIds,
   currentSeason: SEASON,
   builtAt: new Date().toISOString(),
   upcoming,
@@ -179,6 +288,7 @@ const out = {
 };
 ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
+const lined26 = cols.sp.filter((s, i) => cols.se[i] === SEASON && s !== 9999).length;
 console.log(
-  `payload: +${added} completed ${SEASON} games, ${upcoming.ep.length} upcoming, ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
+  `payload: +${added} completed ${SEASON} games (${lined26} lined), ${upcoming.ep.length} upcoming, ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );

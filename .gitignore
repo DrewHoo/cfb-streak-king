@@ -12,3 +12,6 @@ dist
 # raw source caches (re-fetchable; some licensed against redistribution)
 data/raw/
 data/build/
+
+# secrets
+.env

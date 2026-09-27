@@ -33,6 +33,8 @@ jobs:
       # payload base. If the fetch fails, the committed payload still builds.
       - run: node scripts/data/build-current.mjs
         continue-on-error: true
+        env:
+          CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

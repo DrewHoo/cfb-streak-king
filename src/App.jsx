@@ -20,7 +20,7 @@ const PRESETS = [
   { name: 'Bowl Curse', chips: [{ key: 'postseason' }], dir: 'L' },
 ];
 
-const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'calendar', 'context', 'shape', 'kickoff'];
+const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'kickoff'];
 const MONTHS = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
 const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
 const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent'];
@@ -109,7 +109,8 @@ const DESKTOP_CAP = 24;
 
 // data-coverage notes, surfaced as a popover on the picker group label
 const GROUP_NOTES = {
-  betting: 'Closing lines cover 1978–2025. Games without a line don’t qualify.',
+  betting: 'Closing lines cover 1978–2025 plus this season. Games without a line don’t qualify.',
+  coach: 'Head-coach tenures from CollegeFootballData, with mid-season changes resolved to the exact game. Games against teams without coach data (mostly FCS) don’t qualify under the vs chip.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
 };
 
@@ -525,8 +526,9 @@ export default function App() {
             46-game road skid, Vanderbilt's 26 straight SEC losses.
           </li>
           <li>
-            Not here yet: coach chips, halftime chips, and time-of-possession chips (the free data source
-            gates them), plus spreads for {P.currentSeason}.
+            Head-coach tenures come from CollegeFootballData; mid-season changes are placed at the exact game
+            by matching each coach's record against the result sequence. Not here yet: halftime and
+            time-of-possession chips.
           </li>
         </ul>
       </div>

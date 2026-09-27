@@ -9,7 +9,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT, parseCsv, ensureDir } from '../lib/util.mjs';
+import { ROOT, parseCsv, ensureDir, readIfExists } from '../lib/util.mjs';
 import { canon, slug, reportUnmatched } from '../lib/names.mjs';
 
 const RAW = path.join(ROOT, 'data', 'raw', 'cfbfastr');
@@ -61,6 +61,39 @@ for (let y = 2002; y <= 2026; y++) {
   }
 }
 
+// The cfbfastR CSV mirrors for 2014-2022 are regular season only (2023+ carry
+// bowls). Postseason for those years comes from a one-time CFBD /games pull
+// (data/raw/cfbd-postseason.json; see the spec's CFBD notes).
+const postRaw = readIfExists(path.join(ROOT, 'data', 'raw', 'cfbd-postseason.json'));
+let postAdded = 0;
+if (postRaw) {
+  for (const r of JSON.parse(postRaw)) {
+    const home = r.homeTeam && (canon(r.homeTeam, 'cfbd-games') ?? `x:${slug(r.homeTeam)}`);
+    const away = r.awayTeam && (canon(r.awayTeam, 'cfbd-games') ?? `x:${slug(r.awayTeam)}`);
+    if (!home || !away) continue;
+    rows.push({
+      season: r.season,
+      week: r.week,
+      seasonType: 'postseason',
+      start: r.startDate,
+      timeKnown: !r.startTimeTBD && !!r.startDate && !/T00:00:00/.test(r.startDate),
+      neutral: !!r.neutralSite,
+      confGameRaw: !!r.conferenceGame,
+      home, away,
+      homeRaw: r.homeTeam, awayRaw: r.awayTeam,
+      homeConf: r.homeConference || null, awayConf: r.awayConference || null,
+      homeDiv: r.homeClassification || null, awayDiv: r.awayClassification || null,
+      homeScore: r.completed ? r.homePoints : null,
+      awayScore: r.completed ? r.awayPoints : null,
+      espnHome: null, espnAway: null,
+      completed: !!r.completed,
+      venue: r.venue || null,
+      gameId: `cfbd:${r.id}`,
+    });
+    postAdded++;
+  }
+}
+
 ensureDir(path.join(ROOT, 'data', 'build'));
 fs.writeFileSync(
   path.join(ROOT, 'data', 'build', 'schedules-2002-2026.json'),
@@ -69,6 +102,6 @@ fs.writeFileSync(
 const done = rows.filter((r) => r.completed).length;
 const upcoming = rows.filter((r) => !r.completed && r.season === 2026).length;
 console.log(
-  `schedules: ${rows.length} rows over ${seasons.length} seasons (${seasons[0]}-${seasons.at(-1)}), ${done} completed, ${upcoming} upcoming in 2026`,
+  `schedules: ${rows.length} rows over ${seasons.length} seasons (${seasons[0]}-${seasons.at(-1)}), ${done} completed, ${upcoming} upcoming in 2026, ${postAdded} CFBD postseason rows 2014-2022`,
 );
 reportUnmatched('cfbfastr');

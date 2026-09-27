@@ -48,7 +48,7 @@ noted. Users pick at most 4; chips within a group are mutually exclusive where m
 | Betting | as favorite / as underdog / as 7+ dog / as 14+ dog / close spread (\|s\| ≤ 3) | closing line; unlined games skip |
 | Conference | conference game / non-conference / vs [specific conference] | as of that season; conf game = same conference + overrides |
 | Opponent | vs [specific team] / rivalry games / in-state opponent | rivalry = Wikipedia trophy-game pair list; in-state via school-state table |
-| Coach | under [own coach, incl. "current"] / vs [specific opposing coach] | per-game attribution for midseason changes; "vs Saban" spans his teams |
+| Coach | under current head coach / in a coach's first season / vs a first-year head coach | SHIPPED 2026-09-26. CFBD /coaches (one call, 1978-2026); mid-season changes placed at the exact game by matching each coach's record as a prefix of the team's result sequence (scripts/lib/coach.mjs); 5 unresolved seasons league-wide (e.g. Utah 2004, where CFBD credits Meyer and Whittingham both with the Fiesta Bowl) get no coach. Interim = a stint that started mid-season and never crossed a season boundary; interims don't count as "first season". "vs [specific coach]" and "under [named coach]" remain unbuilt |
 | Calendar | in [month] / season opener / regular-season finale / bowl+postseason | month by local date; Week 0 folds into September |
 | Context | after a loss / after a win / after a bye | previous game in the team's own timeline; bye = 13+ days rest |
 | Game shape | one-score game (≤8) / shootout (60+ combined) / rock fight (<40 combined; 29.1% of games, the mirror of shootout’s 29.6%) | post-hoc: the filter reads the final score. Famous framing ("won 9 straight one-score games") justifies keeping it |
@@ -142,7 +142,11 @@ line files, and the documented sign convention (homeSpread negative = home favor
    conference_game flag is noisy before 2009 and only serves as a cross-check.
 7. **AP ranks at kickoff**: spread-vs-ap's polls.json, joined on the poll in effect at
    the game's local date (UTC −8h shift, validated at 99.5% on hostile-territory).
-8. **Coaches**: CFBD /coaches (season level) + /coaches/tenures (per-game midseason
+8. **Coaches**: DONE via CFBD /coaches alone (one call covers 1978-2026; /coaches/tenures
+   unused). Also fixed in passing: the cfbfastR schedule CSVs for 2014-2022 carry no
+   postseason games, so bowls for those seasons come from CFBD /games?seasonType=postseason
+   (9 calls, data/raw/cfbd-postseason.json) and their spreads from /lines postseason
+   (12 calls, appended to data/ref/lines-cfbd.json). Old note: (season level) + /coaches/tenures (per-game midseason
    attribution, with an attributionComplete flag). Team-years where that flag is false
    fall back to hostile-territory's 818 researched tenure rows or a cited override.
 9. **Rivalries**: one-time parse of Wikipedia's {{Trophy game}} templates (417 rows)
@@ -158,7 +162,7 @@ line files, and the documented sign convention (homeSpread negative = home favor
 13. **Current schedule** for the on-the-line marker and the This Week panel,
     refreshed in-season by the scheduled workflow (dataviz-pages-site pattern).
 
-CFBD budget: ~550 calls total, inside the 1,000/month free tier. CFBD's terms prohibit
+CFBD budget: key registered 2026-09-26 (repo secret CFBD_API_KEY + local .env). Spent so far: ~25 one-time calls (coaches 1, postseason games 9, postseason lines 12, current lines/coaches). Weekly cron adds 2 (/lines?year and /coaches?year for the running season). Remaining one-time items: halftime line scores (~98 via /games per year) and TOP (~208+ per-week calls, 2014+). Total stays inside the 1,000/month free tier. CFBD's terms prohibit
 republishing their data as a standalone dataset, so the shipped payload is our own
 compact encoding of a multi-source join, most of which (spine, lines, polls) isn't
 CFBD anyway. Raw CFBD pulls stay out of git.

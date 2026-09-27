@@ -28,6 +28,41 @@ const monthOf = (ep) => {
   return m === 8 ? 9 : m; // week 0 folds into September
 };
 
+// --- coach stints ---
+// t.hc = [[ci, startSe, startOrd, interim]] sorted; ci indexes P.coachNames,
+// -1 = unresolved multi-coach season. A stint runs until the next one starts.
+// Ordinals are a team's game count within a season (the global arrays are in
+// ep order), tracked for every team so opponents resolve too.
+const N0 = N;
+const hOrd = new Int32Array(N0);
+const aOrd = new Int32Array(N0);
+{
+  const cnt = new Map();
+  for (let i = 0; i < N0; i++) {
+    let k = g.hi[i] * 64 + (g.se[i] - 1978);
+    hOrd[i] = cnt.get(k) ?? 0;
+    cnt.set(k, hOrd[i] + 1);
+    k = g.ai[i] * 64 + (g.se[i] - 1978);
+    aOrd[i] = cnt.get(k) ?? 0;
+    cnt.set(k, aOrd[i] + 1);
+  }
+}
+function stintAt(ti, se, ord) {
+  const hc = teams[ti]?.hc;
+  if (!hc) return null;
+  let cur = null;
+  for (const s of hc) {
+    if (s[1] < se || (s[1] === se && s[2] <= ord)) cur = s;
+    else break;
+  }
+  return cur;
+}
+const lastStint = (ti) => teams[ti]?.hc?.at(-1) ?? null;
+const curCoach = (ti) => {
+  const s = lastStint(ti);
+  return s && s[0] >= 0 ? s[0] : null;
+};
+
 // --- per-team game lists (current-FBS teams only; ascending) ---
 const byTeam = new Map();
 for (const ti of fbsNow) byTeam.set(ti, []);
@@ -40,7 +75,14 @@ for (let i = 0; i < N; i++) {
     const us = home ? g.hs[i] : g.as[i];
     const them = home ? g.as[i] : g.hs[i];
     const spRaw = g.sp[i];
+    const oppIdx = home ? g.ai[i] : g.hi[i];
+    const st = stintAt(ti, g.se[i], home ? hOrd[i] : aOrd[i]);
+    const ost = stintAt(oppIdx, g.se[i], home ? aOrd[i] : hOrd[i]);
+    const cc = curCoach(ti);
     list.push({
+      hcCur: !!st && st[0] >= 0 && cc != null && st[0] === cc,
+      hcNew: !!st && st[0] >= 0 && !st[3] && st[1] === g.se[i],
+      vsNew: !!ost && ost[0] >= 0 && !ost[3] && ost[1] === g.se[i],
       i,
       ep: g.ep[i],
       se: g.se[i],
@@ -96,8 +138,15 @@ for (let i = 0; i < upc.ep.length; i++) {
     const ti = side === 0 ? upc.hi[i] : upc.ai[i];
     if (!fbsNow.has(ti)) continue;
     const home = side === 0;
+    const oppIdx = home ? upc.ai[i] : upc.hi[i];
+    const own = lastStint(ti);
+    const opp = lastStint(oppIdx);
     const entry = {
       i,
+      // upcoming games are by definition under both teams' current coaches
+      hcCur: !!own && own[0] >= 0,
+      hcNew: !!own && own[0] >= 0 && !own[3] && own[1] === P.currentSeason,
+      vsNew: !!opp && opp[0] >= 0 && !opp[3] && opp[1] === P.currentSeason,
       ep: upc.ep[i],
       wk: upc.wk[i],
       home,
@@ -157,6 +206,9 @@ export const CHIPS = [
   { key: 'vsteam', label: 'vs team…', group: 'opponent', param: 'team', test: (x, p) => x.oppIdx === p, pre: (x, p) => x.oppIdx === p },
   { key: 'rivalry', label: 'rivalry game', group: 'opponent', test: (x) => x.rv > 0, pre: (x) => x.rv > 0 },
   { key: 'instate', label: 'in-state opponent', group: 'opponent', test: (x, _p, ownState) => sameState(teams[x.oppIdx]?.st, ownState), pre: (x, _p, ownState) => sameState(teams[x.oppIdx]?.st, ownState) },
+  { key: 'curcoach', label: 'under current head coach', group: 'coach', test: (x) => !!x.hcCur, pre: (x) => !!x.hcCur },
+  { key: 'newcoach', label: 'in a coach’s first season', group: 'coach', test: (x) => !!x.hcNew, pre: (x) => !!x.hcNew },
+  { key: 'vsnewcoach', label: 'vs a first-year head coach', group: 'coach', test: (x) => !!x.vsNew, pre: (x) => !!x.vsNew },
   { key: 'month', label: 'in month…', group: 'calendar', param: 'month', test: (x, p) => x.month === p, pre: (x, p) => x.month === p },
   { key: 'opener', label: 'season opener', group: 'calendar', test: (x) => !!x.opener, pre: (x) => !!x.opener },
   { key: 'finale', label: 'reg-season finale', group: 'calendar', test: (x) => !!x.finale, pre: (x) => !!x.finale },
