@@ -194,6 +194,13 @@ export const upcomingOf = (ti) => upcomingByTeam.get(ti) ?? [];
 // panel). floor = first season the underlying fact exists.
 const sameState = (a, b) => a != null && a === b;
 
+// parameter domains for the chips that take one
+export const MONTHS = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
+export const HMARGINS = [[1, 'by any'], [3, 'by 3+'], [7, 'by 7+'], [10, 'by 10+'], [14, 'by 14+']];
+export const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
+export const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent']
+  .filter((o) => confs.includes(o));
+
 export const CHIPS = [
   { key: 'home', label: 'at home', group: 'site', x: true, test: (x) => x.home && !x.neutral, pre: (x) => x.home && !x.neutral },
   { key: 'road', label: 'in hostile territory', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
