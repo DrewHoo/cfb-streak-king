@@ -364,6 +364,11 @@ export default function App() {
     setView(which);
     track(which + ' view', {});
   }
+  function switchMined(which) {
+    setCrownsAll(false);
+    setView(which);
+    track(which + ' view', {});
+  }
   function applyCrown(cr) {
     setActive(cr.chips.map((key) => ({ key })));
     setDir(cr.dir);
@@ -385,17 +390,23 @@ export default function App() {
       <p className="dateline">drewhoover.com · 1978–{P.currentSeason} · updated {String(P.builtAt).slice(0, 10)}</p>
       <h1>Streak King</h1>
       <div className="tabs">
-        <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>Streaks</button>
-        <button className={view === 'crowns' ? 'on' : ''} onClick={() => openMined('crowns')}>Crowns</button>
-        <button className={view === 'curses' ? 'on' : ''} onClick={() => openMined('curses')}>Curses</button>
+        <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>All Streaks</button>
+        <button className={minedView ? 'on' : ''} onClick={() => { if (!minedView) openMined(dir === 'W' ? 'crowns' : 'curses'); }}>Streaks By Team</button>
       </div>
 
       {minedView && crownTi != null && (() => {
         const d = view === 'crowns' ? 'W' : 'L';
         const list = (crowns ?? []).filter((c) => c.dir === d);
         const shown = crownsAll ? list : list.slice(0, 12);
+        const count = (dd) => (crowns ? ` (${crowns.filter((c) => c.dir === dd).length})` : '');
         return (
           <div className="crowns">
+            <div className="team-switch">
+              <span className="toggle" role="group" aria-label="streak direction">
+                <button className={d === 'W' ? 'on' : ''} onClick={() => switchMined('crowns')}>WIN STREAKS{count('W')}</button>
+                <button className={d === 'L' ? 'on' : ''} onClick={() => switchMined('curses')}>LOSING STREAKS{count('L')}</button>
+              </span>
+            </div>
             <div className="crowns-head">
               {teams[crownTi].espn && <img className="colteam" src={`${BASE}logos-color/${teams[crownTi].espn}.png`} alt="" />}
               <select value={crownTi} onChange={(e) => { setCrownTi(Number(e.target.value)); setCrownsAll(false); }} aria-label="team">
@@ -410,7 +421,6 @@ export default function App() {
             {crowns === null && <p className="empty">Mining all 78,276 boards…</p>}
             {crowns !== null && (
               <div>
-                <h3 className={'crown-h' + (d === 'L' ? ' l' : '')}>{list.length} {view}</h3>
                 {list.length === 0 && <p className="empty">None under the current floors.</p>}
                 {shown.map((cr) => (
                   <button className="crown" key={cr.dir + cr.chips.join()} onClick={() => applyCrown(cr)}>
@@ -440,7 +450,14 @@ export default function App() {
 
       <div className="defbar">
         <span className="defbar-lead">
-          Longest active <b>{dirWord(dir)}</b> streaks in
+          Longest active{' '}
+          <span className="dirpick">
+            <select value={dir} onChange={(e) => setDir(e.target.value)} aria-label="streak direction">
+              <option value="W">winning</option>
+              <option value="L">losing</option>
+            </select>
+          </span>
+          {' '}streaks in
         </span>
         {active.length === 0 && <span className="defbar-all">all games</span>}
         {active.map((a) => {
@@ -520,10 +537,6 @@ export default function App() {
       </div>
 
       <div className="controls">
-        <span className="toggle" role="group" aria-label="streak direction">
-          <button className={dir === 'W' ? 'on' : ''} onClick={() => setDir('W')}>WIN STREAKS</button>
-          <button className={dir === 'L' ? 'on' : ''} onClick={() => setDir('L')}>LOSING STREAKS</button>
-        </span>
         <button className={'sharebtn' + (isSaved ? ' saved' : '')} onClick={toggleFav} aria-pressed={isSaved}>
           {isSaved ? '★ SAVED' : '☆ SAVE'}
         </button>

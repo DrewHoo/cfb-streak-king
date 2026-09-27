@@ -45,6 +45,19 @@ h1 {
   margin: 0 auto 22px; max-width: 760px; font-size: 18px;
 }
 .defbar-lead b { color: var(--cream); font-weight: 600; }
+/* the direction word is the picker: reads as bold text, dropdown on click */
+.dirpick { position: relative; display: inline-block; }
+.dirpick select {
+  appearance: none; -webkit-appearance: none;
+  font: inherit; font-weight: 600; color: var(--cream);
+  background: transparent; border: none; border-bottom: 1px dashed var(--rust);
+  padding: 0 14px 0 0; cursor: pointer; border-radius: 0;
+}
+.dirpick select:hover, .dirpick select:focus-visible { border-bottom-style: solid; outline: none; }
+.dirpick::after {
+  content: '▾'; position: absolute; right: 1px; top: 50%; transform: translateY(-52%);
+  color: var(--rust); font-size: 13px; pointer-events: none;
+}
 .defbar-all { color: var(--cream); font-weight: 600; }
 .pill {
   display: inline-flex; align-items: center; gap: 6px;
@@ -181,6 +194,7 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 
 /* crowns: streaks a team solely leads */
 .crowns { border-top: 3px double var(--line); padding-top: 16px; }
+.team-switch { display: flex; justify-content: center; margin: 0 0 18px; }
 .crowns-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
 .crowns-head .colteam { width: 30px; height: 30px; margin: 0; }
 .crowns-head select {
