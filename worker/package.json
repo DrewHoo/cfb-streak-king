@@ -1,0 +1,13 @@
+{
+  "name": "streak-king-parse",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "node ../scripts/gen-questions.mjs",
+    "dev": "npm run gen && wrangler dev",
+    "deploy": "npm run gen && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.142.0"
+  }
+}

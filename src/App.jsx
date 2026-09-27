@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  P, teams, confs, CHIPS, chipByKey, board, thisWeek,
+  P, teams, CHIPS, chipByKey, board, thisWeek,
   gamesOf, fmtDate, todayEpochDay, fbsNow,
+  MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS,
 } from './lib/model.js';
 import { crownsFor, mineAll, isMined, LEN_FLOOR, FIELD_FLOOR, NP_COUNT, DEF_COUNT } from './lib/crowns.js';
 import { readParam, writeParam } from './urlState.js';
+import { parseLocal, parseRemote, merge, PARSE_URL } from './lib/intent.js';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -22,10 +24,6 @@ const PRESETS = [
 ];
 
 const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff'];
-const MONTHS = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
-const HMARGINS = [[1, 'by any'], [3, 'by 3+'], [7, 'by 7+'], [10, 'by 10+'], [14, 'by 14+']];
-const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
-const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent'];
 
 const fbsEver = teams
   .map((t, i) => ({ t, i }))
@@ -54,7 +52,11 @@ const writeFavs = (f) => {
 };
 
 function encodeChips(active) {
-  return active.map(({ key, param }) => (param != null ? `${key}:${param}` : key)).join(',');
+  // teams go in the URL by id, which decodeChips expects; indexes shift with the payload
+  return active.map(({ key, param }) => {
+    if (param == null) return key;
+    return `${key}:${chipByKey.get(key).param === 'team' ? teams[param]?.id : param}`;
+  }).join(',');
 }
 function decodeChips(s) {
   if (!s) return [];
@@ -238,7 +240,30 @@ export default function App() {
   const [favs, setFavs] = useState([]);
   const [hydrated, setHydrated] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [smartText, setSmartText] = useState('');
+  const [remote, setRemote] = useState(null); // { text, result } from the Worker
+  const [pending, setPending] = useState(false);
   const isMobile = useIsMobile();
+
+  // ask Jev once typing pauses; the local parse shows in the meantime
+  useEffect(() => {
+    const text = smartText.trim();
+    if (!PARSE_URL || text.length < 3) { setPending(false); return; }
+    const ctl = new AbortController();
+    setPending(true);
+    const t = setTimeout(() => {
+      parseRemote(text, ctl.signal)
+        .then((result) => setRemote({ text, result }))
+        .catch(() => {})
+        .finally(() => { if (!ctl.signal.aborted) setPending(false); });
+    }, 350);
+    return () => { clearTimeout(t); ctl.abort(); };
+  }, [smartText]);
+  const preview = useMemo(() => {
+    const text = smartText.trim();
+    if (!text) return null;
+    return merge(parseLocal(text), remote?.text === text ? remote.result : null);
+  }, [smartText, remote]);
 
   useEffect(() => {
     setTodayEp(todayEpochDay());
@@ -315,6 +340,21 @@ export default function App() {
   }
   function setParam(key, param) {
     setActive((cur) => cur.map((a) => (a.key === key ? { ...a, param } : a)));
+  }
+  function applySmart(e) {
+    e.preventDefault();
+    if (!preview) return;
+    const chips = preview.chips.map(({ key, param }) => (param != null ? { key, param } : { key }));
+    setExpanded(null);
+    setActive(chips);
+    if (preview.dir) setDir(preview.dir);
+    setSmartText('');
+    track('smart input', {
+      chips: encodeChips(chips) || 'overall',
+      dir: preview.dir ?? dir,
+      src: preview.src,
+      miss: preview.unmatched.join(' ').slice(0, 80) || undefined,
+    });
   }
   function applyPreset(p) {
     setExpanded(null);
@@ -450,6 +490,31 @@ export default function App() {
         longest active run under it.
       </p>
 
+      <form className="smart" onSubmit={applySmart}>
+        <input
+          className="smart-in"
+          value={smartText}
+          onChange={(e) => setSmartText(e.target.value)}
+          placeholder="describe a streak: Bama at home while ranked"
+          aria-label="describe a streak"
+          enterKeyHint="go"
+          autoComplete="off"
+          spellCheck={false}
+        />
+        {preview && (
+          <div className="smart-preview" aria-live="polite">
+            <span className="smart-dir">{dirWord(preview.dir ?? dir)}</span>
+            {preview.chips.length === 0 && <span className="smart-all">all games</span>}
+            {preview.chips.map((c) => (
+              <span key={c.key} className={'pill ghost' + (c.p < 0.75 ? ' unsure' : '')}>{chipPhrase(c)}</span>
+            ))}
+            {preview.unmatched.length > 0 && <span className="smart-miss">skipped “{preview.unmatched.join(' ')}”</span>}
+            {pending && <span className="smart-wait" aria-label="checking">…</span>}
+            <button type="submit" className="smart-go">apply ↵</button>
+          </div>
+        )}
+      </form>
+
       <div className="defbar">
         <span className="defbar-lead">
           Longest active{' '}
@@ -484,7 +549,7 @@ export default function App() {
                   onChange={(e) => setParam(a.key, e.target.value)}
                   aria-label="opponent conference"
                 >
-                  {CONF_OPTIONS.filter((o) => confs.includes(o)).map((o) => (
+                  {CONF_OPTIONS.map((o) => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
