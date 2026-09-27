@@ -170,6 +170,45 @@ h1 {
 
 /* board */
 h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-spacing: 0.04em; margin: 40px 0 4px; color: var(--cream); }
+.tabs { display: flex; gap: 22px; margin: 40px 0 4px; align-items: baseline; }
+.tabs button {
+  font-family: 'Graduate', serif; font-size: 21px; letter-spacing: 0.04em;
+  background: transparent; border: none; padding: 0; cursor: pointer; color: var(--ink-faint);
+}
+.tabs button.on { color: var(--cream); border-bottom: 2px solid var(--rust); }
+.tabs button:hover { color: var(--ink); }
+.tabs button.on:hover { color: var(--cream); }
+
+/* crowns: streaks a team solely leads */
+.crowns { border-top: 3px double var(--line); padding-top: 16px; }
+.crowns-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.crowns-head .colteam { width: 30px; height: 30px; margin: 0; }
+.crowns-head select {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  background: var(--bg-lift); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 3px; padding: 5px 8px;
+}
+.crowns-note { font-size: 12.5px; font-style: italic; color: var(--ink-faint); }
+.crown-h {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 400; font-size: 11px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--cream);
+  margin: 22px 0 4px;
+}
+.crown-h.l { color: var(--rust); }
+.crown {
+  display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: baseline;
+  width: 100%; text-align: left; background: transparent; border: none; cursor: pointer;
+  color: inherit; font: inherit; padding: 6px 2px; border-bottom: 1px dotted var(--line);
+}
+.crown:hover { background: rgba(243, 226, 188, 0.05); }
+.crown-len { font-family: 'Graduate', serif; font-size: 18px; color: var(--cream); }
+.crown-len.l { color: var(--rust); }
+.crown-txt { font-size: 14.5px; }
+.crown-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
+@media (max-width: 640px) {
+  .crown { grid-template-columns: 40px 1fr; }
+  .crown-meta { grid-column: 2; }
+}
 .h2-note { color: var(--ink-faint); font-size: 13.5px; margin-bottom: 14px; font-style: italic; }
 
 /* the column board: teams as columns, games as HT chips */

@@ -52,8 +52,8 @@ noted. Users pick at most 4; chips within a group are mutually exclusive where m
 | Calendar | in [month] / season opener / regular-season finale / bowl+postseason | month by local date; Week 0 folds into September |
 | Context | after a loss / after a win / after a bye | previous game in the team's own timeline; bye = 13+ days rest |
 | Game shape | one-score game (≤8) / shootout (70+ combined) / defensive struggle (≤33 combined) | shape bounds are ±1σ from the all-time mean total (51.0, σ 18.1): ~15% of games in each tail, symmetric by construction post-hoc: the filter reads the final score. Famous framing ("won 9 straight one-score games") justifies keeping it |
-| Score state | leading at half / trailing at half | halftime score from CFBD quarter line scores. **floor: ~2001** (exact floor needs a key check). Anchor stat: Alabama 178-9 when leading at half under Saban |
-| Possession | dominated TOP (60%+ of clock) | CFBD team box stats. **floor: ~2004** (needs a key check) |
+| Score state | leading/trailing at half, by any/3+/7+/10+/14+ (param) | SHIPPED 2026-09-27. CFBD /games line scores, floor 2001 (solid 2003). Anchor stat: Alabama 178-9 when leading at half under Saban |
+| Possession | won the clock (>50%) / dominated the clock (60%+) | SHIPPED 2026-09-27. CFBD /games/teams possessionTime, floor 2004 |
 | Kickoff | night game (6pm+ local) | **floor: 2002**, solid from 2014. Board shows "within available data (2002+)" |
 
 Cut from v1 after research: TV network (coverage unverified before the 2010s), weather
@@ -215,3 +215,21 @@ streaks) so crawlers see a real leaderboard.
    "dominated TOP" is spec'd as 60%+ of clock (36+ minutes). A softer "won the TOP
    battle" (any majority) would fire on most games and make near-degenerate streaks,
    so I went with dominance. Fine?
+
+## Crowns (shipped 2026-09-27)
+
+A second tab: every streak a team solely leads. The full parameterless space
+(34 chips, 39,138 definitions, 78,276 with direction) is mined client-side in
+~4s on first open (chunked so the tab stays responsive; per-chip packed
+bitmasks, AND per definition, one backward walk). A crown = sole longest
+active streak under a definition-direction, floors length >= 4 and field >= 10
+teams. Definitions producing the identical streak (same last game + length)
+collapse to one crown named by the fewest-chip definition; measured collision
+rate 2.3 labels per crown, 52% have exactly one label, worst cases are
+Army-Navy style where the collapse is exactly right. Sorted simplest-claim
+first (chips asc, then length desc) because skip-gap streaks lengthen as chips
+stack, so length-first ranking rewards chip-stuffed definitions. Losing
+streaks render as a separate "curses" list. Deep link: ?view=crowns&team=id.
+Future axis noted: coach-carried streaks across schools (DeBoer 4-0 vs top-10
+on the road spans Washington + Alabama) need the coach as streak-holder, not
+the team; out of scope for the team boards.

@@ -126,6 +126,15 @@ for (const l of linesCfbd) {
   for (const d of [ep - 1, ep, ep + 1]) lineBy.set(`${l.home}|${l.away}|${d}`, l.homeSpread);
 }
 
+// halftime + possession join map (data/build/boxes.json; 2001+/2004+)
+const boxBy = new Map();
+for (const b of load('boxes.json')) {
+  for (const d of [b.ep - 1, b.ep, b.ep + 1]) {
+    const k = `${b.home}|${b.away}|${d}`;
+    if (!boxBy.has(k) || d === b.ep) boxBy.set(k, b);
+  }
+}
+
 // schedules join map (2002-2013 enrichment of the repole spine)
 const schedBy = new Map();
 for (const r of sched) {
@@ -172,7 +181,7 @@ function teamIdx(id, rawName) {
   return i;
 }
 
-const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [] };
+const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [], hf: [], af: [], hp: [], ap: [] };
 // venue state: campus games take the home team's state; pre-2014 neutrals
 // take the state code off Repole's "@ City ST" tag; 2014+ neutrals unknown.
 const states = [''];
@@ -213,6 +222,12 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
     if (m) st = m[1];
   }
   cols.vs.push(venueStateIdx(st));
+  // halftime points and possession seconds; -1 = unknown
+  const box = boxBy.get(`${home}|${away}|${ep}`);
+  cols.hf.push(box?.h1h ?? -1);
+  cols.af.push(box?.h1a ?? -1);
+  cols.hp.push(box?.tph ?? -1);
+  cols.ap.push(box?.tpa ?? -1);
 }
 
 // 1978-2013 from repole, enriched from schedules 2002+
@@ -402,7 +417,9 @@ fs.writeFileSync(path.join(ROOT, 'data', 'payload-base.json'), JSON.stringify(pa
 // ---------- report ----------
 const n = cols.se.length;
 const lined = cols.sp.filter((s) => s !== 9999).length;
-console.log(`payload-base: ${n} games 1978-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.fbs).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%)`);
+const halved = cols.hf.filter((v) => v >= 0).length;
+const clocked = cols.hp.filter((v) => v >= 0).length;
+console.log(`payload-base: ${n} games 1978-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.fbs).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%), ${halved} with halftime, ${clocked} with possession`);
 console.log(`2002-2013 schedule join: ${joined0213}/${total0213} (${((joined0213 / total0213) * 100).toFixed(1)}%)`);
 console.log(`size: ${(fs.statSync(path.join(ROOT, 'data', 'payload-base.json')).size / 1e6).toFixed(2)} MB`);
 if (confMisses.size) {

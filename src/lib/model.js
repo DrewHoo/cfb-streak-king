@@ -105,6 +105,12 @@ for (let i = 0; i < N; i++) {
       rv: g.rv[i],
       vst: P.states[g.vs[i]] || null,
       month: monthOf(g.ep[i]),
+      // halftime margin from our side (null unknown; 2001+)
+      h1: g.hf[i] >= 0 ? (home ? g.hf[i] - g.af[i] : g.af[i] - g.hf[i]) : null,
+      // possession share from our side (null unknown; 2004+)
+      pos: g.hp[i] >= 0 && g.hp[i] + g.ap[i] > 0
+        ? (home ? g.hp[i] : g.ap[i]) / (g.hp[i] + g.ap[i])
+        : null,
     });
   }
 }
@@ -219,6 +225,10 @@ export const CHIPS = [
   { key: 'afterloss', label: 'after a loss', group: 'context', x: true, test: (x) => x.prevR === 'L', pre: null },
   { key: 'afterwin', label: 'after a win', group: 'context', x: true, test: (x) => x.prevR === 'W', pre: null },
   { key: 'afterbye', label: 'after a bye', group: 'context', test: (x) => x.rest != null && x.rest >= 13, pre: null },
+  { key: 'leadhalf', label: 'leading at half…', group: 'half', x: true, param: 'hmargin', test: (x, p) => x.h1 != null && x.h1 >= p, pre: null, floor: 2001 },
+  { key: 'trailhalf', label: 'trailing at half…', group: 'half', x: true, param: 'hmargin', test: (x, p) => x.h1 != null && x.h1 <= -p, pre: null, floor: 2001 },
+  { key: 'wonpos', label: 'won the clock', group: 'possession', x: true, test: (x) => x.pos != null && x.pos > 0.5, pre: null, floor: 2004 },
+  { key: 'dompos', label: 'dominated the clock (60%+)', group: 'possession', x: true, test: (x) => x.pos != null && x.pos >= 0.6, pre: null, floor: 2004 },
   { key: 'onescore', label: 'one-score game', group: 'shape', x: true, test: (x) => x.margin <= 8, pre: null },
   // bounds are one standard deviation from the all-time mean total (51.0, σ 18.1): ~15% of games in each tail
   { key: 'shootout', label: 'shootout (70+ pts)', group: 'shape', x: true, test: (x) => x.total >= 70, pre: null },

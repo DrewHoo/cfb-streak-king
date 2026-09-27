@@ -1,0 +1,144 @@
+// Mine "streaks this team leads": every ≤4-chip subset of the parameterless
+// catalog (x-exclusivity honored) × both directions, evaluated over packed
+// per-chip bitmasks. The whole space is ~30k definitions and mines in well
+// under a second, so this runs lazily in the client on first open.
+//
+// A crown = a definition-direction whose sole longest active streak belongs
+// to this team. Definitions that produce the identical streak (same last
+// game, same length) collapse to one crown named by the fewest-chip
+// definition; `also` counts the collapsed labels. Floors: length ≥ 4 and a
+// field of ≥ 10 teams holding any streak under the definition.
+
+import { CHIPS, teams, fbsNow, gamesOf } from './model.js';
+
+export const LEN_FLOOR = 4;
+export const FIELD_FLOOR = 10;
+
+const NP = CHIPS.filter((c) => !c.param);
+
+let cache = null;
+let mining = null;
+
+async function mine() {
+  const T = [...fbsNow];
+  const data = T.map((ti) => {
+    const gs = gamesOf(ti);
+    const ownState = teams[ti].st;
+    const n = gs.length;
+    const words = Math.ceil(n / 32) || 1;
+    const masks = NP.map((c) => {
+      const m = new Uint32Array(words);
+      for (let i = 0; i < n; i++) if (c.test(gs[i], undefined, ownState)) m[i >> 5] |= 1 << (i & 31);
+      return m;
+    });
+    return { ti, gs, n, words, masks, r: gs.map((x) => x.r) };
+  });
+
+  function walk(td, q) {
+    let dir = null;
+    let len = 0;
+    let startIdx = -1;
+    let lastIdx = -1;
+    for (let w = td.words - 1; w >= 0; w--) {
+      if (!q[w]) continue;
+      for (let b = 31; b >= 0; b--) {
+        if (!(q[w] & (1 << b))) continue;
+        const i = (w << 5) | b;
+        if (i >= td.n) continue;
+        const r = td.r[i];
+        if (dir === null) { dir = r; len = 1; lastIdx = i; startIdx = i; }
+        else if (r === dir) { len++; startIdx = i; }
+        else return { dir, len, atEdge: false, lastIdx, startIdx };
+      }
+    }
+    return dir === null ? null : { dir, len, atEdge: true, lastIdx, startIdx };
+  }
+
+  const subsets = [];
+  (function rec(start, chosen) {
+    subsets.push(chosen);
+    if (chosen.length === 4) return;
+    for (let i = start; i < NP.length; i++) {
+      const c = NP[i];
+      if (c.x && chosen.some((j) => NP[j].x && NP[j].group === c.group)) continue;
+      rec(i + 1, [...chosen, i]);
+    }
+  })(0, []);
+
+  const perTeam = new Map(T.map((ti) => [ti, new Map()])); // dedupe key -> crown
+  const q = data.map((td) => new Uint32Array(td.words));
+  const res = new Array(T.length);
+  let done = 0;
+  for (const def of subsets) {
+    // yield to the main thread so the tab stays responsive while mining
+    if (++done % 1500 === 0) await new Promise((r) => setTimeout(r, 0));
+    for (let t = 0; t < T.length; t++) {
+      const td = data[t];
+      const qb = q[t];
+      if (def.length === 0) qb.fill(0xffffffff);
+      else {
+        qb.set(td.masks[def[0]]);
+        for (let d = 1; d < def.length; d++) {
+          const md = td.masks[def[d]];
+          for (let w = 0; w < td.words; w++) qb[w] &= md[w];
+        }
+      }
+      res[t] = walk(td, qb);
+    }
+    for (const dir of ['W', 'L']) {
+      let best = 0;
+      let leader = -1;
+      let leaders = 0;
+      let field = 0;
+      for (let t = 0; t < T.length; t++) {
+        const s = res[t];
+        if (!s || s.dir !== dir || s.len === 0) continue;
+        field++;
+        if (s.len > best) { best = s.len; leader = t; leaders = 1; }
+        else if (s.len === best) leaders++;
+      }
+      if (leaders !== 1 || leader < 0) continue;
+      const s = res[leader];
+      if (s.len < LEN_FLOOR || field < FIELD_FLOOR) continue;
+      const key = dir + '|' + s.lastIdx + '|' + s.len;
+      const held = perTeam.get(T[leader]);
+      const prev = held.get(key);
+      if (!prev) {
+        held.set(key, {
+          chips: def.map((i) => NP[i].key),
+          dir, len: s.len, atEdge: s.atEdge, field,
+          startSe: data[leader].gs[s.startIdx]?.se,
+          also: 0,
+        });
+      } else {
+        prev.also++;
+        if (def.length < prev.chips.length || (def.length === prev.chips.length && field > prev.field)) {
+          prev.chips = def.map((i) => NP[i].key);
+          prev.field = Math.max(prev.field, field);
+        }
+      }
+    }
+  }
+
+  cache = new Map();
+  for (const [ti, held] of perTeam) {
+    const list = [...held.values()];
+    // simplest claim first: skip-gap streaks lengthen as chips stack, so
+    // sorting by length rewards chip-stuffed definitions over clean ones
+    list.sort((a, b) => a.chips.length - b.chips.length || b.len - a.len || b.field - a.field);
+    cache.set(ti, list);
+  }
+  return cache;
+}
+
+export function mineAll() {
+  if (cache) return Promise.resolve(cache);
+  mining ??= mine();
+  return mining;
+}
+
+export const isMined = () => !!cache;
+
+export function crownsFor(ti) {
+  return cache?.get(ti) ?? [];
+}

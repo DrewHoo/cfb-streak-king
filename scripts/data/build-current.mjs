@@ -147,6 +147,32 @@ async function cfbd(pathq, cacheFile) {
   }
 }
 const linesRaw = await cfbd(`/lines?year=${SEASON}`, `cfbd-lines-${SEASON}.json`);
+const gamesRaw26 = await cfbd(`/games?year=${SEASON}`, `cfbd-games-${SEASON}.json`);
+let statsRaw26 = null;
+{
+  const f = path.join(ROOT, 'data', 'raw', `cfbd-teamstats-${SEASON}.json`);
+  if (CACHE) {
+    const t = readIfExists(f);
+    statsRaw26 = t ? JSON.parse(t) : null;
+  } else if (CFBD_KEY) {
+    try {
+      const all = [];
+      for (let w = 1; w <= 16; w++) {
+        const res = await fetch(`https://api.collegefootballdata.com/games/teams?year=${SEASON}&week=${w}`, {
+          headers: { Authorization: `Bearer ${CFBD_KEY}` },
+        });
+        if (!res.ok) throw new Error(`http ${res.status}`);
+        const rows = await res.json();
+        if (!rows.length && w >= 2) break;
+        all.push(...rows);
+      }
+      statsRaw26 = all;
+      fs.writeFileSync(f, JSON.stringify(all));
+    } catch (e) {
+      console.error(`cfbd teamstats failed: ${e.message} (continuing without)`);
+    }
+  }
+}
 let coachesRaw = await cfbd(`/coaches?year=${SEASON}`, `cfbd-coaches-${SEASON}.json`);
 if (!coachesRaw && CACHE) {
   const full = readIfExists(path.join(ROOT, 'data', 'raw', 'cfbd-coaches.json'));
@@ -156,6 +182,37 @@ const median = (a) => {
   const s = [...a].sort((x, y) => x - y);
   return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
 };
+// halftime + possession for the running season
+const mmss = (s) => {
+  const m = /^(\d+):(\d\d)$/.exec(s ?? '');
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+const box26ById = new Map();
+const box26 = new Map();
+for (const g of gamesRaw26 ?? []) {
+  if (!g.completed || !g.startDate) continue;
+  const h = canon(g.homeTeam, 'cfbd-games') ?? `x:${slug(g.homeTeam)}`;
+  const a = canon(g.awayTeam, 'cfbd-games') ?? `x:${slug(g.awayTeam)}`;
+  const row = {};
+  if (g.homeLineScores?.length >= 2 && g.awayLineScores?.length >= 2) {
+    row.h1h = (g.homeLineScores[0] ?? 0) + (g.homeLineScores[1] ?? 0);
+    row.h1a = (g.awayLineScores[0] ?? 0) + (g.awayLineScores[1] ?? 0);
+  }
+  box26ById.set(g.id, row);
+  const ep = epochDay(String(g.startDate).slice(0, 10));
+  for (const d of [ep - 1, ep, ep + 1]) box26.set(`${h}|${a}|${d}`, row);
+}
+for (const r of statsRaw26 ?? []) {
+  const row = box26ById.get(r.id);
+  if (!row) continue;
+  for (const tm of r.teams ?? []) {
+    const sec = mmss(tm.stats?.find((s) => s.category === 'possessionTime')?.stat);
+    if (sec == null) continue;
+    if (tm.homeAway === 'home') row.tph = sec;
+    else row.tpa = sec;
+  }
+}
+
 const lineByKey = new Map();
 for (const l of linesRaw ?? []) {
   const spreads = (l.lines ?? []).map((x) => Number(x.spread)).filter(Number.isFinite);
@@ -208,6 +265,11 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     cols.hh.push(hh);
     cols.rv.push(rv === undefined ? 0 : rv + 1);
     cols.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));
+    const bx = box26.get(`${r.home}|${r.away}|${ep}`);
+    cols.hf.push(bx?.h1h ?? -1);
+    cols.af.push(bx?.h1a ?? -1);
+    cols.hp.push(bx?.tph ?? -1);
+    cols.ap.push(bx?.tpa ?? -1);
     added++;
   } else if (!r.completed) {
     upcoming.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));

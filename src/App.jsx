@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   P, teams, confs, CHIPS, chipByKey, board, thisWeek,
-  gamesOf, fmtDate, todayEpochDay,
+  gamesOf, fmtDate, todayEpochDay, fbsNow,
 } from './lib/model.js';
+import { crownsFor, mineAll, isMined, LEN_FLOOR, FIELD_FLOOR } from './lib/crowns.js';
 import { readParam, writeParam } from './urlState.js';
 
 const BASE = import.meta.env.BASE_URL;
@@ -20,14 +21,18 @@ const PRESETS = [
   { name: 'Bowl Curse', chips: [{ key: 'postseason' }], dir: 'L' },
 ];
 
-const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'kickoff'];
+const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff'];
 const MONTHS = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
+const HMARGINS = [[1, 'by any'], [3, 'by 3+'], [7, 'by 7+'], [10, 'by 10+'], [14, 'by 14+']];
 const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
 const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent'];
 
 const fbsEver = teams
   .map((t, i) => ({ t, i }))
   .filter(({ t }) => t.fbs)
+  .sort((a, b) => a.t.name.localeCompare(b.t.name));
+const fbsCurrent = [...fbsNow]
+  .map((i) => ({ t: teams[i], i }))
   .sort((a, b) => a.t.name.localeCompare(b.t.name));
 
 const builtEp = Math.floor(Date.parse(P.builtAt) / 86400000);
@@ -59,7 +64,7 @@ function decodeChips(s) {
     const c = chipByKey.get(key);
     if (!c) continue;
     let param = rest.length ? rest.join(':') : undefined;
-    if (c.param === 'month') param = Number(param);
+    if (c.param === 'month' || c.param === 'hmargin') param = Number(param);
     if (c.param === 'team') param = teams.findIndex((t) => t.id === param);
     if (c.param && (param == null || param === -1 || Number.isNaN(param))) continue;
     out.push(c.param ? { key, param } : { key });
@@ -77,6 +82,8 @@ function chipPhrase({ key, param }) {
   if (key === 'state') return `in ${param}`;
   if (key === 'vsconf') return `vs the ${param}`;
   if (key === 'month') return `in ${MONTHS.find(([n]) => n === param)?.[1] ?? param}`;
+  if (key === 'leadhalf') return param > 1 ? `leading at half by ${param}+` : 'leading at half';
+  if (key === 'trailhalf') return param > 1 ? `trailing at half by ${param}+` : 'trailing at half';
   return c.label;
 }
 
@@ -111,6 +118,8 @@ const DESKTOP_CAP = 24;
 const GROUP_NOTES = {
   betting: 'Closing lines cover 1978–2025 plus this season. Games without a line don’t qualify.',
   coach: 'Head-coach tenures from CollegeFootballData, with mid-season changes resolved to the exact game. Games against teams without coach data (mostly FCS) don’t qualify under the vs chip.',
+  half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
+  possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
 };
 
@@ -205,6 +214,9 @@ export default function App() {
   const [showAll, setShowAll] = useState(false);
   const [noteOpen, setNoteOpen] = useState(null);
   const [expanded, setExpanded] = useState(null);
+  const [view, setView] = useState('board');
+  const [crownTi, setCrownTi] = useState(null);
+  const [crownsAll, setCrownsAll] = useState(false);
   const [copied, setCopied] = useState(false);
   const [favs, setFavs] = useState([]);
   const [hydrated, setHydrated] = useState(false);
@@ -218,6 +230,12 @@ export default function App() {
     const d = readParam('dir');
     if (d === 'L') setDir('L');
     setFavs(readFavs());
+    if (readParam('view') === 'crowns') {
+      const tid = readParam('team');
+      const ti = teams.findIndex((t) => t.id === tid);
+      setCrownTi(ti >= 0 && fbsNow.has(ti) ? ti : null);
+      setView('crowns');
+    }
     setHydrated(true);
   }, []);
 
@@ -228,6 +246,12 @@ export default function App() {
     writeParam('sort', null); // scrub the retired sort param from old links
     track('definition', { chips: encodeChips(active) || 'overall', dir });
   }, [active, dir, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    writeParam('view', view === 'board' ? null : view);
+    writeParam('team', view === 'crowns' && crownTi != null ? teams[crownTi].id : null);
+  }, [view, crownTi, hydrated]);
 
   const rows = useMemo(() => board(active, dir, 'games', todayEp), [active, dir, todayEp]);
   const week = useMemo(() => thisWeek(active, dir, todayEp), [active, dir, todayEp]);
@@ -251,7 +275,7 @@ export default function App() {
       const c = chipByKey.get(key);
       const withoutGroupX = c.x ? cur.filter((a) => !(chipByKey.get(a.key).x && chipByKey.get(a.key).group === c.group)) : cur;
       if (withoutGroupX.length >= 4) return cur;
-      const def = c.param === 'month' ? 11 : c.param === 'conf' ? 'SEC' : c.param === 'state' ? 'TX' : c.param === 'team'
+      const def = c.param === 'month' ? 11 : c.param === 'conf' ? 'SEC' : c.param === 'state' ? 'TX' : c.param === 'hmargin' ? 1 : c.param === 'team'
         ? teams.findIndex((t) => t.id === 'alabama') : undefined;
       return [...withoutGroupX, c.param ? { key, param: def } : { key }];
     });
@@ -293,6 +317,30 @@ export default function App() {
       writeFavs(next);
       return next;
     });
+  }
+  const [mined, setMined] = useState(false);
+  useEffect(() => {
+    if (view !== 'crowns' || mined) return;
+    if (isMined()) { setMined(true); return; }
+    let live = true;
+    mineAll().then(() => { if (live) setMined(true); });
+    return () => { live = false; };
+  }, [view, mined]);
+  const crowns = useMemo(
+    () => (view === 'crowns' && mined && crownTi != null ? crownsFor(crownTi) : null),
+    [view, mined, crownTi],
+  );
+  function openCrowns() {
+    setCrownTi((cur) => cur ?? rows[0]?.ti ?? fbsCurrent[0].i);
+    setView('crowns');
+    track('crowns view', {});
+  }
+  function applyCrown(cr) {
+    setActive(cr.chips.map((key) => ({ key })));
+    setDir(cr.dir);
+    setView('board');
+    setExpanded(crownTi);
+    track('crown apply', { chips: cr.chips.join(',') || 'overall', dir: cr.dir, len: cr.len });
   }
   function share() {
     try {
@@ -362,6 +410,17 @@ export default function App() {
                   aria-label="month"
                 >
                   {MONTHS.map(([n, name]) => (
+                    <option key={n} value={n}>{name}</option>
+                  ))}
+                </select>
+              )}
+              {c.param === 'hmargin' && (
+                <select
+                  value={a.param}
+                  onChange={(e) => setParam(a.key, Number(e.target.value))}
+                  aria-label="halftime margin"
+                >
+                  {HMARGINS.map(([n, name]) => (
                     <option key={n} value={n}>{name}</option>
                   ))}
                 </select>
@@ -459,7 +518,53 @@ export default function App() {
         </div>
       )}
 
-      <h2>The Board</h2>
+      <div className="tabs">
+        <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>The Board</button>
+        <button className={view === 'crowns' ? 'on' : ''} onClick={openCrowns}>Crowns</button>
+      </div>
+
+      {view === 'crowns' && crownTi != null && (
+        <div className="crowns">
+          <div className="crowns-head">
+            {teams[crownTi].espn && <img className="colteam" src={`${BASE}logos-color/${teams[crownTi].espn}.png`} alt="" />}
+            <select value={crownTi} onChange={(e) => { setCrownTi(Number(e.target.value)); setCrownsAll(false); }} aria-label="team">
+              {fbsCurrent.map(({ t, i }) => <option key={t.id} value={i}>{t.name}</option>)}
+            </select>
+            <span className="crowns-note">
+              active streaks this team solely leads · length ≥ {LEN_FLOOR}, field ≥ {FIELD_FLOOR} teams
+            </span>
+          </div>
+          {crowns === null && (
+            <p className="empty">Mining all 78,276 boards…</p>
+          )}
+          {crowns !== null && [['W', 'crowns'], ['L', 'curses']].map(([d, label]) => {
+            const list = (crowns ?? []).filter((c) => c.dir === d);
+            const shown = crownsAll ? list : list.slice(0, 12);
+            return (
+              <div key={d}>
+                <h3 className={'crown-h' + (d === 'L' ? ' l' : '')}>{label} · {list.length}</h3>
+                {list.length === 0 && <p className="empty">None under the current floors.</p>}
+                {shown.map((cr) => (
+                  <button className="crown" key={cr.dir + cr.chips.join()} onClick={() => applyCrown(cr)}>
+                    <span className={'crown-len' + (d === 'L' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
+                    <span className="crown-txt">
+                      {cr.chips.length ? cr.chips.map((k) => chipPhrase({ key: k })).join(' · ') : 'all games'}
+                    </span>
+                    <span className="crown-meta">
+                      field of {cr.field}{cr.startSe ? ` · since ${cr.startSe}` : ''}
+                    </span>
+                  </button>
+                ))}
+                {!crownsAll && list.length > 12 && (
+                  <div className="showmore"><button onClick={() => setCrownsAll(true)}>show all {list.length}</button></div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {view === 'board' && <>
       {isMobile && rows.some((r) => r.ti === expanded) && (
         <ColumnExpanded
           row={rows.find((r) => r.ti === expanded)}
@@ -511,6 +616,8 @@ export default function App() {
         </div>
       )}
 
+      </>}
+
       <h2>Method</h2>
       <div className="notes">
         <ul>
@@ -540,13 +647,13 @@ export default function App() {
           </li>
           <li>
             Head-coach tenures come from CollegeFootballData; mid-season changes are placed at the exact game
-            by matching each coach's record against the result sequence. Not here yet: halftime and
-            time-of-possession chips.
+            by matching each coach's record against the result sequence. Halftime scores (2001+) and time of
+            possession (2004+) come from CFBD box data.
           </li>
           <li>
-            The design space: the 32 parameterless chips compose into 29,820 distinct definitions — 59,640
-            counting direction. The parameterized chips (opponent, conference, state, month) push that past
-            15 million.
+            The design space: the 34 parameterless chips compose into 39,138 distinct definitions — 78,276
+            counting direction. The parameterized chips (opponent, conference, state, month, halftime margin)
+            push that past 24 million.
           </li>
         </ul>
       </div>
