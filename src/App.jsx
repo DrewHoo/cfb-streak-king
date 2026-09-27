@@ -231,6 +231,14 @@ export default function App() {
 
   const rows = useMemo(() => board(active, dir, 'games', todayEp), [active, dir, todayEp]);
   const week = useMemo(() => thisWeek(active, dir, todayEp), [active, dir, todayEp]);
+  // current leader of each saved streak, for the little crest on its entry
+  const favLeaders = useMemo(
+    () => favs.map((f) => {
+      const b = board(decodeChips(f.c), f.dir, 'games', todayEp);
+      return b.length ? teams[b[0].ti] : null;
+    }),
+    [favs, todayEp],
+  );
 
   const isOn = (key) => active.some((a) => a.key === key);
   const full = active.length >= 4;
@@ -400,9 +408,14 @@ export default function App() {
       {favs.length > 0 && (
         <div className="favs">
           <span className="favs-lead">your streaks</span>
-          {favs.map((f) => (
+          {favs.map((f, i) => (
             <span className="fav" key={(f.c || 'all') + f.dir}>
-              <button className="fav-apply" onClick={() => applyFav(f)}>{f.name}</button>
+              <button className="fav-apply" onClick={() => applyFav(f)}>
+                {favLeaders[i]?.espn && (
+                  <img className="fav-ico" src={`${BASE}logos-color/${favLeaders[i].espn}.png`} alt="" loading="lazy" />
+                )}
+                {f.name}
+              </button>
               <button className="fav-x" onClick={() => removeFav(f)} aria-label={`remove ${f.name}`}>×</button>
             </span>
           ))}
@@ -529,6 +542,11 @@ export default function App() {
             Head-coach tenures come from CollegeFootballData; mid-season changes are placed at the exact game
             by matching each coach's record against the result sequence. Not here yet: halftime and
             time-of-possession chips.
+          </li>
+          <li>
+            The design space: the 32 parameterless chips compose into 29,820 distinct definitions — 59,640
+            counting direction. The parameterized chips (opponent, conference, state, month) push that past
+            15 million.
           </li>
         </ul>
       </div>

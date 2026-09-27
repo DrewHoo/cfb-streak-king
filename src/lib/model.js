@@ -220,8 +220,9 @@ export const CHIPS = [
   { key: 'afterwin', label: 'after a win', group: 'context', x: true, test: (x) => x.prevR === 'W', pre: null },
   { key: 'afterbye', label: 'after a bye', group: 'context', test: (x) => x.rest != null && x.rest >= 13, pre: null },
   { key: 'onescore', label: 'one-score game', group: 'shape', x: true, test: (x) => x.margin <= 8, pre: null },
-  { key: 'shootout', label: 'shootout (60+ pts)', group: 'shape', x: true, test: (x) => x.total >= 60, pre: null },
-  { key: 'rockfight', label: 'rock fight (< 40 pts)', group: 'shape', x: true, test: (x) => x.total < 40, pre: null },
+  // bounds are one standard deviation from the all-time mean total (51.0, σ 18.1): ~15% of games in each tail
+  { key: 'shootout', label: 'shootout (70+ pts)', group: 'shape', x: true, test: (x) => x.total >= 70, pre: null },
+  { key: 'struggle', label: 'defensive struggle (≤ 33)', group: 'shape', x: true, test: (x) => x.total <= 33, pre: null },
   { key: 'night', label: 'night game (6pm+)', group: 'kickoff', test: (x) => x.hh !== 31 && x.hh >= 18, pre: (x) => x.hh !== 31 && x.hh >= 18, floor: 2002 },
 ];
 export const chipByKey = new Map(CHIPS.map((c) => [c.key, c]));

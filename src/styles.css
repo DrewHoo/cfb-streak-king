@@ -151,6 +151,7 @@ h1 {
   background: transparent; border: none; color: var(--cream); cursor: pointer;
   text-decoration: underline dotted; text-underline-offset: 3px; padding: 2px 2px 2px 4px;
 }
+.fav-ico { width: 13px; height: 13px; vertical-align: -2px; margin-right: 5px; }
 .fav-apply:hover { color: var(--rust); }
 .fav-x {
   background: transparent; border: none; cursor: pointer;
