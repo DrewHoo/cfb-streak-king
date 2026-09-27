@@ -3,7 +3,7 @@ import {
   P, teams, confs, CHIPS, chipByKey, board, thisWeek,
   gamesOf, fmtDate, todayEpochDay, fbsNow,
 } from './lib/model.js';
-import { crownsFor, mineAll, isMined, LEN_FLOOR, FIELD_FLOOR } from './lib/crowns.js';
+import { crownsFor, mineAll, isMined, LEN_FLOOR, FIELD_FLOOR, NP_COUNT, DEF_COUNT } from './lib/crowns.js';
 import { readParam, writeParam } from './urlState.js';
 
 const BASE = import.meta.env.BASE_URL;
@@ -121,6 +121,7 @@ const FLOOR_WORDS = {
   trailhalf: 'halftime-score',
   wonpos: 'possession',
   dompos: 'possession',
+  ot: 'overtime',
 };
 
 // data-coverage notes, surfaced as a popover on the picker group label
@@ -129,6 +130,7 @@ const GROUP_NOTES = {
   coach: 'Head-coach tenures from CollegeFootballData, with mid-season changes resolved to the exact game. Games against teams without coach data (mostly FCS) don’t qualify under the vs chip.',
   half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
   possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
+  shape: 'Overtime comes from quarter-by-quarter line scores, known from 2001 and solid from 2002. FBS overtime began in 1996, but no source here marks 1996–2000 overtime games, so they can’t qualify.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
 };
 
@@ -418,7 +420,7 @@ export default function App() {
                   : 'active losing streaks nobody else can match'} · {LEN_FLOOR}+ games · at least {FIELD_FLOOR} teams holding one
               </span>
             </div>
-            {crowns === null && <p className="empty">Mining all 78,276 boards…</p>}
+            {crowns === null && <p className="empty">Mining all {(DEF_COUNT * 2).toLocaleString('en-US')} boards…</p>}
             {crowns !== null && (
               <div>
                 {list.length === 0 && <p className="empty">None under the current floors.</p>}
@@ -692,12 +694,12 @@ export default function App() {
           </li>
           <li>
             Head-coach tenures come from CollegeFootballData; mid-season changes are placed at the exact game
-            by matching each coach's record against the result sequence. Halftime scores (2001+) and time of
-            possession (2004+) come from CFBD box data.
+            by matching each coach's record against the result sequence. Halftime scores and overtime (2001+) and
+            time of possession (2004+) come from CFBD box data.
           </li>
           <li>
-            The design space: the 34 parameterless chips compose into 39,138 distinct definitions — 78,276
-            counting direction. The parameterized chips (opponent, conference, state, month, halftime margin)
+            The design space: the {NP_COUNT} parameterless chips compose into {DEF_COUNT.toLocaleString('en-US')} distinct
+            definitions — {(DEF_COUNT * 2).toLocaleString('en-US')} counting direction. The parameterized chips (opponent, conference, state, month, halftime margin)
             push that past 24 million.
           </li>
         </ul>

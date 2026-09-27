@@ -181,7 +181,7 @@ function teamIdx(id, rawName) {
   return i;
 }
 
-const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [], hf: [], af: [], hp: [], ap: [] };
+const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [], hf: [], af: [], hp: [], ap: [], ot: [] };
 // venue state: campus games take the home team's state; pre-2014 neutrals
 // take the state code off Repole's "@ City ST" tag; 2014+ neutrals unknown.
 const states = [''];
@@ -228,6 +228,7 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.af.push(box?.h1a ?? -1);
   cols.hp.push(box?.tph ?? -1);
   cols.ap.push(box?.tpa ?? -1);
+  cols.ot.push(box?.ot ?? -1);
 }
 
 // 1978-2013 from repole, enriched from schedules 2002+

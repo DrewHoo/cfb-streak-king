@@ -1,7 +1,8 @@
 // CFBD box pulls -> data/build/boxes.json rows
-//   { home, away, ep, h1h, h1a, tph, tpa }
-// h1h/h1a: halftime points (sum of the first two line scores). tph/tpa:
-// possession seconds. Missing fields are simply absent; build-payload writes
+//   { home, away, ep, h1h, h1a, ot, tph, tpa }
+// h1h/h1a: halftime points (sum of the first two line scores). ot: overtime
+// periods (line scores past the fourth; 0 = regulation). tph/tpa: possession
+// seconds. Missing fields are simply absent; build-payload writes
 // -1 sentinels. Joined to the spine by canon ids + epoch day (±1 for TZ).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -29,6 +30,9 @@ for (const f of fs.readdirSync(GAMES)) {
       row.h1a = (g.awayLineScores[0] ?? 0) + (g.awayLineScores[1] ?? 0);
       half++;
     }
+    if (g.homeLineScores?.length >= 4 && g.awayLineScores?.length >= 4) {
+      row.ot = Math.max(g.homeLineScores.length, g.awayLineScores.length) - 4;
+    }
     byId.set(g.id, row);
   }
 }
@@ -44,6 +48,9 @@ if (fs.existsSync(postF)) {
       row.h1h = (g.homeLineScores[0] ?? 0) + (g.homeLineScores[1] ?? 0);
       row.h1a = (g.awayLineScores[0] ?? 0) + (g.awayLineScores[1] ?? 0);
       half++;
+    }
+    if (g.homeLineScores?.length >= 4 && g.awayLineScores?.length >= 4) {
+      row.ot = Math.max(g.homeLineScores.length, g.awayLineScores.length) - 4;
     }
     byId.set(g.id, row);
   }
@@ -65,10 +72,11 @@ for (const f of fs.existsSync(STATS) ? fs.readdirSync(STATS) : []) {
   }
 }
 
-const rows = [...byId.values()].filter((r) => r.h1h != null || r.tph != null);
+const rows = [...byId.values()].filter((r) => r.h1h != null || r.ot != null || r.tph != null);
 ensureDir(path.join(ROOT, 'data', 'build'));
 fs.writeFileSync(path.join(ROOT, 'data', 'build', 'boxes.json'), JSON.stringify(rows));
 const withHalf = rows.filter((r) => r.h1h != null).length;
 const withTop = rows.filter((r) => r.tph != null && r.tpa != null).length;
-console.log(`boxes: ${rows.length} rows (${withHalf} with halftime, ${withTop} with possession), ${noGame} teamstat rows without a game`);
+const inOt = rows.filter((r) => r.ot > 0).length;
+console.log(`boxes: ${rows.length} rows (${withHalf} with halftime, ${inOt} overtime, ${withTop} with possession), ${noGame} teamstat rows without a game`);
 reportUnmatched('parse-boxes');

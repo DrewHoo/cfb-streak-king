@@ -1,6 +1,6 @@
 // Mine "streaks this team leads": every ≤4-chip subset of the parameterless
 // catalog (x-exclusivity honored) × both directions, evaluated over packed
-// per-chip bitmasks. The whole space is ~30k definitions and mines in well
+// per-chip bitmasks. The whole space is ~45k definitions and mines in well
 // under a second, so this runs lazily in the client on first open.
 //
 // A crown = a definition-direction whose sole longest active streak belongs
@@ -15,6 +15,19 @@ export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
 
 const NP = CHIPS.filter((c) => !c.param);
+
+// how many definitions mine() walks (the empty one included), for the page copy
+export const NP_COUNT = NP.length;
+export const DEF_COUNT = (function count(start, chosen) {
+  let n = 1;
+  if (chosen.length === 4) return n;
+  for (let i = start; i < NP.length; i++) {
+    const c = NP[i];
+    if (c.x && chosen.some((j) => NP[j].x && NP[j].group === c.group)) continue;
+    n += count(i + 1, [...chosen, i]);
+  }
+  return n;
+})(0, []);
 
 let cache = null;
 let mining = null;
@@ -115,6 +128,9 @@ async function mine() {
         if (def.length < prev.chips.length || (def.length === prev.chips.length && field > prev.field)) {
           prev.chips = def.map((i) => NP[i].key);
           prev.field = Math.max(prev.field, field);
+          // same last game and length doesn't mean the same first game
+          prev.startSe = data[leader].gs[s.startIdx]?.se;
+          prev.atEdge = s.atEdge;
         }
       }
     }

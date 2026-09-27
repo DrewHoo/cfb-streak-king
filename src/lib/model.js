@@ -111,6 +111,8 @@ for (let i = 0; i < N; i++) {
       pos: g.hp[i] >= 0 && g.hp[i] + g.ap[i] > 0
         ? (home ? g.hp[i] : g.ap[i]) / (g.hp[i] + g.ap[i])
         : null,
+      // overtime periods (null unknown; 2001+ line scores)
+      ot: g.ot?.[i] >= 0 ? g.ot[i] : null,
     });
   }
 }
@@ -235,6 +237,8 @@ export const CHIPS = [
   // blowout is not a shootout. struggle keeps the 1σ low bound (~15% tail).
   { key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', x: true, test: (x) => x.total >= 70 && x.margin < 10, pre: null },
   { key: 'struggle', label: 'defensive struggle (≤ 33)', group: 'shape', x: true, test: (x) => x.total <= 33, pre: null },
+  // not exclusive: an overtime game can also be a shootout or a struggle
+  { key: 'ot', label: 'overtime', group: 'shape', test: (x) => x.ot > 0, pre: null, floor: 2001 },
   { key: 'night', label: 'night game (6pm+)', group: 'kickoff', test: (x) => x.hh !== 31 && x.hh >= 18, pre: (x) => x.hh !== 31 && x.hh >= 18, floor: 2002 },
 ];
 export const chipByKey = new Map(CHIPS.map((c) => [c.key, c]));
