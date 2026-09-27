@@ -690,6 +690,22 @@ export default function App() {
         </ul>
       </div>
 
+      <h2>What to read next</h2>
+      <div className="notes">
+        <p>
+          <a href="https://drewhoover.com/hostile-territory/">Hostile Territory</a> — every head
+          coach's true road record against AP top-10 teams since 1990, one chip per game.
+        </p>
+        <p>
+          <a href="https://drewhoover.com/how-many-rings/">How Many Rings?</a> — every person on a
+          national-championship staff since 1990, ranked by rings, each one cited.
+        </p>
+        <p>
+          <a href="https://drewhoover.com/cfb-all-time-records/football">All-time FBS records</a> — all
+          136 programs ranked by total wins, win percentage and bowl record.
+        </p>
+      </div>
+
       <footer>
         <a href="https://drewhoover.com/">drewhoover.com</a> · data rebuilt weekly in season ·{' '}
         <a href="https://github.com/DrewHoo/cfb-streak-king">source & receipts</a>
