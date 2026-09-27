@@ -245,11 +245,12 @@ export default function App() {
     const d = readParam('dir');
     if (d === 'L') setDir('L');
     setFavs(readFavs());
-    if (readParam('view') === 'crowns') {
+    const v = readParam('view');
+    if (v === 'crowns' || v === 'curses') {
       const tid = readParam('team');
       const ti = teams.findIndex((t) => t.id === tid);
       setCrownTi(ti >= 0 && fbsNow.has(ti) ? ti : null);
-      setView('crowns');
+      setView(v);
     }
     setHydrated(true);
   }, []);
@@ -265,7 +266,7 @@ export default function App() {
   useEffect(() => {
     if (!hydrated) return;
     writeParam('view', view === 'board' ? null : view);
-    writeParam('team', view === 'crowns' && crownTi != null ? teams[crownTi].id : null);
+    writeParam('team', view !== 'board' && crownTi != null ? teams[crownTi].id : null);
   }, [view, crownTi, hydrated]);
 
   const rows = useMemo(() => board(active, dir, 'games', todayEp), [active, dir, todayEp]);
@@ -344,22 +345,24 @@ export default function App() {
       return next;
     });
   }
+  const minedView = view === 'crowns' || view === 'curses';
   const [mined, setMined] = useState(false);
   useEffect(() => {
-    if (view !== 'crowns' || mined) return;
+    if (!minedView || mined) return;
     if (isMined()) { setMined(true); return; }
     let live = true;
     mineAll().then(() => { if (live) setMined(true); });
     return () => { live = false; };
-  }, [view, mined]);
+  }, [minedView, mined]);
   const crowns = useMemo(
-    () => (view === 'crowns' && mined && crownTi != null ? crownsFor(crownTi) : null),
-    [view, mined, crownTi],
+    () => (minedView && mined && crownTi != null ? crownsFor(crownTi) : null),
+    [minedView, mined, crownTi],
   );
-  function openCrowns() {
+  function openMined(which) {
     setCrownTi((cur) => cur ?? rows[0]?.ti ?? fbsCurrent[0].i);
-    setView('crowns');
-    track('crowns view', {});
+    setCrownsAll(false);
+    setView(which);
+    track(which + ' view', {});
   }
   function applyCrown(cr) {
     setActive(cr.chips.map((key) => ({ key })));
@@ -546,29 +549,31 @@ export default function App() {
 
       <div className="tabs">
         <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>The Board</button>
-        <button className={view === 'crowns' ? 'on' : ''} onClick={openCrowns}>Crowns</button>
+        <button className={view === 'crowns' ? 'on' : ''} onClick={() => openMined('crowns')}>Crowns</button>
+        <button className={view === 'curses' ? 'on' : ''} onClick={() => openMined('curses')}>Curses</button>
       </div>
 
-      {view === 'crowns' && crownTi != null && (
-        <div className="crowns">
-          <div className="crowns-head">
-            {teams[crownTi].espn && <img className="colteam" src={`${BASE}logos-color/${teams[crownTi].espn}.png`} alt="" />}
-            <select value={crownTi} onChange={(e) => { setCrownTi(Number(e.target.value)); setCrownsAll(false); }} aria-label="team">
-              {fbsCurrent.map(({ t, i }) => <option key={t.id} value={i}>{t.name}</option>)}
-            </select>
-            <span className="crowns-note">
-              active streaks this team solely leads · length ≥ {LEN_FLOOR}, field ≥ {FIELD_FLOOR} teams
-            </span>
-          </div>
-          {crowns === null && (
-            <p className="empty">Mining all 78,276 boards…</p>
-          )}
-          {crowns !== null && [['W', 'crowns'], ['L', 'curses']].map(([d, label]) => {
-            const list = (crowns ?? []).filter((c) => c.dir === d);
-            const shown = crownsAll ? list : list.slice(0, 12);
-            return (
-              <div key={d}>
-                <h3 className={'crown-h' + (d === 'L' ? ' l' : '')}>{label} · {list.length}</h3>
+      {minedView && crownTi != null && (() => {
+        const d = view === 'crowns' ? 'W' : 'L';
+        const list = (crowns ?? []).filter((c) => c.dir === d);
+        const shown = crownsAll ? list : list.slice(0, 12);
+        return (
+          <div className="crowns">
+            <div className="crowns-head">
+              {teams[crownTi].espn && <img className="colteam" src={`${BASE}logos-color/${teams[crownTi].espn}.png`} alt="" />}
+              <select value={crownTi} onChange={(e) => { setCrownTi(Number(e.target.value)); setCrownsAll(false); }} aria-label="team">
+                {fbsCurrent.map(({ t, i }) => <option key={t.id} value={i}>{t.name}</option>)}
+              </select>
+              <span className="crowns-note">
+                {view === 'crowns'
+                  ? 'active winning streaks this team solely leads'
+                  : 'active losing streaks nobody else can match'} · length ≥ {LEN_FLOOR}, field ≥ {FIELD_FLOOR} teams
+              </span>
+            </div>
+            {crowns === null && <p className="empty">Mining all 78,276 boards…</p>}
+            {crowns !== null && (
+              <div>
+                <h3 className={'crown-h' + (d === 'L' ? ' l' : '')}>{list.length} {view}</h3>
                 {list.length === 0 && <p className="empty">None under the current floors.</p>}
                 {shown.map((cr) => (
                   <button className="crown" key={cr.dir + cr.chips.join()} onClick={() => applyCrown(cr)}>
@@ -585,10 +590,10 @@ export default function App() {
                   <div className="showmore"><button onClick={() => setCrownsAll(true)}>show all {list.length}</button></div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </div>
+        );
+      })()}
 
       {view === 'board' && <>
       {isMobile && rows.some((r) => r.ti === expanded) && (
