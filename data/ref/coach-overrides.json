@@ -1,0 +1,22 @@
+{
+  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, and non-contiguous tenures. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment. 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts: Utah 2004 credits the Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure. Boise State 1996: Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, died 12/30; Mason interim from the opener. Georgia State 2016: Miles fired 2016-11-12 after a 2-8 start (ESPN), Lappano interim from 11/19. Tulane 2011-2012: Toledo resigned 2011-10-18 at 2-5, Hutson 0-6 interim from 10/22 — CFBD misfiles that stint under 2012, where Johnson coached all 12. WKU 2018: CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12. Louisville 2018: Petrino fired 2018-11-11 after game 10, Ward interim from 11/17.",
+  "utah|2004": [{ "coach": "Urban Meyer", "startOrd": 0 }],
+  "boise-state|1996": [
+    { "coach": "Tom Mason", "startOrd": 0, "interim": true },
+    { "coach": "Pokey Allen", "start": "1996-11-16" }
+  ],
+  "georgia-state|2016": [
+    { "coach": "Trent Miles", "startOrd": 0 },
+    { "coach": "Tim Lappano", "start": "2016-11-19" }
+  ],
+  "tulane|2011": [
+    { "coach": "Bob Toledo", "startOrd": 0 },
+    { "coach": "Mark Hutson", "start": "2011-10-22" }
+  ],
+  "tulane|2012": [{ "coach": "Curtis Johnson", "startOrd": 0 }],
+  "western-kentucky|2018": [{ "coach": "Mike Sanford Jr.", "startOrd": 0 }],
+  "louisville|2018": [
+    { "coach": "Bobby Petrino", "startOrd": 0 },
+    { "coach": "Lorenzo Ward", "start": "2018-11-17" }
+  ]
+}

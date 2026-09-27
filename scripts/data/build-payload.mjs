@@ -291,6 +291,7 @@ for (const t of teams) {
 // (scripts/lib/coach.mjs). Encoded as t.hc = [[ci, startSe, startOrd, interim]]
 // with ci indexing coachNames/coachIds; ci -1 = unresolved multi-coach season.
 const resultsBySeason = new Map(); // `${ti}|${se}` -> ['W','L',...] in ep order
+const epsBySeason = new Map(); // `${ti}|${se}` -> [epochDay,...] in ep order
 for (let i = 0; i < cols.se.length; i++) {
   const se = cols.se[i];
   const r = cols.hs[i] > cols.as[i] ? 'W' : cols.hs[i] < cols.as[i] ? 'L' : 'T';
@@ -298,9 +299,31 @@ for (let i = 0; i < cols.se.length; i++) {
   for (const [ti, res] of [[cols.hi[i], r], [cols.ai[i], flip]]) {
     const k = `${ti}|${se}`;
     const arr = resultsBySeason.get(k);
-    if (arr) arr.push(res); else resultsBySeason.set(k, [res]);
+    if (arr) { arr.push(res); epsBySeason.get(k).push(cols.ep[i]); }
+    else { resultsBySeason.set(k, [res]); epsBySeason.set(k, [cols.ep[i]]); }
   }
 }
+// Researched rulings for seasons CFBD's rows can't resolve (double-credited
+// co-coached bowls, misattributed rows, non-contiguous tenures). Keyed
+// `${teamId}|${season}`; segments name the coach and the 0-based ordinal of
+// their first game that season. Names resolve against the CFBD coach pool.
+const coachOverrides = loadRef('coach-overrides.json');
+const kByName = new Map(); // name -> Set of cfbd coach ids
+for (const byYear of Object.values(coachSeasonsByTeam)) {
+  for (const rows of Object.values(byYear)) {
+    for (const r of rows) {
+      const set = kByName.get(r.n) ?? new Set();
+      set.add(r.k);
+      kByName.set(r.n, set);
+    }
+  }
+}
+function overrideK(name) {
+  const set = kByName.get(name);
+  if (!set || set.size !== 1) throw new Error(`coach override name '${name}' resolves to ${set?.size ?? 0} CFBD coaches`);
+  return [...set][0];
+}
+
 const coachNames = [];
 const coachIds = [];
 const coachIdxByK = new Map();
@@ -323,11 +346,36 @@ for (const [id, byYear] of Object.entries(coachSeasonsByTeam)) {
     for (const r of rows) nameByK.set(r.k, r.n);
   }
   if (!seasons.size) continue;
+  const resolved = new Map();
+  const forcedInterim = [];
+  for (const [key, segs] of Object.entries(coachOverrides)) {
+    const [oid, oy] = key.split('|');
+    if (oid !== id) continue;
+    resolved.set(Number(oy), segs.map((s) => {
+      const k = overrideK(s.coach);
+      nameByK.set(k, s.coach);
+      // 'start' (the date of the coach's first game) beats a raw ordinal:
+      // it survives games missing from or restored to the spine.
+      let startOrd = s.startOrd ?? 0;
+      if (s.start) {
+        const eps = epsBySeason.get(`${ti}|${oy}`) ?? [];
+        const ord = eps.findIndex((ep) => ep >= epochDay(s.start));
+        if (ord === -1) throw new Error(`coach override ${key}: no game on/after ${s.start}`);
+        startOrd = ord;
+      }
+      if (s.interim !== undefined) forcedInterim.push({ year: Number(oy), startOrd, k, interim: s.interim });
+      return { k, startOrd };
+    }));
+  }
   const res = new Map([...seasons.keys()].map((y) => [y, resultsBySeason.get(`${ti}|${y}`) ?? null]));
   const stints = markInterim(buildStints(seasons, res, (year, rows) => {
     unresolved++;
     console.log(`  unresolved coach split: ${id} ${year} (${rows.map((r) => `${r.n} ${r.w}-${r.l}${r.t ? '-' + r.t : ''}`).join(', ')})`);
-  }));
+  }, resolved));
+  for (const f of forcedInterim) {
+    const s = stints.find((x) => x.startSe === f.year && x.startOrd === f.startOrd && x.k === f.k);
+    if (s) s.interim = f.interim;
+  }
   if (!stints.length) continue;
   teams[ti].hc = stints.map((s) => [s.k == null ? -1 : coachIdx(s.k, nameByK.get(s.k)), s.startSe, s.startOrd, s.interim ? 1 : 0]);
   stintCount += stints.length;
@@ -422,7 +470,17 @@ function gamesFor(teamId, filter) {
     && coachNames[hc[j - 1][0]] === 'Scott Frost';
   if (!ok) throw new Error('Nebraska 2022 coach check failed');
 }
-// 5. LSU home night games under the lights: 2002-2008 Saturday-night run (soft check).
+// 5. Louisville 2018: Petrino fired after game 10 (2-8), Lorenzo Ward interim (0-2).
+//    CFBD misfiles Petrino's season under WKU; the override supplies the split.
+{
+  const hc = teams[teamsIdx.get('louisville')].hc ?? [];
+  const j = hc.findIndex(([, se, ord]) => se === 2018 && ord > 0);
+  const ok = j > 0 && coachNames[hc[j][0]] === 'Lorenzo Ward' && hc[j][2] === 10 && hc[j][3] === 1
+    && coachNames[hc[j - 1][0]] === 'Bobby Petrino';
+  console.log(`check Louisville 2018 coach split: ${ok ? 'Bobby Petrino -> Lorenzo Ward@2018:10 (interim)' : JSON.stringify(hc.filter((s) => s[1] >= 2014))} — expect Petrino -> Ward@2018:10 (interim)`);
+  if (!ok) throw new Error('Louisville 2018 coach check failed');
+}
+// 6. LSU home night games under the lights: 2002-2008 Saturday-night run (soft check).
 {
   const g = gamesFor('lsu', (x) => x.isHome && !x.neutral && !x.post);
   const night = g.filter((x) => {

@@ -79,10 +79,12 @@ for (let i = 0; i < N; i++) {
     const st = stintAt(ti, g.se[i], home ? hOrd[i] : aOrd[i]);
     const ost = stintAt(oppIdx, g.se[i], home ? aOrd[i] : hOrd[i]);
     const cc = curCoach(ti);
+    // a mid-season taker's "first season" is his first season opener
+    const firstSe = (s) => (s[2] === 0 ? s[1] : s[1] + 1);
     list.push({
       hcCur: !!st && st[0] >= 0 && cc != null && st[0] === cc,
-      hcNew: !!st && st[0] >= 0 && !st[3] && st[1] === g.se[i],
-      vsNew: !!ost && ost[0] >= 0 && !ost[3] && ost[1] === g.se[i],
+      hcNew: !!st && st[0] >= 0 && !st[3] && firstSe(st) === g.se[i],
+      vsNew: !!ost && ost[0] >= 0 && !ost[3] && firstSe(ost) === g.se[i],
       i,
       ep: g.ep[i],
       se: g.se[i],
@@ -143,10 +145,11 @@ for (let i = 0; i < upc.ep.length; i++) {
     const opp = lastStint(oppIdx);
     const entry = {
       i,
-      // upcoming games are by definition under both teams' current coaches
+      // upcoming games are by definition under both teams' current coaches;
+      // "first season" of a mid-season taker starts at his first opener
       hcCur: !!own && own[0] >= 0,
-      hcNew: !!own && own[0] >= 0 && !own[3] && own[1] === P.currentSeason,
-      vsNew: !!opp && opp[0] >= 0 && !opp[3] && opp[1] === P.currentSeason,
+      hcNew: !!own && own[0] >= 0 && !own[3] && (own[2] === 0 ? own[1] : own[1] + 1) === P.currentSeason,
+      vsNew: !!opp && opp[0] >= 0 && !opp[3] && (opp[2] === 0 ? opp[1] : opp[1] + 1) === P.currentSeason,
       ep: upc.ep[i],
       wk: upc.wk[i],
       home,

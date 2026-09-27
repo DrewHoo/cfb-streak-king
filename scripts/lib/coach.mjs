@@ -50,16 +50,22 @@ export function resolveSeason(results, rows, prevK) {
  * coachSeasons: Map(year -> [{ k, g, w, l, t }]), resultsBySeason:
  * Map(year -> results[]). Returns stints [{ k|null, startSe, startOrd }],
  * where k null means the season's boundary could not be resolved. warn is
- * called with (year, rows) for each unresolved season.
+ * called with (year, rows) for each unresolved season. resolvedByYear
+ * (Map(year -> [{ k, startOrd }])) carries researched rulings that replace
+ * that season's CFBD rows outright (data/ref/coach-overrides.json).
  */
-export function buildStints(coachSeasons, resultsBySeason, warn) {
-  const years = [...coachSeasons.keys()].sort((a, b) => a - b);
+export function buildStints(coachSeasons, resultsBySeason, warn, resolvedByYear) {
+  const years = [...new Set([...coachSeasons.keys(), ...(resolvedByYear?.keys() ?? [])])].sort((a, b) => a - b);
   const stints = [];
   let lastK = undefined; // undefined = nothing yet; null = unresolved span
   const push = (k, startSe, startOrd) => {
     if (k !== lastK) { stints.push({ k, startSe, startOrd }); lastK = k; }
   };
   for (const year of years) {
+    if (resolvedByYear?.has(year)) {
+      for (const s of resolvedByYear.get(year)) push(s.k, year, s.startOrd);
+      continue;
+    }
     const rows = coachSeasons.get(year).filter((r) => r.g > 0);
     if (!rows.length) continue;
     if (rows.length === 1) { push(rows[0].k, year, 0); continue; }
