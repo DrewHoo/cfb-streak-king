@@ -230,8 +230,10 @@ export const CHIPS = [
   { key: 'wonpos', label: 'won the clock', group: 'possession', x: true, test: (x) => x.pos != null && x.pos > 0.5, pre: null, floor: 2004 },
   { key: 'dompos', label: 'dominated the clock (60%+)', group: 'possession', x: true, test: (x) => x.pos != null && x.pos >= 0.6, pre: null, floor: 2004 },
   { key: 'onescore', label: 'one-score game', group: 'shape', x: true, test: (x) => x.margin <= 8, pre: null },
-  // bounds are one standard deviation from the all-time mean total (51.0, σ 18.1): ~15% of games in each tail
-  { key: 'shootout', label: 'shootout (70+ pts)', group: 'shape', x: true, test: (x) => x.total >= 70, pre: null },
+  // a shootout is high-scoring AND contested: 70+ combined (1σ above the
+  // all-time mean of 51.0) decided by fewer than 10 — 4.9% of games. A 73-0
+  // blowout is not a shootout. struggle keeps the 1σ low bound (~15% tail).
+  { key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', x: true, test: (x) => x.total >= 70 && x.margin < 10, pre: null },
   { key: 'struggle', label: 'defensive struggle (≤ 33)', group: 'shape', x: true, test: (x) => x.total <= 33, pre: null },
   { key: 'night', label: 'night game (6pm+)', group: 'kickoff', test: (x) => x.hh !== 31 && x.hh >= 18, pre: (x) => x.hh !== 31 && x.hh >= 18, floor: 2002 },
 ];
