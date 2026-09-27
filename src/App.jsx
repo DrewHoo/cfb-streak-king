@@ -114,6 +114,15 @@ function Chip({ g }) {
 const CHIP_CAP = 12;
 const DESKTOP_CAP = 24;
 
+// what a chip's data floor covers, for the window-edge message
+const FLOOR_WORDS = {
+  night: 'night-game',
+  leadhalf: 'halftime-score',
+  trailhalf: 'halftime-score',
+  wonpos: 'possession',
+  dompos: 'possession',
+};
+
 // data-coverage notes, surfaced as a popover on the picker group label
 const GROUP_NOTES = {
   betting: 'Closing lines cover 1978–2025 plus this season. Games without a line don’t qualify.',
@@ -123,7 +132,7 @@ const GROUP_NOTES = {
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
 };
 
-function ColumnCollapsed({ row, onOpen }) {
+function ColumnCollapsed({ row, onOpen, edge }) {
   const t = teams[row.ti];
   const streak = [...row.qual.slice(-row.s.len)].reverse();
   const shown = streak.slice(0, CHIP_CAP);
@@ -137,7 +146,7 @@ function ColumnCollapsed({ row, onOpen }) {
       {shown.map((g) => <Chip key={g.i} g={g} />)}
       {more > 0 && <span className="colmore">+{more}</span>}
       {row.s.atEdge
-        ? <span className="coledge">’78</span>
+        ? <span className="coledge">’{String(edge.year).slice(2)}</span>
         : (
           <span className="colender">
             <Chip g={row.s.ender} />
@@ -148,7 +157,7 @@ function ColumnCollapsed({ row, onOpen }) {
   );
 }
 
-function ColumnExpanded({ row, dir, onClose }) {
+function ColumnExpanded({ row, dir, onClose, edge }) {
   const t = teams[row.ti];
   const rows = [...row.qual.slice(-row.s.len)].reverse();
   if (!row.s.atEdge) rows.push(row.s.ender);
@@ -190,7 +199,13 @@ function ColumnExpanded({ row, dir, onClose }) {
           </span>
         </div>
       ))}
-      {row.s.atEdge && <div className="log-note">runs past the start of the data (1978)</div>}
+      {row.s.atEdge && (
+        <div className="log-note">
+          {edge.word
+            ? `earliest ${edge.word} data is ${edge.year}; this streak may be longer than we can show`
+            : 'runs past the start of the data (1978)'}
+        </div>
+      )}
     </div>
   );
 }
@@ -255,6 +270,17 @@ export default function App() {
 
   const rows = useMemo(() => board(active, dir, 'games', todayEp), [active, dir, todayEp]);
   const week = useMemo(() => thisWeek(active, dir, todayEp), [active, dir, todayEp]);
+  // the window edge an at-edge streak actually hit: the latest data floor
+  // among active chips (night 2002, halftime 2001, possession 2004), else 1978
+  const edge = useMemo(() => {
+    let year = 1978;
+    let word = null;
+    for (const a of active) {
+      const c = chipByKey.get(a.key);
+      if (c.floor && c.floor > year) { year = c.floor; word = FLOOR_WORDS[a.key] ?? c.label; }
+    }
+    return { year, word };
+  }, [active]);
   // current leader of each saved streak, for the little crest on its entry
   const favLeaders = useMemo(
     () => favs.map((f) => {
@@ -569,6 +595,7 @@ export default function App() {
         <ColumnExpanded
           row={rows.find((r) => r.ti === expanded)}
           dir={dir}
+          edge={edge}
           onClose={() => setExpanded(null)}
         />
       )}
@@ -577,10 +604,10 @@ export default function App() {
         {(isMobile || showAll ? rows : rows.slice(0, DESKTOP_CAP)).map((row) => {
           if (row.ti === expanded) {
             return isMobile ? null : (
-              <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} onClose={() => setExpanded(null)} />
+              <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} edge={edge} onClose={() => setExpanded(null)} />
             );
           }
-          return <ColumnCollapsed key={teams[row.ti].id} row={row} onOpen={() => setExpanded(row.ti)} />;
+          return <ColumnCollapsed key={teams[row.ti].id} row={row} edge={edge} onOpen={() => setExpanded(row.ti)} />;
         })}
       </div>
       {!isMobile && rows.length > DESKTOP_CAP && (
