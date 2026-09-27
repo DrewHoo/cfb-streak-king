@@ -404,7 +404,7 @@ export default function App() {
               <span className="crowns-note">
                 {view === 'crowns'
                   ? 'active winning streaks this team solely leads'
-                  : 'active losing streaks nobody else can match'} · length ≥ {LEN_FLOOR}, field ≥ {FIELD_FLOOR} teams
+                  : 'active losing streaks nobody else can match'} · {LEN_FLOOR}+ games · at least {FIELD_FLOOR} teams holding one
               </span>
             </div>
             {crowns === null && <p className="empty">Mining all 78,276 boards…</p>}
@@ -419,7 +419,7 @@ export default function App() {
                       {cr.chips.length ? cr.chips.map((k) => chipPhrase({ key: k })).join(' · ') : 'all games'}
                     </span>
                     <span className="crown-meta">
-                      field of {cr.field}{cr.startSe ? ` · since ${cr.startSe}` : ''}
+                      leads {cr.field - 1} other active streaks{cr.startSe ? ` · since ${cr.startSe}` : ''}
                     </span>
                   </button>
                 ))}
