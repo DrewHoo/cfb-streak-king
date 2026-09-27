@@ -170,7 +170,7 @@ h1 {
 
 /* board */
 h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-spacing: 0.04em; margin: 40px 0 4px; color: var(--cream); }
-.tabs { display: flex; gap: 22px; margin: 40px 0 4px; align-items: baseline; }
+.tabs { display: flex; gap: 26px; margin: 26px 0 22px; align-items: baseline; justify-content: center; }
 .tabs button {
   font-family: 'Graduate', serif; font-size: 21px; letter-spacing: 0.04em;
   background: transparent; border: none; padding: 0; cursor: pointer; color: var(--ink-faint);
