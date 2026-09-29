@@ -55,8 +55,12 @@ export const defaultParam = (c) => (
     : c.param === 'team' ? teams.findIndex((t) => t.id === 'alabama') : undefined
 );
 
+// a team param is an index into teams in memory and the team's id in the URL
 export function encodeChips(active) {
-  return active.map(({ key, param }) => (param != null ? `${key}:${param}` : key)).join(',');
+  return active.map(({ key, param }) => {
+    if (param == null) return key;
+    return `${key}:${chipByKey.get(key)?.param === 'team' ? teams[param]?.id : param}`;
+  }).join(',');
 }
 export function decodeChips(s) {
   if (!s) return [];

@@ -67,7 +67,7 @@ reported, never dropped.
 
 Known-answer checks run inside `build-payload.mjs` and fail the build:
 Alabama's 100 straight wins over unranked teams (ended 2021-10-09 by Texas
-A&M), Kansas's 46-game road losing streak (ended 2018-09-15 at Central
+A&M), Kansas's 46-game road losing streak (ended 2018-09-08 at Central
 Michigan), Vanderbilt's 26-game SEC losing streak (ended 2022-11-12 by
 Kentucky). The Repole XML parse also cross-checks against the independent
 CSV parse from spread-vs-ap (25,910/19,904 exact match).

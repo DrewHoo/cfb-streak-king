@@ -538,8 +538,7 @@ const payload = {
   games: cols,
 };
 
-ensureDir(path.join(ROOT, 'data'));
-fs.writeFileSync(path.join(ROOT, 'data', 'payload-base.json'), JSON.stringify(payload));
+const payloadJson = JSON.stringify(payload);
 
 // ---------- report ----------
 const n = cols.se.length;
@@ -548,7 +547,7 @@ const halved = cols.hf.filter((v) => v >= 0).length;
 const clocked = cols.hp.filter((v) => v >= 0).length;
 console.log(`payload-base: ${n} games 1978-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.fbs).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%), ${halved} with halftime, ${clocked} with possession`);
 console.log(`2002-2013 schedule join: ${joined0213}/${total0213} (${((joined0213 / total0213) * 100).toFixed(1)}%)`);
-console.log(`size: ${(fs.statSync(path.join(ROOT, 'data', 'payload-base.json')).size / 1e6).toFixed(2)} MB`);
+console.log(`size: ${(payloadJson.length / 1e6).toFixed(2)} MB`);
 if (confMisses.size) {
   console.log('unmapped conference names:');
   for (const [k, v] of [...confMisses.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`  ${v}  ${k}`);
@@ -586,14 +585,14 @@ function gamesFor(teamId, filter) {
   console.log(`\ncheck Alabama vs unranked: ${s.len}W entering 2021-10-09, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 100W, texas-am, L`);
   if (s.len !== 100 || ender.opp !== 'texas-am' || ender.r !== 'L') throw new Error('Alabama check failed');
 }
-// 2. Kansas lost 46 straight true road games, ended 2018-09-15 at Central Michigan.
+// 2. Kansas lost 46 straight true road games, ended 2018-09-08 at Central Michigan.
 {
   const g = gamesFor('kansas', (x) => !x.isHome && !x.neutral);
-  const upTo = g.filter((x) => x.date <= '2018-09-16');
+  const upTo = g.filter((x) => x.date <= '2018-09-08');
   const s = currentStreak(upTo.slice(0, -1));
   const ender = upTo.at(-1);
-  console.log(`check Kansas road: ${s.len}L entering 2018-09-15, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 46L, central-michigan, W`);
-  if (s.len !== 46 || ender.r !== 'W') throw new Error('Kansas check failed');
+  console.log(`check Kansas road: ${s.len}L entering 2018-09-08, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 46L, central-michigan, W`);
+  if (s.len !== 46 || ender.opp !== 'central-michigan' || ender.r !== 'W') throw new Error('Kansas check failed');
 }
 // 3. Vanderbilt lost 26 straight SEC games, snapped by Kentucky (2022-11-12).
 {
@@ -646,3 +645,7 @@ function gamesFor(teamId, filter) {
   const losses = night.filter((x) => x.r === 'L');
   console.log(`check LSU home night 2002-2008: ${night.length} games, ${losses.length} losses (report says 28-0 through Oct 2008)`);
 }
+
+// written last, so a failed check above leaves the committed file alone
+ensureDir(path.join(ROOT, 'data'));
+fs.writeFileSync(path.join(ROOT, 'data', 'payload-base.json'), payloadJson);

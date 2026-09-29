@@ -15,3 +15,6 @@ data/build/
 
 # secrets
 .env
+
+# vitest reports
+.vitest/

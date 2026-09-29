@@ -44,7 +44,7 @@ const ORDER = ['self', 'bet', 'coach', 'opp', 'site', 'when', 'half', 'pos'];
 
 // slot + fragment per chip. `adj` chips modify the opponent noun, `noun`
 // chips replace "games", `kind` chips precede it; the rest are clauses.
-const SLOTS = {
+export const SLOTS = {
   home: ['site', 'at home'],
   road: ['site', 'on the road'],
   neutral: ['site', 'at neutral sites'],
