@@ -155,7 +155,11 @@ export default function App({ initial } = {}) {
     week: () => { setWeek(true); track('week filter', { on: true }); },
     unweek: () => { setWeek(false); track('week filter', { on: false }); },
     start: (e) => {
+      // presets are written for active streaks (their leaders in the list
+      // are active leaders), so applying one leaves all-time mode
       setDefinition(e.chips, e.dir);
+      setScope(e.scope ?? 'active');
+      setRun(null);
       track('preset', { name: e.name });
     },
   };
