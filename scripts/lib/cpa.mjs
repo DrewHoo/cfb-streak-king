@@ -5,7 +5,7 @@
 // hostile-territory; see that repo's data/research/rank-disputes.md).
 
 import { cellText, decodeEntities, stripTags, parseLongDate, isoDate } from './util.mjs';
-import { canon } from './names.mjs';
+import { canon, slug } from './names.mjs';
 
 export function parsePollPage(html, seasonYear, label) {
   const heading =
@@ -30,8 +30,9 @@ export function parsePollPage(html, seasonYear, label) {
     const rank = Number(rankM[1]);
     if (!(rank >= 1 && rank <= 25)) continue;
     const raw = decodeEntities(stripTags(teamM[1])).trim();
-    const team = canon(raw, 'ap');
-    if (!team || seen.has(team)) continue;
+    // an unmatched name (a wartime service team) keeps Howell's x:<slug> form
+    const team = canon(raw, 'ap') ?? `x:${slug(raw)}`;
+    if (seen.has(team)) continue;
     seen.add(team);
     ranks.push({ rank, team, raw });
   }

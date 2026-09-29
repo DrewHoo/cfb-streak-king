@@ -37,6 +37,9 @@ export function canon(name, source) {
   return null;
 }
 
+/** canon() without recording a miss. */
+export const lookup = (name) => (name ? aliasIndex.get(slug(name)) ?? null : null);
+
 export const display = (key) => aliasDoc.canonical[key] ?? key;
 
 export function reportUnmatched(label) {

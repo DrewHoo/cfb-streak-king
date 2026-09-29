@@ -24,8 +24,9 @@ These definitions are the contract everything else builds on.
   consecutive qualifying games with the same result. One computation yields both boards;
   a team whose latest qualifying result was a loss has a win streak of 0 and doesn't
   appear on the win board.
-- **Ties break streaks in both directions.** Ties only exist before overtime arrived in
-  1996. An "unbeaten" outcome mode (wins + ties) is a possible later addition, not v1.
+- **Ties break winning and losing streaks.** Ties only exist before overtime arrived in
+  1996. A third outcome, **unbeaten** (wins and ties), shipped 2026-09-29: `dir=U` in the
+  URL, a third word in the direction menu and the crowns select.
 - A streak that reaches the window edge displays **"N+"**. We never claim a streak
   equals N when 1977 could extend it.
 - When a betting constraint is active and a qualifying-by-other-criteria game has no
@@ -38,6 +39,8 @@ These definitions are the contract everything else builds on.
   played while FCS stay in the payload for the FBS opponent but never count toward its
   own streaks, so a program that joined in 2025 cannot carry a 38-game FCS losing streak
   onto the board. The panel says when a streak runs back to the team's first FBS season.
+  A season the team sat out doesn't count as leaving FBS (UConn 2020, SMU 1987–88; the
+  rulings are in data/ref/fbs-span-bridges.json), so a streak runs straight across it.
 
 ## Constraint catalog (v1)
 
@@ -199,7 +202,6 @@ streaks) so crawlers see a real leaderboard.
   supports covers for 1978+ and the research says model outcomes separately from
   filters, so the door stays open. It roughly doubles the semantics surface (push
   handling, unlined-game gaps), and straight-up W/L ships the product.
-- Unbeaten mode (ties don't break).
 - FCS/D-II boards.
 - ~~Historical (non-current) streak leaderboards.~~ Shipped 2026-09-28 as the all-time
   scope, now the default; see Amendments.
@@ -226,7 +228,10 @@ streaks) so crawlers see a real leaderboard.
 A second tab: every streak a team solely leads. The full parameterless space
 (34 chips, 39,138 definitions, 78,276 with direction) is mined client-side in
 ~4s on first open (chunked so the tab stays responsive; per-chip packed
-bitmasks, AND per definition, one backward walk). A crown = sole longest
+bitmasks, AND per definition, one backward walk). Superseded 2026-09-29: the
+build mines both scopes and all three outcomes (35 chips, 44,799 definitions,
+~2.5s in Node) and writes dist/crowns/<id>.json; a team's page embeds its file,
+and opening another team fetches it. A crown = sole longest
 active streak under a definition-direction, floors length >= 4 and field >= 10
 teams. Definitions producing the identical streak (same last game + length)
 collapse to one crown named by the fewest-chip definition; measured collision
@@ -254,7 +259,7 @@ sections carry the data details; this is the product and method record.
 - **Team pages replace the crowns tab.** The open team lives at `/team/<id>/`, prerendered
   with its own OG image. The panel shows the claim sentence, the ledger, and "{Team} is the
   King of N [Active | All-time] [Winning | Losing] Streaks" with the two words as selects.
-  All-time crowns mine on demand (`mineAll('all')` in `src/lib/crowns.js`); each row applies
+  Crowns are mined at build time (`mineCrowns` in `src/lib/crowns.ts`, run by prerender.mjs); each row applies
   the definition or shares it. Crowns carry scope, start and end season, and whether the run
   is live. Deep link: `/team/<id>/?dir=L`.
 - **Starred streaks** left the constraint picker: a right-margin sidebar at 1440px and up,
@@ -294,6 +299,11 @@ sections carry the data details; this is the product and method record.
   subdivision membership per team per season for 1869–2026 plus every source's aliases.
   Worth diffing against the Howell-derived membership and canon table, and contributing
   the Repole and Howell spellings as aliases. Nothing there covers results before 2002.
+
+- **1936 window (2026-09-29).** The window starts at the first AP poll. Before 1978 a team counts
+  in the seasons Howell lists it as major; streak holders are still this season's FBS teams.
+  Unbeaten is a third outcome. The build, the rulings and the research are in
+  specs/research/pre-1978.md.
 
 Backlog after this pass: the Cloudflare worker; the "vs FBS opponents" chip; a loss cue on
 dark cells (deferred by Drew); coach-carried streaks across schools; sharing the

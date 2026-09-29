@@ -2,16 +2,17 @@
 // every streak the team is king of.
 
 import { useState } from 'react';
-import { teams, chipByKey } from '../lib/model.js';
-import { claim, noClaim, ordinal } from '../lib/sentence.js';
-import { encodeChips } from '../lib/definition.js';
-import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count } from '../lib/format.js';
-import { streakGames } from './Grid.jsx';
+import { teams, firstSeason } from '../lib/model.ts';
+import { chipByKey } from '../lib/chips.ts';
+import { streakGames } from '../lib/streaks.ts';
+import { claim, noClaim, ordinal } from '../lib/sentence.ts';
+import { encodeChips } from '../lib/definition.ts';
+import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord } from '../lib/format.ts';
 import { Chip, NextChip, TeamMark } from './Chip.jsx';
 import { ShareIcon } from './Icons.jsx';
 
 const LEDGER_CAP = 8;
-const LEADS_CAP = 6;
+const CROWNS_CAP = 6;
 
 function LedgerRow({ g, cls, win }) {
   return (
@@ -52,8 +53,8 @@ function Ledger({ row, edge }) {
             {edge.word
               ? `earliest ${edge.word} data is ${edge.year}; this streak may be longer than we can show`
               : edge.joined
-                ? `${teams[row.ti].name} joined FBS in ${edge.year}; every qualifying game since is in this streak, and its FCS years don't count`
-                : 'every qualifying game in the data (1978 on) is in this streak; the one before it is older than the data'}
+                ? `${teams[row.ti].name} ${edge.year < 1978 ? 'became a major-college program' : 'joined FBS'} in ${edge.year}; every qualifying game since is in this streak, and its lower-division years don't count`
+                : `every qualifying game in the data (${firstSeason} on) is in this streak; the one before it is older than the data`}
           </div>
         )
         : <LedgerRow g={row.s.ender} cls="ender-row" win />}
@@ -63,33 +64,34 @@ function Ledger({ row, edge }) {
 
 /**
  * "{Team} is the King of N [active|all-time] [winning|losing] Streaks", the
- * two words being selects, then the list. `leads` is null while that scope
+ * two words being selects, then the list. `crowns` is null while that scope
  * is still mining.
  */
-function Leads({ ti, leads, leadsScope, leadsDir, onLeadsScope, onLeadsDir, dir, scope, active, onApply, onShare }) {
+function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, dir, scope, active, onApply, onShare }) {
   const [all, setAll] = useState(false);
   const name = teams[ti].name;
-  const list0 = leads ? leads.filter((c) => c.dir === leadsDir) : [];
-  const list = all ? list0 : list0.slice(0, LEADS_CAP);
+  const list0 = crowns ? crowns.filter((c) => c.dir === crownsDir) : [];
+  const list = all ? list0 : list0.slice(0, CROWNS_CAP);
   const defC = encodeChips(active);
   return (
     <div className="leads">
       <p className="leads-lead">
         {name} is the King of{' '}
-        <b className={leadsDir === 'L' ? 'l' : 'w'}>{leads ? list0.length : '…'}</b>{' '}
-        <select className="leads-sel" value={leadsScope} onChange={(e) => onLeadsScope(e.target.value)} aria-label="Active or all-time">
+        <b className={crownsDir === 'L' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
+        <select className="leads-sel" value={crownsScope} onChange={(e) => onCrownsScope(e.target.value)} aria-label="Active or all-time">
           <option value="active">Active</option>
           <option value="all">All-time</option>
         </select>{' '}
-        <select className="leads-sel" value={leadsDir} onChange={(e) => onLeadsDir(e.target.value)} aria-label="Winning or losing">
+        <select className="leads-sel" value={crownsDir} onChange={(e) => onCrownsDir(e.target.value)} aria-label="Winning or losing">
           <option value="W">Winning</option>
           <option value="L">Losing</option>
+          <option value="U">Unbeaten</option>
         </select>{' '}
         Streaks
       </p>
-      {leads === null && <p className="empty">finding every streak {name} is king of…</p>}
-      {leads !== null && list0.length === 0 && (
-        <p className="empty">No {leadsScope === 'all' ? 'all-time' : 'active'} {leadsDir === 'W' ? 'winning' : 'losing'} streak of 4+ games that {name} alone holds.</p>
+      {crowns === null && <p className="empty">finding every streak {name} is king of…</p>}
+      {crowns !== null && list0.length === 0 && (
+        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of 4+ games that {name} alone holds.</p>
       )}
       {list.map((cr) => {
         const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;
@@ -107,14 +109,14 @@ function Leads({ ti, leads, leadsScope, leadsDir, onLeadsScope, onLeadsDir, dir,
           </div>
         );
       })}
-      {list0.length > LEADS_CAP && (
+      {list0.length > CROWNS_CAP && (
         <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `all ${list0.length}`}</button>
       )}
     </div>
   );
 }
 
-export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, leads, leadsScope, leadsDir, onLeadsScope, onLeadsDir, onShare, onShareLead, onClose, onApplyLead }) {
+export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, onShare, onShareCrown, onClose, onApplyCrown }) {
   const t = teams[ti];
   const sentence = row ? claim(row, active, dir) : noClaim(ti, active, dir);
   return (
@@ -138,14 +140,14 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, lead
           )}
           {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}`}
           {row.s.atEdge && !row.onTheLine && row.live !== false && (edge?.joined
-            ? `${count(row.s)} means the streak runs back to ${t.name}'s first FBS season, ${edge.year}`
+            ? `${count(row.s)} means the streak runs back to ${t.name}'s first ${edge.year < 1978 ? 'major-college' : 'FBS'} season, ${edge.year}`
             : `${count(row.s)} means the streak runs past the start of the data`)}
         </p>
       )}
       {row && <Ledger row={row} edge={edge} />}
-      <Leads
-        ti={ti} leads={leads} leadsScope={leadsScope} leadsDir={leadsDir} onLeadsScope={onLeadsScope} onLeadsDir={onLeadsDir}
-        dir={dir} scope={scope} active={active} onApply={onApplyLead} onShare={onShareLead}
+      <Crowns
+        ti={ti} crowns={crowns} crownsScope={crownsScope} crownsDir={crownsDir} onCrownsScope={onCrownsScope} onCrownsDir={onCrownsDir}
+        dir={dir} scope={scope} active={active} onApply={onApplyCrown} onShare={onShareCrown}
       />
     </div>
   );

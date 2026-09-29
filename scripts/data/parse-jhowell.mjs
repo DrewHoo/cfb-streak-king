@@ -16,7 +16,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, ensureDir, decodeEntities, stripTags } from '../lib/util.mjs';
-import { canon, slug, reportUnmatched } from '../lib/names.mjs';
+import { canon, lookup, slug, reportUnmatched } from '../lib/names.mjs';
+import { FIRST_SEASON } from '../lib/window.mjs';
 
 const RAW = path.join(ROOT, 'data', 'raw', 'jhowell');
 
@@ -41,14 +42,27 @@ while ((m = linkRe.exec(byconf))) {
   // same team can appear under several conference sections; keep the union
   fbsSpans[id] = [...(fbsSpans[id] ?? []), ...spans];
 }
+// a gap made only of seasons in fbs-span-bridges.json (seasons a team sat
+// out) doesn't end its span
+const bridges = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ref', 'fbs-span-bridges.json'), 'utf8')).teams;
+const bridged = (id) => new Set((bridges[id] ?? []).flatMap((b) => b.seasons));
+const bridgesUsed = [];
 for (const id of Object.keys(fbsSpans)) {
+  const sat = bridged(id);
   const merged = [];
   for (const s of fbsSpans[id].sort((a, b) => a[0] - b[0])) {
     const last = merged.at(-1);
-    if (last && s[0] <= last[1] + 1) last[1] = Math.max(last[1], s[1]);
-    else merged.push([...s]);
+    let gapBridged = !!last;
+    for (let y = (last?.[1] ?? 0) + 1; gapBridged && y < s[0]; y++) gapBridged = sat.has(y);
+    if (last && gapBridged) {
+      if (s[0] > last[1] + 1) bridgesUsed.push(`${id} ${last[1] + 1}-${s[0] - 1}`);
+      last[1] = Math.max(last[1], s[1]);
+    } else merged.push([...s]);
   }
   fbsSpans[id] = merged;
+}
+for (const id of Object.keys(bridges)) {
+  if (!fbsSpans[id]) throw new Error(`fbs-span-bridges.json: no byconf spans for ${id}`);
 }
 
 // --- team pages: conference per season + conference-game marks ---
@@ -58,15 +72,17 @@ const games = [];
 const oppId = (cell, linked) => {
   // "*Kansas State (11-4)" / "Idaho (non-IA)": drop the conf mark and the parenthetical
   const name = cell.replace(/^\*/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
-  // an opponent with no page of its own was never a major school; slug it
-  // without swelling the unmatched-name report
-  if (!linked) return `x:${slug(name)}`;
+  // an unlinked opponent wasn't major that season; it keeps its canonical id
+  // if it has one (Temple in 1960 is still Temple), else a slug, without
+  // swelling the unmatched-name report
+  if (!linked) return lookup(name) ?? `x:${slug(name)}`;
   return canon(name, 'jhowell') ?? `x:${slug(name)}`;
 };
 const files = fs.readdirSync(path.join(RAW, 'teams')).filter((f) => f.endsWith('.htm'));
 for (const f of files) {
   const html = fs.readFileSync(path.join(RAW, 'teams', f), 'latin1');
-  const headRe = /<a name=(\d{4})>\d{4}-([^(<]+)\(([^)]*)\)<\/a>/g;
+  // the conference is the last parenthetical: "2001-Miami (Florida) (Big East)"
+  const headRe = /<a name=(\d{4})>\d{4}-([^<]+?)\s*\(([^()]*)\)<\/a>/g;
   const heads = [];
   let hm;
   while ((hm = headRe.exec(html))) {
@@ -74,7 +90,7 @@ for (const f of files) {
   }
   for (let i = 0; i < heads.length; i++) {
     const h = heads[i];
-    if (h.year < 1978) continue;
+    if (h.year < FIRST_SEASON) continue;
     const id = canon(h.name, 'jhowell') ?? `x:${slug(h.name)}`;
     (conf[id] ??= {})[h.year] = h.confName;
     const block = html.slice(h.at, heads[i + 1]?.at ?? html.length);
@@ -120,7 +136,8 @@ const fbs1985 = Object.entries(fbsSpans).filter(([, s]) => s.some(([a, b]) => a 
 console.log(
   `byconf: ${Object.keys(fbsSpans).length} teams with spans; ${fbs2026.length} FBS in 2026, ${fbs1985.length} in 1985`,
 );
-console.log(`team pages: ${files.length} files, ${Object.keys(conf).length} teams with 1978+ seasons, ${confGames.size} conference-game marks, ${games.length} game rows`);
+console.log(`span bridges: ${bridgesUsed.join(', ') || 'none'}`);
+console.log(`team pages: ${files.length} files, ${Object.keys(conf).length} teams with ${FIRST_SEASON}+ seasons, ${confGames.size} conference-game marks, ${games.length} game rows`);
 const unkFbs = fbs2026.filter(([id]) => id.startsWith('x:')).map(([id]) => id);
 if (unkFbs.length) console.log('2026 FBS teams with no canonical name:', unkFbs.join(', '));
 reportUnmatched('jhowell');

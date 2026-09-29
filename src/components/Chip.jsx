@@ -1,5 +1,5 @@
-import { teams } from '../lib/model.js';
-import { siteWord, yearOf } from '../lib/format.js';
+import { teams } from '../lib/model.ts';
+import { siteWord, yearOf } from '../lib/format.ts';
 
 const BASE = import.meta.env.BASE_URL;
 

@@ -58,15 +58,15 @@ function line(segments, { x, y, spacing = 0 }) {
 
 // --- the site's own model, through vite so the JSON import resolves ---
 const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: 'custom', logLevel: 'warn' })
-const { P, teams, fbsNow, allTimeBoard, todayEpochDay } = await vite.ssrLoadModule('/src/lib/model.js')
-const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.js')
-const { claim } = await vite.ssrLoadModule('/src/lib/sentence.js')
-const { mineAll } = await vite.ssrLoadModule('/src/lib/crowns.js')
-const { streakGames } = await vite.ssrLoadModule('/src/components/Grid.jsx')
+const { P, teams, fbsNow, firstSeason, allTimeBoard, todayEpochDay } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
+const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
+const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
+const { streakGames } = await vite.ssrLoadModule('/src/lib/streaks.ts')
 
 const todayEp = todayEpochDay()
 const rows = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const crowns = await mineAll('active')
+const crowns = await mineCrowns('active')
 const teamIds = process.argv.slice(2) // `npm run gen:og -- alabama` renders one card
 
 // --- logo data URIs (color for the column team, ink/gray for chips) ---
@@ -182,7 +182,7 @@ async function renderBoard(W, H) {
   ${text('KING', { x: 60, y: midY + 40, font: 'Graduate', size: 76, fill: CREAM })}
   ${text('Longest all-time winning streaks', { x: 64, y: midY + 96, font: 'SerifItalic', size: 23, fill: MUTED })}
   ${text('vs unranked opponents.', { x: 64, y: midY + 128, font: 'SerifItalic', size: 23, fill: MUTED })}
-  ${text(`1978–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 56, font: 'Mono', size: 15, spacing: 2, fill: FAINT })}
+  ${text(`${firstSeason}–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 56, font: 'Mono', size: 15, spacing: 2, fill: FAINT })}
   ${cols.join('\n')}`)
 }
 
@@ -213,9 +213,10 @@ async function renderTeam(ti, W, H) {
     { str: String(l), font: 'Mono', size: 16, fill: RUST },
     { str: ' LOSING', font: 'Mono', size: 16, fill: MUTED },
   ], { x: 64, y, spacing: 2 }))
-  // the three simplest crowns
+  // the three simplest winning or losing crowns (the counts above); an
+  // unbeaten crown often repeats a winning one
   y += 40
-  for (const cr of held.slice(0, 3)) {
+  for (const cr of held.filter((c) => c.dir !== 'U').slice(0, 3)) {
     const words = cr.chips.length ? cr.chips.map((k) => P.chipLabel?.[k] ?? k).join(' · ') : 'all games'
     parts.push(line([
       { str: `${cr.len}${cr.atEdge ? '+' : ''}`, font: 'Graduate', size: 19, fill: cr.dir === 'L' ? RUST : CREAM },
@@ -223,7 +224,7 @@ async function renderTeam(ti, W, H) {
     ], { x: 64, y }))
     y += 30
   }
-  parts.push(text(`1978–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 48, font: 'Mono', size: 15, spacing: 2, fill: FAINT }))
+  parts.push(text(`${firstSeason}–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 48, font: 'Mono', size: 15, spacing: 2, fill: FAINT }))
   if (row) {
     // rank on the default board, then the column
     const rank = rows.indexOf(row) + 1
@@ -235,7 +236,7 @@ async function renderTeam(ti, W, H) {
 }
 
 // crown rows name chips by key; the label lives in the chip catalog
-const { CHIPS } = await vite.ssrLoadModule('/src/lib/model.js')
+const { CHIPS } = await vite.ssrLoadModule('/src/lib/chips.ts')
 P.chipLabel = Object.fromEntries(CHIPS.map((c) => [c.key, c.label]))
 
 const outDir = resolve(ROOT, 'public')

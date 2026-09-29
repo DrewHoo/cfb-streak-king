@@ -16,6 +16,7 @@ import { parsePollPage, parseSeasonPolls } from '../lib/cpa.mjs';
 import { mapScheduleRow } from '../lib/sched.mjs';
 import { canon, slug } from '../lib/names.mjs';
 import { resolveSeason } from '../lib/coach.mjs';
+import { FLAG, NO_LINE, NO_HOUR, UNKNOWN, UNRANKED, RANK_UNKNOWN } from '../../src/lib/schema.ts';
 
 const SEASON = 2026;
 const CACHE = process.env.CACHE === '1';
@@ -81,13 +82,14 @@ for (const p of pollPages) {
 polls.sort((a, b) => a.date.localeCompare(b.date));
 const epochDay = (iso) => Math.floor(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000);
 const pollTimeline = polls.map((p) => [epochDay(p.date), new Map(p.ranks.map((r) => [r.team, r.rank]))]);
+// RANK_UNKNOWN when no poll is in effect yet (or none could be fetched)
 function rankOf(id, ep) {
   let cur = null;
   for (const [d, m] of pollTimeline) {
     if (d >= ep) break; // same-day poll is post-game
     cur = m;
   }
-  return cur?.get(id) ?? 0;
+  return cur ? cur.get(id) ?? UNRANKED : RANK_UNKNOWN;
 }
 
 // --- teams index over the base (append new opponents as needed) ---
@@ -98,7 +100,7 @@ function teamIdx(id, rawName) {
   if (i !== undefined) return i;
   i = teams.length;
   teamsIdx.set(id, i);
-  teams.push({ id, name: id.startsWith('x:') ? rawName : rawName, fbs: null, st: teamInfo[id]?.state });
+  teams.push({ id, name: id.startsWith('x:') ? rawName : rawName, major: null, st: teamInfo[id]?.state });
   return i;
 }
 const rivalByPair = new Map(
@@ -240,11 +242,11 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
   if (!anyFbs) continue;
   const { date, hour } = localParts(r.start, teamInfo[r.home]?.tz);
   const ep = epochDay(date);
-  const hh = r.timeKnown ? hour : 31;
+  const hh = r.timeKnown ? hour : NO_HOUR;
   const hi = teamIdx(r.home, r.homeRaw);
   const ai = teamIdx(r.away, r.awayRaw);
   const fl =
-    (r.neutral ? 1 : 0) | (r.confGameRaw ? 2 : 0) | (r.seasonType === 'postseason' ? 4 : 0);
+    (r.neutral ? FLAG.neutral : 0) | (r.confGameRaw ? FLAG.conf : 0) | (r.seasonType === 'postseason' ? FLAG.post : 0);
   const rv = rivalByPair.get([r.home, r.away].sort().join('|'));
   if (r.completed && Number.isFinite(r.homeScore)) {
     cols.se.push(SEASON);
@@ -255,7 +257,7 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     cols.as.push(r.awayScore);
     cols.fl.push(fl);
     const spv = lineByKey.get(`${r.home}|${r.away}|${ep}`);
-    cols.sp.push(spv == null ? 9999 : Math.round(spv * 2));
+    cols.sp.push(spv == null ? NO_LINE : Math.round(spv * 2));
     const rr = r.homeScore > r.awayScore ? 'W' : r.homeScore < r.awayScore ? 'L' : 'T';
     for (const [ti, rv2] of [[hi, rr], [ai, rr === 'W' ? 'L' : rr === 'L' ? 'W' : 'T']]) {
       const arr = res26.get(ti);
@@ -267,11 +269,11 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     cols.rv.push(rv === undefined ? 0 : rv + 1);
     cols.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));
     const bx = box26.get(`${r.home}|${r.away}|${ep}`);
-    cols.hf.push(bx?.h1h ?? -1);
-    cols.af.push(bx?.h1a ?? -1);
-    cols.hp.push(bx?.tph ?? -1);
-    cols.ap.push(bx?.tpa ?? -1);
-    cols.ot.push(bx?.h1h != null && bx.otp != null ? bx.otp : -1);
+    cols.hf.push(bx?.h1h ?? UNKNOWN);
+    cols.af.push(bx?.h1a ?? UNKNOWN);
+    cols.hp.push(bx?.tph ?? UNKNOWN);
+    cols.ap.push(bx?.tpa ?? UNKNOWN);
+    cols.ot.push(bx?.h1h != null && bx.otp != null ? bx.otp : UNKNOWN);
     added++;
   } else if (!r.completed) {
     upcoming.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));
@@ -340,6 +342,12 @@ if (coachesRaw) {
   console.log(`coaches ${SEASON}: ${changes} stint changes layered${unresolved26 ? `, ${unresolved26} unresolved` : ''}`);
 }
 
+// a mark ESPN doesn't have (public/logos, fetched by gen-logos.mjs) would be
+// a broken image; without an id the chip shows the team's initial
+for (const t of teams) {
+  if (t.espn && !fs.existsSync(path.join(ROOT, 'public', 'logos', `${t.espn}.png`))) t.espn = null;
+}
+
 const out = {
   ...base,
   coachNames,
@@ -352,7 +360,7 @@ const out = {
 };
 ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
-const lined26 = cols.sp.filter((s, i) => cols.se[i] === SEASON && s !== 9999).length;
+const lined26 = cols.sp.filter((s, i) => cols.se[i] === SEASON && s !== NO_LINE).length;
 console.log(
   `payload: +${added} completed ${SEASON} games (${lined26} lined), ${upcoming.ep.length} upcoming, ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );

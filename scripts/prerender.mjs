@@ -33,9 +33,11 @@ const vite = await createServer({
   logLevel: 'warn',
 })
 const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
-const { teams, fbsNow, allTimeBoard, todayEpochDay, fbsStartOf } = await vite.ssrLoadModule('/src/lib/model.js')
-const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.js')
-const { claim } = await vite.ssrLoadModule('/src/lib/sentence.js')
+const { teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
+const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
+const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
+const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
@@ -53,7 +55,7 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
  * One page: the app rendered with `initial`, and a head whose title,
  * description, canonical and image are the page's own.
  */
-function page({ initial, url, title, description, image, imageAlt, jsonLd }) {
+function page({ initial, url, title, description, image, imageAlt, jsonLd, embed }) {
   const appHtml = renderToString(React.createElement(App, { initial }))
   const head = `
     <meta name="description" content="${esc(description)}" />
@@ -84,7 +86,9 @@ function page({ initial, url, title, description, image, imageAlt, jsonLd }) {
   let html = template
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
   html = html.replace('</head>', head)
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`)
+  // embedded data main.jsx reads before hydrating (a team page's crowns)
+  const data = embed ? `<script type="application/json" id="crowns-data">${JSON.stringify(embed).replace(/</g, '\\u003c')}</script>` : ''
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${data}`)
   return { html, appHtml }
 }
 
@@ -114,6 +118,19 @@ fs.writeFileSync(OUT, root.html)
 const words = root.appHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
 console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root (~${words} words); head written for ${SITE}`)
 
+// --- crowns: mined here, one file per team ---
+const t0 = Date.now()
+const [crownsActive, crownsAll] = await Promise.all([mineCrowns('active'), mineCrowns('all')])
+const crownsOf = (ti) => encodeCrowns({ active: crownsActive.get(ti) ?? [], all: crownsAll.get(ti) ?? [] })
+fs.mkdirSync(path.join(ROOT, 'dist', 'crowns'), { recursive: true })
+let crownBytes = 0
+for (const ti of fbsNow) {
+  const json = JSON.stringify(crownsOf(ti))
+  crownBytes += json.length
+  fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.json`), json)
+}
+console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
+
 // --- one page per current FBS team, opened on its run of the default board ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
@@ -124,12 +141,14 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const row = board.find((r) => r.ti === ti)
   const url = `${SITE}team/${t.id}/`
   const title = `${t.name} streaks · ${config.title}`
-  const since = Math.max(1978, fbsStartOf(ti))
+  const since = windowStartOf(ti)
   const tail = `Every winning and losing streak ${t.name} is king of, under any definition, since ${since}.`
   const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
-    initial: { team: ti },
+    // rendered from the same decoded file the page embeds, so the hydrate matches
+    initial: { team: ti, crowns: decodeCrowns(crownsOf(ti)) },
+    embed: crownsOf(ti),
     url,
     title,
     description,

@@ -3,20 +3,20 @@
 // narrower screens it sits in the flow above What to read next.
 
 import { useMemo } from 'react';
-import { teams, board } from '../lib/model.js';
-import { decodeChips, chipWord } from '../lib/definition.js';
-import { dirWord } from '../lib/format.js';
+import { teams, activeBoard } from '../lib/model.ts';
+import { decodeChips, chipWord } from '../lib/definition.ts';
+import { dirWord } from '../lib/format.ts';
 import { StarIcon } from './Icons.jsx';
 
 const BASE = import.meta.env.BASE_URL;
 
-export function Starred({ favs, todayEp, onApply, onRemove }) {
-  const rows = useMemo(() => favs.map((f) => {
+export function Starred({ starred, todayEp, onApply, onRemove }) {
+  const rows = useMemo(() => starred.map((f) => {
     const chips = decodeChips(f.c);
-    const b = board(chips, f.dir, 'games', todayEp);
+    const b = activeBoard(chips, f.dir, todayEp);
     const top = b[0];
     return { f, chips, leader: top ? teams[top.ti] : null, len: top ? `${top.s.len}${top.s.atEdge ? '+' : ''}` : '' };
-  }), [favs, todayEp]);
+  }), [starred, todayEp]);
   if (!rows.length) return null;
   return (
     <aside className="starred" aria-label="Starred streaks">

@@ -7,13 +7,14 @@
 // snap. The panel stays mounted through the exit (phase machine below).
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { teams } from '../lib/model.js';
-import { count, yy, yyOfYear, dirWord, rowKey, dayOf, monthDay, siteWord, kickOf } from '../lib/format.js';
+import { teams } from '../lib/model.ts';
+import { streakGames } from '../lib/streaks.ts';
+import { count, yy, yyOfYear, dirWord, rowKey, dayOf, monthDay, siteWord, kickOf } from '../lib/format.ts';
+import { track } from '../lib/analytics.ts';
+import { DESKTOP_CAP } from '../lib/view.ts';
 import { Chip, NextChip, TeamMark } from './Chip.jsx';
-import { track } from '../lib/favs.js';
 
 const CHIP_CAP = 12;
-export const DESKTOP_CAP = 20;
 const MOBILE_ALLTIME_CAP = 40;
 const EXIT_MS = 280;
 
@@ -26,13 +27,6 @@ function columnsPerRow(rail) {
   const top = kids[0].offsetTop;
   return Math.max(1, kids.filter((el) => el.offsetTop === top).length);
 }
-
-// the games of a row's streak, newest first
-export const streakGames = (row) => (
-  row.s.startIdx != null
-    ? row.qual.slice(row.s.startIdx, row.s.endIdx + 1).reverse()
-    : [...row.qual.slice(-row.s.len)].reverse()
-);
 
 function Column({ row, edgeFor, onOpen, hi }) {
   const t = teams[row.ti];

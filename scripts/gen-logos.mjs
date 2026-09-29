@@ -18,7 +18,7 @@ const colorSrcUrl = (espn) =>
   `https://a.espncdn.com/i/teamlogos/ncaa/${DARK_SOURCE.has(String(espn)) ? '500-dark' : '500'}/${espn}.png`;
 const monoSrcUrl = (espn) => `https://a.espncdn.com/i/teamlogos/ncaa/500/${espn}.png`;
 const payload = JSON.parse(readFileSync('src/data/payload.json', 'utf8'));
-const fbs = payload.teams.filter((t) => t.fbs?.some(([a, b]) => a <= 2026 && b >= 2026));
+const fbs = payload.teams.filter((t) => t.major?.some(([a, b]) => a <= 2026 && b >= 2026));
 // mono ink marks for EVERY team with an espn id (opponent chips), color marks
 // for the current FBS set (column headers).
 mkdirSync('public/logos-color', { recursive: true });

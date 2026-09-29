@@ -964,5 +964,285 @@
       "interim": true
     }
   ],
-  "_note_norows": "Seasons CFBD has no coach row for at all (Idaho 2000-03 and 2007-12, Pacific 1983-88, Long Beach State 1987-91, Richmond 1978-83, Colgate 1978-81, Florida A&M 2004, Old Dominion 2013), from the teams' Wikipedia season and coach-list pages; Idaho 2012 is Akey fired 2012-10-21 at 1-7, Gesser interim from 11/3."
+  "_note_norows": "Seasons CFBD has no coach row for at all (Idaho 2000-03 and 2007-12, Pacific 1983-88, Long Beach State 1987-91, Richmond 1978-83, Colgate 1978-81, Florida A&M 2004, Old Dominion 2013), from the teams' Wikipedia season and coach-list pages; Idaho 2012 is Akey fired 2012-10-21 at 1-7, Gesser interim from 11/3.",
+  "duke|1942": [
+    {
+      "coach": "Eddie Cameron",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1942_Duke_Blue_Devils_football_team",
+      "quote": "In its first season under head coach Eddie Cameron, the team compiled a 5\u20134\u20131 record (3\u20131\u20131 against conference opponents) and outscored opponents by a total of 211 to 98."
+    }
+  ],
+  "duke|1943": [
+    {
+      "coach": "Eddie Cameron",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_Duke_Blue_Devils_football_team",
+      "quote": "In its second season under head coach Eddie Cameron, the team compiled an 8\u20131 record (4\u20130 against conference opponents), won the conference championship, was ranked No. 7 in the final AP Poll, and outscored opponents by a total of 335 to 34."
+    }
+  ],
+  "duke|1944": [
+    {
+      "coach": "Eddie Cameron",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1944_Duke_Blue_Devils_football_team",
+      "quote": "In its third season under head coach Eddie Cameron, the team compiled a 6\u20134 record (4\u20130 against conference opponents), won the conference championship, was ranked No. 11 in the final AP Poll, and defeated Alabama in the 1945 Sugar Bowl on New Year"
+    }
+  ],
+  "duke|1945": [
+    {
+      "coach": "Eddie Cameron",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/Eddie_Cameron",
+      "quote": "Cameron was also the head football coach at Duke University from 1942 to 1945, tallying a mark of 25\u201311\u20131"
+    }
+  ],
+  "nc-state|1937": [
+    {
+      "coach": "Doc Newton",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1937_NC_State_Wolfpack_football_team",
+      "quote": "In its first season under head coach Williams Newton, the team compiled a 5\u20133\u20131 record (4\u20132\u20131 against SoCon opponents) and was outscored by a total of 92 to 91."
+    }
+  ],
+  "nc-state|1938": [
+    {
+      "coach": "Doc Newton",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1938_NC_State_Wolfpack_football_team",
+      "quote": "In its second season under head coach Williams Newton, the team compiled a 3\u20137\u20131 record (3\u20133\u20131 against SoCon opponents) and was outscored by a total of 100 to 59."
+    }
+  ],
+  "nc-state|1939": [
+    {
+      "coach": "Doc Newton",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1939_NC_State_Wolfpack_football_team",
+      "quote": "In its third season under head coach Williams Newton, the team compiled a 2\u20138 record (2\u20134 against SoCon opponents) and was outscored by a total of 191 to 49."
+    }
+  ],
+  "nc-state|1942": [
+    {
+      "coach": "Doc Newton",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1942_NC_State_Wolfpack_football_team",
+      "quote": "In its sixth season under head coach Williams Newton, the team compiled a 4\u20134\u20132 record (3\u20131\u20132 against SoCon opponents) and was outscored by a total of 142 to 70."
+    }
+  ],
+  "nc-state|1943": [
+    {
+      "coach": "Doc Newton",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_NC_State_Wolfpack_football_team",
+      "quote": "In its seventh and final season under head coach Williams Newton, the team compiled a 3\u20136 record (0\u20134 against SoCon opponents) and was outscored by a total of 229 to 78."
+    }
+  ],
+  "nc-state|1941": [
+    {
+      "coach": "Doc Newton",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1941_NC_State_Wolfpack_football_team",
+      "quote": "In its fifth season under head coach Williams Newton, the Wolfpack compiled a 4\u20135\u20132 record (3\u20134\u20132 against SoCon opponents), finished eight in the conference, and was outscored by a total of 143 to 122."
+    }
+  ],
+  "texas-tech|1941": [
+    {
+      "coach": "Dell Morgan",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1941_Texas_Tech_Red_Raiders_football_team",
+      "quote": "In their first season under head coach Dell Morgan, the Red Raiders compiled a 9\u20132 record (2\u20130 against conference opponents), lost to Tulsa in the 1942 Sun Bowl, and outscored opponents by a total of 226 to 36."
+    }
+  ],
+  "texas-tech|1942": [
+    {
+      "coach": "Dell Morgan",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1942_Texas_Tech_Red_Raiders_football_team",
+      "quote": "Led by second-year head coach Dell Morgan, the Red Raiders compiled an overall record of 4\u20135\u20131 with a mark of 3\u20130\u20131 in conference play, sharing the Border Conference title with Hardin\u2013Simmons."
+    }
+  ],
+  "texas-tech|1943": [
+    {
+      "coach": "Dell Morgan",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_Texas_Tech_Red_Raiders_football_team",
+      "quote": "Led third-year head coach Dell Morgan, the Red Raiders compiled a record of 4\u20136."
+    }
+  ],
+  "texas-tech|1944": [
+    {
+      "coach": "Dell Morgan",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1944_Texas_Tech_Red_Raiders_football_team",
+      "quote": "Led by fourth-year head coach Dell Morgan, the Red Raiders compiled an overall record of 4\u20137 with a mark of 2\u20130 in conference play."
+    }
+  ],
+  "texas-tech|1945": [
+    {
+      "coach": "Dell Morgan",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1945_Texas_Tech_Red_Raiders_football_team",
+      "quote": "Led by fifth-year head coach Dell Morgan, the Red Raiders compiled an overall record of 3\u20135\u20132 with a mark of 1\u20130\u20131 in conference play."
+    }
+  ],
+  "miami-fl|1944": [
+    {
+      "coach": "Eddie Dunn",
+      "startOrd": 0,
+      "interim": true,
+      "source": "https://miamihurricanes.com/history/football-history",
+      "quote": "He became interim head coach and athletic director when Jack Harding was called to serve in World War II in 1943 and 1944."
+    }
+  ],
+  "utah-state|1936": [
+    {
+      "coach": "E. Lowell Romney",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1936_Utah_State_Aggies_football_team",
+      "quote": "In their 18th season under head coach Dick Romney, the Aggies compiled a 7\u20130\u20131 record (6\u20130\u20131 against RMC opponents), won the RMC championship, and outscored opponents by a total of 99 to 13."
+    }
+  ],
+  "utah-state|1937": [
+    {
+      "coach": "E. Lowell Romney",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1937_Utah_State_Aggies_football_team",
+      "quote": "In their 19th season under head coach Dick Romney, the Aggies compiled a 2\u20134\u20132 record (2\u20134\u20131 against RMC opponents), tied for seventh in the RMC, and were outscored by a total of 152 to 47."
+    }
+  ],
+  "utep|1942": [
+    {
+      "coach": "Walter Milner",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1942_Texas_Mines_Miners_football_team",
+      "quote": "In its first and only season under head coach Walter Milner, the team compiled a 5\u20134 record (4\u20133 against Border Conference opponents), finished fifth in the conference, and outscored opponents by a total of 162 to 111."
+    }
+  ],
+  "northern-illinois|1968": [
+    {
+      "coach": "Howard Fletcher",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1968_Northern_Illinois_Huskies_football_team",
+      "quote": "Led by Howard Fletcher in his 13th and final season as head coach, the Huskies compiled a record of 2\u20138."
+    }
+  ],
+  "utep|1972": [
+    {
+      "coach": "Robert Dobbs",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1972_UTEP_Miners_football_team",
+      "quote": "After a 1\u20135 start to the season, eighth-year head coach Bobby Dobbs resigned and was replaced with offensive coordinator Tommy Hudspeth."
+    },
+    {
+      "coach": "Tommy Hudspeth",
+      "start": "1972-10-28",
+      "interim": true,
+      "source": "https://en.wikipedia.org/wiki/Tommy_Hudspeth",
+      "quote": "He became interim head coach on October 22, 1972, when head coach Bobby Dobbs resigned following a 56\u20137 loss."
+    }
+  ],
+  "virginia-tech|1942": [
+    {
+      "coach": "Henry McEver & S.D. Tilson",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1942_VPI_Gobblers_football_team",
+      "quote": "The athletic council chose assistant coaches Herbert McEver and Sumner D. Tilson to be co-coaches until Kitts returned."
+    }
+  ],
+  "ole-miss|1973": [
+    {
+      "coach": "Billy Kinard",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1973_Ole_Miss_Rebels_football_team",
+      "quote": "The team was led by head coach Billy Kinard, in his third year, for the first three games and then by Johnny Vaught, in his 25th year, for their last eight games."
+    },
+    {
+      "coach": "John Vaught",
+      "start": "1973-09-29",
+      "interim": true,
+      "source": "https://olemisssports.com/news/2018/7/2/Former_Ole_Miss_Head_Football_Coach_Billy_Kinard_84_Passes_Away",
+      "quote": "Following a 5-5 mark in 1972 and a 1-2 start in 1973, Vaught came out of retirement to replace Kinard for the remainder of the season and to also become the Ole Miss athletics director."
+    }
+  ],
+  "villanova|1974": [
+    {
+      "coach": "Jim Weaver",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1974_Villanova_Wildcats_football_team",
+      "quote": "Jim Weaver was the team's head coach for the first eight games of the season, before he was fired after the disclosure of his intentions to quit at the end of the season and take an administrative position at Clarion State College."
+    },
+    {
+      "coach": "Lou Ferry",
+      "start": "1974-11-09",
+      "interim": true,
+      "source": "https://villanova.com/honors/villanova-university-varsity-club-hall-of-fame/lou-ferry/70",
+      "quote": "He was the head coach from 1971-73 and the interim head coach for three games in 1974."
+    }
+  ],
+  "_note_1936": "Seasons before 1978, researched 2026-09-29 with a source and verbatim quote on each segment (quotes string-checked against the saved pages). No CFBD rows: Duke 1942-45 (Eddie Cameron while Wallace Wade served), NC State 1937-43 (Doc Newton), Texas Tech 1941-45 (Dell Morgan), Miami 1944 (Eddie Dunn, interim while Jack Harding served), Utah State 1936-37 (Dick Romney, CFBD's E. Lowell Romney), UTEP 1942 (Walter Milner), Northern Illinois 1968 (Howard Fletcher). Records that don't reconcile: UTEP 1972 (Dobbs resigned 10/22 at 1-5, Hudspeth interim from 10/28), Ole Miss 1973 (Kinard fired after game 3, Vaught from 9/29; Ole Miss counts it as Vaught's 25th season), Villanova 1974 (Weaver fired after game 8, Lou Ferry interim from 11/9). Virginia Tech 1942 had co-head coaches all season (Kitts left for the Navy; the athletic council named Herbert McEver and Sumner D. Tilson co-coaches); with one coach per game here, the pair is one coaching entry. Wartime seasons whose games come from extra-games.json (BC 1943 Moody Sarno, Miami 1943 Eddie Dunn interim, Vanderbilt 1943 Ernest Alley and 1944 Doby Bartling, New Mexico 1943 Willis Barnes, Washington 1943 Ralph Welch, Arizona 1945 Mike Casteel (CFBD's Miles Casteel), New Mexico A&M 1943 Maurice Moulder) from each season's Wikipedia infobox.",
+  "boston-college|1943": [
+    {
+      "coach": "Moody Sarno",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_Boston_College_Eagles_football_team",
+      "quote": "Head coach Moody Sarno (1st season)"
+    }
+  ],
+  "miami-fl|1943": [
+    {
+      "coach": "Eddie Dunn",
+      "startOrd": 0,
+      "interim": true,
+      "source": "https://en.wikipedia.org/wiki/1943_Miami_Hurricanes_football_team",
+      "quote": "The team was coached by Eddie Dunn , in his first year as interim head coach, while active head coach Jack Harding served in World War II ."
+    }
+  ],
+  "vanderbilt|1943": [
+    {
+      "coach": "Ernest Alley",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_Vanderbilt_Commodores_football_team",
+      "quote": "Head coach Ernest Alley (1st season)"
+    }
+  ],
+  "vanderbilt|1944": [
+    {
+      "coach": "Doby Bartling",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1944_Vanderbilt_Commodores_football_team",
+      "quote": "Head coach Doby Bartling (1st season)"
+    }
+  ],
+  "new-mexico|1943": [
+    {
+      "coach": "Willis Barnes",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_Lobos_football_team",
+      "quote": "Head coach Willis Barnes (2nd season)"
+    }
+  ],
+  "washington|1943": [
+    {
+      "coach": "Ralph Welch",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_Washington_Huskies_football_team",
+      "quote": "Head coach Ralph Welch (2nd season)"
+    }
+  ],
+  "arizona|1945": [
+    {
+      "coach": "Miles Casteel",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1945_Arizona_Wildcats_football_team",
+      "quote": "Head coach Mike Casteel (5th season)"
+    }
+  ],
+  "new-mexico-state|1943": [
+    {
+      "coach": "Maurice Moulder",
+      "startOrd": 0,
+      "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_A%26M_Aggies_football_team",
+      "quote": "In their first year under head coach Maurice Moulder, the Aggies compiled a 4\u20130 record"
+    }
+  ]
 }

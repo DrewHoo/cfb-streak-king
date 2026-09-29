@@ -1,10 +1,10 @@
 // Join every parsed source into the static payload.
-//   data/payload-base.json  — seasons 1978-2025, teams, rivalries, conf table.
+//   data/payload-base.json  — seasons FIRST_SEASON-2025, teams, rivalries, conf table.
 //                             Committed; CI never needs the raw sources.
 //   (build-current.mjs layers the in-progress season on top at build time.)
 //
 // Payload shape (columnar; one index per completed game):
-//   teams:   [{ id, name, fbs:[[a,b]...]|null, st?, tz?, conf?:[[year,confIdx]...] }]
+//   teams:   [{ id, name, major:[[a,b]...]|null, st?, tz?, conf?:[[year,confIdx]...] }]
 //   confs:   ["SEC", ...]
 //   rivals:  [{ n, a, b }]           (a/b = team indices)
 //   games:   { se, ep, hi, ai, hs, as, fl, sp, hr, ar, hh, rv }  parallel arrays
@@ -20,7 +20,9 @@ import path from 'node:path';
 import { ROOT, ensureDir } from '../lib/util.mjs';
 import { display } from '../lib/names.mjs';
 import { buildStints, markInterim } from '../lib/coach.mjs';
-import { currentStreak } from '../../src/lib/streaks.js';
+import { FIRST_SEASON } from '../lib/window.mjs';
+import { activeRun } from '../../src/lib/streaks.ts';
+import { FLAG, NO_LINE, NO_HOUR, UNKNOWN, UNRANKED, RANK_UNKNOWN } from '../../src/lib/schema.ts';
 
 const BUILD = path.join(ROOT, 'data', 'build');
 const load = (f) => JSON.parse(fs.readFileSync(path.join(BUILD, f), 'utf8'));
@@ -42,8 +44,12 @@ const LAST_BASE_SEASON = 2025;
 const epochDay = (iso) => Math.floor(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000);
 const isFbs = (id, season) => (fbsSpans[id] ?? []).some(([a, b]) => a <= season && b >= season);
 
-// conference name normalization
+// conference name normalization; a conference's older names fold into the
+// current one (the Western Conference is the Big Ten, the PCC and AAWU the
+// Pac-12, the Big Six and Big Seven the Big 8, Mountain States the Skyline)
 const CONF_MAP = new Map(Object.entries({
+  'Western': 'Big Ten', 'Big 6': 'Big 8', 'Big 7': 'Big 8', 'PCC': 'Pac-12', 'AAWU': 'Pac-12', 'Pac 8': 'Pac-12',
+  'Mountain States': 'Skyline', 'Skyline & Border': 'Skyline', 'Border': 'Border', 'Skyline': 'Skyline', 'Rocky Mountain': 'Rocky Mountain',
   'SEC': 'SEC', 'Southeastern': 'SEC',
   'Big Ten': 'Big Ten', 'Big 10': 'Big Ten',
   'Big 12': 'Big 12', 'Big XII': 'Big 12',
@@ -91,9 +97,10 @@ for (const p of polls) {
   pollsBySeason.set(p.season, arr);
 }
 for (const arr of pollsBySeason.values()) arr.sort((a, b) => a[0] - b[0]);
+// RANK_UNKNOWN when no poll is in effect yet: rank chips skip the game
 function rankOf(id, season, ep) {
   const arr = pollsBySeason.get(season);
-  if (!arr) return 0;
+  if (!arr) return RANK_UNKNOWN;
   let cur = null;
   for (const [d, m] of arr) {
     // a poll dated the day of the game already reflects that game (a Monday
@@ -101,7 +108,7 @@ function rankOf(id, season, ep) {
     if (d >= ep) break;
     cur = m;
   }
-  return cur?.get(id) ?? 0;
+  return cur ? cur.get(id) ?? UNRANKED : RANK_UNKNOWN;
 }
 
 // local kickoff (date + hour) from a UTC instant using the home team's zone
@@ -241,7 +248,7 @@ function teamIdx(id, rawName) {
   teams.push({
     id,
     name: id.startsWith('x:') ? rawName : display(id),
-    fbs: fbsSpans[id] ?? null,
+    major: fbsSpans[id] ?? null,
     st: teamInfo[id]?.state,
     espn: espnBy.get(id) ?? null,
   });
@@ -275,11 +282,11 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.ai.push(teamIdx(away, awayRaw));
   cols.hs.push(hs);
   cols.as.push(as);
-  cols.fl.push((neutral ? 1 : 0) | (confGame ? 2 : 0) | (postseason ? 4 : 0));
-  cols.sp.push(homeSpread == null ? 9999 : Math.round(homeSpread * 2));
+  cols.fl.push((neutral ? FLAG.neutral : 0) | (confGame ? FLAG.conf : 0) | (postseason ? FLAG.post : 0));
+  cols.sp.push(homeSpread == null ? NO_LINE : Math.round(homeSpread * 2));
   cols.hr.push(rankOf(home, season, ep));
   cols.ar.push(rankOf(away, season, ep));
-  cols.hh.push(startHour ?? 31);
+  cols.hh.push(startHour ?? NO_HOUR);
   const rv = rivalByPair.get([home, away].sort().join('|'));
   cols.rv.push(rv === undefined ? 0 : rv + 1);
   let st = null;
@@ -291,19 +298,89 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.vs.push(venueStateIdx(st));
   // halftime points and possession seconds; -1 = unknown
   const box = boxBy.get(`${home}|${away}|${ep}`);
-  cols.hf.push(box?.h1h ?? -1);
-  cols.af.push(box?.h1a ?? -1);
-  cols.hp.push(box?.tph ?? -1);
-  cols.ap.push(box?.tpa ?? -1);
-  cols.ot.push(box?.otp ?? -1);
+  cols.hf.push(box?.h1h ?? UNKNOWN);
+  cols.af.push(box?.h1a ?? UNKNOWN);
+  cols.hp.push(box?.tph ?? UNKNOWN);
+  cols.ap.push(box?.tpa ?? UNKNOWN);
+  cols.ot.push(box?.otp ?? UNKNOWN);
 }
+
+// FIRST_SEASON-1977 from Howell's team pages alone. A game between two
+// majors is on both teams' pages, a game against a non-major on one. The
+// two pages must agree on the score and on who was at home; the build
+// prints every game where they don't and fails on a score split. "vs." with
+// a city is off-campus: see the home rule below.
+const altHome = loadRef('alt-home.json').pairs;
+const cityOf = (r) => r.city.replace(/^@\s*/, '').replace(/,/g, '').trim();
+const howellEra = loadRef('alt-home.json').howellEra;
+const fieldOf = (team) => [...(altHome[team] ?? []), ...(howellEra.pairs[team] ?? [])];
+const neutralSeries = (a, b, city) => howellEra.exceptions.some((e) => e.city === city && e.teams.includes(a) && e.teams.includes(b));
+const early = { games: 0, oneSided: 0, homeSplits: [], dateSplits: [], scoreSplits: [] };
+{
+  const groups = [];
+  const byKey = new Map();
+  for (const r of jhGames) {
+    if (r.se >= 1978 || !isFbs(r.team, r.se)) continue;
+    const ep = epochDay(r.date);
+    let g = byKey.get(pairKey(r.team, r.opp, ep));
+    // the same pair twice within a day would be two games; keep them apart
+    if (g && g.rows.some((x) => x.team === r.team)) g = null;
+    if (!g) {
+      g = { rows: [] };
+      groups.push(g);
+      for (const d of [ep - 1, ep, ep + 1]) if (!byKey.has(pairKey(r.team, r.opp, d))) byKey.set(pairKey(r.team, r.opp, d), g);
+    }
+    g.rows.push(r);
+  }
+  for (const { rows } of groups) {
+    const [a, b] = rows;
+    const tag = `${a.date} ${a.teamName} ${a.pf}-${a.pa} ${a.at} ${a.oppName}`;
+    if (b && (a.pf !== b.pa || a.pa !== b.pf)) early.scoreSplits.push(`${tag} / ${b.teamName} page ${b.pf}-${b.pa}`);
+    if (b && a.date !== b.date) early.dateSplits.push(`${tag} / ${b.teamName} page ${b.date}`);
+    // home: on campus, the side that isn't '@'. Off campus (either page names
+    // a city) Howell marks both sides "vs.", so it's the team whose regular
+    // home field the city is (alt-home.json), and neutral when both teams or
+    // neither claim it, or the game is a known neutral-site series
+    const city = cityOf(a.city ? a : b ?? a);
+    let home;
+    let neutral = false;
+    if (!city) {
+      if (b && a.at === b.at) early.homeSplits.push(`${tag} / ${b.teamName} page ${b.at}`);
+      home = a.at === '@' ? a.opp : a.team;
+    } else {
+      const claimA = fieldOf(a.team).includes(city);
+      const claimB = fieldOf(a.opp).includes(city);
+      neutral = claimA === claimB || neutralSeries(a.team, a.opp, city);
+      home = neutral || claimA ? a.team : a.opp;
+    }
+    const homeRow = rows.find((r) => r.team === home) ?? null;
+    const away = home === a.team ? a.opp : a.team;
+    const hs = home === a.team ? a.pf : a.pa;
+    const as = home === a.team ? a.pa : a.pf;
+    const note = rows.map((r) => r.note).find(Boolean) ?? '';
+    const dateIso = (homeRow ?? a).date;
+    early.games++;
+    if (!b) early.oneSided++;
+    pushGame({
+      season: a.se, dateIso, home, away,
+      homeRaw: home === a.team ? a.teamName : a.oppName, awayRaw: home === a.team ? a.oppName : a.teamName,
+      hs, as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(note) && !/conference|kickoff/i.test(note),
+      confGame: jhConfGame(a.se, a.date, home, away) || (b ? jhConfGame(b.se, b.date, home, away) : false),
+      homeSpread: null, startHour: NO_HOUR, info: city || null,
+    });
+  }
+}
+console.log(`howell ${FIRST_SEASON}-1977: ${early.games} games (${early.oneSided} against non-majors); pages disagree on ${early.scoreSplits.length} scores, ${early.homeSplits.length} home teams, ${early.dateSplits.length} dates`);
+for (const l of early.scoreSplits) console.log(`  score ${l}`);
+if (early.scoreSplits.length) throw new Error('Howell pages disagree on a score; rule it before building');
+for (const l of early.homeSplits.slice(0, 40)) console.log(`  home  ${l}`);
 
 // 1978-2013 from repole, enriched from schedules 2002+
 for (const g of spine) {
   if (!isFbs(g.home, g.season) && !isFbs(g.away, g.season)) continue;
   const rs = resolveSpine(g);
   if (!rs) continue;
-  let startHour = 31;
+  let startHour = NO_HOUR;
   if (g.season >= 2002) {
     total0213++;
     const ep = epochDay(g.date);
@@ -334,7 +411,6 @@ for (const l of resolved.dropped) console.log(`  drop  ${l}`);
 // Games Repole never listed, from Howell: the 1992-93 Big West seasons are
 // mostly absent (Nevada has 2 of 12 games in cfb1992lines), plus a few dozen
 // others. Both teams must be major that season; no spread, no kickoff time.
-const altHome = loadRef('alt-home.json').pairs;
 const spineKeys = new Set();
 for (const g of spine) {
   const e = epochDay(g.date);
@@ -362,7 +438,7 @@ for (const r of jhGames) {
   pushGame({
     season: r.se, dateIso: r.date, home: hw.home, away: hw.away, homeRaw: homeName, awayRaw: awayName,
     hs: hw.hs, as: hw.as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(r.note) && !/conference|kickoff/i.test(r.note),
-    confGame: jhConfGame(r.se, r.date, hw.home, hw.away), homeSpread: null, startHour: 31, info: r.city || null,
+    confGame: jhConfGame(r.se, r.date, hw.home, hw.away), homeSpread: null, startHour: NO_HOUR, info: r.city || null,
   });
 }
 console.log(`howell fill-in: ${Object.values(filledBySeason).reduce((a, b) => a + b, 0)} games Repole lacked: ${JSON.stringify(filledBySeason)}`);
@@ -381,9 +457,36 @@ for (const r of sched) {
     neutral: r.neutral, postseason: r.seasonType === 'postseason',
     confGame: r.confGameRaw,
     homeSpread: lineBy.get(`${r.home}|${r.away}|${ep}`) ?? null,
-    startHour: r._localHour ?? 31,
+    startHour: r._localHour ?? NO_HOUR,
   });
 }
+
+// games no bulk source lists: seasons Howell doesn't count as major that the
+// school does (wartime schedules against service teams), and New Mexico
+// State's spring 2021 schedule. Each row carries its source and quote.
+const extraGames = loadRef('extra-games.json').games;
+const played = new Map(); // pairKey ±1 -> [home id, hs, as] for games already in
+for (let i = 0; i < cols.se.length; i++) {
+  const [h, a] = [teams[cols.hi[i]].id, teams[cols.ai[i]].id];
+  for (const d of [cols.ep[i] - 1, cols.ep[i], cols.ep[i] + 1]) played.set(pairKey(h, a, d), [h, cols.hs[i], cols.as[i]]);
+}
+let extraDupes = 0;
+for (const x of extraGames) {
+  const dup = played.get(pairKey(x.home, x.away, epochDay(x.date)));
+  if (dup) {
+    const [hs, as] = dup[0] === x.home ? [dup[1], dup[2]] : [dup[2], dup[1]];
+    if (hs !== x.hs || as !== x.as) throw new Error(`extra game ${x.date} ${x.away}@${x.home} ${x.as}-${x.hs} disagrees with the data (${as}-${hs})`);
+    extraDupes++;
+    continue;
+  }
+  pushGame({
+    season: x.season, dateIso: x.date, home: x.home, away: x.away,
+    homeRaw: x.homeName ?? x.home, awayRaw: x.awayName ?? x.away, hs: x.hs, as: x.as,
+    neutral: x.neutral, postseason: false, confGame: false,
+    homeSpread: null, startHour: NO_HOUR, info: x.info,
+  });
+}
+console.log(`extra games: ${extraGames.length - extraDupes} added, ${extraDupes} already in the data`);
 
 // sort all columns by epoch day
 const order = cols.ep.map((_, i) => i).sort((a, b) => cols.ep[a] - cols.ep[b] || a - b);
@@ -400,9 +503,9 @@ const cIdx = (name) => {
   return confIdx.get(name);
 };
 for (const t of teams) {
-  if (!t.fbs) continue;
+  if (!t.major) continue;
   const runs = [];
-  for (let y = 1978; y <= 2026; y++) {
+  for (let y = FIRST_SEASON; y <= 2026; y++) {
     const c = confOf(t.id, y);
     if (!c) continue;
     const ci = cIdx(c);
@@ -526,17 +629,16 @@ const payload = {
   games: cols,
 };
 
-ensureDir(path.join(ROOT, 'data'));
-fs.writeFileSync(path.join(ROOT, 'data', 'payload-base.json'), JSON.stringify(payload));
+const payloadJson = JSON.stringify(payload);
 
 // ---------- report ----------
 const n = cols.se.length;
-const lined = cols.sp.filter((s) => s !== 9999).length;
+const lined = cols.sp.filter((s) => s !== NO_LINE).length;
 const halved = cols.hf.filter((v) => v >= 0).length;
 const clocked = cols.hp.filter((v) => v >= 0).length;
-console.log(`payload-base: ${n} games 1978-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.fbs).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%), ${halved} with halftime, ${clocked} with possession`);
+console.log(`payload-base: ${n} games ${FIRST_SEASON}-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.major).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%), ${halved} with halftime, ${clocked} with possession`);
 console.log(`2002-2013 schedule join: ${joined0213}/${total0213} (${((joined0213 / total0213) * 100).toFixed(1)}%)`);
-console.log(`size: ${(fs.statSync(path.join(ROOT, 'data', 'payload-base.json')).size / 1e6).toFixed(2)} MB`);
+console.log(`size: ${(payloadJson.length / 1e6).toFixed(2)} MB`);
 if (confMisses.size) {
   console.log('unmapped conference names:');
   for (const [k, v] of [...confMisses.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`  ${v}  ${k}`);
@@ -553,7 +655,7 @@ function gamesFor(teamId, filter) {
     const them = isHome ? cols.as[i] : cols.hs[i];
     const g = {
       i, season: cols.se[i], ep: cols.ep[i], isHome,
-      neutral: !!(cols.fl[i] & 1), confGame: !!(cols.fl[i] & 2), post: !!(cols.fl[i] & 4),
+      neutral: !!(cols.fl[i] & FLAG.neutral), confGame: !!(cols.fl[i] & FLAG.conf), post: !!(cols.fl[i] & FLAG.post),
       oppRank: isHome ? cols.ar[i] : cols.hr[i],
       r: us > them ? 'W' : us < them ? 'L' : 'T',
       opp: teams[isHome ? cols.ai[i] : cols.hi[i]].id,
@@ -569,28 +671,47 @@ function gamesFor(teamId, filter) {
 {
   const g = gamesFor('alabama', (x) => x.oppRank === 0);
   const upTo = g.filter((x) => x.date <= '2021-10-09');
-  const s = currentStreak(upTo.slice(0, -1));
+  const s = activeRun(upTo.slice(0, -1), 'W') ?? { len: 0 };
   const ender = upTo.at(-1);
   console.log(`\ncheck Alabama vs unranked: ${s.len}W entering 2021-10-09, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 100W, texas-am, L`);
   if (s.len !== 100 || ender.opp !== 'texas-am' || ender.r !== 'L') throw new Error('Alabama check failed');
 }
-// 2. Kansas lost 46 straight true road games, ended 2018-09-15 at Central Michigan.
+// 2. Kansas lost 46 straight true road games, ended 2018-09-08 at Central Michigan.
 {
   const g = gamesFor('kansas', (x) => !x.isHome && !x.neutral);
-  const upTo = g.filter((x) => x.date <= '2018-09-16');
-  const s = currentStreak(upTo.slice(0, -1));
+  const upTo = g.filter((x) => x.date <= '2018-09-08');
+  const s = activeRun(upTo.slice(0, -1), 'L') ?? { len: 0 };
   const ender = upTo.at(-1);
-  console.log(`check Kansas road: ${s.len}L entering 2018-09-15, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 46L, central-michigan, W`);
-  if (s.len !== 46 || ender.r !== 'W') throw new Error('Kansas check failed');
+  console.log(`check Kansas road: ${s.len}L entering 2018-09-08, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 46L, central-michigan, W`);
+  if (s.len !== 46 || ender.opp !== 'central-michigan' || ender.r !== 'W') throw new Error('Kansas check failed');
 }
 // 3. Vanderbilt lost 26 straight SEC games, snapped by Kentucky (2022-11-12).
 {
   const g = gamesFor('vanderbilt', (x) => x.confGame);
   const upTo = g.filter((x) => x.date <= '2022-11-12');
-  const s = currentStreak(upTo.slice(0, -1));
+  const s = activeRun(upTo.slice(0, -1), 'L') ?? { len: 0 };
   const ender = upTo.at(-1);
   console.log(`check Vanderbilt SEC: ${s.len}L entering 2022-11-12, ender ${ender.opp} (${ender.r}) — expect 26L, kentucky, W`);
   if (s.len !== 26 || ender.opp !== 'kentucky' || ender.r !== 'W') throw new Error('Vanderbilt check failed');
+}
+// 3a. Before 1978 (Howell's pages alone): Oklahoma's 47 straight wins, ended
+//     1957-11-16 by Notre Dame 7-0; Kansas State's 28 straight losses, ended
+//     1948-10-09 against Arkansas State.
+{
+  const g = gamesFor('oklahoma', () => true);
+  const upTo = g.filter((x) => x.date <= '1957-11-16');
+  const s = activeRun(upTo.slice(0, -1), 'W') ?? { len: 0 };
+  const ender = upTo.at(-1);
+  console.log(`check Oklahoma: ${s.len}W entering 1957-11-16, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 47W, notre-dame, L`);
+  if (s.len !== 47 || ender.opp !== 'notre-dame' || ender.r !== 'L') throw new Error('Oklahoma 47 check failed');
+}
+{
+  const g = gamesFor('kansas-state', () => true);
+  const upTo = g.filter((x) => x.date <= '1948-10-09');
+  const s = activeRun(upTo.slice(0, -1), 'L') ?? { len: 0 };
+  const ender = upTo.at(-1);
+  console.log(`check Kansas State: ${s.len}L entering 1948-10-09, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 28L, arkansas-state, W`);
+  if (s.len !== 28 || ender.opp !== 'arkansas-state' || ender.r !== 'W') throw new Error('Kansas State 28 check failed');
 }
 // 3b. The 2011 title game (Repole's file has blank scores): Alabama 21, LSU 0.
 {
@@ -634,3 +755,7 @@ function gamesFor(teamId, filter) {
   const losses = night.filter((x) => x.r === 'L');
   console.log(`check LSU home night 2002-2008: ${night.length} games, ${losses.length} losses (report says 28-0 through Oct 2008)`);
 }
+
+// written last, so a failed check above leaves the committed file alone
+ensureDir(path.join(ROOT, 'data'));
+fs.writeFileSync(path.join(ROOT, 'data', 'payload-base.json'), payloadJson);
