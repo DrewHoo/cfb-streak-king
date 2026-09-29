@@ -4,7 +4,7 @@ import type { Streak } from './types.ts';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const DIR_WORDS: Record<string, string> = { W: 'winning', L: 'losing', U: 'undefeated', C: 'covering' };
+const DIR_WORDS: Record<string, string> = { W: 'winning', L: 'losing', U: 'undefeated', C: 'covering', N: 'not covering' };
 export const dirWord = (dir: string) => DIR_WORDS[dir] ?? 'winning';
 
 // the Sports-Reference site grammar: @ road, N neutral, blank home

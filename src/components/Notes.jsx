@@ -37,8 +37,9 @@ export function Notes() {
             A game qualifies when it matches every word in the definition. Non-qualifying games neither extend nor
             break a streak — “hasn't lost to Auburn since 1998” stays alive through seasons they don't play.
             Ties (pre-1996) end winning and losing streaks; an undefeated streak counts wins and ties. A covering
-            streak counts games where the team beat the closing spread: a push ends it, and a game without a line
-            (every game before 1978, and a few after) doesn't count at all.
+            streak counts games where the team beat the closing spread, and a not-covering streak counts games
+            where it didn't: a push ends either, and a game without a line (every game before 1978, and a few
+            after) doesn't count at all.
           </li>
           <li>
             Scores, sites and closing spreads for 1978–2013 come from Warren Repole's{' '}
@@ -76,7 +77,7 @@ export function Notes() {
             A team's page lists every streak it is king of: each definition under which that team alone holds
             the longest active or all-time streak, at least 4 games long, among at least 10 teams with a streak
             under it. The {PLAIN_CHIPS.length} plain words alone make {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible definitions,{' '}
-            {(PLAIN_DEFINITIONS * 4).toLocaleString('en-US')} counting winning, losing, undefeated and covering separately; the words that take a choice
+            {(PLAIN_DEFINITIONS * 5).toLocaleString('en-US')} counting winning, losing, undefeated, covering and not covering separately; the words that take a choice
             (a state, a conference, an opponent, a month) push that past 24 million.
           </li>
         </ul>

@@ -8,7 +8,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { teams } from '../lib/model.ts';
-import { streakGames } from '../lib/streaks.ts';
+import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { count, yy, yyOfYear, dirWord, rowKey, dayOf, monthDay, siteWord, kickOf } from '../lib/format.ts';
 import { track } from '../lib/analytics.ts';
 import { DESKTOP_CAP } from '../lib/view.ts';
@@ -136,7 +136,7 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
   }, [isMobile, shownKey]);
 
   const col = (row) => (
-    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={dir === 'C'} />
+    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';

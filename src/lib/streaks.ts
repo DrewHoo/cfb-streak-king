@@ -1,20 +1,26 @@
 // Streak semantics shared by the client and the build-time known-answer
 // checks. A streak is a run of consecutive qualifying games that all match
-// an outcome: W (won), L (lost), U (undefeated: won or tied) or C (covered
-// the closing spread). Non-qualifying games are invisible. A tie ends winning
-// and losing runs and extends an undefeated one. A game without a line is
-// invisible to a covering streak; a push ends one.
+// an outcome: W (won), L (lost), U (undefeated: won or tied), C (covered
+// the closing spread) or N (failed to cover). Non-qualifying games are
+// invisible. A tie ends winning and losing runs and extends an undefeated one.
+// A game without a line is invisible to a covering or non-covering streak; a
+// push ends either.
 
 import type { BoardRow, Cover, Dir, GameRow, Result } from './types.ts';
 
 interface Played { r: Result; cover?: Cover | null }
 
-export const OUTCOMES: Dir[] = ['W', 'L', 'U', 'C'];
+export const OUTCOMES: Dir[] = ['W', 'L', 'U', 'C', 'N'];
+
+/** The outcomes counted against the spread. */
+export const againstSpread = (o: Dir) => o === 'C' || o === 'N';
 
 /** Whether a game counts toward a streak of outcome `o`. */
-export const matches = (o: Dir, g: Played) => (o === 'C' ? g.cover === 'W' : o === 'U' ? g.r !== 'L' : g.r === o);
-/** Whether a game can take part in a streak of outcome `o` at all: a covering streak needs a line. */
-export const decided = (o: Dir, g: Played) => o !== 'C' || g.cover != null;
+export const matches = (o: Dir, g: Played) => (
+  o === 'C' ? g.cover === 'W' : o === 'N' ? g.cover === 'L' : o === 'U' ? g.r !== 'L' : g.r === o
+);
+/** Whether a game can take part in a streak of outcome `o` at all: a spread streak needs a line. */
+export const decided = (o: Dir, g: Played) => !againstSpread(o) || g.cover != null;
 
 /**
  * The run of `o` that ends at the latest game, or null when the latest game

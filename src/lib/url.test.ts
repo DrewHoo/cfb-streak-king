@@ -18,6 +18,7 @@ describe('url', () => {
     const views: View[] = [
       { ...DEFAULT_VIEW, active: [{ key: 'road' }, { key: 'month', param: 11 }], dir: 'L', scope: 'active', week: true },
       { ...DEFAULT_VIEW, active: [], dir: 'U', team: idx('alabama'), run: 7933 },
+      { ...DEFAULT_VIEW, active: [{ key: 'road' }], dir: 'N' },
       { ...DEFAULT_VIEW, active: [{ key: 'vsteam', param: idx('auburn') }], team: idx('kansas'), run: -4000 },
     ];
     for (const v of views) expect(roundTrip(v)).toEqual(v);
