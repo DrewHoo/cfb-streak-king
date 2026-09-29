@@ -1,7 +1,8 @@
 // One-time CFBD pulls for the halftime and possession chips:
 //   /games per year 2001-2025 (line scores; halftime = q1+q2) -> data/raw/cfbd-games/
 //   /games/teams per year+week 2004-2025 (possessionTime)     -> data/raw/cfbd-teamstats/
-// Line scores exist from 2001 (solid 2003+); possessionTime from 2004.
+// Line scores exist from 2001 (solid 2003+); possessionTime from 2004. /games
+// for 1996-2000 has no line scores, so pre-2001 overtime games are unknowable here.
 // ~420 calls, inside the free tier. Idempotent: existing files are skipped.
 import fs from 'node:fs';
 import path from 'node:path';

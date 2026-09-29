@@ -33,7 +33,7 @@ export const GROUP_NOTES = {
   half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
   possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
-  shape: 'Overtime is known from 2001 (box scores). Earlier games can’t qualify as overtime games.',
+  shape: 'Overtime comes from quarter-by-quarter line scores, known from 2001 and solid from 2002. FBS overtime began in 1996, but no source here marks 1996–2000 overtime games, so they can’t qualify.',
 };
 
 // parameter choices, by chip param kind

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { P, teams, chipByKey, board, allTimeBoard, todayEpochDay, fbsNow, fbsStartOf } from './lib/model.js';
-import { crownsFor, mineAll, isMined } from './lib/crowns.js';
+import { crownsFor, mineAll, isMined, NP_COUNT, DEF_COUNT } from './lib/crowns.js';
 import { definitionPhrase } from './lib/sentence.js';
 import {
   PRESETS, DEFAULT_SCOPE, encodeChips, decodeChips, chipsToParam, chipsFromParam, withChip, swapChip, withoutChip, withParam,
@@ -316,9 +316,9 @@ export default function App({ initial } = {}) {
           <li>
             In a team's expanded view, “leads” lists every definition under which that team holds the longest
             active streak outright, counting only definitions where at least 10 teams have a streak of 4 or
-            more games. The plain words alone make 39,138 possible definitions, 78,276 counting winning and
-            losing separately; the words that take a choice (a state, a conference, an opponent, a month) push
-            that past 24 million.
+            more games. The {NP_COUNT} plain words alone make {DEF_COUNT.toLocaleString('en-US')} possible definitions,{' '}
+            {(DEF_COUNT * 2).toLocaleString('en-US')} counting winning and losing separately; the words that take a choice
+            (a state, a conference, an opponent, a month) push that past 24 million.
           </li>
         </ul>
       </div>

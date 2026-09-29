@@ -17,6 +17,19 @@ export const FIELD_FLOOR = 10;
 
 const NP = CHIPS.filter((c) => !c.param);
 
+// how many definitions mine() walks (the empty one included), for the page copy
+export const NP_COUNT = NP.length;
+export const DEF_COUNT = (function count(start, chosen) {
+  let n = 1;
+  if (chosen.length === 4) return n;
+  for (let i = start; i < NP.length; i++) {
+    const c = NP[i];
+    if (c.x && chosen.some((j) => NP[j].x && NP[j].group === c.group)) continue;
+    n += count(i + 1, [...chosen, i]);
+  }
+  return n;
+})(0, []);
+
 const caches = { active: null, all: null };
 const mining = { active: null, all: null };
 
@@ -157,6 +170,11 @@ async function mine(scope) {
         if (def.length < prev.chips.length || (def.length === prev.chips.length && field > prev.field)) {
           prev.chips = def.map((i) => NP[i].key);
           prev.field = Math.max(prev.field, field);
+          // same last game and length doesn't mean the same first game
+          const gs = data[leader].gs;
+          prev.startSe = gs[s.startIdx]?.se;
+          prev.endSe = gs[s.lastIdx]?.se;
+          prev.atEdge = s.atEdge;
         }
       }
     }
