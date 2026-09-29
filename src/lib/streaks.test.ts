@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { BoardRow, ChipRef, Dir, Result } from './types.ts';
 import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
-import { activeRun, runsOf, matches, OUTCOMES } from './streaks.ts';
+import { activeRun, runsOf, matches, decided, OUTCOMES } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
 import { mineCrowns, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
 
@@ -50,6 +50,28 @@ describe('activeRun', () => {
   });
 });
 
+describe('covering', () => {
+  const g = (r: string, cover: string | null) => ({ r: r as Result, cover: cover as 'W' | 'L' | 'P' | null });
+  test('a cover counts whatever the result; a push ends the run', () => {
+    expect(activeRun([g('L', 'P'), g('L', 'W'), g('W', 'W')], 'C')).toMatchObject({ len: 2, atEdge: false });
+    expect(activeRun([g('W', 'W'), g('W', 'P')], 'C')).toBeNull();
+  });
+  test('only lined games take part', () => {
+    expect(decided('C', g('W', null))).toBe(false);
+    expect(decided('W', g('W', null))).toBe(true);
+  });
+  test('every game in a covering run on the real boards has a line and covered it', () => {
+    for (const def of [[], [{ key: 'road' }], [{ key: 'dog' }]] as ChipRef[][]) {
+      for (const r of allTimeBoard(def, 'C', today).slice(0, 40)) {
+        const run = r.qual.slice(r.s.startIdx, r.s.endIdx! + 1);
+        expect(run.every((x) => x.sp != null && x.cover === 'W' && x.us - x.them + x.sp > 0)).toBe(true);
+        if (r.ended) expect(r.ended.cover).not.toBe('W');
+        expect(r.qual.every((x) => x.cover != null)).toBe(true);
+      }
+    }
+  });
+});
+
 describe('runsOf', () => {
   test('maximal runs, in order', () => {
     expect(runsOf(seq('WWLWTWL'), 'W')).toEqual([[0, 1], [3, 3], [5, 5]]);
@@ -88,8 +110,8 @@ describe('boards', () => {
           runs.sort((a, b) => a.s.startIdx! - b.s.startIdx!);
           for (let i = 1; i < runs.length; i++) expect(runs[i].s.startIdx).toBeGreaterThan(runs[i - 1].s.endIdx! + 1);
           for (const r of runs) {
-            if (r.s.startIdx! > 0) expect(matches(dir, r.qual[r.s.startIdx! - 1].r)).toBe(false);
-            if (r.ended) expect(matches(dir, r.ended.r)).toBe(false);
+            if (r.s.startIdx! > 0) expect(matches(dir, r.qual[r.s.startIdx! - 1])).toBe(false);
+            if (r.ended) expect(matches(dir, r.ended)).toBe(false);
           }
         }
       }
@@ -139,6 +161,7 @@ describe('crowns agree with the boards', () => {
         expect(rows[1]?.s.len ?? 0, label).toBeLessThan(cr.len);
         expect(cr.len).toBeGreaterThanOrEqual(LEN_FLOOR);
         expect(rows.length).toBeGreaterThanOrEqual(FIELD_FLOOR);
+        expect(cr.live, label).toBe(rows[0].live ?? true);
       }
     }, 60000);
   }

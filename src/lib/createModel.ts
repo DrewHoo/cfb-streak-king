@@ -6,7 +6,7 @@
 import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, UpcomingRow } from './types.ts';
 import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
-import { activeRun, runsOf } from './streaks.ts';
+import { activeRun, runsOf, decided } from './streaks.ts';
 
 const DAY_MS = 86400000;
 const monthOf = (ep: number) => {
@@ -19,6 +19,10 @@ const firstSeasonOf = (s: Stint) => (s[2] === 0 ? s[1] : s[1] + 1);
 // sorts before any real game day, including negative (pre-1970) ones
 const EDGE = -Infinity;
 const rank = (r: number) => (r === RANK_UNKNOWN ? null : r);
+// margin plus our spread (+ = we were underdogs): above zero covered, zero a push
+// the first season with closing lines (Repole's files)
+const LINES_FROM = 1978;
+const coverOf = (m: number) => (m > 0 ? 'W' : m < 0 ? 'L' : 'P');
 
 export type Model = ReturnType<typeof createModel>;
 
@@ -135,6 +139,7 @@ export function createModel(P: Payload) {
         margin: Math.abs(us - them),
         total: us + them,
         sp: spRaw === NO_LINE ? null : (home ? spRaw : -spRaw) / 2, // + = we were underdogs
+        cover: spRaw === NO_LINE ? null : coverOf(us - them + (home ? spRaw : -spRaw) / 2),
         ot: g.ot?.[i] ?? UNKNOWN,
         h1: g.hf[i] >= 0 ? (home ? g.hf[i] - g.af[i] : g.af[i] - g.hf[i]) : null,
         pos: g.hp[i] >= 0 && g.hp[i] + g.ap[i] > 0 ? (home ? g.hp[i] : g.ap[i]) / (g.hp[i] + g.ap[i]) : null,
@@ -231,7 +236,7 @@ export function createModel(P: Payload) {
     const filter = makeFilter(active);
     const pre = makePre(active);
     for (const ti of fbsNow) {
-      const qual = gamesOf(ti).filter(filter);
+      const qual = gamesOf(ti).filter((g) => filter(g) && decided(dir, g));
       if (!qual.length) continue;
       const s = activeRun(qual, dir);
       if (!s) continue;
@@ -253,7 +258,7 @@ export function createModel(P: Payload) {
     const filter = makeFilter(active);
     const pre = makePre(active);
     for (const ti of fbsNow) {
-      const qual = gamesOf(ti).filter(filter);
+      const qual = gamesOf(ti).filter((g) => filter(g) && decided(dir, g));
       for (const [startIdx, endIdx] of runsOf(qual, dir)) {
         const live = endIdx === qual.length - 1;
         const s = {
@@ -272,13 +277,14 @@ export function createModel(P: Payload) {
   /**
    * Where a streak that reaches the start of a team's list actually stops:
    * the latest data floor among the definition's chips (kickoff times from
-   * 2002, say), else the team's first FBS season, else the first season in
-   * the data. `what` names the missing data; `joined` says it's the team's
-   * FBS entry.
+   * 2002, say) or the outcome's (a covering streak needs lines, from 1978),
+   * else the team's first FBS season, else the first season in the data.
+   * `what` names the missing data; `joined` says it's the team's FBS entry.
    */
-  function edgeFor(active: ChipRef[]) {
+  function edgeFor(active: ChipRef[], dir: Dir = 'W') {
     let floor = firstSeason;
     let what: string | null = null;
+    if (dir === 'C' && LINES_FROM > floor) { floor = LINES_FROM; what = 'closing-line'; }
     for (const a of active) {
       const f = chipByKey.get(a.key)?.floor;
       if (f && f.season > floor) { floor = f.season; what = f.what; }

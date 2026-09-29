@@ -217,6 +217,7 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .xopp { font-size: 10px; color: var(--rust); text-align: right; }
 .xsc { text-align: right; color: var(--ink-muted); white-space: nowrap; }
 .xsc.w { color: var(--cream); }
+.xsp { font-style: normal; color: var(--ink-faint); }
 .xnext { font-size: 9.5px; text-align: right; color: var(--rust); letter-spacing: 0.06em; text-transform: uppercase; }
 .log-note { font-size: 12px; color: var(--ink-faint); font-style: italic; padding: 6px 2px 0; max-width: 420px; }
 

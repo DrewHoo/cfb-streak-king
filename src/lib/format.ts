@@ -4,7 +4,8 @@ import type { Streak } from './types.ts';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export const dirWord = (dir: string) => (dir === 'W' ? 'winning' : dir === 'U' ? 'unbeaten' : 'losing');
+const DIR_WORDS: Record<string, string> = { W: 'winning', L: 'losing', U: 'undefeated', C: 'covering' };
+export const dirWord = (dir: string) => DIR_WORDS[dir] ?? 'winning';
 
 // the Sports-Reference site grammar: @ road, N neutral, blank home
 interface Site { neutral: boolean; home: boolean }
@@ -21,6 +22,8 @@ export const shortDate = (ep: number) => {
 export const dayOf = (ep: number) => DAYS[new Date(ep * 86400000).getUTCDay()];
 export const monthDay = (ep: number) => { const d = new Date(ep * 86400000); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
 export const kickOf = (u: { hh: number }) => (u.hh !== 31 ? `${u.hh % 12 || 12}${u.hh >= 12 ? 'pm' : 'am'}` : '');
+/** Our line, as a bettor reads it: -7 favored by 7, +3.5 getting 3.5, PK even. */
+export const spreadText = (sp: number) => (sp === 0 ? 'PK' : sp > 0 ? `+${sp}` : `${sp}`);
 export const count = (s: Pick<Streak, 'len' | 'atEdge'>) => `${s.len}${s.atEdge ? '+' : ''}`;
 
 // state names for the "in [state]" chip: the payload carries postal codes
