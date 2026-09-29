@@ -385,6 +385,18 @@ for (const r of sched) {
   });
 }
 
+// games no source lists (New Mexico State's spring 2021 schedule)
+const extraGames = loadRef('extra-games.json').games;
+for (const x of extraGames) {
+  pushGame({
+    season: x.season, dateIso: x.date, home: x.home, away: x.away,
+    homeRaw: x.home, awayRaw: x.away, hs: x.hs, as: x.as,
+    neutral: x.neutral, postseason: false, confGame: false,
+    homeSpread: null, startHour: 31, info: x.info,
+  });
+}
+console.log(`extra games: ${extraGames.length}`);
+
 // sort all columns by epoch day
 const order = cols.ep.map((_, i) => i).sort((a, b) => cols.ep[a] - cols.ep[b] || a - b);
 for (const k of Object.keys(cols)) cols[k] = order.map((i) => cols[k][i]);

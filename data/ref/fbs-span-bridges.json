@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "updated": "2026-09-28",
+  "note": "Seasons that do not end a team's FBS span. Howell's byconf.htm ends a span on any season he doesn't list for a team, and a team's list starts at its latest FBS span (fbsStartOf), so a season the team sat out would cut off everything before it. Every season here is one where the team fielded no team or, for New Mexico State 2020, played a spring schedule Howell doesn't list. None is a season in another division. parse-jhowell.mjs merges a team's spans across a gap only when every season in the gap is listed here. Games a team did play in a bridged season come from extra-games.json.",
+  "teams": {
+    "uconn": [{ "seasons": [2020], "source": "UConn canceled its 2020 season on 2020-08-05 (COVID-19); the first FBS program to do so." }],
+    "old-dominion": [{ "seasons": [2020], "source": "Old Dominion canceled its fall 2020 season on 2020-08-10 (COVID-19; odusports.com/news/2020/8/10) and did not play in the spring." }],
+    "new-mexico-state": [{ "seasons": [2020], "source": "New Mexico State suspended fall 2020 play on 2020-08-13 and played a spring schedule as an FBS independent: Tarleton State and Dixie State at the Sun Bowl (en.wikipedia.org/wiki/2020_New_Mexico_State_Aggies_football_team). Both games are in extra-games.json." }],
+    "smu": [{ "seasons": [1987, 1988], "source": "NCAA death penalty canceled SMU's 1987 season; SMU canceled 1988 itself." }],
+    "uab": [{ "seasons": [2015, 2016], "source": "UAB shut its program down after 2014 and returned in 2017." }]
+  }
+}

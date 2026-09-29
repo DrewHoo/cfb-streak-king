@@ -56,6 +56,10 @@ reported, never dropped.
 - A team's list starts at its latest FBS entry (`fbsStartOf`). FCS-era games
   stay in the payload for the FBS opponent but never in the team's own
   list, so Missouri State's streaks begin in 2025, not in its FCS years.
+  Howell ends a span on any season he doesn't list, so seasons a team sat
+  out (UConn, ODU and NMSU 2020, SMU 1987–88, UAB 2015–16) are bridged by
+  `data/ref/fbs-span-bridges.json`, one source per row. NMSU's two spring
+  2021 games, which no source lists, come from `data/ref/extra-games.json`.
 - A streak reaching 1978 displays as "N+"; one reaching a later FBS entry
   says so in the panel.
 

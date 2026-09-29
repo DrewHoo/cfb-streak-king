@@ -38,6 +38,8 @@ These definitions are the contract everything else builds on.
   played while FCS stay in the payload for the FBS opponent but never count toward its
   own streaks, so a program that joined in 2025 cannot carry a 38-game FCS losing streak
   onto the board. The panel says when a streak runs back to the team's first FBS season.
+  A season the team sat out doesn't count as leaving FBS (UConn 2020, SMU 1987–88; the
+  rulings are in data/ref/fbs-span-bridges.json), so a streak runs straight across it.
 
 ## Constraint catalog (v1)
 

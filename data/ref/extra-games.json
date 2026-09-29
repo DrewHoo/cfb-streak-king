@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "updated": "2026-09-28",
+  "note": "Games no source lists (Repole, Howell, cfbfastR, CFBD), added to the payload by build-payload.mjs. home/away are canonical ids; info is the neutral site as '@ City ST' without the '@ '. Each row carries its source.",
+  "games": [
+    { "season": 2020, "date": "2021-02-21", "home": "new-mexico-state", "away": "x:tarletonstate", "hs": 17, "as": 43, "neutral": true, "info": "El Paso TX", "source": "en.wikipedia.org/wiki/2020_New_Mexico_State_Aggies_football_team (spring schedule, Sun Bowl)" },
+    { "season": 2020, "date": "2021-03-07", "home": "new-mexico-state", "away": "x:utahtech", "hs": 36, "as": 29, "neutral": true, "info": "El Paso TX", "source": "en.wikipedia.org/wiki/2020_New_Mexico_State_Aggies_football_team (Dixie State, now Utah Tech; Sun Bowl)" }
+  ]
+}
