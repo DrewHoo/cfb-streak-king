@@ -1,5 +1,5 @@
 // Mine "streaks this team is king of": every ≤4-chip subset of the
-// parameterless catalog (x-exclusivity honored) × both directions, evaluated
+// parameterless catalog (exclusivity honored) × the three outcomes, evaluated
 // over packed per-chip bitmasks. The whole space is 44,799 definitions (the
 // empty one included) and mines in a second or two, lazily in the client.
 //
@@ -13,10 +13,11 @@
 import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
 import { CHIPS, conflicts, qualifies } from './chips.ts';
 import { fbsNow, gamesOf } from './model.ts';
+import { OUTCOMES } from './streaks.ts';
 
 interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[] }
 interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number }
-type Runs = Partial<Record<Result, Run>>;
+type Runs = Partial<Record<Dir, Run>>;
 
 export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
@@ -53,38 +54,44 @@ function buildData(): TeamData[] {
   });
 }
 
-// the trailing streak of the masked sequence: { W: s, L: s } with one side set
+// The trailing runs of the masked sequence: the run of the latest result
+// (W or L) and the unbeaten run, each set when it has at least one game.
 function walkActive(td: TeamData, q: Uint32Array): Runs {
-  let dir: Result | null = null;
-  let len = 0;
-  let startIdx = -1;
+  let r0: Result | null = null;
   let lastIdx = -1;
-  for (let w = td.words - 1; w >= 0; w--) {
+  let same = 0, sameStart = -1, sameOpen = true;
+  let unb = 0, unbStart = -1, unbOpen = true;
+  scan: for (let w = td.words - 1; w >= 0; w--) {
     if (!q[w]) continue;
     for (let b = 31; b >= 0; b--) {
       if (!(q[w] & (1 << b))) continue;
       const i = (w << 5) | b;
       if (i >= td.n) continue;
       const r = td.r[i];
-      if (dir === null) { dir = r; len = 1; lastIdx = i; startIdx = i; }
-      else if (r === dir) { len++; startIdx = i; }
-      else return { [dir]: { len, atEdge: false, lastIdx, startIdx } };
+      if (r0 === null) { r0 = r; lastIdx = i; sameOpen = r !== 'T'; }
+      if (sameOpen) { if (r === r0) { same++; sameStart = i; } else sameOpen = false; }
+      if (unbOpen) { if (r !== 'L') { unb++; unbStart = i; } else unbOpen = false; }
+      if (!sameOpen && !unbOpen) break scan;
     }
   }
-  return dir === null ? {} : { [dir]: { len, atEdge: true, lastIdx, startIdx } };
+  const out: Runs = {};
+  // a run still open after the scan reached the first qualifying game
+  if (r0 && r0 !== 'T' && same) out[r0] = { len: same, atEdge: sameOpen, lastIdx, startIdx: sameStart };
+  if (unb) out.U = { len: unb, atEdge: unbOpen, lastIdx, startIdx: unbStart };
+  return out;
 }
 
-// the longest run of each direction anywhere in the masked sequence
+// the longest run of each outcome anywhere in the masked sequence; the
+// earliest wins a tie
 function walkLongest(td: TeamData, q: Uint32Array): Runs {
   const best: Runs = {};
-  let dir: Result | null = null;
-  let len = 0;
-  let startIdx = -1;
-  const close = (lastIdx: number) => {
-    if (dir === null || dir === 'T') return;
-    const b = best[dir];
-    if (!b || len > b.len) best[dir] = { len, atEdge: false, lastIdx, startIdx };
+  const keep = (o: Dir, len: number, startIdx: number, lastIdx: number) => {
+    const b = best[o];
+    if (len && (!b || len > b.len)) best[o] = { len, atEdge: false, lastIdx, startIdx };
   };
+  let dir: Result | null = null;
+  let len = 0, startIdx = -1;
+  let unb = 0, unbStart = -1;
   let firstIdx = -1;
   let prev = -1;
   for (let w = 0; w < td.words; w++) {
@@ -95,12 +102,18 @@ function walkLongest(td: TeamData, q: Uint32Array): Runs {
       if (i >= td.n) continue;
       if (firstIdx < 0) firstIdx = i;
       const r = td.r[i];
-      if (r === dir) { len++; }
-      else { close(prev); dir = r; len = 1; startIdx = i; }
+      if (r === dir) len++;
+      else {
+        if (dir === 'W' || dir === 'L') keep(dir, len, startIdx, prev);
+        dir = r; len = 1; startIdx = i;
+      }
+      if (r !== 'L') { if (!unb) unbStart = i; unb++; }
+      else { keep('U', unb, unbStart, prev); unb = 0; }
       prev = i;
     }
   }
-  close(prev);
+  if (dir === 'W' || dir === 'L') keep(dir, len, startIdx, prev);
+  keep('U', unb, unbStart, prev);
   // a run that starts at the first qualifying game may run past the window
   for (const run of Object.values(best)) run.atEdge = run.startIdx === firstIdx;
   return best;
@@ -142,7 +155,7 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
       }
       res[t] = walk(td, qb);
     }
-    for (const dir of ['W', 'L'] as Dir[]) {
+    for (const dir of OUTCOMES) {
       let best = 0;
       let leader = -1;
       let leaders = 0;

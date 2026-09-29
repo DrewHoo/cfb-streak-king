@@ -3,7 +3,7 @@ import type { ChipRef } from './types.ts';
 import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
-import { definitionPhrase, claim, noClaim, ordinal, SLOTS } from './sentence.ts';
+import { definitionPhrase, claim, noClaim, crownClaim, ordinal, SLOTS } from './sentence.ts';
 import { defaultParam, MAX_CHIPS } from './definition.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
@@ -131,6 +131,24 @@ describe('claim', () => {
     const r = allTimeBoard([], 'W', today).find((x) => x.s.atEdge && x.live);
     if (!r) return;
     expect(claim(r, [], 'W')).toMatch(/ has won \d+\+ straight games\.$/);
+  });
+
+  test('unbeaten reads "is unbeaten in" and "went unbeaten in"', () => {
+    const ended = allTimeBoard([], 'U', today).find((x) => x.ti === idx('alabama') && x.s.len === 31)!;
+    expect(claim(ended, [], 'U')).toBe('Alabama went unbeaten in 31 straight games, 1991–1993.');
+    const live = activeBoard(chips('home'), 'U', today)[0];
+    expect(claim(live, chips('home'), 'U')).toMatch(/ is unbeaten in \d+\+? straight games at home(, since [A-Z][a-z]{2} \d{4})?\.$/);
+    expect(noClaim(idx('alabama'), [], 'U')).toBe('Alabama has no active unbeaten streak in games.');
+  });
+
+  test('a crown reads like a claim', () => {
+    const base = { chips: ['road', 'ranked'], scope: 'all' as const, atEdge: false, field: 40, also: 0 };
+    expect(crownClaim(idx('alabama'), { ...base, dir: 'W', len: 12, live: false, startSe: 2008, endSe: 2012 }))
+      .toBe('Alabama won 12 straight games against ranked opponents on the road, 2008–2012.');
+    expect(crownClaim(idx('alabama'), { ...base, dir: 'U', len: 5, live: true, startSe: 2024 }))
+      .toBe('Alabama is unbeaten in 5 straight games against ranked opponents on the road.');
+    expect(crownClaim(idx('alabama'), { ...base, dir: 'L', len: 4, live: false, startSe: 2001, endSe: 2001, scope: 'all' }))
+      .toBe('Alabama lost 4 straight games against ranked opponents on the road in 2001.');
   });
 
   test('no streak', () => {

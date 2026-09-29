@@ -24,8 +24,9 @@ These definitions are the contract everything else builds on.
   consecutive qualifying games with the same result. One computation yields both boards;
   a team whose latest qualifying result was a loss has a win streak of 0 and doesn't
   appear on the win board.
-- **Ties break streaks in both directions.** Ties only exist before overtime arrived in
-  1996. An "unbeaten" outcome mode (wins + ties) is a possible later addition, not v1.
+- **Ties break winning and losing streaks.** Ties only exist before overtime arrived in
+  1996. A third outcome, **unbeaten** (wins and ties), shipped 2026-09-29: `dir=U` in the
+  URL, a third word in the direction menu and the crowns select.
 - A streak that reaches the window edge displays **"N+"**. We never claim a streak
   equals N when 1977 could extend it.
 - When a betting constraint is active and a qualifying-by-other-criteria game has no
@@ -201,7 +202,6 @@ streaks) so crawlers see a real leaderboard.
   supports covers for 1978+ and the research says model outcomes separately from
   filters, so the door stays open. It roughly doubles the semantics surface (push
   handling, unlined-game gaps), and straight-up W/L ships the product.
-- Unbeaten mode (ties don't break).
 - FCS/D-II boards.
 - ~~Historical (non-current) streak leaderboards.~~ Shipped 2026-09-28 as the all-time
   scope, now the default; see Amendments.

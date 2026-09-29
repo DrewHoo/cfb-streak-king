@@ -49,7 +49,8 @@ export interface Payload {
 }
 
 export type Result = 'W' | 'L' | 'T';
-export type Dir = 'W' | 'L';
+/** The outcome a streak counts: won, lost, or unbeaten (won or tied). */
+export type Dir = 'W' | 'L' | 'U';
 export type Scope = 'active' | 'all';
 
 /** What's known about a game before kickoff, from one team's side. */
@@ -113,7 +114,7 @@ export interface ChipRef {
 }
 
 export interface Streak {
-  dir: Result;
+  dir: Dir;
   len: number;
   /** The run reaches the first qualifying game in the team's window. */
   atEdge: boolean;

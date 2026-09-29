@@ -20,7 +20,7 @@ import path from 'node:path';
 import { ROOT, ensureDir } from '../lib/util.mjs';
 import { display } from '../lib/names.mjs';
 import { buildStints, markInterim } from '../lib/coach.mjs';
-import { currentStreak } from '../../src/lib/streaks.ts';
+import { activeRun } from '../../src/lib/streaks.ts';
 import { FLAG, NO_LINE, NO_HOUR, UNKNOWN, UNRANKED, RANK_UNKNOWN } from '../../src/lib/schema.ts';
 
 const BUILD = path.join(ROOT, 'data', 'build');
@@ -582,7 +582,7 @@ function gamesFor(teamId, filter) {
 {
   const g = gamesFor('alabama', (x) => x.oppRank === 0);
   const upTo = g.filter((x) => x.date <= '2021-10-09');
-  const s = currentStreak(upTo.slice(0, -1));
+  const s = activeRun(upTo.slice(0, -1), 'W') ?? { len: 0 };
   const ender = upTo.at(-1);
   console.log(`\ncheck Alabama vs unranked: ${s.len}W entering 2021-10-09, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 100W, texas-am, L`);
   if (s.len !== 100 || ender.opp !== 'texas-am' || ender.r !== 'L') throw new Error('Alabama check failed');
@@ -591,7 +591,7 @@ function gamesFor(teamId, filter) {
 {
   const g = gamesFor('kansas', (x) => !x.isHome && !x.neutral);
   const upTo = g.filter((x) => x.date <= '2018-09-08');
-  const s = currentStreak(upTo.slice(0, -1));
+  const s = activeRun(upTo.slice(0, -1), 'L') ?? { len: 0 };
   const ender = upTo.at(-1);
   console.log(`check Kansas road: ${s.len}L entering 2018-09-08, ender ${ender.opp} ${ender.score} (${ender.r}) — expect 46L, central-michigan, W`);
   if (s.len !== 46 || ender.opp !== 'central-michigan' || ender.r !== 'W') throw new Error('Kansas check failed');
@@ -600,7 +600,7 @@ function gamesFor(teamId, filter) {
 {
   const g = gamesFor('vanderbilt', (x) => x.confGame);
   const upTo = g.filter((x) => x.date <= '2022-11-12');
-  const s = currentStreak(upTo.slice(0, -1));
+  const s = activeRun(upTo.slice(0, -1), 'L') ?? { len: 0 };
   const ender = upTo.at(-1);
   console.log(`check Vanderbilt SEC: ${s.len}L entering 2022-11-12, ender ${ender.opp} (${ender.r}) — expect 26L, kentucky, W`);
   if (s.len !== 26 || ender.opp !== 'kentucky' || ender.r !== 'W') throw new Error('Vanderbilt check failed');

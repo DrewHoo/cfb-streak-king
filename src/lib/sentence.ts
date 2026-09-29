@@ -32,10 +32,10 @@
 // Adding a chip means adding one row to SLOTS. Anything missing falls back
 // to the chip's label so a new chip never breaks the sentence.
 
-import type { BoardRow, ChipRef, Dir } from './types.ts';
+import type { BoardRow, ChipRef, Crown, Dir } from './types.ts';
 import { teams } from './model.ts';
 import { chipByKey } from './chips.ts';
-import { stateName } from './format.ts';
+import { dirWord, stateName } from './format.ts';
 
 type Frag = string | ((p: any) => string);
 type SlotRow = [slot: string, frag: Frag, demoted?: string];
@@ -161,27 +161,39 @@ const year = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
 const SINGULAR: Record<string, string> = { games: 'game', shootouts: 'shootout', 'rock fights': 'rock fight', 'season openers': 'season opener', 'regular-season finales': 'regular-season finale', 'bowl and playoff games': 'bowl or playoff game' };
 const singular = (phrase: string) => phrase.replace(/^(bowl and playoff games|regular-season finales|season openers|rock fights|shootouts|games)/, (m) => SINGULAR[m]);
 
+// "has won" / "won", by outcome and tense
+const VERBS: Record<Dir, [live: string, ended: string]> = {
+  W: ['has won', 'won'],
+  L: ['has lost', 'lost'],
+  U: ['is unbeaten in', 'went unbeaten in'],
+};
+const span = (y0: number, y1: number) => (y0 === y1 ? ` in ${y0}` : `, ${y0}–${y1}`);
+
 export function claim(row: BoardRow, active: ChipRef[], dir: Dir): string {
   const t = teams[row.ti];
   const phrase = definitionPhrase(active);
   const n = `${row.s.len}${row.s.atEdge ? '+' : ''} straight ${row.s.len === 1 && !row.s.atEdge ? singular(phrase) : phrase}`;
   const live = row.live ?? true;
   if (!live) {
-    const verb = dir === 'W' ? 'won' : 'lost';
-    const y0 = year(row.s.start!.ep);
-    const y1 = year(row.s.end!.ep);
     // "in 2012" for a run inside one year, "2007–2021" across years
-    return y0 === y1 ? `${t.name} ${verb} ${n} in ${y0}.` : `${t.name} ${verb} ${n}, ${y0}–${y1}.`;
+    return `${t.name} ${VERBS[dir][1]} ${n}${span(year(row.s.start!.ep), year(row.s.end!.ep))}.`;
   }
-  const verb = dir === 'W' ? 'has won' : 'has lost';
   const first = row.qual[row.qual.length - row.s.len];
   const since = row.s.atEdge ? '' : `, since ${monYear(first.ep)}`;
-  return `${t.name} ${verb} ${n}${since}.`;
+  return `${t.name} ${VERBS[dir][0]} ${n}${since}.`;
 }
 
 /** A team with no streak under the definition. */
 export function noClaim(ti: number, active: ChipRef[], dir: Dir): string {
-  return `${teams[ti].name} has no active ${dir === 'W' ? 'winning' : 'losing'} streak in ${definitionPhrase(active)}.`;
+  return `${teams[ti].name} has no active ${dirWord(dir)} streak in ${definitionPhrase(active)}.`;
+}
+
+/** The sentence for one streak a team is king of (its share text). */
+export function crownClaim(ti: number, cr: Crown): string {
+  const live = cr.scope === 'active' || cr.live;
+  const when = !live && cr.startSe != null && cr.endSe != null ? span(cr.startSe, cr.endSe) : '';
+  const chips = cr.chips.map((key) => ({ key }));
+  return `${teams[ti].name} ${VERBS[cr.dir][live ? 0 : 1]} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips)}${when}.`;
 }
 
 export const ordinal = (n: number) => {

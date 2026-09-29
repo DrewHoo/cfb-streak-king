@@ -5,7 +5,7 @@
 export interface StarredDef {
   /** encodeChips() of the definition. */
   c: string;
-  dir: 'W' | 'L';
+  dir: 'W' | 'L' | 'U';
   name: string;
 }
 

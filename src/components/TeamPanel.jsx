@@ -7,7 +7,7 @@ import { chipByKey } from '../lib/chips.ts';
 import { streakGames } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
-import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count } from '../lib/format.ts';
+import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord } from '../lib/format.ts';
 import { Chip, NextChip, TeamMark } from './Chip.jsx';
 import { ShareIcon } from './Icons.jsx';
 
@@ -85,12 +85,13 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
         <select className="leads-sel" value={crownsDir} onChange={(e) => onCrownsDir(e.target.value)} aria-label="Winning or losing">
           <option value="W">Winning</option>
           <option value="L">Losing</option>
+          <option value="U">Unbeaten</option>
         </select>{' '}
         Streaks
       </p>
       {crowns === null && <p className="empty">finding every streak {name} is king of…</p>}
       {crowns !== null && list0.length === 0 && (
-        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {crownsDir === 'W' ? 'winning' : 'losing'} streak of 4+ games that {name} alone holds.</p>
+        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of 4+ games that {name} alone holds.</p>
       )}
       {list.map((cr) => {
         const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;

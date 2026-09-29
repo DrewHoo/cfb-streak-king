@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { BoardRow, ChipRef, Dir, Result } from './types.ts';
 import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
-import { currentStreak } from './streaks.ts';
+import { activeRun, runsOf, matches, OUTCOMES } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
 import { mineCrowns, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
 
@@ -16,27 +16,52 @@ function rng(seed: number) {
 }
 const randomResults = (rand: () => number, n: number) => Array.from({ length: n }, () => { const x = rand(); return x < 0.47 ? 'W' : x < 0.94 ? 'L' : 'T'; }).join('');
 
-describe('currentStreak', () => {
+describe('activeRun', () => {
   test('counts back from the last game', () => {
-    expect(currentStreak(seq('LWWW'))).toMatchObject({ dir: 'W', len: 3, atEdge: false });
-    expect(currentStreak(seq('WWW'))).toMatchObject({ dir: 'W', len: 3, atEdge: true, ender: null });
-    expect(currentStreak(seq('WLL'))!.ender!.i).toBe(0);
-    expect(currentStreak([])).toBeNull();
+    expect(activeRun(seq('LWWW'), 'W')).toMatchObject({ dir: 'W', len: 3, atEdge: false });
+    expect(activeRun(seq('WWW'), 'W')).toMatchObject({ dir: 'W', len: 3, atEdge: true, ender: null });
+    expect(activeRun(seq('WLL'), 'L')!.ender!.i).toBe(0);
+    expect(activeRun(seq('WLL'), 'W')).toBeNull();
+    expect(activeRun([], 'W')).toBeNull();
   });
 
-  test('a tie ends a run in both directions', () => {
-    expect(currentStreak(seq('WWTW'))).toMatchObject({ dir: 'W', len: 1 });
-    expect(currentStreak(seq('LLTL'))).toMatchObject({ dir: 'L', len: 1 });
-    expect(currentStreak(seq('WWT'))).toMatchObject({ dir: 'T', len: 1 });
+  test('a tie ends winning and losing runs', () => {
+    expect(activeRun(seq('WWTW'), 'W')).toMatchObject({ len: 1 });
+    expect(activeRun(seq('LLTL'), 'L')).toMatchObject({ len: 1 });
+    expect(activeRun(seq('WWT'), 'W')).toBeNull();
+  });
+
+  test('a tie extends an unbeaten run; a loss ends it', () => {
+    expect(activeRun(seq('LWTWT'), 'U')).toMatchObject({ dir: 'U', len: 4, atEdge: false });
+    expect(activeRun(seq('TWW'), 'U')).toMatchObject({ len: 3, atEdge: true });
+    expect(activeRun(seq('WWL'), 'U')).toBeNull();
   });
 
   test('matches a naive count on random sequences', () => {
     const rand = rng(7);
     for (let k = 0; k < 500; k++) {
       const s = randomResults(rand, 1 + Math.floor(rand() * 40));
-      const last = s.at(-1)!;
-      const naive = s.length - s.replace(new RegExp(`${last}+$`), '').length;
-      expect(currentStreak(seq(s))!.len).toBe(naive);
+      for (const o of OUTCOMES) {
+        const re = o === 'U' ? /[WT]+$/ : new RegExp(`${o}+$`);
+        const naive = s.length - s.replace(re, '').length;
+        expect(activeRun(seq(s), o)?.len ?? 0).toBe(naive);
+      }
+    }
+  });
+});
+
+describe('runsOf', () => {
+  test('maximal runs, in order', () => {
+    expect(runsOf(seq('WWLWTWL'), 'W')).toEqual([[0, 1], [3, 3], [5, 5]]);
+    expect(runsOf(seq('WWLWTWL'), 'U')).toEqual([[0, 1], [3, 5]]);
+    expect(runsOf(seq('WWLWTWL'), 'L')).toEqual([[2, 2], [6, 6]]);
+  });
+  test('an unbeaten run covers every winning run inside it', () => {
+    const rand = rng(9);
+    for (let k = 0; k < 200; k++) {
+      const s = seq(randomResults(rand, 30));
+      const u = runsOf(s, 'U');
+      for (const [a, b] of runsOf(s, 'W')) expect(u.some(([c, d]) => c <= a && b <= d)).toBe(true);
     }
   });
 });
@@ -56,15 +81,15 @@ describe('boards', () => {
 
   test('all-time runs of one team never overlap and each is maximal', () => {
     for (const def of sample) {
-      for (const dir of ['W', 'L'] as Dir[]) {
+      for (const dir of OUTCOMES) {
         const byTeam = new Map<number, BoardRow[]>();
         for (const r of allTimeBoard(def, dir, today)) (byTeam.get(r.ti) ?? byTeam.set(r.ti, []).get(r.ti)!).push(r);
         for (const runs of byTeam.values()) {
           runs.sort((a, b) => a.s.startIdx! - b.s.startIdx!);
           for (let i = 1; i < runs.length; i++) expect(runs[i].s.startIdx).toBeGreaterThan(runs[i - 1].s.endIdx! + 1);
           for (const r of runs) {
-            if (r.s.startIdx! > 0) expect(r.qual[r.s.startIdx! - 1].r).not.toBe(dir);
-            if (r.ended) expect(r.ended.r).not.toBe(dir);
+            if (r.s.startIdx! > 0) expect(matches(dir, r.qual[r.s.startIdx! - 1].r)).toBe(false);
+            if (r.ended) expect(matches(dir, r.ended.r)).toBe(false);
           }
         }
       }
@@ -73,7 +98,7 @@ describe('boards', () => {
 
   test('a live all-time run is the team’s active streak', () => {
     for (const def of sample.slice(0, 20)) {
-      for (const dir of ['W', 'L'] as Dir[]) {
+      for (const dir of OUTCOMES) {
         const active = new Map(activeBoard(def, dir, today).map((r) => [r.ti, r.s.len]));
         for (const r of allTimeBoard(def, dir, today).filter((x) => x.live)) expect(active.get(r.ti)).toBe(r.s.len);
       }

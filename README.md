@@ -52,7 +52,9 @@ reported, never dropped.
   `data/ref/coach-overrides.json` rules every unresolved season: dropped
   coaches, bowl-only interims, and seasons CFBD has no rows for. `x:<name>`
   ids mint coaches CFBD never lists. The build must report 0 unresolved.
-- Ties (pre-1996) end streaks in both directions.
+- Ties (pre-1996) end winning and losing streaks. The third outcome,
+  unbeaten, counts wins and ties (Alabama's 31 straight, 1991–93, through
+  the 17–17 tie at Tennessee).
 - A team's list starts at its latest FBS entry (`windowStartOf`). FCS-era games
   stay in the payload for the FBS opponent but never in the team's own
   list, so Missouri State's streaks begin in 2025, not in its FCS years.

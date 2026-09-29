@@ -6,7 +6,7 @@
 import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, UpcomingRow } from './types.ts';
 import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
-import { currentStreak } from './streaks.ts';
+import { activeRun, runsOf } from './streaks.ts';
 
 const DAY_MS = 86400000;
 const monthOf = (ep: number) => {
@@ -233,8 +233,8 @@ export function createModel(P: Payload) {
     for (const ti of fbsNow) {
       const qual = gamesOf(ti).filter(filter);
       if (!qual.length) continue;
-      const s = currentStreak(qual)!;
-      if (s.dir !== dir || s.len === 0) continue;
+      const s = activeRun(qual, dir);
+      if (!s) continue;
       rows.push({ ti, s, qual, ...nextQualifying(ti, pre, todayEp) });
     }
     const enderEp = (r: BoardRow) => (r.s.atEdge ? EDGE : r.s.ender!.ep);
@@ -254,12 +254,7 @@ export function createModel(P: Payload) {
     const pre = makePre(active);
     for (const ti of fbsNow) {
       const qual = gamesOf(ti).filter(filter);
-      let i = 0;
-      while (i < qual.length) {
-        if (qual[i].r !== dir) { i++; continue; }
-        const startIdx = i;
-        while (i < qual.length && qual[i].r === dir) i++;
-        const endIdx = i - 1;
+      for (const [startIdx, endIdx] of runsOf(qual, dir)) {
         const live = endIdx === qual.length - 1;
         const s = {
           dir, len: endIdx - startIdx + 1, atEdge: startIdx === 0, last: qual[endIdx],

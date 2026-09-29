@@ -51,6 +51,19 @@ describe('famous streaks', () => {
     expect(teams[r.ended.oppIdx].id).toBe('kentucky');
   });
 
+  test('Alabama went 31 straight unbeaten, 1991–1993, through the 17–17 tie at Tennessee, ended by LSU', () => {
+    const r = runEndedOn([], 'U', 'alabama', '1993-11-06');
+    expect(r.s.len).toBe(31);
+    expect(teams[r.ended.oppIdx].id).toBe('lsu');
+    expect(r.qual.slice(r.s.startIdx, r.s.endIdx! + 1).filter((g) => g.r === 'T').map((g) => teams[g.oppIdx].id)).toEqual(['tennessee']);
+  });
+
+  test('USC went 28 straight unbeaten, 1978–1980, ended by Washington', () => {
+    const r = runEndedOn([], 'U', 'usc', '1980-11-15');
+    expect(r.s.len).toBe(28);
+    expect(teams[r.ended.oppIdx].id).toBe('washington');
+  });
+
   test('Miami won 34 straight, 2000–2002', () => {
     const r = allTimeBoard([], 'W', today).find((x) => x.ti === idx('miami-fl') && x.s.len === 34);
     expect(r?.s.start?.se).toBe(2000);

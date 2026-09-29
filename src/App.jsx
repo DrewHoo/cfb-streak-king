@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { P, teams, activeBoard, allTimeBoard, todayEpochDay, builtEpochDay, fbsNow, firstSeason, windowStartOf } from './lib/model.ts';
 import { chipByKey } from './lib/chips.ts';
 import { crownsFor, mineCrowns, isMined, NP_COUNT, DEF_COUNT } from './lib/crowns.ts';
-import { definitionPhrase } from './lib/sentence.ts';
+import { definitionPhrase, crownClaim } from './lib/sentence.ts';
 import {
   PRESETS, DEFAULT_SCOPE, encodeChips, decodeChips, chipsToParam, chipsFromParam, withChip, swapChip, withoutChip, withParam,
 } from './lib/definition.ts';
@@ -42,12 +42,12 @@ export default function App({ initial } = {}) {
   useEffect(() => {
     setTodayEp(todayEpochDay());
     setActive(chipsFromParam(readParam('c')));
-    if (readParam('dir') === 'L') setDir('L');
+    const d = readParam('dir');
+    if (d === 'L' || d === 'U') { setDir(d); setCrownsDir(d); }
     if (readParam('scope') === 'active') setScope('active');
     if (readParam('week') === '1') setWeek(true);
     const ti = teams.findIndex((t) => t.id === readParam('team'));
     if (ti >= 0 && fbsNow.has(ti)) setTeam(ti);
-    if (readParam('dir') === 'L') setCrownsDir('L');
     // a run is keyed by its first game's epoch day, negative before 1970
     const r = readParam('run');
     if (r != null && r !== '' && Number.isInteger(Number(r))) setRun(Number(r));
@@ -176,15 +176,12 @@ export default function App({ initial } = {}) {
   // the sentence and URL for one streak a team is king of
   function shareCrown(cr) {
     const chips = cr.chips.map((key) => ({ key }));
-    const verb = cr.dir === 'W' ? 'won' : 'lost';
-    const has = cr.scope === 'active' || cr.live ? 'has ' : '';
-    const when = cr.scope === 'all' && !cr.live && cr.startSe != null ? (cr.startSe === cr.endSe ? ` in ${cr.startSe}` : `, ${cr.startSe}–${cr.endSe}`) : '';
-    const sentence = `${teams[team].name} ${has}${verb} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips)}${when}.`;
+    const sentence = crownClaim(team, cr);
     const url = new URL(window.location.href);
     url.search = '';
     url.pathname = `${import.meta.env.BASE_URL}team/${teams[team].id}/`;
     if (chipsToParam(chips)) url.searchParams.set('c', chipsToParam(chips));
-    if (cr.dir === 'L') url.searchParams.set('dir', 'L');
+    if (cr.dir !== 'W') url.searchParams.set('dir', cr.dir);
     if (cr.scope !== DEFAULT_SCOPE) url.searchParams.set('scope', cr.scope);
     share(sentence, url.toString());
   }
@@ -288,7 +285,7 @@ export default function App({ initial } = {}) {
           <li>
             A game qualifies when it matches every word in the definition. Non-qualifying games neither extend nor
             break a streak — “hasn't lost to Auburn since 1998” stays alive through seasons they don't play.
-            Ties (pre-1996) end streaks in both directions.
+            Ties (pre-1996) end winning and losing streaks; an unbeaten streak counts wins and ties.
           </li>
           <li>
             Scores, sites and closing spreads for 1978–2013 come from Warren Repole's{' '}
