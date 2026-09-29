@@ -53,7 +53,7 @@ function Ledger({ row, edge }) {
             {edge.word
               ? `earliest ${edge.word} data is ${edge.year}; this streak may be longer than we can show`
               : edge.joined
-                ? `${teams[row.ti].name} joined FBS in ${edge.year}; every qualifying game since is in this streak, and its FCS years don't count`
+                ? `${teams[row.ti].name} ${edge.year < 1978 ? 'became a major-college program' : 'joined FBS'} in ${edge.year}; every qualifying game since is in this streak, and its lower-division years don't count`
                 : `every qualifying game in the data (${firstSeason} on) is in this streak; the one before it is older than the data`}
           </div>
         )
@@ -140,7 +140,7 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crow
           )}
           {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}`}
           {row.s.atEdge && !row.onTheLine && row.live !== false && (edge?.joined
-            ? `${count(row.s)} means the streak runs back to ${t.name}'s first FBS season, ${edge.year}`
+            ? `${count(row.s)} means the streak runs back to ${t.name}'s first ${edge.year < 1978 ? 'major-college' : 'FBS'} season, ${edge.year}`
             : `${count(row.s)} means the streak runs past the start of the data`)}
         </p>
       )}

@@ -16,8 +16,9 @@ import path from 'node:path';
 import { RAW, ROOT } from '../lib/util.mjs';
 import { parsePollPage } from '../lib/cpa.mjs';
 import { canon, reportUnmatched } from '../lib/names.mjs';
+import { FIRST_SEASON } from '../lib/window.mjs';
 
-const FROM = Number(process.env.FROM ?? 1970);
+const FROM = Number(process.env.FROM ?? FIRST_SEASON);
 const TO = Number(process.env.TO ?? 2025);
 
 const dir = path.join(RAW, 'ap-polls');
@@ -40,6 +41,19 @@ for (const season of manifest) {
     }
     out.push({ season: season.year, id: p.id, ...parsed });
   }
+}
+// The AP's final poll came out before the bowls through 1964 and again in
+// 1966-67. CPA doesn't date final polls (parsePollPage puts them on Feb 1),
+// so in those seasons date it a week after the last weekly poll: bowls then
+// see the final poll, as they did.
+const PRE_BOWL_FINAL = (y) => y <= 1964 || y === 1966 || y === 1967;
+for (const p of out) {
+  if (!/final/i.test(p.label) || !PRE_BOWL_FINAL(p.season)) continue;
+  const last = out.filter((q) => q.season === p.season && q !== p && !/final/i.test(q.label)).map((q) => q.date).sort().at(-1);
+  if (!last) continue;
+  const d = new Date(`${last}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 7);
+  p.date = d.toISOString().slice(0, 10);
 }
 out.sort((a, b) => a.season - b.season || a.date.localeCompare(b.date));
 

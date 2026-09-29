@@ -213,9 +213,10 @@ async function renderTeam(ti, W, H) {
     { str: String(l), font: 'Mono', size: 16, fill: RUST },
     { str: ' LOSING', font: 'Mono', size: 16, fill: MUTED },
   ], { x: 64, y, spacing: 2 }))
-  // the three simplest crowns
+  // the three simplest winning or losing crowns (the counts above); an
+  // unbeaten crown often repeats a winning one
   y += 40
-  for (const cr of held.slice(0, 3)) {
+  for (const cr of held.filter((c) => c.dir !== 'U').slice(0, 3)) {
     const words = cr.chips.length ? cr.chips.map((k) => P.chipLabel?.[k] ?? k).join(' · ') : 'all games'
     parts.push(line([
       { str: `${cr.len}${cr.atEdge ? '+' : ''}`, font: 'Graduate', size: 19, fill: cr.dir === 'L' ? RUST : CREAM },

@@ -1,8 +1,15 @@
 {
  "version": 1,
- "updated": "2026-09-28",
+ "updated": "2026-09-29",
  "note": "Corrections to Warren Repole's Sunshine Forecast files (cfbYYYYlines.xml, bowlYYYYlines.xml), keyed by date + visitor + home exactly as the file names them. 'score' is visitor-home. a row may carry both. 'swapHome' means the file lists the visitor under tnum 2. Every entry was confirmed by James Howell's scores and, where they exist, cfbfastR and CollegeFootballData; the full comparison is in the 'Repole data corrections' doc linked from README.md. parse-repole.mjs applies these and fails if an entry no longer matches a row. 'homeSpread' replaces the line (negative = the file's home team favored). 'newDate' moves a game the file dates wrong.",
  "rows": [
+  {
+   "date": "1979-09-08",
+   "visitor": "Texas-Arlington",
+   "home": "West Texas A+M",
+   "score": "10-6",
+   "source": "Howell, CollegeFootballData"
+  },
   {
    "date": "1979-11-03",
    "visitor": "Tulane",
@@ -75,6 +82,14 @@
    "home": "San Jose State",
    "score": "13-38",
    "source": "Howell"
+  },
+  {
+   "date": "1992-10-24",
+   "visitor": "Delaware",
+   "home": "Navy",
+   "swapHome": true,
+   "source": "Howell, CollegeFootballData",
+   "note": "the file has Delaware at Navy; it was Navy at Delaware"
   },
   {
    "date": "1992-10-31",
@@ -321,6 +336,13 @@
    "home": "Vanderbilt",
    "score": "24-21",
    "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2003-09-06",
+   "visitor": "William + Mary",
+   "home": "Western Michigan",
+   "score": "24-56",
+   "source": "Howell, cfbfastR, CollegeFootballData"
   },
   {
    "date": "2003-09-13",

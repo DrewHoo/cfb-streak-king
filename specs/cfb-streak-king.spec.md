@@ -300,6 +300,11 @@ sections carry the data details; this is the product and method record.
   Worth diffing against the Howell-derived membership and canon table, and contributing
   the Repole and Howell spellings as aliases. Nothing there covers results before 2002.
 
+- **1936 window (2026-09-29).** The window starts at the first AP poll. Before 1978 a team counts
+  in the seasons Howell lists it as major; streak holders are still this season's FBS teams.
+  Unbeaten is a third outcome. The build, the rulings and the research are in
+  specs/research/pre-1978.md.
+
 Backlog after this pass: the Cloudflare worker; the "vs FBS opponents" chip; a loss cue on
 dark cells (deferred by Drew); coach-carried streaks across schools; sharing the
 corrections doc publicly so the README link works for others.

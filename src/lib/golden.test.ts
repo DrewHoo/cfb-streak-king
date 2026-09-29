@@ -64,6 +64,30 @@ describe('famous streaks', () => {
     expect(teams[r.ended.oppIdx].id).toBe('washington');
   });
 
+  test('Oklahoma won 47 straight, 1953–1957, ended by Notre Dame 7–0', () => {
+    const r = runEndedOn([], 'W', 'oklahoma', '1957-11-16');
+    expect(r.s.len).toBe(47);
+    expect([teams[r.ended.oppIdx].id, r.ended.us, r.ended.them]).toEqual(['notre-dame', 0, 7]);
+  });
+
+  test('Notre Dame went 39 straight unbeaten, 1946–1950, ended by Purdue', () => {
+    const r = runEndedOn([], 'U', 'notre-dame', '1950-10-07');
+    expect(r.s.len).toBe(39);
+    expect(teams[r.ended.oppIdx].id).toBe('purdue');
+  });
+
+  test('Army went 32 straight unbeaten, 1944–1947, ended by Columbia', () => {
+    const r = runEndedOn([], 'U', 'army', '1947-10-25');
+    expect(r.s.len).toBe(32);
+    expect(teams[r.ended.oppIdx].id).toBe('columbia');
+  });
+
+  test('Kansas State lost 28 straight, 1945–1948, ended against Arkansas State', () => {
+    const r = runEndedOn([], 'L', 'kansas-state', '1948-10-09');
+    expect(r.s.len).toBe(28);
+    expect(teams[r.ended.oppIdx].id).toBe('arkansas-state');
+  });
+
   test('Miami won 34 straight, 2000–2002', () => {
     const r = allTimeBoard([], 'W', today).find((x) => x.ti === idx('miami-fl') && x.s.len === 34);
     expect(r?.s.start?.se).toBe(2000);
@@ -104,7 +128,13 @@ describe('team windows', () => {
       expect(windowStartOf(idx(id))).toBe(from);
       expect(gamesOf(idx(id))[0].se).toBe(from);
     }
-    for (const id of ['smu', 'new-mexico-state']) expect(gamesOf(idx(id))[0].se).toBe(1978);
+    for (const id of ['smu', 'new-mexico-state', 'alabama', 'stanford', 'vanderbilt']) expect(windowStartOf(idx(id))).toBe(1936);
+  });
+
+  test('a wartime season a school counts comes in from extra-games.json', () => {
+    const g = gamesOf(idx('vanderbilt')).filter((x) => x.se === 1943);
+    expect(g.map((x) => x.r).join('')).toBe('WWWWW');
+    expect(gamesOf(idx('alabama')).some((x) => x.se === 1943)).toBe(false);
   });
 
   test('New Mexico State’s spring 2021 games count as its 2020 season', () => {

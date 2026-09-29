@@ -7,13 +7,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, RAW, ensureDir } from '../lib/util.mjs';
 import { canon, slug, reportUnmatched } from '../lib/names.mjs';
+import { FIRST_SEASON } from '../lib/window.mjs';
 
-const rawFile = path.join(RAW, 'cfbd-coaches.json');
+// the raw pull is named by its first season, so widening the window re-fetches
+const rawFile = path.join(RAW, `cfbd-coaches-from-${FIRST_SEASON}.json`);
 if (!fs.existsSync(rawFile)) {
   try { process.loadEnvFile(path.join(ROOT, '.env')); } catch {}
   const key = process.env.CFBD_API_KEY;
-  if (!key) throw new Error('no data/raw/cfbd-coaches.json and no CFBD_API_KEY');
-  const res = await fetch('https://api.collegefootballdata.com/coaches?minYear=1978&maxYear=2026', {
+  if (!key) throw new Error('no raw coaches pull and no CFBD_API_KEY');
+  const res = await fetch(`https://api.collegefootballdata.com/coaches?minYear=${FIRST_SEASON}&maxYear=2026`, {
     headers: { Authorization: `Bearer ${key}` },
   });
   if (!res.ok) throw new Error(`cfbd coaches: ${res.status}`);

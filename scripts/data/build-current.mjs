@@ -342,6 +342,12 @@ if (coachesRaw) {
   console.log(`coaches ${SEASON}: ${changes} stint changes layered${unresolved26 ? `, ${unresolved26} unresolved` : ''}`);
 }
 
+// a mark ESPN doesn't have (public/logos, fetched by gen-logos.mjs) would be
+// a broken image; without an id the chip shows the team's initial
+for (const t of teams) {
+  if (t.espn && !fs.existsSync(path.join(ROOT, 'public', 'logos', `${t.espn}.png`))) t.espn = null;
+}
+
 const out = {
   ...base,
   coachNames,

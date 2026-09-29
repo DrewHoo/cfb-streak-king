@@ -1,12 +1,496 @@
 {
   "version": 1,
-  "updated": "2026-09-28",
-  "note": "Seasons that do not end a team's FBS span. Howell's byconf.htm ends a span on any season he doesn't list for a team, and a team's list starts at its latest FBS span (fbsStartOf), so a season the team sat out would cut off everything before it. Every season here is one where the team fielded no team or, for New Mexico State 2020, played a spring schedule Howell doesn't list. None is a season in another division. parse-jhowell.mjs merges a team's spans across a gap only when every season in the gap is listed here. Games a team did play in a bridged season come from extra-games.json.",
+  "updated": "2026-09-29",
+  "note": "Seasons that do not end a team's major (FBS) span. Howell's byconf.htm ends a span on any season he doesn't list for a team, and a team's list starts at its latest span (windowStartOf), so a season the team sat out would cut off everything before it. Every season here is one where the team fielded no varsity team (WWII 1943-45, COVID 2020, SMU's death penalty, UAB's shutdown), played only an unofficial schedule the school doesn't count (Stanford 1945), or played a schedule the school counts but Howell doesn't list as major ('played': true: wartime schedules against service teams, New Mexico State's spring 2021); those games are in extra-games.json. None is a season in a lower division. The 1943-45 rows were researched 2026-09-29, each with a source and a verbatim quote. parse-jhowell.mjs merges a team's spans across a gap only when every season in the gap is listed here.",
   "teams": {
-    "uconn": [{ "seasons": [2020], "source": "UConn canceled its 2020 season on 2020-08-05 (COVID-19); the first FBS program to do so." }],
-    "old-dominion": [{ "seasons": [2020], "source": "Old Dominion canceled its fall 2020 season on 2020-08-10 (COVID-19; odusports.com/news/2020/8/10) and did not play in the spring." }],
-    "new-mexico-state": [{ "seasons": [2020], "source": "New Mexico State suspended fall 2020 play on 2020-08-13 and played a spring schedule as an FBS independent: Tarleton State and Dixie State at the Sun Bowl (en.wikipedia.org/wiki/2020_New_Mexico_State_Aggies_football_team). Both games are in extra-games.json." }],
-    "smu": [{ "seasons": [1987, 1988], "source": "NCAA death penalty canceled SMU's 1987 season; SMU canceled 1988 itself." }],
-    "uab": [{ "seasons": [2015, 2016], "source": "UAB shut its program down after 2014 and returned in 2017." }]
+    "uconn": [
+      {
+        "seasons": [
+          2020
+        ],
+        "source": "UConn canceled its 2020 season on 2020-08-05 (COVID-19); the first FBS program to do so."
+      }
+    ],
+    "old-dominion": [
+      {
+        "seasons": [
+          2020
+        ],
+        "source": "Old Dominion canceled its fall 2020 season on 2020-08-10 (COVID-19; odusports.com/news/2020/8/10) and did not play in the spring."
+      }
+    ],
+    "new-mexico-state": [
+      {
+        "seasons": [
+          2020
+        ],
+        "source": "New Mexico State suspended fall 2020 play on 2020-08-13 and played a spring schedule as an FBS independent: Tarleton State and Dixie State at the Sun Bowl (en.wikipedia.org/wiki/2020_New_Mexico_State_Aggies_football_team). Both games are in extra-games.json."
+      },
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_A%26M_Aggies_football_team",
+        "quote": "The team was drawn from the Army Specialized Training Program (ASTP) and was sometimes referred to as the ASTP Aggies. In their first year under head coach Maurice Moulder, the Aggies compiled a 4–0 record",
+        "played": true
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/New_Mexico_State_Aggies_football",
+        "quote": "The Aggies did not field a football team from 1944 to 1945 because of the events surrounding World War II.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://en.wikipedia.org/wiki/New_Mexico_State_Aggies_football",
+        "quote": "The Aggies did not field a football team from 1944 to 1945 because of the events surrounding World War II.",
+        "played": false
+      }
+    ],
+    "smu": [
+      {
+        "seasons": [
+          1987,
+          1988
+        ],
+        "source": "NCAA death penalty canceled SMU's 1987 season; SMU canceled 1988 itself."
+      }
+    ],
+    "uab": [
+      {
+        "seasons": [
+          2015,
+          2016
+        ],
+        "source": "UAB shut its program down after 2014 and returned in 2017."
+      }
+    ],
+    "boston-college": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://web.archive.org/web/20160921194832/http://sidearm.sites.s3.amazonaws.com/bceagles.com/documents/2016/8/16/Boston_College_Media_Guide.pdf",
+        "quote": "Coach: Moody Sarno Captain: Ed Doherty Record: 4-0-1",
+        "played": true
+      }
+    ],
+    "miami-fl": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1943_Miami_Hurricanes_football_team",
+        "quote": "The team was coached by Eddie Dunn, in his first year as interim head coach, while active head coach Jack Harding served in World War II.",
+        "played": true
+      }
+    ],
+    "syracuse": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/Syracuse_Orange_football",
+        "quote": "The only exception was during the 1943 season, when Syracuse did not field team in light of World War II.",
+        "played": false
+      }
+    ],
+    "virginia-tech": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_VPI_Gobblers_football_team",
+        "quote": "This was VPI's first season since 1942 after the suspension of the football program at the institute during the 1943 and 1944 seasons due to the Second World War.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_VPI_Gobblers_football_team",
+        "quote": "This was VPI's first season since 1942 after the suspension of the football program at the institute during the 1943 and 1944 seasons due to the Second World War.",
+        "played": false
+      }
+    ],
+    "baylor": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Baylor_Bears_football_seasons",
+        "quote": "The school has fielded a varsity team every year since 1899, except for the 1906, 1943, and 1944 seasons.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Baylor_Bears_football_seasons",
+        "quote": "The school has fielded a varsity team every year since 1899, except for the 1906, 1943, and 1944 seasons.",
+        "played": false
+      }
+    ],
+    "michigan-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://msuspartans.com/news/2020/9/1/football-spartan-history-tradition",
+        "quote": "For the first time since football became a varsity sport in 1896, no games were played due to World War II.",
+        "played": false
+      }
+    ],
+    "alabama": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1943_Alabama_Informals_football_team",
+        "quote": "On August 23, 1943, the University Physical Education and Athletics Committee officially canceled the 1943 season.",
+        "played": false
+      }
+    ],
+    "auburn": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/History_of_Auburn_Tigers_football",
+        "quote": "Due to the events surrounding World War II, Auburn did not field a team in 1943, but resumed competition in 1944 under Carl Voyles.",
+        "played": false
+      }
+    ],
+    "florida": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Florida_Gators_football_seasons",
+        "quote": "The university fielded its first official varsity football team in the fall of 1906, and has fielded a team every season since then, with the exception of 1943 during World War II.",
+        "played": false
+      }
+    ],
+    "kentucky": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://www.saturdaydownsouth.com/kentucky-football/20-interesting-facts-kentucky-football/",
+        "quote": "The Cats did not compete in 1943 while a number of players and coaches were serving in World War II.",
+        "played": false
+      }
+    ],
+    "ole-miss": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/Ole_Miss_Rebels_football",
+        "quote": "The Ole Miss football team played its first season in 1893 and have since fielded a team every year except for 1897 (due to a yellow fever epidemic) and 1943 (due to World War II).",
+        "played": false
+      }
+    ],
+    "mississippi-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/Mississippi_State_Bulldogs_football",
+        "quote": "Mississippi State did not field a football team in 1943.",
+        "played": false
+      }
+    ],
+    "tennessee": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://utsports.com/sports/football/schedule/1943",
+        "quote": "The University of Tennessee did not field a varsity football team during the 1943 season due to World War II.",
+        "played": false
+      }
+    ],
+    "vanderbilt": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://storage.googleapis.com/vucommodores-prod/2025/10/Fact-Book-10.13.25.pdf",
+        "quote": "1943 (5-0) Head Coach • E.H. Alley",
+        "played": true
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://storage.googleapis.com/vucommodores-prod/2025/10/Fact-Book-10.13.25.pdf",
+        "quote": "1944 (3-0-1) Head Coach • Doby Bartling",
+        "played": true
+      }
+    ],
+    "stanford": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Stanford_Cardinal_football_seasons",
+        "quote": "did not field a team in 1918 (due to World War I) or in 1943, 1944, and 1945 (due to World War II).",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Stanford_Cardinal_football_seasons",
+        "quote": "did not field a team in 1918 (due to World War I) or in 1943, 1944, and 1945 (due to World War II).",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://storage.googleapis.com/stanford-prod/2024/08/20/oaixzDpuj8cXpKpwZ4g4fR4r8so2YC34dZieLNEb.pdf",
+        "quote": "1945 (1-1) Unofficial Schedule Coach • Marchmont Schwartz",
+        "played": false,
+        "note": "an unofficial schedule the school does not count"
+      }
+    ],
+    "arizona": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/Arizona_Wildcats_football",
+        "quote": "Arizona did not field football teams in 1943 or 1944 due to World War II",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/Arizona_Wildcats_football",
+        "quote": "Arizona did not field football teams in 1943 or 1944 due to World War II",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_Arizona_Wildcats_football_team",
+        "quote": "after two years without a football program during World War II, the Wildcats compiled a perfect 5–0 record, shut out three of five opponents, and outscored all opponents, 193 to 12.",
+        "played": true
+      }
+    ],
+    "arizona-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Arizona_State_Sun_Devils_football_seasons",
+        "quote": "1943–45 No team",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Arizona_State_Sun_Devils_football_seasons",
+        "quote": "1943–45 No team",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Arizona_State_Sun_Devils_football_seasons",
+        "quote": "1943–45 No team",
+        "played": false
+      }
+    ],
+    "byu": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/BYU_Cougars_football",
+        "quote": "The university did not field a team from 1943 to 1945 due to World War II",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/BYU_Cougars_football",
+        "quote": "The university did not field a team from 1943 to 1945 due to World War II",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://en.wikipedia.org/wiki/BYU_Cougars_football",
+        "quote": "The university did not field a team from 1943 to 1945 due to World War II",
+        "played": false
+      }
+    ],
+    "oregon": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_Oregon_Ducks_football_team",
+        "quote": "The season marked the resumption of play after the conclusion of World War II; Oregon last fielded a team in 1942",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_Oregon_Ducks_football_team",
+        "quote": "The season marked the resumption of play after the conclusion of World War II; Oregon last fielded a team in 1942",
+        "played": false
+      }
+    ],
+    "oregon-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_Oregon_State_Beavers_football_team",
+        "quote": "The season marked the resumption of play after the conclusion of World War II; the Beavers last fielded a team in 1942.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/1945_Oregon_State_Beavers_football_team",
+        "quote": "The season marked the resumption of play after the conclusion of World War II; the Beavers last fielded a team in 1942.",
+        "played": false
+      }
+    ],
+    "washington-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1942_Washington_State_Cougars_football_team",
+        "quote": "Shortly before the start of the 1943 season, the WSC football program (with Idaho and Oregon State), went on hiatus due to World War II, joining Oregon and Montana.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/1942_Washington_State_Cougars_football_team",
+        "quote": "Shortly before the start of the 1943 season, the WSC football program (with Idaho and Oregon State), went on hiatus due to World War II, joining Oregon and Montana.",
+        "played": false
+      }
+    ],
+    "washington": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1943_Washington_Huskies_football_team",
+        "quote": "In its second season under head coach Ralph Welch, the team compiled a 4–1 record, finished in third place in the Pacific Coast Conference (PCC), was ranked twelfth in the final AP poll, lost to USC in the Rose Bowl, and outscored its opponents 150 to 61.",
+        "played": true
+      }
+    ],
+    "new-mexico": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_Lobos_football_team",
+        "quote": "In their second season under head coach Willis Barnes, the Lobos compiled a 3–2 record",
+        "played": true
+      }
+    ],
+    "utep": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://web.archive.org/web/20210831205117/https://ucweb.utep.edu/_uploaded/encyclopedia-temp/pages/Football.html",
+        "quote": "The team did not play in 1918, 1943, 1944, or 1945 as World War I and World War II made it difficult to fund travel and to find other complete teams to play.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://web.archive.org/web/20210831205117/https://ucweb.utep.edu/_uploaded/encyclopedia-temp/pages/Football.html",
+        "quote": "The team did not play in 1918, 1943, 1944, or 1945 as World War I and World War II made it difficult to fund travel and to find other complete teams to play.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://web.archive.org/web/20210831205117/https://ucweb.utep.edu/_uploaded/encyclopedia-temp/pages/Football.html",
+        "quote": "The team did not play in 1918, 1943, 1944, or 1945 as World War I and World War II made it difficult to fund travel and to find other complete teams to play.",
+        "played": false
+      }
+    ],
+    "wyoming": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Wyoming_Cowboys_football_seasons",
+        "quote": "1943 1943 Season cancelled due to World War II.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Wyoming_Cowboys_football_seasons",
+        "quote": "1944 1944 Season cancelled due to World War II.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1945
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Wyoming_Cowboys_football_seasons",
+        "quote": "1945 1945 Season cancelled due to World War II.",
+        "played": false
+      }
+    ],
+    "colorado-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Colorado_State_Rams_football_seasons",
+        "quote": "The Rams had interruptions occur from 1895–1898 and 1943–1944.",
+        "played": false
+      },
+      {
+        "seasons": [
+          1944
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Colorado_State_Rams_football_seasons",
+        "quote": "The Rams had interruptions occur from 1895–1898 and 1943–1944.",
+        "played": false
+      }
+    ],
+    "utah-state": [
+      {
+        "seasons": [
+          1943
+        ],
+        "source": "https://en.wikipedia.org/wiki/List_of_Utah_State_Aggies_football_seasons",
+        "quote": "with interruptions occurring from 1893–95, 1897, 1918, and 1943.",
+        "played": false
+      }
+    ]
   }
 }

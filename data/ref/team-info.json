@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated": "2026-09-26",
+ "updated": "2026-09-29",
  "teams": {
   "alabama": {
    "state": "AL",
@@ -545,6 +545,675 @@
   "wyoming": {
    "state": "WY",
    "tz": "America/Denver"
+  },
+  "bucknell": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "carlisle": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "carnegie-tech": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "dickinson": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "duquesne": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "franklin-and-marshall": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "haverford": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "lafayette": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "lehigh": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "stevens": {
+   "state": "NJ",
+   "tz": "America/New_York"
+  },
+  "swarthmore": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "villanova": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "washington-and-jefferson": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "west-virginia-wesleyan": {
+   "state": "WV",
+   "tz": "America/New_York"
+  },
+  "brown": {
+   "state": "RI",
+   "tz": "America/New_York"
+  },
+  "columbia": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "cornell": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "dartmouth": {
+   "state": "NH",
+   "tz": "America/New_York"
+  },
+  "harvard": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "pennsylvania": {
+   "state": "PA",
+   "tz": "America/New_York"
+  },
+  "princeton": {
+   "state": "NJ",
+   "tz": "America/New_York"
+  },
+  "yale": {
+   "state": "CT",
+   "tz": "America/New_York"
+  },
+  "beloit": {
+   "state": "WI",
+   "tz": "America/Chicago"
+  },
+  "chicago": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "coe": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "cornell-iowa": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "dayton": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "drury": {
+   "state": "MO",
+   "tz": "America/Chicago"
+  },
+  "haskell": {
+   "state": "KS",
+   "tz": "America/Chicago"
+  },
+  "knox": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "lake-forest": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "lawrence": {
+   "state": "WI",
+   "tz": "America/Chicago"
+  },
+  "lombard": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "marquette": {
+   "state": "WI",
+   "tz": "America/Chicago"
+  },
+  "simpson": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "wabash": {
+   "state": "IN",
+   "tz": "America/New_York"
+  },
+  "xavier": {
+   "state": "OH",
+   "tz": "America/New_York"
+  },
+  "alameda-coast-guard": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "amarillo-field": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "camp-grant": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "coast-guard": {
+   "state": "CT",
+   "tz": "America/New_York"
+  },
+  "del-monte-pre-flight": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "fort-benning": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "fort-riley": {
+   "state": "KS",
+   "tz": "America/Chicago"
+  },
+  "fort-warren": {
+   "state": "WY",
+   "tz": "America/Denver"
+  },
+  "georgia-pre-flight": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "great-lakes-navy": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "iowa-pre-flight": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "jacksonville-nas": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "lubbock-field": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "march-field": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "mare-island-marines": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "merchant-marine": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "norman-nas": {
+   "state": "OK",
+   "tz": "America/Chicago"
+  },
+  "north-carolina-pre-flight": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "quantico-marines": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "randolph-field": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "second-air-force-colorado": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "st-mary-s-pre-flight": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "bradley": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "butler": {
+   "state": "IN",
+   "tz": "America/Indiana/Indianapolis"
+  },
+  "creighton": {
+   "state": "NE",
+   "tz": "America/Chicago"
+  },
+  "detroit-mercy": {
+   "state": "MI",
+   "tz": "America/New_York"
+  },
+  "drake": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "grinnell": {
+   "state": "IA",
+   "tz": "America/Chicago"
+  },
+  "illinois-state": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "indiana-state": {
+   "state": "IN",
+   "tz": "America/Indiana/Indianapolis"
+  },
+  "southern-illinois": {
+   "state": "IL",
+   "tz": "America/Chicago"
+  },
+  "st-louis": {
+   "state": "MO",
+   "tz": "America/Chicago"
+  },
+  "washburn": {
+   "state": "KS",
+   "tz": "America/Chicago"
+  },
+  "washington-missouri": {
+   "state": "MO",
+   "tz": "America/Chicago"
+  },
+  "west-texas-a-and-m": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "wichita-state": {
+   "state": "KS",
+   "tz": "America/Chicago"
+  },
+  "amherst": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "bates": {
+   "state": "ME"
+  },
+  "boston-university": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "bowdoin": {
+   "state": "ME"
+  },
+  "colby": {
+   "state": "ME"
+  },
+  "colgate": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "fordham": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "hamilton": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "holy-cross": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "m-i-t": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "maine": {
+   "state": "ME",
+   "tz": "America/New_York"
+  },
+  "manhattan": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "new-hampshire": {
+   "state": "NH",
+   "tz": "America/New_York"
+  },
+  "new-york-university": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "springfield": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "trinity-connecticut": {
+   "state": "CT",
+   "tz": "America/New_York"
+  },
+  "tufts": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "union-new-york": {
+   "state": "NY",
+   "tz": "America/New_York"
+  },
+  "vermont": {
+   "state": "VT",
+   "tz": "America/New_York"
+  },
+  "wesleyan": {
+   "state": "CT",
+   "tz": "America/New_York"
+  },
+  "williams": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "worcester-tech": {
+   "state": "MA",
+   "tz": "America/New_York"
+  },
+  "gonzaga": {
+   "state": "WA",
+   "tz": "America/Los_Angeles"
+  },
+  "idaho": {
+   "state": "ID",
+   "tz": "America/Los_Angeles"
+  },
+  "idaho-state": {
+   "state": "ID",
+   "tz": "America/Boise"
+  },
+  "montana": {
+   "state": "MT",
+   "tz": "America/Denver"
+  },
+  "portland": {
+   "state": "OR",
+   "tz": "America/Los_Angeles"
+  },
+  "regis": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "whitman": {
+   "state": "WA",
+   "tz": "America/Los_Angeles"
+  },
+  "cal-state-fullerton": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "long-beach-state": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "los-angeles-state": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "loyola-marymount": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "pacific": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "san-francisco": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "santa-barbara": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "santa-clara": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "st-mary-s": {
+   "state": "CA",
+   "tz": "America/Los_Angeles"
+  },
+  "colorado-college": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "colorado-mines": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "denver": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "montana-state": {
+   "state": "MT",
+   "tz": "America/Denver"
+  },
+  "northern-colorado": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "western-state": {
+   "state": "CO",
+   "tz": "America/Denver"
+  },
+  "birmingham-southern": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "centre": {
+   "state": "KY",
+   "tz": "America/New_York"
+  },
+  "cumberland": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "erskine": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "florida-am": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "george-washington": {
+   "state": "DC",
+   "tz": "America/New_York"
+  },
+  "hampden-sydney": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "maryville": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "mercer": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "millsaps": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "mississippi-college": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "nashville": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "newberry": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "oglethorpe": {
+   "state": "GA",
+   "tz": "America/New_York"
+  },
+  "presbyterian": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "rhodes": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "samford": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "spring-hill": {
+   "state": "AL",
+   "tz": "America/Chicago"
+  },
+  "tampa": {
+   "state": "FL",
+   "tz": "America/New_York"
+  },
+  "tennessee-medical": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "tennessee-state": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "citadel": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "davidson": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "east-tennessee-state": {
+   "state": "TN",
+   "tz": "America/New_York"
+  },
+  "furman": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "georgetown": {
+   "state": "DC",
+   "tz": "America/New_York"
+  },
+  "richmond": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "sewanee": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "tennessee-chattanooga": {
+   "state": "TN",
+   "tz": "America/Chicago"
+  },
+  "virginia-military-institute": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "washington-and-lee": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "western-carolina": {
+   "state": "NC",
+   "tz": "America/New_York"
+  },
+  "william-and-mary": {
+   "state": "VA",
+   "tz": "America/New_York"
+  },
+  "wofford": {
+   "state": "SC",
+   "tz": "America/New_York"
+  },
+  "centenary": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "hardin-simmons": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "lamar": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "loyola-new-orleans": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "mcneese-state": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "northern-arizona": {
+   "state": "AZ",
+   "tz": "America/Phoenix"
+  },
+  "northwestern-state": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "phillips": {
+   "state": "OK",
+   "tz": "America/Chicago"
+  },
+  "southwestern-texas": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "texas-arlington": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "alcorn-state": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "grambling-state": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "jackson-state": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "mississippi-valley-state": {
+   "state": "MS",
+   "tz": "America/Chicago"
+  },
+  "prairie-view-a-and-m": {
+   "state": "TX",
+   "tz": "America/Chicago"
+  },
+  "southern": {
+   "state": "LA",
+   "tz": "America/Chicago"
+  },
+  "texas-southern": {
+   "state": "TX",
+   "tz": "America/Chicago"
   }
  }
 }

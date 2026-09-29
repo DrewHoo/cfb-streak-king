@@ -8,4 +8,13 @@ import pkg from './package.json' with { type: 'json' }
 export default defineConfig({
   base: `/${pkg.name}/`,
   plugins: [react()],
+  // the data in its own chunk: a code-only deploy leaves the cached payload
+  // alone, and the payload refresh leaves the cached code alone
+  build: {
+    rolldownOptions: {
+      output: {
+        advancedChunks: { groups: [{ name: 'payload', test: /src[\\/]data[\\/]payload\.json/ }] },
+      },
+    },
+  },
 })

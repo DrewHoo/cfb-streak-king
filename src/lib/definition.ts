@@ -39,9 +39,12 @@ export function presetLeaders(todayEp: number) {
 export const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff'];
 
 // data-coverage notes for the group headings in the + menu
+const RANK_NOTE = 'AP rank at kickoff. The AP ranked 20 teams through 1960, 10 in 1961–67, 20 through 1988 and 25 since. There was no preseason poll before 1950; games before a season’s first poll can’t qualify.';
 export const GROUP_NOTES: Record<string, string> = {
-  betting: 'Closing lines cover 1978–2025 plus this season. Games without a line don’t qualify.',
-  coach: 'Head-coach tenures from CollegeFootballData, with mid-season changes resolved to the exact game.',
+  'opp rank': RANK_NOTE,
+  'own rank': RANK_NOTE,
+  betting: 'Closing lines cover 1978–2025 plus this season. Earlier games and games without a line can’t qualify.',
+  coach: 'Head-coach tenures from CollegeFootballData, with mid-season changes resolved to the exact game. Some opposing coaches before 1978 are unknown; those games can’t qualify as vs a first-year head coach.',
   half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
   possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
@@ -52,7 +55,7 @@ export const GROUP_NOTES: Record<string, string> = {
 export const MONTHS: [number, string][] = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
 export const HMARGINS: [number, string][] = [[1, 'by any'], [3, 'by 3+'], [7, 'by 7+'], [10, 'by 10+'], [14, 'by 14+']];
 export const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
-export const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent'].filter((o) => confs.includes(o));
+export const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Southern', 'Border', 'Skyline', 'MVC', 'Independent'].filter((o) => confs.includes(o));
 
 // the "vs [team]" choices: every team that was ever major
 export const teamOptions = teams
