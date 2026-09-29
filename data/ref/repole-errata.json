@@ -8,7 +8,7 @@
    "visitor": "Texas-Arlington",
    "home": "West Texas A+M",
    "score": "10-6",
-   "source": "Howell, CollegeFootballData"
+   "source": "Howell + CFBD"
   },
   {
    "date": "1979-11-03",
@@ -88,7 +88,7 @@
    "visitor": "Delaware",
    "home": "Navy",
    "swapHome": true,
-   "source": "Howell, CollegeFootballData",
+   "source": "Howell + CFBD",
    "note": "the file has Delaware at Navy; it was Navy at Delaware"
   },
   {
@@ -342,7 +342,7 @@
    "visitor": "William + Mary",
    "home": "Western Michigan",
    "score": "24-56",
-   "source": "Howell, cfbfastR, CollegeFootballData"
+   "source": "Howell + cfbfastR + CFBD"
   },
   {
    "date": "2003-09-13",
