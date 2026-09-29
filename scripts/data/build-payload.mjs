@@ -341,6 +341,7 @@ for (const g of spine) {
   for (const d of [e - 1, e, e + 1]) spineKeys.add(pairKey(g.home, g.away, d));
 }
 const filledBySeason = {};
+const filled = []; // DUMP_FILL=<path> writes these for the public errata repo
 for (const r of jhGames) {
   if (r.se < 1978 || r.se > 2013) continue;
   if (!isFbs(r.team, r.se) || !isFbs(r.opp, r.se)) continue;
@@ -357,6 +358,7 @@ for (const r of jhGames) {
   const city = r.city.replace(/^@\s*/, '').replace(/,/g, '').trim();
   const neutral = !!city && !(altHome[hw.home] ?? []).includes(city);
   filledBySeason[r.se] = (filledBySeason[r.se] ?? 0) + 1;
+  filled.push({ season: r.se, date: r.date, visitor: awayName, home: homeName, score: `${hw.as}-${hw.hs}`, neutral, site: r.city || null, note: r.note || null });
   pushGame({
     season: r.se, dateIso: r.date, home: hw.home, away: hw.away, homeRaw: homeName, awayRaw: awayName,
     hs: hw.hs, as: hw.as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(r.note) && !/conference|kickoff/i.test(r.note),
@@ -364,6 +366,7 @@ for (const r of jhGames) {
   });
 }
 console.log(`howell fill-in: ${Object.values(filledBySeason).reduce((a, b) => a + b, 0)} games Repole lacked: ${JSON.stringify(filledBySeason)}`);
+if (process.env.DUMP_FILL) fs.writeFileSync(process.env.DUMP_FILL, JSON.stringify(filled, null, 1));
 
 // 2014+ from schedules
 for (const r of sched) {

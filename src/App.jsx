@@ -295,7 +295,8 @@ export default function App({ initial } = {}) {
             Scores, sites and closing spreads for 1978–2013 come from Warren Repole's{' '}
             <a href="https://web.archive.org/web/2022/http://www.repole.com/sun4cast/data.html">Sunshine Forecast</a>{' '}
             files. His site is gone; the files survive only in the Internet Archive's Wayback Machine, which is
-            worth <a href="https://archive.org/donate">a donation</a>.
+            worth <a href="https://archive.org/donate">a donation</a>. The 75 rows we found wrong and the 38 games
+            the files lack are published as <a href="https://github.com/DrewHoo/repole-errata">repole-errata</a>, CC0.
           </li>
           <li>
             <a href="http://www.jhowell.net/cf/scores/ScoresIndex.htm">James Howell's historical scores</a> confirm
