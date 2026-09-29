@@ -36,6 +36,7 @@ jobs:
         env:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
       # Test the payload that ships, whichever one the step above left.
+      - run: npm run typecheck
       - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3

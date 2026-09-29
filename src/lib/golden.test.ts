@@ -3,22 +3,25 @@
 // columns; these check that the client decodes and walks them the same way.
 
 import { describe, expect, test } from 'vitest';
-import { P, teams, gamesOf, confOf, fbsStartOf, board, allTimeBoard } from './model.js';
-import { DEFAULT_CHIPS } from './definition.js';
+import type { ChipRef, Dir } from './types.ts';
+import { P, teams, gamesOf, confOf, windowStartOf, activeBoard, allTimeBoard } from './model.ts';
+import { DEFAULT_CHIPS } from './definition.ts';
 
-const idx = (id) => {
+const idx = (id: string) => {
   const i = teams.findIndex((t) => t.id === id);
   if (i < 0) throw new Error(`no team ${id}`);
   return i;
 };
-const epOf = (iso) => Math.floor(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000);
+const epOf = (iso: string) => Math.floor(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000);
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
 
 /** The all-time run of `dir` for team `id` that the game on `iso` ended. */
-function runEndedOn(chips, dir, id, iso) {
+function runEndedOn(chips: ChipRef[], dir: Dir, id: string, iso: string) {
   const ti = idx(id);
   const ep = epOf(iso);
-  return allTimeBoard(chips, dir, today).find((r) => r.ti === ti && r.ended && Math.abs(r.ended.ep - ep) <= 1);
+  const r = allTimeBoard(chips, dir, today).find((x) => x.ti === ti && x.ended && Math.abs(x.ended.ep - ep) <= 1);
+  if (!r) throw new Error(`no ${dir} run of ${id}'s ended on ${iso}`);
+  return { ...r, ended: r.ended! };
 }
 
 describe('famous streaks', () => {
@@ -50,9 +53,8 @@ describe('famous streaks', () => {
 
   test('Miami won 34 straight, 2000–2002', () => {
     const r = allTimeBoard([], 'W', today).find((x) => x.ti === idx('miami-fl') && x.s.len === 34);
-    expect(r).toBeDefined();
-    expect(r.s.start.se).toBe(2000);
-    expect(r.s.end.se).toBe(2002);
+    expect(r?.s.start?.se).toBe(2000);
+    expect(r?.s.end?.se).toBe(2002);
   });
 });
 
@@ -71,8 +73,8 @@ describe('single games the pipeline had to correct', () => {
 });
 
 describe('coach stints', () => {
-  const stints = (id, season) => {
-    const hc = teams[idx(id)].hc;
+  const stints = (id: string, season: number) => {
+    const hc = teams[idx(id)].hc ?? [];
     return hc.filter(([, se]) => se === season).map(([ci, , ord, interim]) => [P.coachNames[ci], ord, interim]);
   };
   test('Nebraska 2022: Mickey Joseph took over as interim after game 3', () => {
@@ -85,8 +87,8 @@ describe('coach stints', () => {
 
 describe('team windows', () => {
   test('a season a team sat out doesn’t cut its list', () => {
-    for (const [id, from] of [['uconn', 2000], ['old-dominion', 2013], ['uab', 1996]]) {
-      expect(fbsStartOf(idx(id))).toBe(from);
+    for (const [id, from] of [['uconn', 2000], ['old-dominion', 2013], ['uab', 1996]] as const) {
+      expect(windowStartOf(idx(id))).toBe(from);
       expect(gamesOf(idx(id))[0].se).toBe(from);
     }
     for (const id of ['smu', 'new-mexico-state']) expect(gamesOf(idx(id))[0].se).toBe(1978);
@@ -110,7 +112,7 @@ describe('team windows', () => {
 
 describe('active board', () => {
   test('every row’s streak is the team’s trailing run of qualifying games', () => {
-    for (const r of board([{ key: 'home' }], 'W', 'games', today)) {
+    for (const r of activeBoard([{ key: 'home' }], 'W', today)) {
       const tail = r.qual.slice(-r.s.len);
       expect(tail.every((x) => x.r === 'W')).toBe(true);
       if (!r.s.atEdge) expect(r.qual[r.qual.length - r.s.len - 1].r).not.toBe('W');

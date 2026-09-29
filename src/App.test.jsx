@@ -8,7 +8,7 @@ import React, { act } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import App from './App.jsx';
-import { teams } from './lib/model.js';
+import { teams } from './lib/model.ts';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // jsdom has no matchMedia; useIsMobile only needs the shape

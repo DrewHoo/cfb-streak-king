@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { P, teams, chipByKey, board, allTimeBoard, todayEpochDay, fbsNow, fbsStartOf } from './lib/model.js';
-import { crownsFor, mineAll, isMined, NP_COUNT, DEF_COUNT } from './lib/crowns.js';
-import { definitionPhrase } from './lib/sentence.js';
+import { P, teams, activeBoard, allTimeBoard, todayEpochDay, builtEpochDay, fbsNow, firstSeason, windowStartOf } from './lib/model.ts';
+import { chipByKey } from './lib/chips.ts';
+import { crownsFor, mineCrowns, isMined, NP_COUNT, DEF_COUNT } from './lib/crowns.ts';
+import { definitionPhrase } from './lib/sentence.ts';
 import {
   PRESETS, DEFAULT_SCOPE, encodeChips, decodeChips, chipsToParam, chipsFromParam, withChip, swapChip, withoutChip, withParam,
-} from './lib/definition.js';
-import { dirWord, dayOf, rowKey } from './lib/format.js';
-import { readFavs, writeFavs, track } from './lib/favs.js';
+} from './lib/definition.ts';
+import { dirWord, dayOf, rowKey } from './lib/format.ts';
+import { readStarred, writeStarred } from './lib/starred.ts';
+import { track } from './lib/analytics.ts';
 import { readParam, writeUrl } from './urlState.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { Sentence } from './components/Sentence.jsx';
@@ -14,8 +16,6 @@ import { Grid, DESKTOP_CAP } from './components/Grid.jsx';
 import { TeamPanel } from './components/TeamPanel.jsx';
 import { Starred } from './components/Starred.jsx';
 import { ShareIcon, StarIcon } from './components/Icons.jsx';
-
-const builtEp = Math.floor(Date.parse(P.builtAt) / 86400000);
 
 // what a chip's data floor covers, for the window-edge message
 const FLOOR_WORDS = { night: 'kickoff-time', leadhalf: 'halftime-score', trailhalf: 'halftime-score', wonpos: 'possession', dompos: 'possession', overtime: 'overtime' };
@@ -29,16 +29,16 @@ export default function App({ initial } = {}) {
   const [team, setTeam] = useState(initial?.team ?? null);
   const [run, setRun] = useState(null); // all-time: the start ep of the open run
   const [week, setWeek] = useState(false);
-  const [todayEp, setTodayEp] = useState(builtEp);
+  const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [limit, setLimit] = useState(DESKTOP_CAP); // columns shown before 'more'
   const [addOpen, setAddOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [favs, setFavs] = useState([]);
+  const [starred, setStarred] = useState([]);
   const [hydrated, setHydrated] = useState(false);
   const [mined, setMined] = useState(false); // active-scope crowns
   const [minedAll, setMinedAll] = useState(false); // all-time crowns, mined on demand
-  const [leadsScope, setLeadsScope] = useState('active');
-  const [leadsDir, setLeadsDir] = useState('W');
+  const [crownsScope, setCrownsScope] = useState('active');
+  const [crownsDir, setCrownsDir] = useState('W');
   const isMobile = useIsMobile();
 
   // URL -> state, after mount only: the prerender has no window
@@ -50,10 +50,11 @@ export default function App({ initial } = {}) {
     if (readParam('week') === '1') setWeek(true);
     const ti = teams.findIndex((t) => t.id === readParam('team'));
     if (ti >= 0 && fbsNow.has(ti)) setTeam(ti);
-    if (readParam('dir') === 'L') setLeadsDir('L');
-    const r = Number(readParam('run'));
-    if (r > 0) setRun(r);
-    setFavs(readFavs());
+    if (readParam('dir') === 'L') setCrownsDir('L');
+    // a run is keyed by its first game's epoch day, negative before 1970
+    const r = readParam('run');
+    if (r != null && r !== '' && Number.isInteger(Number(r))) setRun(Number(r));
+    setStarred(readStarred());
     setHydrated(true);
   }, []);
 
@@ -75,13 +76,13 @@ export default function App({ initial } = {}) {
     track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
   }, [active, dir, scope, week, team, run, hydrated]);
 
-  // the streaks-a-team-leads mine runs once the page is idle, so the panel is
-  // ready before anyone opens it
+  // the crowns mine runs once the page is idle, so the panel is ready before
+  // anyone opens it
   useEffect(() => {
     if (!hydrated || mined) return;
     if (isMined()) { setMined(true); return; }
     let live = true;
-    const start = () => mineAll().then(() => { if (live) setMined(true); });
+    const start = () => mineCrowns().then(() => { if (live) setMined(true); });
     const id = typeof requestIdleCallback === 'function' ? requestIdleCallback(start) : setTimeout(start, 1200);
     return () => {
       live = false;
@@ -91,31 +92,31 @@ export default function App({ initial } = {}) {
 
   // all-time crowns mine only once someone asks for them
   useEffect(() => {
-    if (leadsScope !== 'all' || minedAll) return;
+    if (crownsScope !== 'all' || minedAll) return;
     if (isMined('all')) { setMinedAll(true); return; }
     let live = true;
-    mineAll('all').then(() => { if (live) setMinedAll(true); });
+    mineCrowns('all').then(() => { if (live) setMinedAll(true); });
     return () => { live = false; };
-  }, [leadsScope, minedAll]);
+  }, [crownsScope, minedAll]);
 
   const rows = useMemo(
-    () => (scope === 'all' ? allTimeBoard(active, dir, todayEp) : board(active, dir, 'games', todayEp)),
+    () => (scope === 'all' ? allTimeBoard(active, dir, todayEp) : activeBoard(active, dir, todayEp)),
     [active, dir, scope, todayEp],
   );
   const weekCount = useMemo(() => rows.filter((r) => r.onTheLine).length, [rows]);
   const shown = week ? rows.filter((r) => r.onTheLine) : rows;
   // the window edge an at-edge streak actually hit: the latest data floor
   // among active chips (night 2002, halftime 2001, possession 2004), else the
-  // team's first FBS season, else 1978
+  // team's first FBS season, else the first season in the data
   const edgeFor = useMemo(() => {
-    let floor = 1978;
+    let floor = firstSeason;
     let word = null;
     for (const a of active) {
       const c = chipByKey.get(a.key);
       if (c.floor && c.floor > floor) { floor = c.floor; word = FLOOR_WORDS[a.key] ?? c.label; }
     }
     return (ti) => {
-      const joined = fbsStartOf(ti);
+      const joined = windowStartOf(ti);
       if (joined > floor) return { year: joined, word: null, joined: true };
       return { year: floor, word, joined: false };
     };
@@ -127,15 +128,15 @@ export default function App({ initial } = {}) {
     : null;
   const openKey = teamRow ? rowKey(teamRow) : null;
   const weekDay = rows.find((r) => r.onTheLine)?.next ? dayOf(rows.find((r) => r.onTheLine).next.ep) : 'Saturday';
-  const leadsReady = leadsScope === 'all' ? minedAll : mined;
-  const leads = useMemo(() => (leadsReady && team != null ? crownsFor(team, leadsScope) : null), [leadsReady, team, leadsScope]);
+  const crownsReady = crownsScope === 'all' ? minedAll : mined;
+  const crowns = useMemo(() => (crownsReady && team != null ? crownsFor(team, crownsScope) : null), [crownsReady, team, crownsScope]);
 
   // leaders of the presets, for the start-from list
   const startFrom = useMemo(() => {
     if (!addOpen) return [];
     const entries = PRESETS.map((p) => ({ chips: p.chips, dir: p.dir, name: p.name }));
     return entries.map((e) => {
-      const b = board(e.chips, e.dir, 'games', todayEp);
+      const b = activeBoard(e.chips, e.dir, todayEp);
       return { ...e, leader: b[0] ? teams[b[0].ti] : null, len: b[0] ? `${b[0].s.len}${b[0].s.atEdge ? '+' : ''}` : '' };
     });
   }, [addOpen, todayEp]);
@@ -167,16 +168,16 @@ export default function App({ initial } = {}) {
     const same = team === row.ti && (scope !== 'all' || run === row.s.start.ep);
     setTeam(same ? null : row.ti);
     setRun(same || scope !== 'all' ? null : row.s.start.ep);
-    if (!same) { setLeadsDir(dir); track('team open', { team: teams[row.ti].id, scope, len: row.s.len }); }
+    if (!same) { setCrownsDir(dir); track('team open', { team: teams[row.ti].id, scope, len: row.s.len }); }
   }
-  function applyLead(cr) {
+  function applyCrown(cr) {
     setDefinition(cr.chips.map((key) => ({ key })), cr.dir);
     setScope(cr.scope);
     setRun(null);
     track('lead apply', { chips: cr.chips.join(',') || 'overall', dir: cr.dir, scope: cr.scope, len: cr.len });
   }
   // the sentence and URL for one streak a team is king of
-  function shareLead(cr) {
+  function shareCrown(cr) {
     const chips = cr.chips.map((key) => ({ key }));
     const verb = cr.dir === 'W' ? 'won' : 'lost';
     const has = cr.scope === 'active' || cr.live ? 'has ' : '';
@@ -190,25 +191,26 @@ export default function App({ initial } = {}) {
     if (cr.scope !== DEFAULT_SCOPE) url.searchParams.set('scope', cr.scope);
     share(sentence, url.toString());
   }
-  function onLeadsScope(s) { setLeadsScope(s); track('leads scope', { scope: s }); }
-  function onLeadsDir(d) { setLeadsDir(d); track('leads dir', { dir: d }); }
-  function applyFav(f) {
+  // analytics event names predate "crowns"; kept so the history stays continuous
+  function onCrownsScope(s) { setCrownsScope(s); track('leads scope', { scope: s }); }
+  function onCrownsDir(d) { setCrownsDir(d); track('leads dir', { dir: d }); }
+  function applyStarred(f) {
     setDefinition(decodeChips(f.c), f.dir);
     track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
   }
-  function removeFav(f) {
-    setFavs((cur) => { const next = cur.filter((x) => !(x.c === f.c && x.dir === f.dir)); writeFavs(next); return next; });
+  function removeStarred(f) {
+    setStarred((cur) => { const next = cur.filter((x) => !(x.c === f.c && x.dir === f.dir)); writeStarred(next); return next; });
     track('unsave streak', { chips: f.c || 'overall', dir: f.dir });
   }
 
   const defC = encodeChips(active);
-  const isSaved = favs.some((f) => f.c === defC && f.dir === dir);
-  function toggleFav() {
-    setFavs((cur) => {
+  const isSaved = starred.some((f) => f.c === defC && f.dir === dir);
+  function toggleStarred() {
+    setStarred((cur) => {
       const next = cur.some((f) => f.c === defC && f.dir === dir)
         ? cur.filter((f) => !(f.c === defC && f.dir === dir))
         : [...cur, { c: defC, dir, name: `${dirWord(dir)} streaks in ${definitionPhrase(active)}` }];
-      writeFavs(next);
+      writeStarred(next);
       return next;
     });
     if (!isSaved) track('save streak', { chips: defC || 'overall', dir });
@@ -229,18 +231,18 @@ export default function App({ initial } = {}) {
   const panel = team != null && (
     <TeamPanel
       ti={team} row={teamRow} rank={teamRow ? rows.indexOf(teamRow) + 1 : 0} field={rows.length}
-      active={active} dir={dir} scope={scope} edge={edge} leads={leads}
-      leadsScope={leadsScope} leadsDir={leadsDir} onLeadsScope={onLeadsScope} onLeadsDir={onLeadsDir}
-      onShare={share} onShareLead={shareLead} onClose={() => { setTeam(null); setRun(null); }} onApplyLead={applyLead}
+      active={active} dir={dir} scope={scope} edge={edge} crowns={crowns}
+      crownsScope={crownsScope} crownsDir={crownsDir} onCrownsScope={onCrownsScope} onCrownsDir={onCrownsDir}
+      onShare={share} onShareCrown={shareCrown} onClose={() => { setTeam(null); setRun(null); }} onApplyCrown={applyCrown}
     />
   );
 
   return (
     <main>
       <div className="dateline">
-        <span>drewhoover.com · 1978–{P.currentSeason}<span className="dateline-upd"> · updated {String(P.builtAt).slice(0, 10)}</span></span>
+        <span>drewhoover.com · {firstSeason}–{P.currentSeason}<span className="dateline-upd"> · updated {String(P.builtAt).slice(0, 10)}</span></span>
         <span className="dateline-acts">
-          <button className={'ico' + (isSaved ? ' on' : '')} onClick={toggleFav} aria-pressed={isSaved} aria-label={isSaved ? 'Saved' : 'Save this streak'}>
+          <button className={'ico' + (isSaved ? ' on' : '')} onClick={toggleStarred} aria-pressed={isSaved} aria-label={isSaved ? 'Saved' : 'Save this streak'}>
             <StarIcon filled={isSaved} />
           </button>
           <button className="ico" onClick={() => share()} aria-label="Share"><ShareIcon /></button>
@@ -259,7 +261,7 @@ export default function App({ initial } = {}) {
         limit={limit} setLimit={setLimit} week={week} scope={scope} dir={dir} panel={panel}
       />
 
-      <Starred favs={favs} todayEp={todayEp} onApply={applyFav} onRemove={removeFav} />
+      <Starred starred={starred} todayEp={todayEp} onApply={applyStarred} onRemove={removeStarred} />
 
       <h2>What to read next</h2>
       <div className="notes">
@@ -281,7 +283,7 @@ export default function App({ initial } = {}) {
       <div className="notes">
         <ul>
           <li>
-            Window: 1978–{P.currentSeason}, the I-A/FBS era, {P.games.se.length.toLocaleString()} games. A team's
+            Window: {firstSeason}–{P.currentSeason}, the I-A/FBS era, {P.games.se.length.toLocaleString()} games. A team's
             games count only from its first FBS season (Appalachian State's from 2014, Missouri State's from
             2025), so no streak runs back into its FCS years. A streak that reaches the edge of its window
             shows as “N+”.

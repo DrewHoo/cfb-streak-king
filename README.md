@@ -53,7 +53,7 @@ reported, never dropped.
   coaches, bowl-only interims, and seasons CFBD has no rows for. `x:<name>`
   ids mint coaches CFBD never lists. The build must report 0 unresolved.
 - Ties (pre-1996) end streaks in both directions.
-- A team's list starts at its latest FBS entry (`fbsStartOf`). FCS-era games
+- A team's list starts at its latest FBS entry (`windowStartOf`). FCS-era games
   stay in the payload for the FBS opponent but never in the team's own
   list, so Missouri State's streaks begin in 2025, not in its FCS years.
   Howell ends a span on any season he doesn't list, so seasons a team sat
@@ -65,7 +65,15 @@ reported, never dropped.
 
 ## Validation
 
-Known-answer checks run inside `build-payload.mjs` and fail the build:
+`npm test` (Vitest) runs against the payload that ships, in CI after the
+season refresh: the known answers below through the client's own decode, a
+sweep of every parameterless definition through the sentence builder, URL
+round-trips for every chip, crowns cross-checked against the boards, and a
+prerender-then-hydrate check that fails on any mismatch. `npm run typecheck`
+checks `src/lib` (TypeScript; components are still JSX).
+
+Known-answer checks also run inside `build-payload.mjs` and fail the build
+before it writes `payload-base.json`:
 Alabama's 100 straight wins over unranked teams (ended 2021-10-09 by Texas
 A&M), Kansas's 46-game road losing streak (ended 2018-09-08 at Central
 Michigan), Vanderbilt's 26-game SEC losing streak (ended 2022-11-12 by

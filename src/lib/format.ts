@@ -1,27 +1,30 @@
+import type { Streak } from './types.ts';
+
 // Small formatters shared by the grid, the ledger and the sentence line.
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export const dirWord = (dir) => (dir === 'W' ? 'winning' : 'losing');
+export const dirWord = (dir: string) => (dir === 'W' ? 'winning' : 'losing');
 
 // the Sports-Reference site grammar: @ road, N neutral, blank home
-export const siteWord = (x) => (x.neutral ? 'vs' : x.home ? 'vs' : 'at');
-export const siteMark = (x) => (x.neutral ? 'N' : x.home ? '' : '@');
+interface Site { neutral: boolean; home: boolean }
+export const siteWord = (x: Site) => (x.neutral ? 'vs' : x.home ? 'vs' : 'at');
+export const siteMark = (x: Site) => (x.neutral ? 'N' : x.home ? '' : '@');
 
-export const yearOf = (ep) => new Date(ep * 86400000).getUTCFullYear();
-export const yy = (ep) => `’${String(yearOf(ep)).slice(2)}`;
-export const yyOfYear = (y) => `’${String(y).slice(2)}`;
-export const shortDate = (ep) => {
+export const yearOf = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
+export const yy = (ep: number) => `’${String(yearOf(ep)).slice(2)}`;
+export const yyOfYear = (y: number) => `’${String(y).slice(2)}`;
+export const shortDate = (ep: number) => {
   const d = new Date(ep * 86400000);
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${String(d.getUTCFullYear()).slice(2)}`;
 };
-export const dayOf = (ep) => DAYS[new Date(ep * 86400000).getUTCDay()];
-export const monthDay = (ep) => { const d = new Date(ep * 86400000); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
-export const kickOf = (u) => (u.hh !== 31 ? `${u.hh % 12 || 12}${u.hh >= 12 ? 'pm' : 'am'}` : '');
-export const count = (s) => `${s.len}${s.atEdge ? '+' : ''}`;
+export const dayOf = (ep: number) => DAYS[new Date(ep * 86400000).getUTCDay()];
+export const monthDay = (ep: number) => { const d = new Date(ep * 86400000); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
+export const kickOf = (u: { hh: number }) => (u.hh !== 31 ? `${u.hh % 12 || 12}${u.hh >= 12 ? 'pm' : 'am'}` : '');
+export const count = (s: Pick<Streak, 'len' | 'atEdge'>) => `${s.len}${s.atEdge ? '+' : ''}`;
 
 // state names for the "in [state]" chip: the payload carries postal codes
-export const STATE_NAMES = {
+export const STATE_NAMES: Record<string, string> = {
   AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'Washington, DC',
   FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana',
   ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska',
@@ -29,7 +32,7 @@ export const STATE_NAMES = {
   OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
   VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
 };
-export const stateName = (code) => STATE_NAMES[code] ?? code;
+export const stateName = (code: string) => STATE_NAMES[code] ?? code;
 
 // a grid row's identity: the team, plus the run's start in all-time mode
-export const rowKey = (row) => row.key ?? String(row.ti);
+export const rowKey = (row: { key?: string; ti: number }) => row.key ?? String(row.ti);

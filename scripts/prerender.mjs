@@ -33,9 +33,9 @@ const vite = await createServer({
   logLevel: 'warn',
 })
 const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
-const { teams, fbsNow, allTimeBoard, todayEpochDay, fbsStartOf } = await vite.ssrLoadModule('/src/lib/model.js')
-const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.js')
-const { claim } = await vite.ssrLoadModule('/src/lib/sentence.js')
+const { teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
+const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
@@ -124,7 +124,7 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const row = board.find((r) => r.ti === ti)
   const url = `${SITE}team/${t.id}/`
   const title = `${t.name} streaks · ${config.title}`
-  const since = Math.max(1978, fbsStartOf(ti))
+  const since = windowStartOf(ti)
   const tail = `Every winning and losing streak ${t.name} is king of, under any definition, since ${since}.`
   const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))

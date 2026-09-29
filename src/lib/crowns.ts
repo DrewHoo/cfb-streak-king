@@ -1,7 +1,7 @@
 // Mine "streaks this team is king of": every ≤4-chip subset of the
 // parameterless catalog (x-exclusivity honored) × both directions, evaluated
-// over packed per-chip bitmasks. The whole space is ~30k definitions and mines
-// in well under a second, so this runs lazily in the client.
+// over packed per-chip bitmasks. The whole space is 44,799 definitions (the
+// empty one included) and mines in a second or two, lazily in the client.
 //
 // Two scopes. 'active': the definition-direction whose sole longest active
 // streak belongs to this team. 'all': the sole longest run anywhere in the
@@ -10,7 +10,13 @@
 // definition; `also` counts the collapsed labels. Floors: length ≥ 4 and a
 // field of ≥ 10 teams holding any streak under the definition.
 
-import { CHIPS, teams, fbsNow, gamesOf } from './model.js';
+import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
+import { CHIPS } from './chips.ts';
+import { fbsNow, gamesOf } from './model.ts';
+
+interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[] }
+interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number }
+type Runs = Partial<Record<Result, Run>>;
 
 export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
@@ -19,7 +25,7 @@ const NP = CHIPS.filter((c) => !c.param);
 
 // how many definitions mine() walks (the empty one included), for the page copy
 export const NP_COUNT = NP.length;
-export const DEF_COUNT = (function count(start, chosen) {
+export const DEF_COUNT = (function count(start: number, chosen: number[]): number {
   let n = 1;
   if (chosen.length === 4) return n;
   for (let i = start; i < NP.length; i++) {
@@ -30,18 +36,17 @@ export const DEF_COUNT = (function count(start, chosen) {
   return n;
 })(0, []);
 
-const caches = { active: null, all: null };
-const mining = { active: null, all: null };
+const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };
+const mining: Record<Scope, Promise<Map<number, Crown[]>> | null> = { active: null, all: null };
 
-function buildData() {
+function buildData(): TeamData[] {
   return [...fbsNow].map((ti) => {
     const gs = gamesOf(ti);
-    const ownState = teams[ti].st;
     const n = gs.length;
     const words = Math.ceil(n / 32) || 1;
     const masks = NP.map((c) => {
       const m = new Uint32Array(words);
-      for (let i = 0; i < n; i++) if (c.test(gs[i], undefined, ownState)) m[i >> 5] |= 1 << (i & 31);
+      for (let i = 0; i < n; i++) if (c.test(gs[i])) m[i >> 5] |= 1 << (i & 31);
       return m;
     });
     return { ti, gs, n, words, masks, r: gs.map((x) => x.r) };
@@ -49,8 +54,8 @@ function buildData() {
 }
 
 // the trailing streak of the masked sequence: { W: s, L: s } with one side set
-function walkActive(td, q) {
-  let dir = null;
+function walkActive(td: TeamData, q: Uint32Array): Runs {
+  let dir: Result | null = null;
   let len = 0;
   let startIdx = -1;
   let lastIdx = -1;
@@ -70,15 +75,15 @@ function walkActive(td, q) {
 }
 
 // the longest run of each direction anywhere in the masked sequence
-function walkLongest(td, q) {
-  const best = {};
-  let dir = null;
+function walkLongest(td: TeamData, q: Uint32Array): Runs {
+  const best: Runs = {};
+  let dir: Result | null = null;
   let len = 0;
   let startIdx = -1;
-  const close = (lastIdx) => {
+  const close = (lastIdx: number) => {
     if (dir === null || dir === 'T') return;
     const b = best[dir];
-    if (!b || len > b.len) best[dir] = { len, atEdge: startIdx === 0 && q[0] & 1 && td.r[0] === dir && startIdx === firstIdx, lastIdx, startIdx };
+    if (!b || len > b.len) best[dir] = { len, atEdge: false, lastIdx, startIdx };
   };
   let firstIdx = -1;
   let prev = -1;
@@ -97,17 +102,17 @@ function walkLongest(td, q) {
   }
   close(prev);
   // a run that starts at the first qualifying game may run past the window
-  for (const d of Object.keys(best)) best[d].atEdge = best[d].startIdx === firstIdx;
+  for (const run of Object.values(best)) run.atEdge = run.startIdx === firstIdx;
   return best;
 }
 
-async function mine(scope) {
+async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
   const data = buildData();
   const T = data.map((d) => d.ti);
   const walk = scope === 'all' ? walkLongest : walkActive;
 
-  const subsets = [];
-  (function rec(start, chosen) {
+  const subsets: number[][] = [];
+  (function rec(start: number, chosen: number[]) {
     subsets.push(chosen);
     if (chosen.length === 4) return;
     for (let i = start; i < NP.length; i++) {
@@ -117,9 +122,9 @@ async function mine(scope) {
     }
   })(0, []);
 
-  const perTeam = new Map(T.map((ti) => [ti, new Map()])); // dedupe key -> crown
+  const perTeam = new Map(T.map((ti) => [ti, new Map<string, Crown>()])); // dedupe key -> crown
   const q = data.map((td) => new Uint32Array(td.words));
-  const res = new Array(T.length);
+  const res: Runs[] = new Array(T.length);
   let done = 0;
   for (const def of subsets) {
     // yield to the main thread so the tab stays responsive while mining
@@ -137,7 +142,7 @@ async function mine(scope) {
       }
       res[t] = walk(td, qb);
     }
-    for (const dir of ['W', 'L']) {
+    for (const dir of ['W', 'L'] as Dir[]) {
       let best = 0;
       let leader = -1;
       let leaders = 0;
@@ -150,10 +155,10 @@ async function mine(scope) {
         else if (s.len === best) leaders++;
       }
       if (leaders !== 1 || leader < 0) continue;
-      const s = res[leader][dir];
+      const s = res[leader][dir]!;
       if (s.len < LEN_FLOOR || field < FIELD_FLOOR) continue;
       const key = dir + '|' + s.lastIdx + '|' + s.len;
-      const held = perTeam.get(T[leader]);
+      const held = perTeam.get(T[leader])!;
       const prev = held.get(key);
       if (!prev) {
         const gs = data[leader].gs;
@@ -180,7 +185,7 @@ async function mine(scope) {
     }
   }
 
-  const cache = new Map();
+  const cache = new Map<number, Crown[]>();
   for (const [ti, held] of perTeam) {
     const list = [...held.values()];
     // simplest claim first: skip-gap streaks lengthen as chips stack, so
@@ -192,14 +197,14 @@ async function mine(scope) {
   return cache;
 }
 
-export function mineAll(scope = 'active') {
-  if (caches[scope]) return Promise.resolve(caches[scope]);
-  mining[scope] ??= mine(scope);
-  return mining[scope];
+export function mineCrowns(scope: Scope = 'active'): Promise<Map<number, Crown[]>> {
+  const done = caches[scope];
+  if (done) return Promise.resolve(done);
+  return (mining[scope] ??= mine(scope));
 }
 
-export const isMined = (scope = 'active') => !!caches[scope];
+export const isMined = (scope: Scope = 'active') => !!caches[scope];
 
-export function crownsFor(ti, scope = 'active') {
+export function crownsFor(ti: number, scope: Scope = 'active'): Crown[] {
   return caches[scope]?.get(ti) ?? [];
 }

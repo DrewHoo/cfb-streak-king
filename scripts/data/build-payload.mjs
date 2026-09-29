@@ -4,7 +4,7 @@
 //   (build-current.mjs layers the in-progress season on top at build time.)
 //
 // Payload shape (columnar; one index per completed game):
-//   teams:   [{ id, name, fbs:[[a,b]...]|null, st?, tz?, conf?:[[year,confIdx]...] }]
+//   teams:   [{ id, name, major:[[a,b]...]|null, st?, tz?, conf?:[[year,confIdx]...] }]
 //   confs:   ["SEC", ...]
 //   rivals:  [{ n, a, b }]           (a/b = team indices)
 //   games:   { se, ep, hi, ai, hs, as, fl, sp, hr, ar, hh, rv }  parallel arrays
@@ -20,7 +20,8 @@ import path from 'node:path';
 import { ROOT, ensureDir } from '../lib/util.mjs';
 import { display } from '../lib/names.mjs';
 import { buildStints, markInterim } from '../lib/coach.mjs';
-import { currentStreak } from '../../src/lib/streaks.js';
+import { currentStreak } from '../../src/lib/streaks.ts';
+import { FLAG, NO_LINE, NO_HOUR, UNKNOWN } from '../../src/lib/schema.ts';
 
 const BUILD = path.join(ROOT, 'data', 'build');
 const load = (f) => JSON.parse(fs.readFileSync(path.join(BUILD, f), 'utf8'));
@@ -241,7 +242,7 @@ function teamIdx(id, rawName) {
   teams.push({
     id,
     name: id.startsWith('x:') ? rawName : display(id),
-    fbs: fbsSpans[id] ?? null,
+    major: fbsSpans[id] ?? null,
     st: teamInfo[id]?.state,
     espn: espnBy.get(id) ?? null,
   });
@@ -275,11 +276,11 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.ai.push(teamIdx(away, awayRaw));
   cols.hs.push(hs);
   cols.as.push(as);
-  cols.fl.push((neutral ? 1 : 0) | (confGame ? 2 : 0) | (postseason ? 4 : 0));
-  cols.sp.push(homeSpread == null ? 9999 : Math.round(homeSpread * 2));
+  cols.fl.push((neutral ? FLAG.neutral : 0) | (confGame ? FLAG.conf : 0) | (postseason ? FLAG.post : 0));
+  cols.sp.push(homeSpread == null ? NO_LINE : Math.round(homeSpread * 2));
   cols.hr.push(rankOf(home, season, ep));
   cols.ar.push(rankOf(away, season, ep));
-  cols.hh.push(startHour ?? 31);
+  cols.hh.push(startHour ?? NO_HOUR);
   const rv = rivalByPair.get([home, away].sort().join('|'));
   cols.rv.push(rv === undefined ? 0 : rv + 1);
   let st = null;
@@ -291,11 +292,11 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.vs.push(venueStateIdx(st));
   // halftime points and possession seconds; -1 = unknown
   const box = boxBy.get(`${home}|${away}|${ep}`);
-  cols.hf.push(box?.h1h ?? -1);
-  cols.af.push(box?.h1a ?? -1);
-  cols.hp.push(box?.tph ?? -1);
-  cols.ap.push(box?.tpa ?? -1);
-  cols.ot.push(box?.otp ?? -1);
+  cols.hf.push(box?.h1h ?? UNKNOWN);
+  cols.af.push(box?.h1a ?? UNKNOWN);
+  cols.hp.push(box?.tph ?? UNKNOWN);
+  cols.ap.push(box?.tpa ?? UNKNOWN);
+  cols.ot.push(box?.otp ?? UNKNOWN);
 }
 
 // 1978-2013 from repole, enriched from schedules 2002+
@@ -303,7 +304,7 @@ for (const g of spine) {
   if (!isFbs(g.home, g.season) && !isFbs(g.away, g.season)) continue;
   const rs = resolveSpine(g);
   if (!rs) continue;
-  let startHour = 31;
+  let startHour = NO_HOUR;
   if (g.season >= 2002) {
     total0213++;
     const ep = epochDay(g.date);
@@ -362,7 +363,7 @@ for (const r of jhGames) {
   pushGame({
     season: r.se, dateIso: r.date, home: hw.home, away: hw.away, homeRaw: homeName, awayRaw: awayName,
     hs: hw.hs, as: hw.as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(r.note) && !/conference|kickoff/i.test(r.note),
-    confGame: jhConfGame(r.se, r.date, hw.home, hw.away), homeSpread: null, startHour: 31, info: r.city || null,
+    confGame: jhConfGame(r.se, r.date, hw.home, hw.away), homeSpread: null, startHour: NO_HOUR, info: r.city || null,
   });
 }
 console.log(`howell fill-in: ${Object.values(filledBySeason).reduce((a, b) => a + b, 0)} games Repole lacked: ${JSON.stringify(filledBySeason)}`);
@@ -381,7 +382,7 @@ for (const r of sched) {
     neutral: r.neutral, postseason: r.seasonType === 'postseason',
     confGame: r.confGameRaw,
     homeSpread: lineBy.get(`${r.home}|${r.away}|${ep}`) ?? null,
-    startHour: r._localHour ?? 31,
+    startHour: r._localHour ?? NO_HOUR,
   });
 }
 
@@ -392,7 +393,7 @@ for (const x of extraGames) {
     season: x.season, dateIso: x.date, home: x.home, away: x.away,
     homeRaw: x.home, awayRaw: x.away, hs: x.hs, as: x.as,
     neutral: x.neutral, postseason: false, confGame: false,
-    homeSpread: null, startHour: 31, info: x.info,
+    homeSpread: null, startHour: NO_HOUR, info: x.info,
   });
 }
 console.log(`extra games: ${extraGames.length}`);
@@ -412,7 +413,7 @@ const cIdx = (name) => {
   return confIdx.get(name);
 };
 for (const t of teams) {
-  if (!t.fbs) continue;
+  if (!t.major) continue;
   const runs = [];
   for (let y = 1978; y <= 2026; y++) {
     const c = confOf(t.id, y);
@@ -542,10 +543,10 @@ const payloadJson = JSON.stringify(payload);
 
 // ---------- report ----------
 const n = cols.se.length;
-const lined = cols.sp.filter((s) => s !== 9999).length;
+const lined = cols.sp.filter((s) => s !== NO_LINE).length;
 const halved = cols.hf.filter((v) => v >= 0).length;
 const clocked = cols.hp.filter((v) => v >= 0).length;
-console.log(`payload-base: ${n} games 1978-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.fbs).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%), ${halved} with halftime, ${clocked} with possession`);
+console.log(`payload-base: ${n} games 1978-${LAST_BASE_SEASON}, ${teams.length} teams (${teams.filter((t) => t.major).length} FBS-ever), ${lined} lined (${((lined / n) * 100).toFixed(1)}%), ${halved} with halftime, ${clocked} with possession`);
 console.log(`2002-2013 schedule join: ${joined0213}/${total0213} (${((joined0213 / total0213) * 100).toFixed(1)}%)`);
 console.log(`size: ${(payloadJson.length / 1e6).toFixed(2)} MB`);
 if (confMisses.size) {
@@ -564,7 +565,7 @@ function gamesFor(teamId, filter) {
     const them = isHome ? cols.as[i] : cols.hs[i];
     const g = {
       i, season: cols.se[i], ep: cols.ep[i], isHome,
-      neutral: !!(cols.fl[i] & 1), confGame: !!(cols.fl[i] & 2), post: !!(cols.fl[i] & 4),
+      neutral: !!(cols.fl[i] & FLAG.neutral), confGame: !!(cols.fl[i] & FLAG.conf), post: !!(cols.fl[i] & FLAG.post),
       oppRank: isHome ? cols.ar[i] : cols.hr[i],
       r: us > them ? 'W' : us < them ? 'L' : 'T',
       opp: teams[isHome ? cols.ai[i] : cols.hi[i]].id,

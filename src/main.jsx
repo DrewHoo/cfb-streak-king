@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teams, fbsNow } from './lib/model.js'
+import { teams, fbsNow } from './lib/model.ts'
 import './styles.css'
 
 // The markup is already in the HTML: scripts/prerender.mjs bakes it in at

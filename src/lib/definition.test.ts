@@ -1,31 +1,33 @@
 import { describe, expect, test } from 'vitest';
-import { teams, CHIPS, chipByKey } from './model.js';
+import type { Chip } from './chips.ts';
+import type { ChipRef } from './types.ts';
+import { teams, CHIPS, chipByKey } from './model.ts';
 import {
   DEFAULT_CHIPS, MAX_CHIPS, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS, PRESETS,
   encodeChips, decodeChips, chipsToParam, chipsFromParam, defaultParam, withChip, swapChip, withoutChip, withParam, chipWord,
-} from './definition.js';
+} from './definition.ts';
 
 // every value a chip's parameter can take in the UI
-const paramValues = (c) => ({
+const paramValues = (c: Chip): (string | number)[] => ({
   month: MONTHS.map(([n]) => n),
   hmargin: HMARGINS.map(([n]) => n),
   state: STATE_OPTIONS,
   conf: CONF_OPTIONS,
   team: [teams.findIndex((t) => t.id === 'alabama'), teams.findIndex((t) => t.id === 'x:tarletonstate')],
-}[c.param]);
+}[c.param!]);
 
 describe('URL round-trip', () => {
   test('every chip and every parameter value survives encode/decode', () => {
     for (const c of CHIPS) {
       for (const param of c.param ? paramValues(c) : [undefined]) {
-        const def = [param === undefined ? { key: c.key } : { key: c.key, param }];
+        const def: ChipRef[] = [param === undefined ? { key: c.key } : { key: c.key, param }];
         expect(decodeChips(encodeChips(def)), c.key).toEqual(def);
       }
     }
   });
 
   test('a four-chip definition keeps its order', () => {
-    const def = [{ key: 'road' }, { key: 'month', param: 11 }, { key: 'ranked' }, { key: 'vsconf', param: 'SEC' }];
+    const def: ChipRef[] = [{ key: 'road' }, { key: 'month', param: 11 }, { key: 'ranked' }, { key: 'vsconf', param: 'SEC' }];
     expect(decodeChips(encodeChips(def))).toEqual(def);
   });
 

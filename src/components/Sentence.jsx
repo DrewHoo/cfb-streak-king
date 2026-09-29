@@ -4,11 +4,11 @@
 
 import * as DM from '@radix-ui/react-dropdown-menu';
 import { Drawer } from 'vaul';
-import { CHIPS, chipByKey } from '../lib/model.js';
+import { CHIPS, chipByKey } from '../lib/chips.ts';
 import {
-  GROUPS, GROUP_NOTES, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS, fbsEver, chipWord, MAX_CHIPS,
-} from '../lib/definition.js';
-import { dirWord } from '../lib/format.js';
+  GROUPS, GROUP_NOTES, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS, teamOptions, chipWord, MAX_CHIPS,
+} from '../lib/definition.ts';
+import { dirWord } from '../lib/format.ts';
 import { Caret } from './Icons.jsx';
 
 const BASE = import.meta.env.BASE_URL;
@@ -41,7 +41,7 @@ function ChipWord({ a, active, on }) {
   const c = chipByKey.get(a.key);
   const siblings = CHIPS.filter((s) => s.group === c.group && s.key !== a.key && !active.some((x) => x.key === s.key));
   const params = (
-    c.param === 'team' ? fbsEver.map(({ t, i }) => [i, `vs ${t.name}`])
+    c.param === 'team' ? teamOptions.map(({ t, i }) => [i, `vs ${t.name}`])
       : c.param === 'conf' ? CONF_OPTIONS.map((o) => [o, `vs the ${o}`])
         : c.param === 'state' ? STATE_OPTIONS.map((o) => [o, `in ${o}`])
           : c.param === 'month' ? MONTHS.map(([n, name]) => [n, `in ${name}`])

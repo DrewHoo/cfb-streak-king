@@ -32,8 +32,13 @@
 // Adding a chip means adding one row to SLOTS. Anything missing falls back
 // to the chip's label so a new chip never breaks the sentence.
 
-import { teams, chipByKey } from './model.js';
-import { stateName } from './format.js';
+import type { BoardRow, ChipRef, Dir } from './types.ts';
+import { teams } from './model.ts';
+import { chipByKey } from './chips.ts';
+import { stateName } from './format.ts';
+
+type Frag = string | ((p: any) => string);
+type SlotRow = [slot: string, frag: Frag, demoted?: string];
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MON = MONTHS.map((m) => m.slice(0, 3));
@@ -44,7 +49,7 @@ const ORDER = ['self', 'bet', 'coach', 'opp', 'site', 'when', 'half', 'pos'];
 
 // slot + fragment per chip. `adj` chips modify the opponent noun, `noun`
 // chips replace "games", `kind` chips precede it; the rest are clauses.
-export const SLOTS = {
+export const SLOTS: Record<string, SlotRow> = {
   home: ['site', 'at home'],
   road: ['site', 'on the road'],
   neutral: ['site', 'at neutral sites'],
@@ -92,22 +97,22 @@ const KIND_ORDER = ['onescore', 'overtime', 'rivalry', 'night'];
 // opponent adjectives read rank, then conference, then in-state
 const ADJ_ORDER = ['ranked', 'top10', 'top5', 'unranked', 'confgame', 'nonconf', 'instate'];
 
-const frag = (f, p) => (typeof f === 'function' ? f(p) : f);
+const frag = (f: Frag, p: unknown) => (typeof f === 'function' ? f(p) : f);
 
 /** The constraint tail: "one-score games against ranked opponents on the road". */
-export function definitionPhrase(active) {
-  const by = new Map(); // slot -> fragments
-  const push = (slot, text) => by.set(slot, [...(by.get(slot) ?? []), text]);
-  let noun = null;
+export function definitionPhrase(active: ChipRef[]): string {
+  const by = new Map<string, string[]>(); // slot -> fragments
+  const push = (slot: string, text: string) => by.set(slot, [...(by.get(slot) ?? []), text]);
+  let noun: Frag | null = null;
   for (const a of active) {
     const row = SLOTS[a.key];
     if (!row) { push('when', chipByKey.get(a.key)?.label ?? a.key); continue; }
     const [slot, f, demoted] = row;
     if (slot === 'noun') {
-      if (noun) push('when', demoted);
+      if (noun) push('when', demoted!);
       else noun = f;
     } else if (slot === 'kind' || slot === 'adj' || slot === 'oppnoun' || slot === 'oppcoach') {
-      push(slot, a.key === 'vsteam' || a.key === 'vsconf' || a.key === 'state' || a.key === 'month' ? frag(f, a.param) : f);
+      push(slot, a.key === 'vsteam' || a.key === 'vsconf' || a.key === 'state' || a.key === 'month' ? frag(f, a.param) : f as string);
     } else {
       push(slot, frag(f, a.param));
     }
@@ -115,7 +120,7 @@ export function definitionPhrase(active) {
 
   // the noun phrase: "[one-score conference] games"
   const kindWords = active.filter((a) => SLOTS[a.key]?.[0] === 'kind').sort((x, y) => KIND_ORDER.indexOf(x.key) - KIND_ORDER.indexOf(y.key)).map((a) => SLOTS[a.key][1]);
-  const head = [...kindWords, noun ?? 'games'].join(' ');
+  const head = [...kindWords, (noun as string | null) ?? 'games'].join(' ');
 
   // one "against" clause
   const adjs = active.filter((a) => SLOTS[a.key]?.[0] === 'adj').sort((x, y) => ADJ_ORDER.indexOf(x.key) - ADJ_ORDER.indexOf(y.key)).map((a) => SLOTS[a.key][1]);
@@ -141,11 +146,11 @@ export function definitionPhrase(active) {
   return tail.length ? `${main}, ${ctx.join(' and ')}` : `${main} ${ctx.join(' and ')}`;
 }
 
-const monYear = (ep) => {
+const monYear = (ep: number) => {
   const d = new Date(ep * 86400000);
   return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 };
-const year = (ep) => new Date(ep * 86400000).getUTCFullYear();
+const year = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
 
 /**
  * "Rutgers has lost 44 straight games against ranked opponents, since Nov 2009."
@@ -153,18 +158,18 @@ const year = (ep) => new Date(ep * 86400000).getUTCFullYear();
  * tense with a year span.
  */
 // a streak of one: "1 straight game", not "games"
-const SINGULAR = { games: 'game', shootouts: 'shootout', 'rock fights': 'rock fight', 'season openers': 'season opener', 'regular-season finales': 'regular-season finale', 'bowl and playoff games': 'bowl or playoff game' };
-const singular = (phrase) => phrase.replace(/^(bowl and playoff games|regular-season finales|season openers|rock fights|shootouts|games)/, (m) => SINGULAR[m]);
+const SINGULAR: Record<string, string> = { games: 'game', shootouts: 'shootout', 'rock fights': 'rock fight', 'season openers': 'season opener', 'regular-season finales': 'regular-season finale', 'bowl and playoff games': 'bowl or playoff game' };
+const singular = (phrase: string) => phrase.replace(/^(bowl and playoff games|regular-season finales|season openers|rock fights|shootouts|games)/, (m) => SINGULAR[m]);
 
-export function claim(row, active, dir) {
+export function claim(row: BoardRow, active: ChipRef[], dir: Dir): string {
   const t = teams[row.ti];
   const phrase = definitionPhrase(active);
   const n = `${row.s.len}${row.s.atEdge ? '+' : ''} straight ${row.s.len === 1 && !row.s.atEdge ? singular(phrase) : phrase}`;
   const live = row.live ?? true;
   if (!live) {
     const verb = dir === 'W' ? 'won' : 'lost';
-    const y0 = year(row.s.start.ep);
-    const y1 = year(row.s.end.ep);
+    const y0 = year(row.s.start!.ep);
+    const y1 = year(row.s.end!.ep);
     // "in 2012" for a run inside one year, "2007–2021" across years
     return y0 === y1 ? `${t.name} ${verb} ${n} in ${y0}.` : `${t.name} ${verb} ${n}, ${y0}–${y1}.`;
   }
@@ -175,11 +180,11 @@ export function claim(row, active, dir) {
 }
 
 /** A team with no streak under the definition. */
-export function noClaim(ti, active, dir) {
+export function noClaim(ti: number, active: ChipRef[], dir: Dir): string {
   return `${teams[ti].name} has no active ${dir === 'W' ? 'winning' : 'losing'} streak in ${definitionPhrase(active)}.`;
 }
 
-export const ordinal = (n) => {
+export const ordinal = (n: number) => {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);

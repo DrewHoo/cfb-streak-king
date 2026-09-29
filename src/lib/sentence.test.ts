@@ -1,18 +1,20 @@
 import { describe, expect, test } from 'vitest';
-import { P, teams, CHIPS, board, allTimeBoard } from './model.js';
-import { definitionPhrase, claim, noClaim, ordinal, SLOTS } from './sentence.js';
-import { defaultParam, MAX_CHIPS } from './definition.js';
+import type { ChipRef } from './types.ts';
+import type { Chip } from './chips.ts';
+import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
+import { definitionPhrase, claim, noClaim, ordinal, SLOTS } from './sentence.ts';
+import { defaultParam, MAX_CHIPS } from './definition.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
-const idx = (id) => teams.findIndex((t) => t.id === id);
-const chips = (...keys) => keys.map((k) => {
+const idx = (id: string) => teams.findIndex((t) => t.id === id);
+const chips = (...keys: string[]): ChipRef[] => keys.map((k) => {
   const [key, param] = k.split(':');
   return param == null ? { key } : { key, param: /^\d+$/.test(param) ? Number(param) : param };
 });
 
 // every ≤4-chip definition of parameterless chips, exclusivity honored
-function* definitions(pool) {
-  function* rec(start, chosen) {
+function* definitions(pool: Chip[]): Generator<Chip[]> {
+  function* rec(start: number, chosen: Chip[]): Generator<Chip[]> {
     yield chosen;
     if (chosen.length === MAX_CHIPS) return;
     for (let i = start; i < pool.length; i++) {
@@ -110,17 +112,17 @@ describe('definitionPhrase', () => {
 
 describe('claim', () => {
   test('an active streak reads in the present tense with its start', () => {
-    const r = board(chips('unranked'), 'W', 'games', today)[0];
+    const r = activeBoard(chips('unranked'), 'W', today)[0];
     expect(claim(r, chips('unranked'), 'W')).toMatch(new RegExp(`^${teams[r.ti].name} has won ${r.s.len}\\+? straight games against unranked opponents(, since [A-Z][a-z]{2} \\d{4})?\\.$`));
   });
 
   test('an ended run reads in the past tense with a year span', () => {
-    const r = allTimeBoard(chips('unranked'), 'W', today).find((x) => x.ti === idx('alabama') && x.s.len === 100);
+    const r = allTimeBoard(chips('unranked'), 'W', today).find((x) => x.ti === idx('alabama') && x.s.len === 100)!;
     expect(claim(r, chips('unranked'), 'W')).toBe('Alabama won 100 straight games against unranked opponents, 2007–2021.');
   });
 
   test('a run inside one year says "in"', () => {
-    const r = allTimeBoard(chips('opener'), 'L', today).find((x) => !x.live && x.s.start.se === x.s.end.se && x.s.len === 1);
+    const r = allTimeBoard(chips('opener'), 'L', today).find((x) => !x.live && x.s.start!.se === x.s.end!.se && x.s.len === 1)!;
     expect(claim(r, chips('opener'), 'L')).toMatch(/ lost 1 straight season opener in \d{4}\.$/);
   });
 

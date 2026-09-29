@@ -256,7 +256,7 @@ sections carry the data details; this is the product and method record.
 - **Team pages replace the crowns tab.** The open team lives at `/team/<id>/`, prerendered
   with its own OG image. The panel shows the claim sentence, the ledger, and "{Team} is the
   King of N [Active | All-time] [Winning | Losing] Streaks" with the two words as selects.
-  All-time crowns mine on demand (`mineAll('all')` in `src/lib/crowns.js`); each row applies
+  All-time crowns mine on demand (`mineCrowns('all')` in `src/lib/crowns.ts`); each row applies
   the definition or shares it. Crowns carry scope, start and end season, and whether the run
   is live. Deep link: `/team/<id>/?dir=L`.
 - **Starred streaks** left the constraint picker: a right-margin sidebar at 1440px and up,
