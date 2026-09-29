@@ -4,9 +4,9 @@
 
 import * as DM from '@radix-ui/react-dropdown-menu';
 import { Drawer } from 'vaul';
-import { CHIPS, chipByKey } from '../lib/chips.ts';
+import { CHIPS, chipByKey, conflicts } from '../lib/chips.ts';
 import {
-  GROUPS, GROUP_NOTES, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS, teamOptions, chipWord, MAX_CHIPS,
+  GROUPS, GROUP_NOTES, PARAMS, chipWord, MAX_CHIPS,
 } from '../lib/definition.ts';
 import { dirWord } from '../lib/format.ts';
 import { Caret } from './Icons.jsx';
@@ -40,14 +40,7 @@ const Rule = () => <DM.Separator className="menu-rule" />;
 function ChipWord({ a, active, on }) {
   const c = chipByKey.get(a.key);
   const siblings = CHIPS.filter((s) => s.group === c.group && s.key !== a.key && !active.some((x) => x.key === s.key));
-  const params = (
-    c.param === 'team' ? teamOptions.map(({ t, i }) => [i, `vs ${t.name}`])
-      : c.param === 'conf' ? CONF_OPTIONS.map((o) => [o, `vs the ${o}`])
-        : c.param === 'state' ? STATE_OPTIONS.map((o) => [o, `in ${o}`])
-          : c.param === 'month' ? MONTHS.map(([n, name]) => [n, `in ${name}`])
-            : c.param === 'hmargin' ? HMARGINS.map(([n, name]) => [n, `${c.label} ${name}`])
-              : []
-  );
+  const params = c.param ? PARAMS[c.param].options(c) : [];
   return (
     <Word label={chipWord(a)} strong>
       <Heading>{c.group}</Heading>
@@ -72,7 +65,7 @@ function AddBody({ active, scope, week, weekCount, weekDay, startFrom, on, Item:
           <G key={grp}>
             <H title={GROUP_NOTES[grp]}>{grp}{GROUP_NOTES[grp] ? ' ⓘ' : ''}</H>
             {chips.map((c) => {
-              const swaps = c.x && active.some((a) => chipByKey.get(a.key).x && chipByKey.get(a.key).group === c.group);
+              const swaps = active.some((a) => conflicts(chipByKey.get(a.key), c));
               return <I key={c.key} disabled={full && !swaps} onSelect={() => on.add(c.key)}>{c.label}</I>;
             })}
           </G>

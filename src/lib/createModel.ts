@@ -4,8 +4,8 @@
 // semantics live in streaks.ts.
 
 import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, UpcomingRow } from './types.ts';
-import { FLAG, NO_LINE, UNKNOWN } from './schema.ts';
-import { chipByKey } from './chips.ts';
+import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
+import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
 import { currentStreak } from './streaks.ts';
 
 const DAY_MS = 86400000;
@@ -18,6 +18,7 @@ const sameState = (a: string | undefined, b: string | undefined) => a != null &&
 const firstSeasonOf = (s: Stint) => (s[2] === 0 ? s[1] : s[1] + 1);
 // sorts before any real game day, including negative (pre-1970) ones
 const EDGE = -Infinity;
+const rank = (r: number) => (r === RANK_UNKNOWN ? null : r);
 
 export type Model = ReturnType<typeof createModel>;
 
@@ -95,8 +96,8 @@ export function createModel(P: Payload) {
       conf: !!(cols.fl[i] & FLAG.conf),
       post: !!(cols.fl[i] & FLAG.post),
       oppIdx,
-      oppRank: home ? cols.ar[i] : cols.hr[i],
-      ownRank: home ? cols.hr[i] : cols.ar[i],
+      oppRank: rank(home ? cols.ar[i] : cols.hr[i]),
+      ownRank: rank(home ? cols.hr[i] : cols.ar[i]),
       hh: cols.hh[i],
       rv: cols.rv[i],
       vst: P.states[cols.vs?.[i] ?? 0] || null,
@@ -203,15 +204,15 @@ export function createModel(P: Payload) {
   function makeFilter(active: ChipRef[]) {
     const fns = active.map(({ key, param }) => {
       const c = chipByKey.get(key)!;
-      return (x: GameRow) => c.test(x, param);
+      return (x: GameRow) => qualifies(c, x, param);
     });
     return (x: GameRow) => fns.every((f) => f(x));
   }
-  /** Whether a scheduled game qualifies; null when a chip can't be known before kickoff. */
+  /** Whether a scheduled game qualifies; null when a chip can't be decided before kickoff. */
   function makePre(active: ChipRef[]) {
     const fns = active.map(({ key, param }) => {
       const c = chipByKey.get(key)!;
-      return c.pre ? (x: GameContext) => c.pre!(x, param) : null;
+      return c.pregame ? (x: GameContext) => qualifiesPregame(c, x, param) : null;
     });
     if (fns.some((f) => !f)) return null;
     return (x: GameContext) => fns.every((f) => f!(x));

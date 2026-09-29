@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { BoardRow, ChipRef, Dir, Result } from './types.ts';
 import type { Chip } from './chips.ts';
+import { conflicts } from './chips.ts';
 import { currentStreak } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
 import { mineCrowns, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
@@ -47,7 +48,7 @@ describe('boards', () => {
     const def: Chip[] = [];
     for (let t = 0; t < 10 && def.length < 1 + Math.floor(rand() * 3); t++) {
       const c = plain[Math.floor(rand() * plain.length)];
-      if (def.some((d) => d === c || (d.x && c.x && d.group === c.group))) continue;
+      if (def.some((d) => d === c || conflicts(d, c))) continue;
       def.push(c);
     }
     return def.map((c) => ({ key: c.key }));

@@ -10,7 +10,9 @@ export const NO_LINE = 9999;
 export const NO_HOUR = 31;
 /** games.hf / af / hp / ap / ot: box-score field unknown (before its floor). */
 export const UNKNOWN = -1;
-/** games.hr / ar: the team wasn't ranked in the poll in effect. */
+/** games.hr / ar and upcoming.hr / ar: the team wasn't ranked in the poll in effect. */
 export const UNRANKED = 0;
+/** games.hr / ar and upcoming.hr / ar: no poll was in effect yet (before 1950, the first weeks of a season). */
+export const RANK_UNKNOWN = -1;
 /** The end year of a span that runs to the present (teams[].major). */
 export const PRESENT = 9999;

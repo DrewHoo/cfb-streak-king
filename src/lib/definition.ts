@@ -4,8 +4,8 @@
 
 import type { ChipRef, Dir } from './types.ts';
 import { P, teams, confs } from './model.ts';
-import { chipByKey } from './chips.ts';
-import type { Chip } from './chips.ts';
+import { chipByKey, conflicts } from './chips.ts';
+import type { Chip, ParamKind } from './chips.ts';
 import { stateName } from './format.ts';
 
 // the definition a bare URL opens on: all-time winning streaks vs unranked
@@ -52,16 +52,67 @@ export const teamOptions = teams
   .filter(({ t }) => t.major)
   .sort((a, b) => a.t.name.localeCompare(b.t.name));
 
-export const defaultParam = (c: Chip) => (
-  c.param === 'month' ? 11 : c.param === 'conf' ? 'SEC' : c.param === 'state' ? 'TX' : c.param === 'hmargin' ? 1
-    : c.param === 'team' ? teams.findIndex((t) => t.id === 'alabama') : undefined
-);
+type Value = string | number;
+interface ParamSpec {
+  /** [value, menu label] for the chip's own menu. */
+  options: (c: Chip) => [Value, string][];
+  default: () => Value;
+  /** The value as it appears in the URL. */
+  encode: (v: Value) => string;
+  /** undefined when the URL value is no good. */
+  decode: (s: string) => Value | undefined;
+  /** The chip as a word in the definition line. */
+  word: (c: Chip, v: Value) => string;
+}
+const asNumber = (s: string) => (s === '' || Number.isNaN(Number(s)) ? undefined : Number(s));
+const halfWord = (c: Chip, v: Value) => ((v as number) > 1 ? `${c.label} by ${v}+` : c.label);
 
-// a team param is an index into teams in memory and the team's id in the URL
+/** Everything about a chip's choice, by kind: menus, default, URL form, word. */
+export const PARAMS: Record<ParamKind, ParamSpec> = {
+  month: {
+    options: () => MONTHS.map(([n, name]) => [n, `in ${name}`]),
+    default: () => 11,
+    encode: String,
+    decode: asNumber,
+    word: (_c, v) => `in ${MONTHS.find(([n]) => n === v)?.[1] ?? v}`,
+  },
+  hmargin: {
+    options: (c) => HMARGINS.map(([n, name]) => [n, `${c.label} ${name}`]),
+    default: () => 1,
+    encode: String,
+    decode: asNumber,
+    word: halfWord,
+  },
+  state: {
+    options: () => STATE_OPTIONS.map((o) => [o, `in ${o}`]),
+    default: () => 'TX',
+    encode: String,
+    decode: (s) => s || undefined,
+    word: (_c, v) => `in ${stateName(v as string)}`,
+  },
+  conf: {
+    options: () => CONF_OPTIONS.map((o) => [o, `vs the ${o}`]),
+    default: () => 'SEC',
+    encode: String,
+    decode: (s) => s || undefined,
+    word: (_c, v) => `vs the ${v}`,
+  },
+  // an index into teams in memory, the team's id in the URL
+  team: {
+    options: () => teamOptions.map(({ t, i }) => [i, `vs ${t.name}`]),
+    default: () => teams.findIndex((t) => t.id === 'alabama'),
+    encode: (v) => teams[v as number]?.id ?? '',
+    decode: (s) => { const i = teams.findIndex((t) => t.id === s); return i < 0 ? undefined : i; },
+    word: (_c, v) => `vs ${teams[v as number]?.name ?? '?'}`,
+  },
+};
+
+export const defaultParam = (c: Chip) => (c.param ? PARAMS[c.param].default() : undefined);
+
 export function encodeChips(active: ChipRef[]): string {
   return active.map(({ key, param }) => {
-    if (param == null) return key;
-    return `${key}:${chipByKey.get(key)?.param === 'team' ? teams[param as number]?.id : param}`;
+    const kind = chipByKey.get(key)?.param;
+    return kind && param != null ? `${key}:${PARAMS[kind].encode(param)}` : key;
   }).join(',');
 }
 export function decodeChips(s: string | null | undefined): ChipRef[] {
@@ -71,11 +122,9 @@ export function decodeChips(s: string | null | undefined): ChipRef[] {
     const [key, ...rest] = part.split(':');
     const c = chipByKey.get(key);
     if (!c) continue;
-    let param: string | number | undefined = rest.length ? rest.join(':') : undefined;
-    if (c.param === 'month' || c.param === 'hmargin') param = Number(param);
-    if (c.param === 'team') param = teams.findIndex((t) => t.id === param);
-    if (c.param && (param == null || param === -1 || Number.isNaN(param))) continue;
-    out.push(c.param ? { key, param } : { key });
+    if (!c.param) { out.push({ key }); continue; }
+    const param = rest.length ? PARAMS[c.param].decode(rest.join(':')) : undefined;
+    if (param !== undefined) out.push({ key, param });
   }
   return out.slice(0, MAX_CHIPS);
 }
@@ -87,22 +136,16 @@ export const chipsToParam = (active: ChipRef[]) => {
 };
 export const chipsFromParam = (c: string | null) => (c === 'all' ? [] : c ? decodeChips(c) : DEFAULT_CHIPS);
 
-/** How a chip reads as a word in the definition sentence. */
+/** How a chip reads as a word in the definition line. */
 export function chipWord({ key, param }: ChipRef): string {
   const c = chipByKey.get(key)!;
-  if (key === 'vsteam') return `vs ${teams[param as number]?.name ?? '?'}`;
-  if (key === 'vsconf') return `vs the ${param}`;
-  if (key === 'state') return `in ${stateName(param as string)}`;
-  if (key === 'month') return `in ${MONTHS.find(([n]) => n === param)?.[1] ?? param}`;
-  if (key === 'leadhalf') return (param as number) > 1 ? `leading at half by ${param}+` : 'leading at half';
-  if (key === 'trailhalf') return (param as number) > 1 ? `trailing at half by ${param}+` : 'trailing at half';
-  return c.label;
+  return c.param && param != null ? PARAMS[c.param].word(c, param) : c.label;
 }
 
 /** Add a chip to a definition; an exclusive chip replaces its group-mate. */
 export function withChip(active: ChipRef[], key: string): ChipRef[] {
   const c = chipByKey.get(key)!;
-  const rest = c.x ? active.filter((a) => !(chipByKey.get(a.key)!.x && chipByKey.get(a.key)!.group === c.group)) : active;
+  const rest = active.filter((a) => !conflicts(chipByKey.get(a.key)!, c));
   if (rest.length >= MAX_CHIPS) return active;
   return [...rest, c.param ? { key, param: defaultParam(c) } : { key }];
 }

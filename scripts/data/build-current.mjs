@@ -16,7 +16,7 @@ import { parsePollPage, parseSeasonPolls } from '../lib/cpa.mjs';
 import { mapScheduleRow } from '../lib/sched.mjs';
 import { canon, slug } from '../lib/names.mjs';
 import { resolveSeason } from '../lib/coach.mjs';
-import { FLAG, NO_LINE, NO_HOUR, UNKNOWN } from '../../src/lib/schema.ts';
+import { FLAG, NO_LINE, NO_HOUR, UNKNOWN, UNRANKED, RANK_UNKNOWN } from '../../src/lib/schema.ts';
 
 const SEASON = 2026;
 const CACHE = process.env.CACHE === '1';
@@ -82,13 +82,14 @@ for (const p of pollPages) {
 polls.sort((a, b) => a.date.localeCompare(b.date));
 const epochDay = (iso) => Math.floor(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000);
 const pollTimeline = polls.map((p) => [epochDay(p.date), new Map(p.ranks.map((r) => [r.team, r.rank]))]);
+// RANK_UNKNOWN when no poll is in effect yet (or none could be fetched)
 function rankOf(id, ep) {
   let cur = null;
   for (const [d, m] of pollTimeline) {
     if (d >= ep) break; // same-day poll is post-game
     cur = m;
   }
-  return cur?.get(id) ?? 0;
+  return cur ? cur.get(id) ?? UNRANKED : RANK_UNKNOWN;
 }
 
 // --- teams index over the base (append new opponents as needed) ---

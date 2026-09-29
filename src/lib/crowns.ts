@@ -11,7 +11,7 @@
 // field of ≥ 10 teams holding any streak under the definition.
 
 import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
-import { CHIPS } from './chips.ts';
+import { CHIPS, conflicts, qualifies } from './chips.ts';
 import { fbsNow, gamesOf } from './model.ts';
 
 interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[] }
@@ -30,7 +30,7 @@ export const DEF_COUNT = (function count(start: number, chosen: number[]): numbe
   if (chosen.length === 4) return n;
   for (let i = start; i < NP.length; i++) {
     const c = NP[i];
-    if (c.x && chosen.some((j) => NP[j].x && NP[j].group === c.group)) continue;
+    if (chosen.some((j) => conflicts(NP[j], c))) continue;
     n += count(i + 1, [...chosen, i]);
   }
   return n;
@@ -46,7 +46,7 @@ function buildData(): TeamData[] {
     const words = Math.ceil(n / 32) || 1;
     const masks = NP.map((c) => {
       const m = new Uint32Array(words);
-      for (let i = 0; i < n; i++) if (c.test(gs[i])) m[i >> 5] |= 1 << (i & 31);
+      for (let i = 0; i < n; i++) if (qualifies(c, gs[i])) m[i >> 5] |= 1 << (i & 31);
       return m;
     });
     return { ti, gs, n, words, masks, r: gs.map((x) => x.r) };
@@ -117,7 +117,7 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
     if (chosen.length === 4) return;
     for (let i = start; i < NP.length; i++) {
       const c = NP[i];
-      if (c.x && chosen.some((j) => NP[j].x && NP[j].group === c.group)) continue;
+      if (chosen.some((j) => conflicts(NP[j], c))) continue;
       rec(i + 1, [...chosen, i]);
     }
   })(0, []);

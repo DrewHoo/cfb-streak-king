@@ -62,8 +62,9 @@ export interface GameContext {
   conf: boolean;
   post: boolean;
   oppIdx: number;
-  oppRank: number;
-  ownRank: number;
+  /** AP rank at kickoff, 0 unranked, null when no poll was in effect. */
+  oppRank: number | null;
+  ownRank: number | null;
   /** Closing line from our side, + = we were underdogs; null when unlined. */
   sp: number | null;
   hh: number;

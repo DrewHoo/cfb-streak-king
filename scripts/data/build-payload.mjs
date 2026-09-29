@@ -21,7 +21,7 @@ import { ROOT, ensureDir } from '../lib/util.mjs';
 import { display } from '../lib/names.mjs';
 import { buildStints, markInterim } from '../lib/coach.mjs';
 import { currentStreak } from '../../src/lib/streaks.ts';
-import { FLAG, NO_LINE, NO_HOUR, UNKNOWN } from '../../src/lib/schema.ts';
+import { FLAG, NO_LINE, NO_HOUR, UNKNOWN, UNRANKED, RANK_UNKNOWN } from '../../src/lib/schema.ts';
 
 const BUILD = path.join(ROOT, 'data', 'build');
 const load = (f) => JSON.parse(fs.readFileSync(path.join(BUILD, f), 'utf8'));
@@ -92,9 +92,10 @@ for (const p of polls) {
   pollsBySeason.set(p.season, arr);
 }
 for (const arr of pollsBySeason.values()) arr.sort((a, b) => a[0] - b[0]);
+// RANK_UNKNOWN when no poll is in effect yet: rank chips skip the game
 function rankOf(id, season, ep) {
   const arr = pollsBySeason.get(season);
-  if (!arr) return 0;
+  if (!arr) return RANK_UNKNOWN;
   let cur = null;
   for (const [d, m] of arr) {
     // a poll dated the day of the game already reflects that game (a Monday
@@ -102,7 +103,7 @@ function rankOf(id, season, ep) {
     if (d >= ep) break;
     cur = m;
   }
-  return cur?.get(id) ?? 0;
+  return cur ? cur.get(id) ?? UNRANKED : RANK_UNKNOWN;
 }
 
 // local kickoff (date + hour) from a UTC instant using the home team's zone

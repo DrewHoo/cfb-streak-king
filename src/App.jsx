@@ -17,9 +17,6 @@ import { TeamPanel } from './components/TeamPanel.jsx';
 import { Starred } from './components/Starred.jsx';
 import { ShareIcon, StarIcon } from './components/Icons.jsx';
 
-// what a chip's data floor covers, for the window-edge message
-const FLOOR_WORDS = { night: 'kickoff-time', leadhalf: 'halftime-score', trailhalf: 'halftime-score', wonpos: 'possession', dompos: 'possession', overtime: 'overtime' };
-
 // `initial` seeds state the prerender and the hydrate must agree on: a
 // per-team page (/team/<id>/) opens with that team's panel already open.
 export default function App({ initial } = {}) {
@@ -113,7 +110,7 @@ export default function App({ initial } = {}) {
     let word = null;
     for (const a of active) {
       const c = chipByKey.get(a.key);
-      if (c.floor && c.floor > floor) { floor = c.floor; word = FLOOR_WORDS[a.key] ?? c.label; }
+      if (c.floor && c.floor.season > floor) { floor = c.floor.season; word = c.floor.what; }
     }
     return (ti) => {
       const joined = windowStartOf(ti);

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { ChipRef } from './types.ts';
 import type { Chip } from './chips.ts';
+import { conflicts } from './chips.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
 import { definitionPhrase, claim, noClaim, ordinal, SLOTS } from './sentence.ts';
 import { defaultParam, MAX_CHIPS } from './definition.ts';
@@ -19,7 +20,7 @@ function* definitions(pool: Chip[]): Generator<Chip[]> {
     if (chosen.length === MAX_CHIPS) return;
     for (let i = start; i < pool.length; i++) {
       const c = pool[i];
-      if (c.x && chosen.some((d) => d.x && d.group === c.group)) continue;
+      if (chosen.some((d) => conflicts(d, c))) continue;
       yield* rec(i + 1, [...chosen, c]);
     }
   }
@@ -56,7 +57,7 @@ describe('definitionPhrase', () => {
     for (const c of CHIPS.filter((x) => x.param)) {
       const p = { key: c.key, param: defaultParam(c) };
       for (const other of [null, ...plain]) {
-        if (other && c.x && other.x && other.group === c.group) continue;
+        if (other && conflicts(c, other)) continue;
         const s = definitionPhrase(other ? [p, { key: other.key }] : [p]);
         expect(s, `${c.key}+${other?.key}`).not.toMatch(/undefined|null|\?|NaN|\s{2}/);
       }
