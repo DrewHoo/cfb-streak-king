@@ -214,7 +214,7 @@ async function renderTeam(ti, W, H) {
     { str: ' LOSING', font: 'Mono', size: 16, fill: MUTED },
   ], { x: 64, y, spacing: 2 }))
   // the three simplest winning or losing crowns (the counts above); an
-  // unbeaten crown often repeats a winning one
+  // undefeated crown often repeats a winning one
   y += 40
   for (const cr of held.filter((c) => c.dir !== 'U').slice(0, 3)) {
     const words = cr.chips.length ? cr.chips.map((k) => P.chipLabel?.[k] ?? k).join(' · ') : 'all games'

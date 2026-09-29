@@ -15,8 +15,9 @@ import { PLAIN_CHIPS, conflicts, qualifies } from './chips.ts';
 import { fbsNow, gamesOf } from './model.ts';
 import { OUTCOMES } from './streaks.ts';
 
-interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[] }
-interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number }
+interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; lined: Uint32Array; covered: Uint32Array }
+// live: no later qualifying game broke the run
+interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
 type Runs = Partial<Record<Dir, Run>>;
 
 export const LEN_FLOOR = 4;
@@ -37,12 +38,19 @@ function buildData(): TeamData[] {
       for (let i = 0; i < n; i++) if (qualifies(c, gs[i])) m[i >> 5] |= 1 << (i & 31);
       return m;
     });
-    return { ti, gs, n, words, masks, r: gs.map((x) => x.r) };
+    // covering streaks run over lined games only; covered = beat the spread
+    const lined = new Uint32Array(words);
+    const covered = new Uint32Array(words);
+    for (let i = 0; i < n; i++) {
+      if (gs[i].cover != null) lined[i >> 5] |= 1 << (i & 31);
+      if (gs[i].cover === 'W') covered[i >> 5] |= 1 << (i & 31);
+    }
+    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), lined, covered };
   });
 }
 
 // The trailing runs of the masked sequence: the run of the latest result
-// (W or L) and the unbeaten run, each set when it has at least one game.
+// (W or L) and the undefeated run, each set when it has at least one game.
 function walkActive(td: TeamData, q: Uint32Array): Runs {
   let r0: Result | null = null;
   let lastIdx = -1;
@@ -63,8 +71,8 @@ function walkActive(td: TeamData, q: Uint32Array): Runs {
   }
   const out: Runs = {};
   // a run still open after the scan reached the first qualifying game
-  if (r0 && r0 !== 'T' && same) out[r0] = { len: same, atEdge: sameOpen, lastIdx, startIdx: sameStart };
-  if (unb) out.U = { len: unb, atEdge: unbOpen, lastIdx, startIdx: unbStart };
+  if (r0 && r0 !== 'T' && same) out[r0] = { len: same, atEdge: sameOpen, lastIdx, startIdx: sameStart, live: true };
+  if (unb) out.U = { len: unb, atEdge: unbOpen, lastIdx, startIdx: unbStart, live: true };
   return out;
 }
 
@@ -74,7 +82,7 @@ function walkLongest(td: TeamData, q: Uint32Array): Runs {
   const best: Runs = {};
   const keep = (o: Dir, len: number, startIdx: number, lastIdx: number) => {
     const b = best[o];
-    if (len && (!b || len > b.len)) best[o] = { len, atEdge: false, lastIdx, startIdx };
+    if (len && (!b || len > b.len)) best[o] = { len, atEdge: false, lastIdx, startIdx, live: false };
   };
   let dir: Result | null = null;
   let len = 0, startIdx = -1;
@@ -102,7 +110,38 @@ function walkLongest(td: TeamData, q: Uint32Array): Runs {
   if (dir === 'W' || dir === 'L') keep(dir, len, startIdx, prev);
   keep('U', unb, unbStart, prev);
   // a run that starts at the first qualifying game may run past the window
-  for (const run of Object.values(best)) run.atEdge = run.startIdx === firstIdx;
+  for (const run of Object.values(best)) {
+    run.atEdge = run.startIdx === firstIdx;
+    run.live = run.lastIdx === prev;
+  }
+  return best;
+}
+
+// The covering run over the masked sequence's lined games: the trailing one
+// for 'active', the longest (earliest on a tie) for 'all'.
+function coverWalk(td: TeamData, q: Uint32Array, scope: Scope): Run | null {
+  const bit = (m: Uint32Array, i: number) => (m[i >> 5] & (1 << (i & 31))) !== 0;
+  const idx: number[] = [];
+  for (let w = 0; w < td.words; w++) {
+    const x = q[w] & td.lined[w];
+    if (!x) continue;
+    for (let b = 0; b < 32; b++) if (x & (1 << b)) { const i = (w << 5) | b; if (i < td.n) idx.push(i); }
+  }
+  if (!idx.length) return null;
+  if (scope === 'active') {
+    let k = idx.length - 1;
+    while (k >= 0 && bit(td.covered, idx[k])) k--;
+    const len = idx.length - 1 - k;
+    return len ? { len, atEdge: k < 0, lastIdx: idx[idx.length - 1], startIdx: idx[k + 1], live: true } : null;
+  }
+  let best: Run | null = null;
+  let run = 0;
+  for (let k = 0; k < idx.length; k++) {
+    if (bit(td.covered, idx[k])) {
+      run++;
+      if (!best || run > best.len) best = { len: run, atEdge: k + 1 === run, lastIdx: idx[k], startIdx: idx[k - run + 1], live: k === idx.length - 1 };
+    } else run = 0;
+  }
   return best;
 }
 
@@ -141,6 +180,8 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
         }
       }
       res[t] = walk(td, qb);
+      const c = coverWalk(td, qb, scope);
+      if (c) res[t].C = c;
     }
     for (const dir of OUTCOMES) {
       let best = 0;
@@ -167,7 +208,7 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
           dir, scope, len: s.len, atEdge: s.atEdge, field,
           startSe: gs[s.startIdx]?.se,
           endSe: gs[s.lastIdx]?.se,
-          live: s.lastIdx === data[leader].n - 1,
+          live: s.live,
           also: 0,
         });
       } else {
@@ -180,6 +221,7 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
           prev.startSe = gs[s.startIdx]?.se;
           prev.endSe = gs[s.lastIdx]?.se;
           prev.atEdge = s.atEdge;
+          prev.live = s.live;
         }
       }
     }

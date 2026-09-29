@@ -5,7 +5,7 @@
 //
 //   /team/<id>/     the open team (a prerendered page with its own preview)
 //   ?c=             chips (definition.ts: absent = default, "all" = none)
-//   ?dir=L|U        losing or unbeaten; winning is the default
+//   ?dir=L|U|C      losing, undefeated or covering; winning is the default
 //   ?scope=active   all-time is the default
 //   ?week=1         only streaks that could be broken this week
 //   ?run=<ep>       all-time: the open run, by its first game's epoch day
@@ -40,7 +40,7 @@ export function parseUrl(pathname: string, search: string): View {
   const r = q.get('run');
   return {
     active: chipsFromParam(q.get('c')),
-    dir: d === 'L' || d === 'U' ? d : 'W',
+    dir: d === 'L' || d === 'U' || d === 'C' ? d : 'W',
     scope: q.get('scope') === 'active' ? 'active' : 'all',
     week: q.get('week') === '1',
     // ?team= is from old links; writing the URL moves it into the path

@@ -165,7 +165,8 @@ const singular = (phrase: string) => phrase.replace(/^(bowl and playoff games|re
 const VERBS: Record<Dir, [live: string, ended: string]> = {
   W: ['has won', 'won'],
   L: ['has lost', 'lost'],
-  U: ['is unbeaten in', 'went unbeaten in'],
+  U: ['is undefeated in', 'went undefeated in'],
+  C: ['has covered', 'covered'],
 };
 const span = (y0: number, y1: number) => (y0 === y1 ? ` in ${y0}` : `, ${y0}–${y1}`);
 

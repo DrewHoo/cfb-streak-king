@@ -25,8 +25,9 @@ These definitions are the contract everything else builds on.
   a team whose latest qualifying result was a loss has a win streak of 0 and doesn't
   appear on the win board.
 - **Ties break winning and losing streaks.** Ties only exist before overtime arrived in
-  1996. A third outcome, **unbeaten** (wins and ties), shipped 2026-09-29: `dir=U` in the
-  URL, a third word in the direction menu and the crowns select.
+  1996. A third outcome, **undefeated** (wins and ties), shipped 2026-09-29: `dir=U` in the
+  URL, a third word in the direction menu and the crowns select. A fourth, **covering**
+  (beat the closing spread; a push ends it; unlined games are invisible to it), is `dir=C`.
 - A streak that reaches the window edge displays **"N+"**. We never claim a streak
   equals N when 1977 could extend it.
 - When a betting constraint is active and a qualifying-by-other-criteria game has no
@@ -198,10 +199,9 @@ streaks) so crawlers see a real leaderboard.
 
 ## Out of scope for v1
 
-- ATS cover streaks and over/under streaks as alternate outcome axes. The data
-  supports covers for 1978+ and the research says model outcomes separately from
-  filters, so the door stays open. It roughly doubles the semantics surface (push
-  handling, unlined-game gaps), and straight-up W/L ships the product.
+- ~~ATS cover streaks~~ shipped 2026-09-29 as the covering outcome (pushes end a streak,
+  unlined games are invisible to it). Over/under streaks and failing-to-cover streaks remain
+  out.
 - FCS/D-II boards.
 - ~~Historical (non-current) streak leaderboards.~~ Shipped 2026-09-28 as the all-time
   scope, now the default; see Amendments.
@@ -302,7 +302,7 @@ sections carry the data details; this is the product and method record.
 
 - **1936 window (2026-09-29).** The window starts at the first AP poll. Before 1978 a team counts
   in the seasons Howell lists it as major; streak holders are still this season's FBS teams.
-  Unbeaten is a third outcome. The build, the rulings and the research are in
+  Undefeated and covering are the third and fourth outcomes. The build, the rulings and the research are in
   specs/research/pre-1978.md.
 
 Backlog after this pass: the Cloudflare worker; the "vs FBS opponents" chip; a loss cue on

@@ -28,7 +28,7 @@ function columnsPerRow(rail) {
   return Math.max(1, kids.filter((el) => el.offsetTop === top).length);
 }
 
-function Column({ row, edgeFor, onOpen, hi }) {
+function Column({ row, edgeFor, onOpen, hi, cover }) {
   const t = teams[row.ti];
   const games = streakGames(row);
   const shown = games.slice(0, CHIP_CAP);
@@ -39,7 +39,7 @@ function Column({ row, edgeFor, onOpen, hi }) {
       {row.s.start && <span className="colspan">{yy(row.s.start.ep)}–{ended ? yy(row.s.end.ep) : 'now'}</span>}
       <TeamMark ti={row.ti} />
       {ended && (
-        <span className="colbrk"><Chip g={row.ended} small /><span className="colyr">{yy(row.ended.ep)}</span></span>
+        <span className="colbrk"><Chip g={row.ended} small cover={cover} /><span className="colyr">{yy(row.ended.ep)}</span></span>
       )}
       {!ended && row.s.start && (
         // all-time mode: a live run keeps the slot an ended run's breaker
@@ -55,11 +55,11 @@ function Column({ row, edgeFor, onOpen, hi }) {
         </span>
       )}
       <span className={'colstack' + (games.length > shown.length ? ' fade' : '')}>
-        {shown.map((g) => <Chip key={g.i} g={g} />)}
+        {shown.map((g) => <Chip key={g.i} g={g} cover={cover} />)}
       </span>
       {row.s.atEdge
         ? <span className="coledge">{yyOfYear(edgeFor(row.ti).year)}</span>
-        : <span className="colender"><Chip g={row.s.ender} small /><span className="colyr">{yy(row.s.ender.ep)}</span></span>}
+        : <span className="colender"><Chip g={row.s.ender} small cover={cover} /><span className="colyr">{yy(row.s.ender.ep)}</span></span>}
     </button>
   );
 }
@@ -136,7 +136,7 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
   }, [isMobile, shownKey]);
 
   const col = (row) => (
-    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} />
+    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={dir === 'C'} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';

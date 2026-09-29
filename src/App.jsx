@@ -59,7 +59,7 @@ export default function App({ initial } = {}) {
   );
   const weekCount = useMemo(() => rows.filter((r) => r.onTheLine).length, [rows]);
   const shown = week ? rows.filter((r) => r.onTheLine) : rows;
-  const edgeFor = useMemo(() => edgeForDefinition(active), [active]);
+  const edgeFor = useMemo(() => edgeForDefinition(active, dir), [active, dir]);
   // active: a team has one row. all-time: the open run, else the team's longest
   const teamRow = team != null
     ? rows.find((r) => r.ti === team && (scope !== 'all' || run == null || r.s.start.ep === run)) ?? rows.find((r) => r.ti === team) ?? null

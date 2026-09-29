@@ -7,26 +7,26 @@ import { chipByKey } from '../lib/chips.ts';
 import { streakGames } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
-import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord } from '../lib/format.ts';
+import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText } from '../lib/format.ts';
 import { Chip, NextChip, TeamMark } from './Chip.jsx';
 import { ShareIcon } from './Icons.jsx';
 
 const LEDGER_CAP = 8;
 const CROWNS_CAP = 6;
 
-function LedgerRow({ g, cls, win }) {
+function LedgerRow({ g, cls, win, cover }) {
   return (
     <div className={'xrow' + (cls ? ' ' + cls : '')}>
-      <Chip g={g} />
+      <Chip g={g} cover={cover} />
       <span className="xd">{shortDate(g.ep)}</span>
       <span className="xn">{siteMark(g) ? <i>{siteMark(g)}</i> : null}{teams[g.oppIdx]?.name ?? '?'}</span>
       <span className="xopp">{g.oppRank > 0 ? `#${g.oppRank}` : ''}</span>
-      <span className={'xsc' + (win ? ' w' : '')}>{g.us}–{g.them}</span>
+      <span className={'xsc' + (win ? ' w' : '')}>{g.us}–{g.them}{cover && g.sp != null ? <i className="xsp"> {spreadText(g.sp)}</i> : null}</span>
     </div>
   );
 }
 
-function Ledger({ row, edge }) {
+function Ledger({ row, edge, cover }) {
   const [all, setAll] = useState(false);
   const games = streakGames(row);
   const list = all ? games : games.slice(0, LEDGER_CAP);
@@ -42,8 +42,8 @@ function Ledger({ row, edge }) {
           <span className="xnext">{dayOf(nxt.ep)} {kickOf(nxt)}</span>
         </div>
       )}
-      {row.live === false && <LedgerRow g={row.ended} cls="brk-row" win />}
-      {list.map((g) => <LedgerRow key={g.i + '-' + g.ep} g={g} />)}
+      {row.live === false && <LedgerRow g={row.ended} cls="brk-row" win cover={cover} />}
+      {list.map((g) => <LedgerRow key={g.i + '-' + g.ep} g={g} cover={cover} />)}
       {games.length > LEDGER_CAP && (
         <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${games.length - LEDGER_CAP} more`}</button>
       )}
@@ -57,7 +57,7 @@ function Ledger({ row, edge }) {
                 : `every qualifying game in the data (${firstSeason} on) is in this streak; the one before it is older than the data`}
           </div>
         )
-        : <LedgerRow g={row.s.ender} cls="ender-row" win />}
+        : <LedgerRow g={row.s.ender} cls="ender-row" win cover={cover} />}
     </div>
   );
 }
@@ -85,7 +85,8 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
         <select className="leads-sel" value={crownsDir} onChange={(e) => onCrownsDir(e.target.value)} aria-label="Winning or losing">
           <option value="W">Winning</option>
           <option value="L">Losing</option>
-          <option value="U">Unbeaten</option>
+          <option value="U">Undefeated</option>
+          <option value="C">Covering</option>
         </select>{' '}
         Streaks
       </p>
@@ -138,13 +139,13 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crow
           {row.onTheLine && row.next && (
             <span className="otl">could be broken {dayOf(row.next.ep)} {siteWord(row.next)} {row.next.oppRank > 0 ? `#${row.next.oppRank} ` : ''}{teams[row.next.oppIdx]?.name}</span>
           )}
-          {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}`}
+          {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}${dir === 'C' && row.ended.sp != null ? ` (${spreadText(row.ended.sp)})` : ''}`}
           {row.s.atEdge && !row.onTheLine && row.live !== false && (edge?.joined
             ? `${count(row.s)} means the streak runs back to ${t.name}'s first ${edge.year < 1978 ? 'major-college' : 'FBS'} season, ${edge.year}`
             : `${count(row.s)} means the streak runs past the start of the data`)}
         </p>
       )}
-      {row && <Ledger row={row} edge={edge} />}
+      {row && <Ledger row={row} edge={edge} cover={dir === 'C'} />}
       <Crowns
         ti={ti} crowns={crowns} crownsScope={crownsScope} crownsDir={crownsDir} onCrownsScope={onCrownsScope} onCrownsDir={onCrownsDir}
         dir={dir} scope={scope} active={active} onApply={onApplyCrown} onShare={onShareCrown}

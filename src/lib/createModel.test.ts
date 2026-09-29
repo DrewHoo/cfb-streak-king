@@ -77,6 +77,22 @@ describe('rank unknown', () => {
   });
 });
 
+describe('covering', () => {
+  test('the cover comes from the margin and the line; a game without a line has none', () => {
+    const P = payload([team('a'), team('b')], [
+      { date: '1980-09-06', home: 0, away: 1, hs: 24, as: 14 },
+      { date: '1980-09-13', home: 1, away: 0, hs: 20, as: 17 },
+      { date: '1980-09-20', home: 0, away: 1, hs: 20, as: 21 },
+      { date: '1980-09-27', home: 0, away: 1, hs: 30, as: 0 },
+    ]);
+    // home spreads in half-points: a favored by 7 at home, a +3 on the road, a -3 at home, unlined
+    P.games.sp = [-14, -6, -6, NO_LINE];
+    const g = createModel(P).gamesOf(0);
+    expect(g.map((x) => x.cover)).toEqual(['W', 'P', 'L', null]);
+    expect(g.map((x) => x.sp)).toEqual([-7, 3, -3, null]);
+  });
+});
+
 describe('windows', () => {
   test('a team’s list starts at its latest major span', () => {
     const P = payload([team('a', [[1950, 1955], [1958, PRESENT]]), team('b')], [

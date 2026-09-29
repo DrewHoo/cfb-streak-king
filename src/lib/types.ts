@@ -49,8 +49,10 @@ export interface Payload {
 }
 
 export type Result = 'W' | 'L' | 'T';
-/** The outcome a streak counts: won, lost, or unbeaten (won or tied). */
-export type Dir = 'W' | 'L' | 'U';
+/** The outcome a streak counts: won, lost, undefeated (won or tied), or covered the spread. */
+export type Dir = 'W' | 'L' | 'U' | 'C';
+/** Against the closing spread: covered, didn't, or pushed. */
+export type Cover = 'W' | 'L' | 'P';
 export type Scope = 'active' | 'all';
 
 /** What's known about a game before kickoff, from one team's side. */
@@ -97,6 +99,8 @@ export interface GameRow extends GameContext {
   h1: number | null;
   /** Our share of possession; null unknown. */
   pos: number | null;
+  /** Against the closing spread; null when the game has no line. */
+  cover: Cover | null;
   /** The result of our previous game, if it was this season or last. */
   prevR: Result | null;
   /** Days since our previous game. */
