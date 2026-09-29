@@ -1,31 +1,102 @@
 {
   "version": 1,
-  "updated": "2026-09-26",
-  "note": "Off-campus sites that count as HOME for the designated home team, keyed by canonical team slug -> list of Repole info-city strings (the '@ City ST' value with the '@ ' stripped). A Repole game whose info city matches the designated home team's entry here is a home game, not neutral. Every other '@ City ST' game is neutral. parse-repole.mjs prints the full (homeTeam, city) frequency table so new pairs can be reviewed into this file rather than guessed.",
+  "updated": "2026-09-28",
+  "note": "Off-campus sites that count as HOME for the designated home team, keyed by canonical team slug -> list of Repole info-city strings (the '@ City ST' value with the '@ ' stripped). A Repole game whose info city matches the designated home team's entry here is a home game, not neutral. Every other '@ City ST' game is neutral. parse-repole.mjs prints the full (homeTeam, city) frequency table so new pairs can be reviewed into this file rather than guessed. Stadium-renovation and shared-venue seasons (Cal 2011 at AT&T Park, Washington 2011 at CenturyLink, Cincinnati 2011 at Paul Brown, Houston 2013 at Reliant, FAU/FIU at the Dolphins' stadium) are ruled home too; Howell lists them as campus games.",
   "pairs": {
-    "arkansas": ["Little Rock AR", "Little Rock"],
-    "alabama": ["Birmingham AL"],
-    "uab": ["Birmingham AL"],
-    "ole-miss": ["Jackson MS"],
-    "mississippi-state": ["Jackson MS"],
-    "southern-miss": ["Jackson MS"],
-    "washington-state": ["Spokane WA"],
-    "maryland": ["Baltimore MD"],
-    "boston-college": ["Foxboro MA"],
-    "memphis": ["Memphis TN"],
-    "tulane": ["New Orleans LA"],
+    "arkansas": [
+      "Little Rock AR",
+      "Little Rock"
+    ],
+    "alabama": [
+      "Birmingham AL"
+    ],
+    "uab": [
+      "Birmingham AL"
+    ],
+    "ole-miss": [
+      "Jackson MS"
+    ],
+    "mississippi-state": [
+      "Jackson MS"
+    ],
+    "southern-miss": [
+      "Jackson MS"
+    ],
+    "washington-state": [
+      "Spokane WA",
+      "Seattle WA"
+    ],
+    "maryland": [
+      "Baltimore MD"
+    ],
+    "boston-college": [
+      "Foxboro MA"
+    ],
+    "memphis": [
+      "Memphis TN"
+    ],
+    "tulane": [
+      "New Orleans LA"
+    ],
     "lsu": [],
-    "hawaii": ["Honolulu HI"],
-    "rutgers": ["East Rutherford NJ"],
-    "temple": ["Philadelphia PA"],
-    "miami-fl": ["Miami FL"],
-    "south-florida": ["Tampa FL"],
-    "pittsburgh": ["Pittsburgh PA"],
+    "hawaii": [
+      "Honolulu HI"
+    ],
+    "rutgers": [
+      "East Rutherford NJ"
+    ],
+    "temple": [
+      "Philadelphia PA"
+    ],
+    "miami-fl": [
+      "Miami FL"
+    ],
+    "south-florida": [
+      "Tampa FL"
+    ],
+    "pittsburgh": [
+      "Pittsburgh PA"
+    ],
     "northwestern": [],
     "san-jose-state": [],
     "wichita-state": [],
-    "unlv": ["Las Vegas NV"],
-    "usc": ["Los Angeles CA"],
-    "ucla": ["Pasadena CA"]
+    "unlv": [
+      "Las Vegas NV"
+    ],
+    "usc": [
+      "Los Angeles CA"
+    ],
+    "ucla": [
+      "Pasadena CA"
+    ],
+    "california": [
+      "San Francisco CA",
+      "San Francsico CA"
+    ],
+    "washington": [
+      "CenturyLink Field"
+    ],
+    "cincinnati": [
+      "Paul Brown Stadium"
+    ],
+    "houston": [
+      "Reliant Stadium",
+      "Rice Stadium"
+    ],
+    "buffalo": [
+      "R Wilson Stadium"
+    ],
+    "louisiana-tech": [
+      "Shreveport"
+    ],
+    "arkansas-state": [
+      "Little Rock AR"
+    ],
+    "florida-atlantic": [
+      "Pro Players Stadium"
+    ],
+    "florida-international": [
+      "Dolphin Stadium"
+    ]
   }
 }

@@ -12,7 +12,7 @@
 //     hs/as final scores; fl bits: 1 neutral, 2 confGame, 4 postseason;
 //     sp homeSpread*2 (negative = home favored) or 9999 unlined;
 //     hr/ar AP rank 1-25 at kickoff, 0 unranked; hh local start hour, 31 unknown;
-//     rv 1+rivalry idx, 0 none.
+//     rv 1+rivalry idx, 0 none; ot overtime periods, -1 unknown (2001+).
 // Known-answer checks at the end assert famous streaks reproduce.
 
 import fs from 'node:fs';
@@ -28,7 +28,7 @@ const loadRef = (f) => JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ref',
 
 const spine = load('spine-1978-2013.json');
 const sched = load('schedules-2002-2026.json');
-const { conf: jhConf, confGames: jhMarks } = load('jhowell.json');
+const { conf: jhConf, confGames: jhMarks, games: jhGames } = load('jhowell.json');
 const fbsSpans = load('fbs-spans.json');
 const coachSeasonsByTeam = load('coaches.json');
 const rivalries = load('rivalries.json');
@@ -96,7 +96,9 @@ function rankOf(id, season, ep) {
   if (!arr) return 0;
   let cur = null;
   for (const [d, m] of arr) {
-    if (d > ep) break;
+    // a poll dated the day of the game already reflects that game (a Monday
+    // opener, a Labor Day game): the one in effect at kickoff is the previous
+    if (d >= ep) break;
     cur = m;
   }
   return cur?.get(id) ?? 0;
@@ -158,6 +160,71 @@ for (const r of sched) {
 
 // jhowell conference-game marks: `${year}|${team}|${M/D}|${opp}` (both orders)
 const jhMarkSet = new Set(jhMarks);
+
+// Howell's games, keyed by unordered pair + epoch day (±1), oriented to a
+// home team: { home, away, hs, as, campus }. campus is false when either
+// page names a site city, and Howell's home designation is trusted only on
+// campus games (both pages say "vs." for a bowl).
+const pairKey = (a, b, ep) => `${[a, b].sort().join('|')}|${ep}`;
+const howellBy = new Map();
+for (const r of jhGames) {
+  const ep = epochDay(r.date);
+  const visitor = r.at === '@';
+  const row = {
+    home: visitor ? r.opp : r.team, away: visitor ? r.team : r.opp,
+    hs: visitor ? r.pa : r.pf, as: visitor ? r.pf : r.pa,
+    campus: !r.city,
+  };
+  for (const d of [ep - 1, ep, ep + 1]) {
+    const k = pairKey(r.team, r.opp, d);
+    const prev = howellBy.get(k);
+    // the two pages must agree on the score; a city on either marks it off-campus
+    if (!prev || d === ep) howellBy.set(k, prev && d === ep ? { ...row, campus: row.campus && prev.campus } : row);
+    else prev.campus = prev.campus && row.campus;
+  }
+}
+
+// Score and home-team resolution for the Repole spine. Three sources can
+// speak: Repole, Howell, and (2002+) the cfbfastR schedules. Majority wins;
+// with two sources split, Howell wins (in the 2001-2013 overlap Howell was
+// never the odd one out against CFBD, while Repole has ~50 typos and two
+// row-swapped pairs, and its 2011 file stops mid-bowl-season with blank
+// scores). Home team flips only on a campus game where Howell puts the
+// designated home on the road and no third source says otherwise.
+const resolved = { scores: [], homes: [], filled: 0, dropped: [] };
+function resolveSpine(g) {
+  const ep = epochDay(g.date);
+  const hw = howellBy.get(pairKey(g.home, g.away, ep));
+  const sc = schedBy.get(`${g.home}|${g.away}|${ep}`) ?? null;
+  const scRev = sc ? null : schedBy.get(`${g.away}|${g.home}|${ep}`) ?? null;
+  // candidates oriented as (home = g.home): [hs, as]
+  const votes = [];
+  if (g.homeScore !== null) votes.push({ src: 'repole', v: [g.homeScore, g.awayScore] });
+  if (hw) votes.push({ src: 'howell', v: hw.home === g.home ? [hw.hs, hw.as] : [hw.as, hw.hs] });
+  if (sc && Number.isFinite(sc.homeScore)) votes.push({ src: 'cfbfastr', v: [sc.homeScore, sc.awayScore] });
+  if (scRev && Number.isFinite(scRev.homeScore)) votes.push({ src: 'cfbfastr', v: [scRev.awayScore, scRev.homeScore] });
+  if (!votes.length) { resolved.dropped.push(`${g.date} ${g.away}@${g.home}`); return null; }
+  const tally = new Map();
+  for (const { src, v } of votes) {
+    const k = v.join('-');
+    const t = tally.get(k) ?? { v, srcs: [] };
+    t.srcs.push(src);
+    tally.set(k, t);
+  }
+  const rank = (t) => t.srcs.length * 10 + (t.srcs.includes('howell') ? 2 : t.srcs.includes('cfbfastr') ? 1 : 0);
+  const win = [...tally.values()].sort((a, b) => rank(b) - rank(a))[0];
+  let [hs, as] = win.v;
+  if (g.homeScore === null) resolved.filled++;
+  else if (!win.srcs.includes('repole')) resolved.scores.push(`${g.date} ${g.away}@${g.home} repole ${g.awayScore}-${g.homeScore} -> ${as}-${hs} (${win.srcs.join('+')})`);
+  // home team
+  let { home, away, homeRaw, awayRaw } = g;
+  const flip = hw && hw.campus && hw.home === g.away && !g.neutral && !sc && (!scRev || scRev.home === g.away);
+  if (flip) {
+    resolved.homes.push(`${g.date} ${g.away}@${g.home} -> ${g.home}@${g.away}${scRev ? ' (howell+cfbfastr)' : ' (howell)'}`);
+    [home, away, homeRaw, awayRaw, hs, as] = [g.away, g.home, g.awayRaw, g.homeRaw, as, hs];
+  }
+  return { home, away, homeRaw, awayRaw, hs, as };
+}
 function jhConfGame(season, dateIso, home, away) {
   const md = `${+dateIso.slice(5, 7)}/${+dateIso.slice(8, 10)}`;
   return jhMarkSet.has(`${season}|${home}|${md}|${away}`) || jhMarkSet.has(`${season}|${away}|${md}|${home}`);
@@ -181,7 +248,7 @@ function teamIdx(id, rawName) {
   return i;
 }
 
-const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [], hf: [], af: [], hp: [], ap: [] };
+const cols = { se: [], ep: [], hi: [], ai: [], hs: [], as: [], fl: [], sp: [], hr: [], ar: [], hh: [], rv: [], vs: [], hf: [], af: [], hp: [], ap: [], ot: [] };
 // venue state: campus games take the home team's state; pre-2014 neutrals
 // take the state code off Repole's "@ City ST" tag; 2014+ neutrals unknown.
 const states = [''];
@@ -228,11 +295,14 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.af.push(box?.h1a ?? -1);
   cols.hp.push(box?.tph ?? -1);
   cols.ap.push(box?.tpa ?? -1);
+  cols.ot.push(box?.otp ?? -1);
 }
 
 // 1978-2013 from repole, enriched from schedules 2002+
 for (const g of spine) {
   if (!isFbs(g.home, g.season) && !isFbs(g.away, g.season)) continue;
+  const rs = resolveSpine(g);
+  if (!rs) continue;
   let startHour = 31;
   if (g.season >= 2002) {
     total0213++;
@@ -249,12 +319,51 @@ for (const g of spine) {
       : (schedBy.get(`${g.home}|${g.away}|${epochDay(g.date)}`)?.confGameRaw ??
          jhConfGame(g.season, g.date, g.home, g.away));
   pushGame({
-    season: g.season, dateIso: g.date, home: g.home, away: g.away,
-    homeRaw: g.homeRaw, awayRaw: g.awayRaw, hs: g.homeScore, as: g.awayScore,
+    season: g.season, dateIso: g.date, home: rs.home, away: rs.away,
+    homeRaw: rs.homeRaw, awayRaw: rs.awayRaw, hs: rs.hs, as: rs.as,
     neutral: g.neutral, postseason: g.seasonType === 'postseason',
-    confGame, homeSpread: g.homeSpread, startHour, info: g.info,
+    confGame, homeSpread: rs.home === g.home ? g.homeSpread : (g.homeSpread == null ? null : -g.homeSpread),
+    startHour, info: g.info,
   });
 }
+console.log(`spine resolution: ${resolved.filled} blank scores filled, ${resolved.scores.length} Repole scores overruled, ${resolved.homes.length} home teams flipped, ${resolved.dropped.length} games with no score in any source`);
+for (const l of resolved.scores) console.log(`  score ${l}`);
+for (const l of resolved.homes) console.log(`  home  ${l}`);
+for (const l of resolved.dropped) console.log(`  drop  ${l}`);
+
+// Games Repole never listed, from Howell: the 1992-93 Big West seasons are
+// mostly absent (Nevada has 2 of 12 games in cfb1992lines), plus a few dozen
+// others. Both teams must be major that season; no spread, no kickoff time.
+const altHome = loadRef('alt-home.json').pairs;
+const spineKeys = new Set();
+for (const g of spine) {
+  const e = epochDay(g.date);
+  for (const d of [e - 1, e, e + 1]) spineKeys.add(pairKey(g.home, g.away, d));
+}
+const filledBySeason = {};
+for (const r of jhGames) {
+  if (r.se < 1978 || r.se > 2013) continue;
+  if (!isFbs(r.team, r.se) || !isFbs(r.opp, r.se)) continue;
+  // an unaliased name can slug differently in the two sources, so only
+  // canonical pairs are safe from being added twice
+  if (r.team.startsWith('x:') || r.opp.startsWith('x:')) continue;
+  const ep = epochDay(r.date);
+  const k = pairKey(r.team, r.opp, ep);
+  if (spineKeys.has(k)) continue;
+  for (const d of [ep - 1, ep, ep + 1]) spineKeys.add(pairKey(r.team, r.opp, d));
+  const hw = howellBy.get(k);
+  const homeName = hw.home === r.team ? r.teamName : r.oppName;
+  const awayName = hw.home === r.team ? r.oppName : r.teamName;
+  const city = r.city.replace(/^@\s*/, '').replace(/,/g, '').trim();
+  const neutral = !!city && !(altHome[hw.home] ?? []).includes(city);
+  filledBySeason[r.se] = (filledBySeason[r.se] ?? 0) + 1;
+  pushGame({
+    season: r.se, dateIso: r.date, home: hw.home, away: hw.away, homeRaw: homeName, awayRaw: awayName,
+    hs: hw.hs, as: hw.as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(r.note) && !/conference|kickoff/i.test(r.note),
+    confGame: jhConfGame(r.se, r.date, hw.home, hw.away), homeSpread: null, startHour: 31, info: r.city || null,
+  });
+}
+console.log(`howell fill-in: ${Object.values(filledBySeason).reduce((a, b) => a + b, 0)} games Repole lacked: ${JSON.stringify(filledBySeason)}`);
 
 // 2014+ from schedules
 for (const r of sched) {
@@ -335,7 +444,10 @@ for (const byYear of Object.values(coachSeasonsByTeam)) {
 }
 function overrideK(name) {
   const set = kByName.get(name);
-  if (!set || set.size !== 1) throw new Error(`coach override name '${name}' resolves to ${set?.size ?? 0} CFBD coaches`);
+  // a coach CFBD dropped from every season (interims, mostly) gets an id of
+  // his own; the name is the id, so a second ruling naming him joins up
+  if (!set) return `x:${name}`;
+  if (set.size !== 1) throw new Error(`coach override name '${name}' resolves to ${set.size} CFBD coaches`);
   return [...set][0];
 }
 
@@ -476,6 +588,18 @@ function gamesFor(teamId, filter) {
   const ender = upTo.at(-1);
   console.log(`check Vanderbilt SEC: ${s.len}L entering 2022-11-12, ender ${ender.opp} (${ender.r}) — expect 26L, kentucky, W`);
   if (s.len !== 26 || ender.opp !== 'kentucky' || ender.r !== 'W') throw new Error('Vanderbilt check failed');
+}
+// 3b. The 2011 title game (Repole's file has blank scores): Alabama 21, LSU 0.
+{
+  const g = gamesFor('lsu', (x) => x.date === '2012-01-09');
+  console.log(`check 2011 title game: LSU ${g[0]?.score} vs ${g[0]?.opp} (${g[0]?.r}) — expect 0-21, alabama, L`);
+  if (g.length !== 1 || g[0].score !== '0-21' || g[0].opp !== 'alabama') throw new Error('2011 title game check failed');
+}
+// 3c. Repole reversed the whole row: Colorado State 48, Arkansas State 3, at Fort Collins (1994-11-12).
+{
+  const g = gamesFor('colorado-state', (x) => x.date === '1994-11-12');
+  console.log(`check 1994 CSU-ASU: ${g[0]?.score} home=${g[0]?.isHome} — expect 48-3, home`);
+  if (g.length !== 1 || g[0].score !== '48-3' || !g[0].isHome) throw new Error('1994 CSU check failed');
 }
 // 4. Nebraska 2022: Frost fired after 3 games (1-2), Joseph interim for the rest.
 {

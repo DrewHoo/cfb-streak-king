@@ -1,0 +1,542 @@
+{
+ "version": 1,
+ "updated": "2026-09-28",
+ "note": "Corrections to Warren Repole's Sunshine Forecast files (cfbYYYYlines.xml, bowlYYYYlines.xml), keyed by date + visitor + home exactly as the file names them. 'score' is visitor-home. a row may carry both. 'swapHome' means the file lists the visitor under tnum 2. Every entry was confirmed by James Howell's scores and, where they exist, cfbfastR and CollegeFootballData; the full comparison is in the 'Repole data corrections' doc linked from README.md. parse-repole.mjs applies these and fails if an entry no longer matches a row. 'homeSpread' replaces the line (negative = the file's home team favored). 'newDate' moves a game the file dates wrong.",
+ "rows": [
+  {
+   "date": "1979-11-03",
+   "visitor": "Tulane",
+   "home": "Boston College",
+   "score": "43-8",
+   "source": "Howell"
+  },
+  {
+   "date": "1979-11-24",
+   "visitor": "Penn State",
+   "home": "Pittsburgh",
+   "newDate": "1979-12-01",
+   "swapHome": true,
+   "source": "Howell",
+   "note": "the file has the game a week early and at Pittsburgh; it was Dec 1 at Penn State"
+  },
+  {
+   "date": "1980-11-01",
+   "visitor": "Texas A+M",
+   "home": "S-M-U",
+   "score": "0-27",
+   "source": "Howell"
+  },
+  {
+   "date": "1980-11-22",
+   "visitor": "Pittsburgh",
+   "home": "Penn State",
+   "newDate": "1980-11-28",
+   "source": "Howell",
+   "note": "the file has the game six days early"
+  },
+  {
+   "date": "1981-11-07",
+   "visitor": "Rhode Island",
+   "home": "Brown",
+   "swapHome": true,
+   "source": "Howell"
+  },
+  {
+   "date": "1982-10-16",
+   "visitor": "Temple",
+   "home": "Pittsburgh",
+   "score": "17-38",
+   "source": "Howell"
+  },
+  {
+   "date": "1983-11-19",
+   "visitor": "Central Michigan",
+   "home": "Toledo",
+   "score": "34-6",
+   "source": "Howell"
+  },
+  {
+   "date": "1992-09-05",
+   "visitor": "Iowa",
+   "home": "Miami-Florida",
+   "swapHome": true,
+   "source": "Howell"
+  },
+  {
+   "date": "1992-09-05",
+   "visitor": "Temple",
+   "home": "Boston University",
+   "swapHome": true,
+   "source": "Howell"
+  },
+  {
+   "date": "1992-09-19",
+   "visitor": "UL-Lafayette",
+   "home": "San Jose State",
+   "score": "13-38",
+   "source": "Howell"
+  },
+  {
+   "date": "1992-10-31",
+   "visitor": "Missouri",
+   "home": "Iowa State",
+   "score": "14-28",
+   "source": "Howell"
+  },
+  {
+   "date": "1992-11-07",
+   "visitor": "UTEP",
+   "home": "Tulsa",
+   "score": "39-48",
+   "source": "Howell"
+  },
+  {
+   "date": "1992-11-14",
+   "visitor": "East Carolina",
+   "home": "Arkansas State",
+   "swapHome": true,
+   "source": "Howell"
+  },
+  {
+   "date": "1992-11-28",
+   "visitor": "Mississippi State",
+   "home": "Mississippi",
+   "score": "10-17",
+   "source": "Howell"
+  },
+  {
+   "date": "1993-11-04",
+   "visitor": "Texas",
+   "home": "Houston",
+   "score": "34-16",
+   "source": "Howell"
+  },
+  {
+   "date": "1994-11-12",
+   "visitor": "Colorado State",
+   "home": "Arkansas State",
+   "score": "48-3",
+   "source": "Howell",
+   "swapHome": true
+  },
+  {
+   "date": "1995-10-28",
+   "visitor": "Pittsburgh",
+   "home": "Rutgers",
+   "score": "24-42",
+   "source": "Howell"
+  },
+  {
+   "date": "1995-11-04",
+   "visitor": "Kent State",
+   "home": "Ball State",
+   "swapHome": true,
+   "source": "Howell"
+  },
+  {
+   "date": "1995-11-11",
+   "visitor": "UTEP",
+   "home": "Fresno State",
+   "score": "14-47",
+   "source": "Howell"
+  },
+  {
+   "date": "1996-09-26",
+   "visitor": "Duke",
+   "home": "Georgia Tech",
+   "score": "22-48",
+   "source": "Howell"
+  },
+  {
+   "date": "1996-11-09",
+   "visitor": "Florida State",
+   "home": "Wake Forest",
+   "score": "44-7",
+   "source": "Howell"
+  },
+  {
+   "date": "1996-11-09",
+   "visitor": "Missouri",
+   "home": "Nebraska",
+   "score": "7-51",
+   "source": "Howell"
+  },
+  {
+   "date": "1996-11-29",
+   "visitor": "Texas A+M",
+   "home": "Texas",
+   "score": "15-51",
+   "source": "Howell"
+  },
+  {
+   "date": "1996-11-30",
+   "visitor": "Mississippi State",
+   "home": "Mississippi",
+   "score": "17-0",
+   "source": "Howell"
+  },
+  {
+   "date": "1997-10-11",
+   "visitor": "North Alabama",
+   "home": "UL-Lafayette",
+   "score": "48-42",
+   "source": "Howell"
+  },
+  {
+   "date": "1998-10-31",
+   "visitor": "Marshall",
+   "home": "Bowling Green",
+   "score": "13-34",
+   "source": "Howell"
+  },
+  {
+   "date": "1998-11-07",
+   "visitor": "New Mexico",
+   "home": "Brigham Young",
+   "score": "21-46",
+   "source": "Howell"
+  },
+  {
+   "date": "1998-11-21",
+   "visitor": "Indiana",
+   "home": "Purdue",
+   "score": "7-52",
+   "source": "Howell"
+  },
+  {
+   "date": "1999-09-11",
+   "visitor": "Tulsa",
+   "home": "Oklahoma State",
+   "score": "9-46",
+   "source": "Howell"
+  },
+  {
+   "date": "1999-10-23",
+   "visitor": "Louisiana Tech",
+   "home": "U-C-F",
+   "score": "46-35",
+   "source": "Howell"
+  },
+  {
+   "date": "1999-11-27",
+   "visitor": "Pittsburgh",
+   "home": "West Virginia",
+   "swapHome": true,
+   "source": "Howell"
+  },
+  {
+   "date": "2000-10-07",
+   "visitor": "Maryland",
+   "home": "Virginia",
+   "score": "23-31",
+   "source": "Howell"
+  },
+  {
+   "date": "2000-11-11",
+   "visitor": "Washington State",
+   "home": "Southern Cal",
+   "score": "33-27",
+   "source": "Howell"
+  },
+  {
+   "date": "2000-11-18",
+   "visitor": "Wofford",
+   "home": "UL-Monroe",
+   "score": "24-6",
+   "source": "Howell"
+  },
+  {
+   "date": "2001-08-30",
+   "visitor": "Washington State",
+   "home": "Idaho",
+   "swapHome": true,
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2001-11-17",
+   "visitor": "UTEP",
+   "home": "Rice",
+   "score": "17-27",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2001-11-17",
+   "visitor": "Weber State",
+   "home": "Utah State",
+   "score": "43-56",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2002-08-31",
+   "visitor": "Chattanooga",
+   "home": "West Virginia",
+   "score": "7-56",
+   "source": "cfbfastR + CFBD"
+  },
+  {
+   "date": "2002-09-07",
+   "visitor": "Furman",
+   "home": "Vanderbilt",
+   "score": "18-49",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2002-10-05",
+   "visitor": "Ohio",
+   "home": "Bowling Green",
+   "score": "21-72",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2002-11-16",
+   "visitor": "Air Force",
+   "home": "Nevada-Las Vegas",
+   "score": "49-32",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2002-11-23",
+   "visitor": "Army",
+   "home": "Memphis",
+   "score": "10-38",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2002-11-23",
+   "visitor": "Illinois",
+   "home": "Northwestern",
+   "score": "31-24",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2002-11-23",
+   "visitor": "Minnesota",
+   "home": "Wisconsin",
+   "score": "31-49",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2003-08-30",
+   "visitor": "Mississippi",
+   "home": "Vanderbilt",
+   "score": "24-21",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2003-09-13",
+   "visitor": "Virginia",
+   "home": "Western Michigan",
+   "score": "59-16",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2003-10-11",
+   "visitor": "S-M-U",
+   "home": "San Jose State",
+   "score": "14-31",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2003-11-22",
+   "visitor": "Oklahoma State",
+   "home": "Baylor",
+   "score": "38-21",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2004-10-09",
+   "visitor": "Texas A+M",
+   "home": "Iowa State",
+   "score": "34-3",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2005-10-22",
+   "visitor": "Baylor",
+   "home": "Oklahoma",
+   "score": "30-37",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2006-09-02",
+   "visitor": "Idaho State",
+   "home": "Nevada-Las Vegas",
+   "score": "10-54",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2006-10-07",
+   "visitor": "Florida Intl",
+   "home": "North Texas",
+   "score": "22-25",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2007-10-13",
+   "visitor": "Baylor",
+   "home": "Kansas",
+   "score": "10-58",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2007-10-20",
+   "visitor": "Florida Intl",
+   "home": "UL-Monroe",
+   "score": "14-28",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2007-10-20",
+   "visitor": "Vanderbilt",
+   "home": "South Carolina",
+   "score": "17-6",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2007-10-27",
+   "visitor": "Iowa State",
+   "home": "Missouri",
+   "score": "28-42",
+   "source": "Howell + cfbfastR + CFBD",
+   "homeSpread": -28,
+   "note": "the two rows were swapped whole, lines included"
+  },
+  {
+   "date": "2007-10-27",
+   "visitor": "Mississippi",
+   "home": "Auburn",
+   "score": "3-17",
+   "source": "Howell + cfbfastR + CFBD",
+   "homeSpread": -17.5,
+   "note": "the two rows were swapped whole, lines included"
+  },
+  {
+   "date": "2007-11-22",
+   "visitor": "Southern Cal",
+   "home": "Arizona State",
+   "score": "44-24",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2008-09-20",
+   "visitor": "Rice",
+   "home": "Texas",
+   "score": "10-52",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2008-09-27",
+   "visitor": "Navy",
+   "home": "Wake Forest",
+   "homeSpread": -3,
+   "source": "cfbfastR (11 books, all Wake Forest -3)",
+   "note": "the file says -15.5"
+  },
+  {
+   "date": "2009-09-03",
+   "visitor": "Oregon",
+   "home": "Boise State",
+   "score": "8-19",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2009-09-05",
+   "visitor": "Army",
+   "home": "Eastern Michigan",
+   "score": "27-14",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2010-09-06",
+   "visitor": "Maryland",
+   "home": "Navy",
+   "homeSpread": -6.5,
+   "source": "cfbfastR (12 books, Navy -6.5) + money line",
+   "note": "the file has the favorite backwards; Navy was favored"
+  },
+  {
+   "date": "2010-09-18",
+   "visitor": "Boise State",
+   "home": "Wyoming",
+   "score": "51-6",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2011-09-10",
+   "visitor": "Utah",
+   "home": "Southern Cal",
+   "score": "14-23",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2011-10-06",
+   "visitor": "California",
+   "home": "Oregon",
+   "score": "15-43",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2012-01-03",
+   "visitor": "Michigan",
+   "home": "Virginia Tech",
+   "score": "23-20",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2012-01-04",
+   "visitor": "West Virginia",
+   "home": "Clemson",
+   "score": "70-33",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2012-01-06",
+   "visitor": "Kansas State",
+   "home": "Arkansas",
+   "score": "16-29",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2012-01-07",
+   "visitor": "S-M-U",
+   "home": "Pittsburgh",
+   "score": "28-6",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2012-01-08",
+   "visitor": "Arkansas State",
+   "home": "Northern Illinois",
+   "score": "20-38",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2012-01-09",
+   "visitor": "Alabama",
+   "home": "Louisiana State",
+   "score": "21-0",
+   "source": "Howell + CFBD"
+  },
+  {
+   "date": "2012-09-15",
+   "visitor": "North Texas",
+   "home": "Kansas State",
+   "score": "21-35",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2012-09-15",
+   "visitor": "UL-Lafayette",
+   "home": "Oklahoma State",
+   "score": "24-65",
+   "source": "Howell + cfbfastR + CFBD"
+  },
+  {
+   "date": "2013-11-23",
+   "visitor": "Western Kentucky",
+   "home": "Texas State",
+   "score": "38-7",
+   "source": "Howell + cfbfastR + CFBD"
+  }
+ ]
+}

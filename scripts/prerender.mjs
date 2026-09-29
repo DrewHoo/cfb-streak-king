@@ -1,5 +1,7 @@
-// Runs after `vite build`. Bakes the rendered app into dist/index.html and
-// writes the <head> from site.config.js.
+// Runs after `vite build`. Bakes the rendered app into dist/index.html, writes
+// the <head> from site.config.js, and renders one page per current FBS team
+// at dist/team/<id>/index.html with that team's panel open and its own
+// social preview (public/og/team/<id>.png when it exists).
 //
 // Without this the deployed page is `<div id="root"></div>` and every word on
 // it exists only after React runs. Google usually renders JS in a deferred
@@ -31,53 +33,46 @@ const vite = await createServer({
   logLevel: 'warn',
 })
 const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
-const appHtml = renderToString(React.createElement(App))
-await vite.close()
+const { teams, fbsNow, allTimeBoard, todayEpochDay, fbsStartOf } = await vite.ssrLoadModule('/src/lib/model.js')
+const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.js')
+const { claim } = await vite.ssrLoadModule('/src/lib/sentence.js')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
-// Add page-specific structured data here (an ItemList of the rows, a Dataset,
-// a TheaterEvent) generated from the same data the page renders, so it can't
-// drift from what is on screen.
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebPage',
-      '@id': SITE,
-      url: SITE,
-      name: config.title,
-      description: config.description,
-      isPartOf: { '@type': 'WebSite', url: `${ORIGIN}/`, name: config.domain },
-    },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: config.domain, item: `${ORIGIN}/` },
-        { '@type': 'ListItem', position: 2, name: config.title, item: SITE },
-      ],
-    },
-  ],
+const template = fs.readFileSync(OUT, 'utf8')
+// Throw rather than no-op: a Vite change that renames the marker would
+// otherwise quietly ship an empty page again.
+if (!template.includes('<div id="root"></div>')) {
+  throw new Error('prerender: could not find an empty #root in dist/index.html')
+}
+if (!/<title>[^<]*<\/title>/.test(template)) {
+  throw new Error('prerender: could not find <title> in dist/index.html')
 }
 
-const head = `
-    <meta name="description" content="${esc(config.description)}" />
-    <link rel="canonical" href="${SITE}" />
+/**
+ * One page: the app rendered with `initial`, and a head whose title,
+ * description, canonical and image are the page's own.
+ */
+function page({ initial, url, title, description, image, imageAlt, jsonLd }) {
+  const appHtml = renderToString(React.createElement(App, { initial }))
+  const head = `
+    <meta name="description" content="${esc(description)}" />
+    <link rel="canonical" href="${url}" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${esc(config.domain)}" />
-    <meta property="og:title" content="${esc(config.title)}" />
-    <meta property="og:description" content="${esc(config.description)}" />
-    <meta property="og:url" content="${SITE}" />
-    <meta property="og:image" content="${SITE}og.png" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(description)}" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:image" content="${image}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="${esc(config.ogImageAlt)}" />
+    <meta property="og:image:alt" content="${esc(imageAlt)}" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${esc(config.title)}" />
-    <meta name="twitter:description" content="${esc(config.description)}" />
-    <meta name="twitter:image" content="${SITE}og.png" />
+    <meta name="twitter:title" content="${esc(title)}" />
+    <meta name="twitter:description" content="${esc(description)}" />
+    <meta name="twitter:image" content="${image}" />
 
     <!-- Cross-site chrome served by the index site: back bar, comments, analytics. -->
     <script src="${ORIGIN}/embed/back-bar.js" async></script>
@@ -86,35 +81,81 @@ const head = `
 
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   </head>`
-
-let html = fs.readFileSync(OUT, 'utf8')
-
-// Throw rather than no-op: a Vite change that renames the marker would
-// otherwise quietly ship an empty page again.
-if (!html.includes('<div id="root"></div>')) {
-  throw new Error('prerender: could not find an empty #root in dist/index.html')
+  let html = template
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
+  html = html.replace('</head>', head)
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`)
+  return { html, appHtml }
 }
-if (!/<title>[^<]*<\/title>/.test(html)) {
-  throw new Error('prerender: could not find <title> in dist/index.html')
-}
-html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(config.title)}</title>`)
-html = html.replace('</head>', head)
-html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`)
-fs.writeFileSync(OUT, html)
 
-// Single-page sitemap: what Search Console wants submitted, and it carries lastmod.
+const breadcrumb = (items) => ({
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })),
+})
+const webPage = (url, name, description) => ({
+  '@type': 'WebPage', '@id': url, url, name, description,
+  isPartOf: { '@type': 'WebSite', url: `${ORIGIN}/`, name: config.domain },
+})
+
+// --- the root page ---
+const root = page({
+  initial: {},
+  url: SITE,
+  title: config.title,
+  description: config.description,
+  image: `${SITE}og.png`,
+  imageAlt: config.ogImageAlt,
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@graph': [webPage(SITE, config.title, config.description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE]])],
+  },
+})
+fs.writeFileSync(OUT, root.html)
+const words = root.appHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
+console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root (~${words} words); head written for ${SITE}`)
+
+// --- one page per current FBS team, opened on its run of the default board ---
+const todayEp = todayEpochDay()
+const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
+const urls = [SITE]
+let teamPages = 0
+for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
+  const t = teams[ti]
+  const row = board.find((r) => r.ti === ti)
+  const url = `${SITE}team/${t.id}/`
+  const title = `${t.name} streaks · ${config.title}`
+  const since = Math.max(1978, fbsStartOf(ti))
+  const tail = `Every winning and losing streak ${t.name} is king of, under any definition, since ${since}.`
+  const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
+  const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
+  const { html } = page({
+    initial: { team: ti },
+    url,
+    title,
+    description,
+    image: hasImage ? `${SITE}og/team/${t.id}.png` : `${SITE}og.png`,
+    imageAlt: hasImage ? `${t.name}'s longest streaks, on a dark leaderboard.` : config.ogImageAlt,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [t.name, url]])],
+    },
+  })
+  const dir = path.join(ROOT, 'dist', 'team', t.id)
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(path.join(dir, 'index.html'), html)
+  urls.push(url)
+  teamPages++
+}
+console.log(`prerendered ${teamPages} team pages under dist/team/`)
+
+// Sitemap: the root and every team page, with lastmod.
 const lastmod = new Date().toISOString().slice(0, 10)
 fs.writeFileSync(
   path.join(ROOT, 'dist/sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${SITE}</loc>
-    <lastmod>${lastmod}</lastmod>
-  </url>
+${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`).join('\n')}
 </urlset>
 `,
 )
-
-const words = appHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
-console.log(`prerendered ${(appHtml.length / 1024).toFixed(0)}KB into #root (~${words} words); head written for ${SITE}`)
+await vite.close()

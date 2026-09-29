@@ -1,707 +1,261 @@
 import { useEffect, useMemo, useState } from 'react';
+import { P, teams, chipByKey, board, allTimeBoard, todayEpochDay, fbsNow, fbsStartOf } from './lib/model.js';
+import { crownsFor, mineAll, isMined } from './lib/crowns.js';
+import { definitionPhrase } from './lib/sentence.js';
 import {
-  P, teams, confs, CHIPS, chipByKey, board, thisWeek,
-  gamesOf, fmtDate, todayEpochDay, fbsNow,
-} from './lib/model.js';
-import { crownsFor, mineAll, isMined, LEN_FLOOR, FIELD_FLOOR } from './lib/crowns.js';
-import { readParam, writeParam } from './urlState.js';
-
-const BASE = import.meta.env.BASE_URL;
-
-const PRESETS = [
-  { name: 'The Saban Standard', chips: [{ key: 'unranked' }], dir: 'W' },
-  { name: 'Ranked Futility', chips: [{ key: 'ranked' }], dir: 'L' },
-  { name: 'Road Kill', chips: [{ key: 'road' }, { key: 'confgame' }], dir: 'L' },
-  { name: 'Saturday Night Lights', chips: [{ key: 'home' }, { key: 'night' }], dir: 'W' },
-  { name: 'Never Twice', chips: [{ key: 'afterloss' }], dir: 'W' },
-  { name: 'Opening Day', chips: [{ key: 'opener' }], dir: 'W' },
-  { name: 'Kings of the State', chips: [{ key: 'instate' }], dir: 'W' },
-  { name: 'Giant Killers', chips: [{ key: 'dog' }], dir: 'W' },
-  { name: 'Chalk', chips: [{ key: 'fav' }], dir: 'L' },
-  { name: 'Bowl Curse', chips: [{ key: 'postseason' }], dir: 'L' },
-];
-
-const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff'];
-const MONTHS = [[9, 'September'], [10, 'October'], [11, 'November'], [12, 'December'], [1, 'January']];
-const HMARGINS = [[1, 'by any'], [3, 'by 3+'], [7, 'by 7+'], [10, 'by 10+'], [14, 'by 14+']];
-const STATE_OPTIONS = [...P.states].filter(Boolean).sort();
-const CONF_OPTIONS = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Big East', 'American', 'Mountain West', 'C-USA', 'MAC', 'Sun Belt', 'WAC', 'Big 8', 'SWC', 'Big West', 'Independent'];
-
-const fbsEver = teams
-  .map((t, i) => ({ t, i }))
-  .filter(({ t }) => t.fbs)
-  .sort((a, b) => a.t.name.localeCompare(b.t.name));
-const fbsCurrent = [...fbsNow]
-  .map((i) => ({ t: teams[i], i }))
-  .sort((a, b) => a.t.name.localeCompare(b.t.name));
+  PRESETS, DEFAULT_SCOPE, encodeChips, decodeChips, chipsToParam, chipsFromParam, withChip, swapChip, withoutChip, withParam,
+} from './lib/definition.js';
+import { dirWord, dayOf, rowKey } from './lib/format.js';
+import { readFavs, writeFavs, track } from './lib/favs.js';
+import { readParam, writeUrl } from './urlState.js';
+import { useIsMobile } from './hooks/useIsMobile.js';
+import { Sentence } from './components/Sentence.jsx';
+import { Grid, DESKTOP_CAP } from './components/Grid.jsx';
+import { TeamPanel } from './components/TeamPanel.jsx';
+import { Starred } from './components/Starred.jsx';
+import { ShareIcon, StarIcon } from './components/Icons.jsx';
 
 const builtEp = Math.floor(Date.parse(P.builtAt) / 86400000);
 
-const track = (name, props) => {
-  try { window.dhAnalytics?.track(name, props); } catch {}
-};
-
-// saved streaks live in localStorage until accounts exist (specs/accounts.spec.md)
-const FAV_KEY = 'sk-favs';
-const readFavs = () => {
-  try {
-    const f = JSON.parse(localStorage.getItem(FAV_KEY));
-    return Array.isArray(f) ? f : [];
-  } catch { return []; }
-};
-const writeFavs = (f) => {
-  try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch {}
-};
-
-function encodeChips(active) {
-  return active.map(({ key, param }) => (param != null ? `${key}:${param}` : key)).join(',');
-}
-function decodeChips(s) {
-  if (!s) return [];
-  const out = [];
-  for (const part of s.split(',')) {
-    const [key, ...rest] = part.split(':');
-    const c = chipByKey.get(key);
-    if (!c) continue;
-    let param = rest.length ? rest.join(':') : undefined;
-    if (c.param === 'month' || c.param === 'hmargin') param = Number(param);
-    if (c.param === 'team') param = teams.findIndex((t) => t.id === param);
-    if (c.param && (param == null || param === -1 || Number.isNaN(param))) continue;
-    out.push(c.param ? { key, param } : { key });
-  }
-  return out.slice(0, 4);
-}
-
-const dirWord = (dir) => (dir === 'W' ? 'winning' : 'losing');
-const oppWord = (dir) => (dir === 'W' ? 'loss' : 'win');
-
-function chipPhrase({ key, param }) {
-  const c = chipByKey.get(key);
-  if (key === 'road') return 'hostile territory'; // reads as "in hostile territory + …"
-  if (key === 'vsteam') return `vs ${teams[param]?.name ?? '?'}`;
-  if (key === 'state') return `in ${param}`;
-  if (key === 'vsconf') return `vs the ${param}`;
-  if (key === 'month') return `in ${MONTHS.find(([n]) => n === param)?.[1] ?? param}`;
-  if (key === 'leadhalf') return param > 1 ? `leading at half by ${param}+` : 'leading at half';
-  if (key === 'trailhalf') return param > 1 ? `trailing at half by ${param}+` : 'trailing at half';
-  return c.label;
-}
-
-function siteWord(x) {
-  return x.neutral ? 'vs' : x.home ? 'vs' : 'at';
-}
-
-const siteMark = (x) => (x.neutral ? 'N' : x.home ? '' : '@');
-const yearOf = (ep) => new Date(ep * 86400000).getUTCFullYear();
-const shortDate = (ep) => {
-  const d = new Date(ep * 86400000);
-  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${String(d.getUTCFullYear()).slice(2)}`;
-};
-
-/** The hostile-territory square: cream + ink mark for a win, dark + dim mark
- *  for a loss, dashed for a tie. Opponents without a mark get their initial. */
-function Chip({ g }) {
-  const t = teams[g.oppIdx];
-  const cls = g.r === 'W' ? 'sq w' : g.r === 'L' ? 'sq l' : 'sq t';
-  const name = t?.name ?? '?';
-  return (
-    <span className={cls} title={`${siteWord(g)} ${name} ${g.us}–${g.them}, ${yearOf(g.ep)}`}>
-      {t?.espn ? <img src={`${BASE}logos/${t.espn}.png`} alt={name} loading="lazy" /> : <b>{name[0]}</b>}
-    </span>
-  );
-}
-
-const CHIP_CAP = 12;
-const DESKTOP_CAP = 24;
-
 // what a chip's data floor covers, for the window-edge message
-const FLOOR_WORDS = {
-  night: 'night-game',
-  leadhalf: 'halftime-score',
-  trailhalf: 'halftime-score',
-  wonpos: 'possession',
-  dompos: 'possession',
-};
+const FLOOR_WORDS = { night: 'kickoff-time', leadhalf: 'halftime-score', trailhalf: 'halftime-score', wonpos: 'possession', dompos: 'possession', overtime: 'overtime' };
 
-// data-coverage notes, surfaced as a popover on the picker group label
-const GROUP_NOTES = {
-  betting: 'Closing lines cover 1978–2025 plus this season. Games without a line don’t qualify.',
-  coach: 'Head-coach tenures from CollegeFootballData, with mid-season changes resolved to the exact game. Games against teams without coach data (mostly FCS) don’t qualify under the vs chip.',
-  half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
-  possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
-  kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
-};
-
-function ColumnCollapsed({ row, onOpen, edge }) {
-  const t = teams[row.ti];
-  const streak = [...row.qual.slice(-row.s.len)].reverse();
-  const shown = streak.slice(0, CHIP_CAP);
-  const more = row.s.len - shown.length;
-  return (
-    <button className="colbtn" onClick={onOpen} aria-label={`${t.name}: ${row.s.len} straight`}>
-      <span className={'colcount' + (row.onTheLine ? ' is-otl' : '')}>
-        {row.s.len}{row.s.atEdge ? '+' : ''}
-      </span>
-      <img className="colteam" src={`${BASE}logos-color/${t.espn}.png`} alt={t.name} loading="lazy" />
-      {shown.map((g) => <Chip key={g.i} g={g} />)}
-      {more > 0 && <span className="colmore">+{more}</span>}
-      {row.s.atEdge
-        ? <span className="coledge">’{String(edge.year).slice(2)}</span>
-        : (
-          <span className="colender">
-            <Chip g={row.s.ender} />
-            <span className="colyr">’{String(yearOf(row.s.ender.ep)).slice(2)}</span>
-          </span>
-        )}
-    </button>
-  );
-}
-
-function ColumnExpanded({ row, dir, onClose, edge }) {
-  const t = teams[row.ti];
-  const rows = [...row.qual.slice(-row.s.len)].reverse();
-  if (!row.s.atEdge) rows.push(row.s.ender);
-  const nxt = row.onTheLine ? row.next : null;
-  const nxtTeam = nxt ? teams[nxt.oppIdx] : null;
-  const kick = nxt && nxt.hh !== 31 ? `${nxt.hh % 12 || 12}${nxt.hh >= 12 ? 'pm' : 'am'}` : '';
-  return (
-    <div className="xcol">
-      <div className="xcol-head">
-        <span className={'colcount' + (row.onTheLine ? ' is-otl' : '')}>{row.s.len}{row.s.atEdge ? '+' : ''}</span>
-        <img className="colteam" src={`${BASE}logos-color/${t.espn}.png`} alt="" />
-        <div className="xcol-id">
-          <span className="xcol-name">{t.name}</span>
-          {row.onTheLine && <span className="otl-tag">on the line</span>}
-        </div>
-        <button className="xcol-x" onClick={onClose} aria-label="collapse">×</button>
-      </div>
-      {nxt && (
-        <div className="xrow next-row">
-          <span className="sq p" title={`next: ${siteWord(nxt)} ${nxtTeam?.name}`}>
-            {nxtTeam?.espn ? <img src={`${BASE}logos/${nxtTeam.espn}.png`} alt={nxtTeam?.name} /> : <b>{nxtTeam?.name?.[0]}</b>}
-          </span>
-          <span className="xd">{shortDate(nxt.ep)}</span>
-          <span className="xown">{nxt.ownRank > 0 ? `#${nxt.ownRank}` : ''}</span>
-          <span className={'xsite' + (siteMark(nxt) === 'N' ? ' n' : '')}>{siteMark(nxt)}</span>
-          <span className="xopp">{nxt.oppRank > 0 ? `#${nxt.oppRank}` : ''}</span>
-          <span className="xnext">{kick || 'next'}</span>
-        </div>
-      )}
-      {rows.map((g) => (
-        <div key={g.i + '-' + g.ep} className={'xrow' + (g.r !== dir ? ' ender-row' : '')}>
-          <Chip g={g} />
-          <span className="xd">{shortDate(g.ep)}</span>
-          <span className="xown">{g.ownRank > 0 ? `#${g.ownRank}` : ''}</span>
-          <span className={'xsite' + (siteMark(g) === 'N' ? ' n' : '')}>{siteMark(g)}</span>
-          <span className="xopp">{g.oppRank > 0 ? `#${g.oppRank}` : ''}</span>
-          <span className={'xsc' + (g.r === 'W' ? ' w' : '')}>
-            {g.r !== dir ? g.r + ' ' : ''}{String(g.us).padStart(2, ' ')}–{String(g.them).padEnd(2, ' ')}
-          </span>
-        </div>
-      ))}
-      {row.s.atEdge && (
-        <div className="log-note">
-          {edge.word
-            ? `earliest ${edge.word} data is ${edge.year}; this streak may be longer than we can show`
-            : 'runs past the start of the data (1978)'}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function useIsMobile() {
-  const [mobile, setMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 640px)');
-    const update = () => setMobile(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
-  return mobile;
-}
-
-export default function App() {
-  const [active, setActive] = useState([]);
+// `initial` seeds state the prerender and the hydrate must agree on: a
+// per-team page (/team/<id>/) opens with that team's panel already open.
+export default function App({ initial } = {}) {
+  const [active, setActive] = useState(chipsFromParam(null));
   const [dir, setDir] = useState('W');
+  const [scope, setScope] = useState(DEFAULT_SCOPE);
+  const [team, setTeam] = useState(initial?.team ?? null);
+  const [run, setRun] = useState(null); // all-time: the start ep of the open run
+  const [week, setWeek] = useState(false);
   const [todayEp, setTodayEp] = useState(builtEp);
-  const [showAll, setShowAll] = useState(false);
-  const [noteOpen, setNoteOpen] = useState(null);
-  const [expanded, setExpanded] = useState(null);
-  const [view, setView] = useState('board');
-  const [crownTi, setCrownTi] = useState(null);
-  const [crownsAll, setCrownsAll] = useState(false);
+  const [limit, setLimit] = useState(DESKTOP_CAP); // columns shown before 'more'
+  const [addOpen, setAddOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [favs, setFavs] = useState([]);
   const [hydrated, setHydrated] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [mined, setMined] = useState(false); // active-scope crowns
+  const [minedAll, setMinedAll] = useState(false); // all-time crowns, mined on demand
+  const [leadsScope, setLeadsScope] = useState('active');
+  const [leadsDir, setLeadsDir] = useState('W');
   const isMobile = useIsMobile();
 
+  // URL -> state, after mount only: the prerender has no window
   useEffect(() => {
     setTodayEp(todayEpochDay());
-    const c = decodeChips(readParam('c'));
-    if (c.length) setActive(c);
-    const d = readParam('dir');
-    if (d === 'L') setDir('L');
+    setActive(chipsFromParam(readParam('c')));
+    if (readParam('dir') === 'L') setDir('L');
+    if (readParam('scope') === 'active') setScope('active');
+    if (readParam('week') === '1') setWeek(true);
+    const ti = teams.findIndex((t) => t.id === readParam('team'));
+    if (ti >= 0 && fbsNow.has(ti)) setTeam(ti);
+    if (readParam('dir') === 'L') setLeadsDir('L');
+    const r = Number(readParam('run'));
+    if (r > 0) setRun(r);
     setFavs(readFavs());
-    const v = readParam('view');
-    if (v === 'crowns' || v === 'curses') {
-      const tid = readParam('team');
-      const ti = teams.findIndex((t) => t.id === tid);
-      setCrownTi(ti >= 0 && fbsNow.has(ti) ? ti : null);
-      setView(v);
-    }
     setHydrated(true);
   }, []);
 
+  // state -> URL
   useEffect(() => {
     if (!hydrated) return;
-    writeParam('c', encodeChips(active) || null);
-    writeParam('dir', dir === 'W' ? null : dir);
-    writeParam('sort', null); // scrub the retired sort param from old links
-    track('definition', { chips: encodeChips(active) || 'overall', dir });
-  }, [active, dir, hydrated]);
+    // an open team lives at /team/<id>/, which is also a prerendered page
+    // with its own social preview; ?team= from old links moves there too
+    writeUrl(import.meta.env.BASE_URL, team != null ? `team/${teams[team].id}/` : '', {
+      c: chipsToParam(active),
+      dir: dir === 'W' ? null : dir,
+      scope: scope === DEFAULT_SCOPE ? null : scope,
+      week: week ? '1' : null,
+      run: scope === 'all' && run != null ? String(run) : null,
+      team: null, // retired params from old links
+      view: null,
+      sort: null,
+    });
+    track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
+  }, [active, dir, scope, week, team, run, hydrated]);
 
+  // the streaks-a-team-leads mine runs once the page is idle, so the panel is
+  // ready before anyone opens it
   useEffect(() => {
-    if (!hydrated) return;
-    writeParam('view', view === 'board' ? null : view);
-    writeParam('team', view !== 'board' && crownTi != null ? teams[crownTi].id : null);
-  }, [view, crownTi, hydrated]);
+    if (!hydrated || mined) return;
+    if (isMined()) { setMined(true); return; }
+    let live = true;
+    const start = () => mineAll().then(() => { if (live) setMined(true); });
+    const id = typeof requestIdleCallback === 'function' ? requestIdleCallback(start) : setTimeout(start, 1200);
+    return () => {
+      live = false;
+      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(id); else clearTimeout(id);
+    };
+  }, [hydrated, mined]);
 
-  const rows = useMemo(() => board(active, dir, 'games', todayEp), [active, dir, todayEp]);
-  const week = useMemo(() => thisWeek(active, dir, todayEp), [active, dir, todayEp]);
+  // all-time crowns mine only once someone asks for them
+  useEffect(() => {
+    if (leadsScope !== 'all' || minedAll) return;
+    if (isMined('all')) { setMinedAll(true); return; }
+    let live = true;
+    mineAll('all').then(() => { if (live) setMinedAll(true); });
+    return () => { live = false; };
+  }, [leadsScope, minedAll]);
+
+  const rows = useMemo(
+    () => (scope === 'all' ? allTimeBoard(active, dir, todayEp) : board(active, dir, 'games', todayEp)),
+    [active, dir, scope, todayEp],
+  );
+  const weekCount = useMemo(() => rows.filter((r) => r.onTheLine).length, [rows]);
+  const shown = week ? rows.filter((r) => r.onTheLine) : rows;
   // the window edge an at-edge streak actually hit: the latest data floor
-  // among active chips (night 2002, halftime 2001, possession 2004), else 1978
-  const edge = useMemo(() => {
-    let year = 1978;
+  // among active chips (night 2002, halftime 2001, possession 2004), else the
+  // team's first FBS season, else 1978
+  const edgeFor = useMemo(() => {
+    let floor = 1978;
     let word = null;
     for (const a of active) {
       const c = chipByKey.get(a.key);
-      if (c.floor && c.floor > year) { year = c.floor; word = FLOOR_WORDS[a.key] ?? c.label; }
+      if (c.floor && c.floor > floor) { floor = c.floor; word = FLOOR_WORDS[a.key] ?? c.label; }
     }
-    return { year, word };
+    return (ti) => {
+      const joined = fbsStartOf(ti);
+      if (joined > floor) return { year: joined, word: null, joined: true };
+      return { year: floor, word, joined: false };
+    };
   }, [active]);
-  // current leader of each saved streak, for the little crest on its entry
-  const favLeaders = useMemo(
-    () => favs.map((f) => {
-      const b = board(decodeChips(f.c), f.dir, 'games', todayEp);
-      return b.length ? teams[b[0].ti] : null;
-    }),
-    [favs, todayEp],
-  );
+  const edge = team != null ? edgeFor(team) : null;
+  // active: a team has one row. all-time: the open run, else the team's longest
+  const teamRow = team != null
+    ? rows.find((r) => r.ti === team && (scope !== 'all' || run == null || r.s.start.ep === run)) ?? rows.find((r) => r.ti === team) ?? null
+    : null;
+  const openKey = teamRow ? rowKey(teamRow) : null;
+  const weekDay = rows.find((r) => r.onTheLine)?.next ? dayOf(rows.find((r) => r.onTheLine).next.ep) : 'Saturday';
+  const leadsReady = leadsScope === 'all' ? minedAll : mined;
+  const leads = useMemo(() => (leadsReady && team != null ? crownsFor(team, leadsScope) : null), [leadsReady, team, leadsScope]);
 
-  const isOn = (key) => active.some((a) => a.key === key);
-  const full = active.length >= 4;
-
-  function toggle(key) {
-    setExpanded(null);
-    setActive((cur) => {
-      if (cur.some((a) => a.key === key)) return cur.filter((a) => a.key !== key);
-      if (cur.length >= 4) return cur;
-      const c = chipByKey.get(key);
-      const withoutGroupX = c.x ? cur.filter((a) => !(chipByKey.get(a.key).x && chipByKey.get(a.key).group === c.group)) : cur;
-      if (withoutGroupX.length >= 4) return cur;
-      const def = c.param === 'month' ? 11 : c.param === 'conf' ? 'SEC' : c.param === 'state' ? 'TX' : c.param === 'hmargin' ? 1 : c.param === 'team'
-        ? teams.findIndex((t) => t.id === 'alabama') : undefined;
-      return [...withoutGroupX, c.param ? { key, param: def } : { key }];
+  // leaders of the presets, for the start-from list
+  const startFrom = useMemo(() => {
+    if (!addOpen) return [];
+    const entries = PRESETS.map((p) => ({ chips: p.chips, dir: p.dir, name: p.name }));
+    return entries.map((e) => {
+      const b = board(e.chips, e.dir, 'games', todayEp);
+      return { ...e, leader: b[0] ? teams[b[0].ti] : null, len: b[0] ? `${b[0].s.len}${b[0].s.atEdge ? '+' : ''}` : '' };
     });
+  }, [addOpen, todayEp]);
+
+  function setDefinition(chips, d) {
+    setActive(chips);
+    if (d) setDir(d);
+    setLimit(DESKTOP_CAP); // a new board starts at the first rows again
   }
-  function remove(key) {
-    setExpanded(null);
-    setActive((cur) => cur.filter((a) => a.key !== key));
+  const on = {
+    scope: (s) => { setScope(s); setLimit(DESKTOP_CAP); if (s === 'all') setWeek(false); },
+    dir: (d) => { setDir(d); setLimit(DESKTOP_CAP); },
+    add: (key) => setDefinition(withChip(active, key)),
+    swap: (oldKey, newKey) => setDefinition(swapChip(active, oldKey, newKey)),
+    remove: (key) => setDefinition(withoutChip(active, key)),
+    setParam: (key, param) => setDefinition(withParam(active, key, param)),
+    week: () => { setWeek(true); track('week filter', { on: true }); },
+    unweek: () => { setWeek(false); track('week filter', { on: false }); },
+    start: (e) => {
+      setDefinition(e.chips, e.dir);
+      track('preset', { name: e.name });
+    },
+  };
+  function pickRow(row) {
+    const same = team === row.ti && (scope !== 'all' || run === row.s.start.ep);
+    setTeam(same ? null : row.ti);
+    setRun(same || scope !== 'all' ? null : row.s.start.ep);
+    if (!same) { setLeadsDir(dir); track('team open', { team: teams[row.ti].id, scope, len: row.s.len }); }
   }
-  function setParam(key, param) {
-    setActive((cur) => cur.map((a) => (a.key === key ? { ...a, param } : a)));
+  function applyLead(cr) {
+    setDefinition(cr.chips.map((key) => ({ key })), cr.dir);
+    setScope(cr.scope);
+    setRun(null);
+    track('lead apply', { chips: cr.chips.join(',') || 'overall', dir: cr.dir, scope: cr.scope, len: cr.len });
   }
-  function applyPreset(p) {
-    setExpanded(null);
-    setActive(p.chips);
-    setDir(p.dir);
-    track('preset', { name: p.name });
+  // the sentence and URL for one streak a team is king of
+  function shareLead(cr) {
+    const chips = cr.chips.map((key) => ({ key }));
+    const verb = cr.dir === 'W' ? 'won' : 'lost';
+    const has = cr.scope === 'active' || cr.live ? 'has ' : '';
+    const when = cr.scope === 'all' && !cr.live && cr.startSe != null ? (cr.startSe === cr.endSe ? ` in ${cr.startSe}` : `, ${cr.startSe}–${cr.endSe}`) : '';
+    const sentence = `${teams[team].name} ${has}${verb} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips)}${when}.`;
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.pathname = `${import.meta.env.BASE_URL}team/${teams[team].id}/`;
+    if (chipsToParam(chips)) url.searchParams.set('c', chipsToParam(chips));
+    if (cr.dir === 'L') url.searchParams.set('dir', 'L');
+    if (cr.scope !== DEFAULT_SCOPE) url.searchParams.set('scope', cr.scope);
+    share(sentence, url.toString());
   }
+  function onLeadsScope(s) { setLeadsScope(s); track('leads scope', { scope: s }); }
+  function onLeadsDir(d) { setLeadsDir(d); track('leads dir', { dir: d }); }
+  function applyFav(f) {
+    setDefinition(decodeChips(f.c), f.dir);
+    track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
+  }
+  function removeFav(f) {
+    setFavs((cur) => { const next = cur.filter((x) => !(x.c === f.c && x.dir === f.dir)); writeFavs(next); return next; });
+    track('unsave streak', { chips: f.c || 'overall', dir: f.dir });
+  }
+
   const defC = encodeChips(active);
   const isSaved = favs.some((f) => f.c === defC && f.dir === dir);
   function toggleFav() {
     setFavs((cur) => {
       const next = cur.some((f) => f.c === defC && f.dir === dir)
         ? cur.filter((f) => !(f.c === defC && f.dir === dir))
-        : [...cur, { c: defC, dir, name: `${dirWord(dir)} · ${active.map(chipPhrase).join(' + ') || 'all games'}` }];
+        : [...cur, { c: defC, dir, name: `${dirWord(dir)} streaks in ${definitionPhrase(active)}` }];
       writeFavs(next);
       return next;
     });
     if (!isSaved) track('save streak', { chips: defC || 'overall', dir });
   }
-  function applyFav(f) {
-    setExpanded(null);
-    setActive(decodeChips(f.c));
-    setDir(f.dir);
-    track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
-  }
-  function removeFav(f) {
-    setFavs((cur) => {
-      const next = cur.filter((x) => !(x.c === f.c && x.dir === f.dir));
-      writeFavs(next);
-      return next;
-    });
-  }
-  const minedView = view === 'crowns' || view === 'curses';
-  const [mined, setMined] = useState(false);
-  useEffect(() => {
-    if (!minedView || mined) return;
-    if (isMined()) { setMined(true); return; }
-    let live = true;
-    mineAll().then(() => { if (live) setMined(true); });
-    return () => { live = false; };
-  }, [minedView, mined]);
-  const crowns = useMemo(
-    () => (minedView && mined && crownTi != null ? crownsFor(crownTi) : null),
-    [minedView, mined, crownTi],
-  );
-  function openMined(which) {
-    setCrownTi((cur) => cur ?? rows[0]?.ti ?? fbsCurrent[0].i);
-    setCrownsAll(false);
-    setView(which);
-    track(which + ' view', {});
-  }
-  function switchMined(which) {
-    setCrownsAll(false);
-    setView(which);
-    track(which + ' view', {});
-  }
-  function applyCrown(cr) {
-    setActive(cr.chips.map((key) => ({ key })));
-    setDir(cr.dir);
-    setView('board');
-    setExpanded(crownTi);
-    track('crown apply', { chips: cr.chips.join(',') || 'overall', dir: cr.dir, len: cr.len });
-  }
-  function share() {
+  function share(sentence, shareUrl) {
+    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active)}`;
+    const url = shareUrl ?? window.location.href;
+    track('share', { chips: defC || 'overall', dir, team: team != null ? teams[team].id : null });
     try {
-      navigator.clipboard.writeText(window.location.href).then(() => {
+      if (navigator.share) { navigator.share({ title: 'Streak King', text, url }).catch(() => {}); return; }
+      navigator.clipboard.writeText(`${text} ${url}`).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 1600);
       });
     } catch {}
   }
 
+  const panel = team != null && (
+    <TeamPanel
+      ti={team} row={teamRow} rank={teamRow ? rows.indexOf(teamRow) + 1 : 0} field={rows.length}
+      active={active} dir={dir} scope={scope} edge={edge} leads={leads}
+      leadsScope={leadsScope} leadsDir={leadsDir} onLeadsScope={onLeadsScope} onLeadsDir={onLeadsDir}
+      onShare={share} onShareLead={shareLead} onClose={() => { setTeam(null); setRun(null); }} onApplyLead={applyLead}
+    />
+  );
+
   return (
     <main>
-      <p className="dateline">drewhoover.com · 1978–{P.currentSeason} · updated {String(P.builtAt).slice(0, 10)}</p>
-      <h1>Streak King</h1>
-      <div className="tabs">
-        <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>All Streaks</button>
-        <button className={minedView ? 'on' : ''} onClick={() => { if (!minedView) openMined(dir === 'W' ? 'crowns' : 'curses'); }}>Streaks By Team</button>
-      </div>
-
-      {minedView && crownTi != null && (() => {
-        const d = view === 'crowns' ? 'W' : 'L';
-        const list = (crowns ?? []).filter((c) => c.dir === d);
-        const shown = crownsAll ? list : list.slice(0, 12);
-        const count = (dd) => (crowns ? ` (${crowns.filter((c) => c.dir === dd).length})` : '');
-        return (
-          <div className="crowns">
-            <div className="team-switch">
-              <span className="toggle" role="group" aria-label="streak direction">
-                <button className={d === 'W' ? 'on' : ''} onClick={() => switchMined('crowns')}>WIN STREAKS{count('W')}</button>
-                <button className={d === 'L' ? 'on' : ''} onClick={() => switchMined('curses')}>LOSING STREAKS{count('L')}</button>
-              </span>
-            </div>
-            <div className="crowns-head">
-              {teams[crownTi].espn && <img className="colteam" src={`${BASE}logos-color/${teams[crownTi].espn}.png`} alt="" />}
-              <select value={crownTi} onChange={(e) => { setCrownTi(Number(e.target.value)); setCrownsAll(false); }} aria-label="team">
-                {fbsCurrent.map(({ t, i }) => <option key={t.id} value={i}>{t.name}</option>)}
-              </select>
-              <span className="crowns-note">
-                {view === 'crowns'
-                  ? 'active winning streaks this team solely leads'
-                  : 'active losing streaks nobody else can match'} · {LEN_FLOOR}+ games · at least {FIELD_FLOOR} teams holding one
-              </span>
-            </div>
-            {crowns === null && <p className="empty">Mining all 78,276 boards…</p>}
-            {crowns !== null && (
-              <div>
-                {list.length === 0 && <p className="empty">None under the current floors.</p>}
-                {shown.map((cr) => (
-                  <button className="crown" key={cr.dir + cr.chips.join()} onClick={() => applyCrown(cr)}>
-                    <span className={'crown-len' + (d === 'L' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
-                    <span className="crown-txt">
-                      {cr.chips.length ? cr.chips.map((k) => chipPhrase({ key: k })).join(' · ') : 'all games'}
-                    </span>
-                    <span className="crown-meta">
-                      leads {cr.field - 1} other active streaks{cr.startSe ? ` · since ${cr.startSe}` : ''}
-                    </span>
-                  </button>
-                ))}
-                {!crownsAll && list.length > 12 && (
-                  <div className="showmore"><button onClick={() => setCrownsAll(true)}>show all {list.length}</button></div>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      {view === 'board' && <>
-      <p className="sub">
-        Design a streak definition with up to four constraints, and see which of the 136 FBS teams owns the
-        longest active run under it.
-      </p>
-
-      <div className="defbar">
-        <span className="defbar-lead">
-          Longest active{' '}
-          <span className="dirpick">
-            <select value={dir} onChange={(e) => setDir(e.target.value)} aria-label="streak direction">
-              <option value="W">winning</option>
-              <option value="L">losing</option>
-            </select>
-          </span>
-          {' '}streaks in
+      <div className="dateline">
+        <span>drewhoover.com · 1978–{P.currentSeason}<span className="dateline-upd"> · updated {String(P.builtAt).slice(0, 10)}</span></span>
+        <span className="dateline-acts">
+          <button className={'ico' + (isSaved ? ' on' : '')} onClick={toggleFav} aria-pressed={isSaved} aria-label={isSaved ? 'Saved' : 'Save this streak'}>
+            <StarIcon filled={isSaved} />
+          </button>
+          <button className="ico" onClick={() => share()} aria-label="Share"><ShareIcon /></button>
+          {copied && <span className="toast">copied</span>}
         </span>
-        {active.length === 0 && <span className="defbar-all">all games</span>}
-        {active.map((a) => {
-          const c = chipByKey.get(a.key);
-          return (
-            <span className="pill" key={a.key}>
-              <span className="pill-label">{chipPhrase(a)}</span>
-              {c.param === 'team' && (
-                <select
-                  value={a.param}
-                  onChange={(e) => setParam(a.key, Number(e.target.value))}
-                  aria-label="opponent team"
-                >
-                  {fbsEver.map(({ t, i }) => (
-                    <option key={t.id} value={i}>{t.name}</option>
-                  ))}
-                </select>
-              )}
-              {c.param === 'conf' && (
-                <select
-                  value={a.param}
-                  onChange={(e) => setParam(a.key, e.target.value)}
-                  aria-label="opponent conference"
-                >
-                  {CONF_OPTIONS.filter((o) => confs.includes(o)).map((o) => (
-                    <option key={o} value={o}>{o}</option>
-                  ))}
-                </select>
-              )}
-              {c.param === 'state' && (
-                <select
-                  value={a.param}
-                  onChange={(e) => setParam(a.key, e.target.value)}
-                  aria-label="state"
-                >
-                  {STATE_OPTIONS.map((o) => (
-                    <option key={o} value={o}>{o}</option>
-                  ))}
-                </select>
-              )}
-              {c.param === 'month' && (
-                <select
-                  value={a.param}
-                  onChange={(e) => setParam(a.key, Number(e.target.value))}
-                  aria-label="month"
-                >
-                  {MONTHS.map(([n, name]) => (
-                    <option key={n} value={n}>{name}</option>
-                  ))}
-                </select>
-              )}
-              {c.param === 'hmargin' && (
-                <select
-                  value={a.param}
-                  onChange={(e) => setParam(a.key, Number(e.target.value))}
-                  aria-label="halftime margin"
-                >
-                  {HMARGINS.map(([n, name]) => (
-                    <option key={n} value={n}>{name}</option>
-                  ))}
-                </select>
-              )}
-              <button className="pill-x" onClick={() => remove(a.key)} aria-label={`remove ${chipPhrase(a)}`}>×</button>
-            </span>
-          );
-        })}
-        {(active.length < 4 || pickerOpen) && (
-          <button
-            className={'addbtn' + (pickerOpen ? ' open' : '')}
-            onClick={() => setPickerOpen((o) => !o)}
-            aria-expanded={pickerOpen}
-          >
-            {pickerOpen ? 'done' : '+ constraint'}
-          </button>
-        )}
-        {active.length >= 4 && !pickerOpen && <span className="defbar-cap">4 of 4</span>}
       </div>
+      <h1>Streak King</h1>
 
-      <div className="controls">
-        <button className={'sharebtn' + (isSaved ? ' saved' : '')} onClick={toggleFav} aria-pressed={isSaved}>
-          {isSaved ? '★ SAVED' : '☆ SAVE'}
-        </button>
-        <button className="sharebtn" onClick={share}>
-          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12.5" cy="3" r="2" /><circle cx="3.5" cy="8" r="2" /><circle cx="12.5" cy="13" r="2" />
-            <path d="M5.3 7l5.4-3M5.3 9l5.4 3" />
-          </svg>
-          {copied ? 'COPIED ✓' : 'SHARE THIS BOARD'}
-        </button>
-      </div>
+      <Sentence
+        active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay}
+        startFrom={startFrom} isMobile={isMobile} addOpen={addOpen} setAddOpen={setAddOpen} on={on}
+      />
 
-      <div className="presets">
-        {PRESETS.map((p) => (
-          <button key={p.name} onClick={() => applyPreset(p)}>{p.name}</button>
-        ))}
-      </div>
+      <Grid
+        rows={shown} curTeam={team} openKey={openKey} onPick={pickRow} edgeFor={edgeFor} isMobile={isMobile}
+        limit={limit} setLimit={setLimit} week={week} scope={scope} dir={dir} panel={panel}
+      />
 
-      {favs.length > 0 && (
-        <div className="favs">
-          <span className="favs-lead">your streaks</span>
-          {favs.map((f, i) => (
-            <span className="fav" key={(f.c || 'all') + f.dir}>
-              <button className="fav-apply" onClick={() => applyFav(f)}>
-                {favLeaders[i]?.espn && (
-                  <img className="fav-ico" src={`${BASE}logos-color/${favLeaders[i].espn}.png`} alt="" loading="lazy" />
-                )}
-                {f.name}
-              </button>
-              <button className="fav-x" onClick={() => removeFav(f)} aria-label={`remove ${f.name}`}>×</button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {pickerOpen && (
-        <div className="picker">
-          {GROUPS.map((grp) => (
-            <div className="pick-row" key={grp}>
-              <span className="grp">
-                {grp}
-                {GROUP_NOTES[grp] && (
-                  <button
-                    className={'grp-i' + (noteOpen === grp ? ' on' : '')}
-                    onClick={() => setNoteOpen((n) => (n === grp ? null : grp))}
-                    aria-label={`about ${grp} data`}
-                    aria-expanded={noteOpen === grp}
-                  >ⓘ</button>
-                )}
-              </span>
-              {noteOpen === grp && <span className="grp-note">{GROUP_NOTES[grp]}</span>}
-              {CHIPS.filter((c) => c.group === grp).map((c) => (
-                <button
-                  key={c.key}
-                  className={'chipbtn' + (isOn(c.key) ? ' on' : '')}
-                  disabled={!isOn(c.key) && full}
-                  onClick={() => toggle(c.key)}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          ))}
-          <p className="pick-note">
-            <span className="cap">{active.length} of 4 constraints.</span>
-          </p>
-          <div className="pick-done">
-            <button onClick={() => setPickerOpen(false)}>done</button>
-          </div>
-        </div>
-      )}
-
-      {isMobile && rows.some((r) => r.ti === expanded) && (
-        <ColumnExpanded
-          row={rows.find((r) => r.ti === expanded)}
-          dir={dir}
-          edge={edge}
-          onClose={() => setExpanded(null)}
-        />
-      )}
-      <div className="colwrap">
-        {rows.length === 0 && <p className="empty">No team currently holds a {dirWord(dir)} streak under this definition.</p>}
-        {(isMobile || showAll ? rows : rows.slice(0, DESKTOP_CAP)).map((row) => {
-          if (row.ti === expanded) {
-            return isMobile ? null : (
-              <ColumnExpanded key={teams[row.ti].id} row={row} dir={dir} edge={edge} onClose={() => setExpanded(null)} />
-            );
-          }
-          return <ColumnCollapsed key={teams[row.ti].id} row={row} edge={edge} onOpen={() => setExpanded(row.ti)} />;
-        })}
-      </div>
-      {!isMobile && rows.length > DESKTOP_CAP && (
-        <div className="showmore">
-          <button onClick={() => setShowAll((v) => !v)}>
-            {showAll ? 'show fewer' : `show all ${rows.length} teams`}
-          </button>
-        </div>
-      )}
-
-      <h2>This Week</h2>
-      <p className="h2-note">Qualifying games in the next eight days with a streak at stake.</p>
-      {week === null ? (
-        <p className="empty">
-          One of the active constraints (betting, game shape, or after-a-result) can't be known before
-          kickoff, so upcoming games can't be matched to this definition.
-        </p>
-      ) : week.length === 0 ? (
-        <p className="empty">No qualifying games in the next eight days.</p>
-      ) : (
-        <div>
-          {week.slice(0, 24).map(({ ti, s, u }) => (
-            <div className="tw-row" key={ti + '-' + u.ep}>
-              <span className="d">{fmtDate(u.ep)}</span>
-              <span className="m">
-                <b>{teams[ti].name}</b> {u.home ? (u.neutral ? 'vs' : 'hosts') : u.neutral ? 'vs' : 'at'}{' '}
-                {u.oppRank > 0 ? `#${u.oppRank} ` : ''}{teams[u.oppIdx]?.name}
-                {u.hh !== 31 ? `, ${u.hh > 12 ? u.hh - 12 : u.hh}${u.hh >= 12 ? 'pm' : 'am'} local` : ''}
-              </span>
-              <span className={'at' + (dir === 'L' ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}{dir} at stake</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      </>}
-
-      <h2>Method</h2>
-      <div className="notes">
-        <ul>
-          <li>
-            Window: 1978–{P.currentSeason}, the I-A/FBS era. {P.games.se.length.toLocaleString()} games. A streak
-            that reaches 1978 shows as “N+”.
-          </li>
-          <li>
-            A game qualifies when it matches every active constraint. Non-qualifying games neither extend nor
-            break a streak — “hasn't lost to Auburn since 1998” stays alive through seasons they don't play.
-            Ties (pre-1996) end streaks in both directions.
-          </li>
-          <li>
-            Scores and sites 1978–2013 come from Warren Repole's Sunshine Forecast archive (recovered via the
-            Wayback Machine), cross-checked against jhowell.net; 2014–present from cfbfastR/ESPN. AP ranks are
-            the poll in effect at kickoff, from College Poll Archive. Spreads are closing lines: Repole
-            1978–2013, per-book medians from cfbfastR 2014–2025.
-          </li>
-          <li>
-            Off-campus home sites (Legion Field, War Memorial in Little Rock, and similar) count as home games
-            via a versioned rulings file. Conference games use jhowell's per-game marks before 2009 and the
-            source flag after.
-          </li>
-          <li>
-            Famous streaks reproduce as build checks: Alabama's 100 straight over unranked teams, Kansas's
-            46-game road skid, Vanderbilt's 26 straight SEC losses.
-          </li>
-          <li>
-            Head-coach tenures come from CollegeFootballData; mid-season changes are placed at the exact game
-            by matching each coach's record against the result sequence. Halftime scores (2001+) and time of
-            possession (2004+) come from CFBD box data.
-          </li>
-          <li>
-            The design space: the 34 parameterless chips compose into 39,138 distinct definitions — 78,276
-            counting direction. The parameterized chips (opponent, conference, state, month, halftime margin)
-            push that past 24 million.
-          </li>
-        </ul>
-      </div>
+      <Starred favs={favs} todayEp={todayEp} onApply={applyFav} onRemove={removeFav} />
 
       <h2>What to read next</h2>
       <div className="notes">
@@ -717,6 +271,56 @@ export default function App() {
           <a href="https://drewhoover.com/cfb-all-time-records/football">All-time FBS records</a> — all
           136 programs ranked by total wins, win percentage and bowl record.
         </p>
+      </div>
+
+      <h2>Method</h2>
+      <div className="notes">
+        <ul>
+          <li>
+            Window: 1978–{P.currentSeason}, the I-A/FBS era, {P.games.se.length.toLocaleString()} games. A team's
+            games count only from its first FBS season (Appalachian State's from 2014, Missouri State's from
+            2025), so no streak runs back into its FCS years. A streak that reaches the edge of its window
+            shows as “N+”.
+          </li>
+          <li>
+            A game qualifies when it matches every word in the definition. Non-qualifying games neither extend nor
+            break a streak — “hasn't lost to Auburn since 1998” stays alive through seasons they don't play.
+            Ties (pre-1996) end streaks in both directions.
+          </li>
+          <li>
+            Scores, sites and closing spreads for 1978–2013 come from Warren Repole's{' '}
+            <a href="https://web.archive.org/web/2022/http://www.repole.com/sun4cast/data.html">Sunshine Forecast</a>{' '}
+            files. His site is gone; the files survive only in the Internet Archive's Wayback Machine, which is
+            worth <a href="https://archive.org/donate">a donation</a>.
+          </li>
+          <li>
+            <a href="http://www.jhowell.net/cf/scores/ScoresIndex.htm">James Howell's historical scores</a> confirm
+            every 1978–2013 result and mark conference games before 2009.
+          </li>
+          <li>
+            <a href="https://github.com/sportsdataverse/cfbfastR-data">cfbfastR</a> (ESPN) supplies every game
+            from 2014 on, conference games from 2009, and spreads as the median closing line across books.
+          </li>
+          <li>
+            <a href="https://www.collegepollarchive.com/">College Poll Archive</a> supplies the AP polls. A rank
+            is the poll in effect at kickoff.
+          </li>
+          <li>
+            <a href="https://collegefootballdata.com/">CollegeFootballData</a> supplies head-coach tenures,
+            halftime scores (2001 on) and time of possession (2004 on).
+          </li>
+          <li>
+            A team's regular off-campus home field (Legion Field for Alabama, War Memorial Stadium in Little
+            Rock for Arkansas, and similar) counts as a home game.
+          </li>
+          <li>
+            In a team's expanded view, “leads” lists every definition under which that team holds the longest
+            active streak outright, counting only definitions where at least 10 teams have a streak of 4 or
+            more games. The plain words alone make 39,138 possible definitions, 78,276 counting winning and
+            losing separately; the words that take a choice (a state, a conference, an opponent, a month) push
+            that past 24 million.
+          </li>
+        </ul>
       </div>
 
       <footer>

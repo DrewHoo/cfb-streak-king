@@ -68,7 +68,17 @@ export function buildStints(coachSeasons, resultsBySeason, warn, resolvedByYear)
     }
     const rows = coachSeasons.get(year).filter((r) => r.g > 0);
     if (!rows.length) continue;
-    if (rows.length === 1) { push(rows[0].k, year, 0); continue; }
+    if (rows.length === 1) {
+      // CFBD sometimes drops a coach from a two-coach season, leaving one
+      // row that covers only part of it; crediting that coach from game 0
+      // hands the other coach's games to the wrong person. Two or more games
+      // short of the team's season is that case: leave it unresolved (one
+      // game short is usually a bowl the interim coached, and stays).
+      const n = resultsBySeason.get(year)?.length ?? rows[0].g;
+      if (rows[0].g + 1 < n) { warn?.(year, rows); push(null, year, 0); continue; }
+      push(rows[0].k, year, 0);
+      continue;
+    }
     const results = resultsBySeason.get(year);
     const segs = results ? resolveSeason(results, rows, lastK) : null;
     if (!segs) {

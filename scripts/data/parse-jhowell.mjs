@@ -6,7 +6,12 @@
 //   '*' before the opponent marks a conference game.
 // Output:
 //   data/build/fbs-spans.json    { slug: [[start,end],...] }  (9999 = present)
-//   data/build/jhowell.json      { conf: {slug: {year: "SEC"}}, confGames: ["year|team|MM/DD|opp",...] }
+//   data/build/jhowell.json      { conf: {slug: {year: "SEC"}}, confGames: ["year|team|MM/DD|opp",...],
+//                                  games: [{ se, team, teamName, opp, oppName, date, at, pf, pa, city, note }] }
+//   games: one row per team page row (so every game appears twice, once per
+//   side). at is '@' (team was the visitor) or 'vs.'; city is the '@ City, ST'
+//   cell, blank for a campus game. build-payload votes Howell's scores and
+//   campus home teams against Repole's.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,6 +54,15 @@ for (const id of Object.keys(fbsSpans)) {
 // --- team pages: conference per season + conference-game marks ---
 const conf = {};
 const confGames = new Set();
+const games = [];
+const oppId = (cell, linked) => {
+  // "*Kansas State (11-4)" / "Idaho (non-IA)": drop the conf mark and the parenthetical
+  const name = cell.replace(/^\*/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+  // an opponent with no page of its own was never a major school; slug it
+  // without swelling the unmatched-name report
+  if (!linked) return `x:${slug(name)}`;
+  return canon(name, 'jhowell') ?? `x:${slug(name)}`;
+};
 const files = fs.readdirSync(path.join(RAW, 'teams')).filter((f) => f.endsWith('.htm'));
 for (const f of files) {
   const html = fs.readFileSync(path.join(RAW, 'teams', f), 'latin1');
@@ -64,6 +78,25 @@ for (const f of files) {
     const id = canon(h.name, 'jhowell') ?? `x:${slug(h.name)}`;
     (conf[id] ??= {})[h.year] = h.confName;
     const block = html.slice(h.at, heads[i + 1]?.at ?? html.length);
+    const trRe = /<tr>([\s\S]*?)<\/tr>/g;
+    let tr;
+    while ((tr = trRe.exec(block))) {
+      const raw = [...tr[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((c) => c[1]);
+      const cells = raw.map((c) => decodeEntities(stripTags(c)).replace(/\s+/g, ' ').trim());
+      const md = /^(\d{1,2})\/(\d{1,2})$/.exec(cells[0] ?? '');
+      if (!md || cells.length < 6) continue;
+      const [mo, da] = [Number(md[1]), Number(md[2])];
+      const y = mo <= 2 ? h.year + 1 : h.year; // bowls run into January
+      const pf = Number(cells[4]);
+      const pa = Number(cells[5]);
+      if (!Number.isFinite(pf) || !Number.isFinite(pa)) continue;
+      games.push({
+        se: h.year, team: id, teamName: h.name, opp: oppId(cells[2], /<a href/.test(raw[2])),
+        oppName: cells[2].replace(/^\*/, '').replace(/\s*\([^)]*\)\s*$/, '').trim(),
+        date: `${y}-${String(mo).padStart(2, '0')}-${String(da).padStart(2, '0')}`,
+        at: cells[1] === '@' ? '@' : 'vs.', pf, pa, city: cells[6] ?? '', note: cells[7] ?? '',
+      });
+    }
     const rowRe = /<td[^>]*>(\d{1,2}\/\d{1,2})<\/td><td[^>]*>(@|vs\.)<\/td><td[^>]*><a href="[^"]*">(\*?)([\s\S]*?)<\/a>/g;
     let rm;
     while ((rm = rowRe.exec(block))) {
@@ -79,7 +112,7 @@ ensureDir(path.join(ROOT, 'data', 'build'));
 fs.writeFileSync(path.join(ROOT, 'data', 'build', 'fbs-spans.json'), JSON.stringify(fbsSpans, null, 1));
 fs.writeFileSync(
   path.join(ROOT, 'data', 'build', 'jhowell.json'),
-  JSON.stringify({ conf, confGames: [...confGames] }),
+  JSON.stringify({ conf, confGames: [...confGames], games }),
 );
 
 const fbs2026 = Object.entries(fbsSpans).filter(([, s]) => s.some(([a, b]) => a <= 2026 && b >= 2026));
@@ -87,7 +120,7 @@ const fbs1985 = Object.entries(fbsSpans).filter(([, s]) => s.some(([a, b]) => a 
 console.log(
   `byconf: ${Object.keys(fbsSpans).length} teams with spans; ${fbs2026.length} FBS in 2026, ${fbs1985.length} in 1985`,
 );
-console.log(`team pages: ${files.length} files, ${Object.keys(conf).length} teams with 1978+ seasons, ${confGames.size} conference-game marks`);
+console.log(`team pages: ${files.length} files, ${Object.keys(conf).length} teams with 1978+ seasons, ${confGames.size} conference-game marks, ${games.length} game rows`);
 const unkFbs = fbs2026.filter(([id]) => id.startsWith('x:')).map(([id]) => id);
 if (unkFbs.length) console.log('2026 FBS teams with no canonical name:', unkFbs.join(', '));
 reportUnmatched('jhowell');

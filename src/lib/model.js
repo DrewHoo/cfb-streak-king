@@ -64,6 +64,11 @@ const curCoach = (ti) => {
 };
 
 // --- per-team game lists (current-FBS teams only; ascending) ---
+// A team's games count only from the first season of its current FBS
+// stint: Missouri State's from 2025, Appalachian State's from 2014. Its
+// FCS-era games against FBS opponents are in the payload (the opponent was
+// FBS) but never in its own list, so a streak cannot run back into them.
+export const fbsStartOf = (ti) => teams[ti]?.fbs?.at(-1)?.[0] ?? 1978;
 const byTeam = new Map();
 for (const ti of fbsNow) byTeam.set(ti, []);
 for (let i = 0; i < N; i++) {
@@ -71,6 +76,7 @@ for (let i = 0; i < N; i++) {
     const ti = side === 0 ? g.hi[i] : g.ai[i];
     const list = byTeam.get(ti);
     if (!list) continue;
+    if (g.se[i] < fbsStartOf(ti)) continue;
     const home = side === 0;
     const us = home ? g.hs[i] : g.as[i];
     const them = home ? g.as[i] : g.hs[i];
@@ -105,6 +111,8 @@ for (let i = 0; i < N; i++) {
       rv: g.rv[i],
       vst: P.states[g.vs[i]] || null,
       month: monthOf(g.ep[i]),
+      // overtime periods (-1 unknown; from box scores, 2001+)
+      ot: g.ot?.[i] ?? -1,
       // halftime margin from our side (null unknown; 2001+)
       h1: g.hf[i] >= 0 ? (home ? g.hf[i] - g.af[i] : g.af[i] - g.hf[i]) : null,
       // possession share from our side (null unknown; 2004+)
@@ -194,39 +202,39 @@ const sameState = (a, b) => a != null && a === b;
 
 export const CHIPS = [
   { key: 'home', label: 'at home', group: 'site', x: true, test: (x) => x.home && !x.neutral, pre: (x) => x.home && !x.neutral },
-  { key: 'road', label: 'in hostile territory', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
+  { key: 'road', label: 'on the road', group: 'site', x: true, test: (x) => !x.home && !x.neutral, pre: (x) => !x.home && !x.neutral },
   { key: 'neutral', label: 'neutral site', group: 'site', x: true, test: (x) => x.neutral, pre: (x) => x.neutral },
   { key: 'away', label: 'not at home', group: 'site', x: true, test: (x) => !(x.home && !x.neutral), pre: (x) => !(x.home && !x.neutral) },
-  { key: 'state', label: 'in state\u2026', group: 'site', param: 'state', test: (x, p) => x.vst === p, pre: (x, p) => x.vst === p },
-  { key: 'ranked', label: 'vs ranked', group: 'opp rank', x: true, test: (x) => x.oppRank > 0, pre: (x) => x.oppRank > 0 },
-  { key: 'top10', label: 'vs top 10', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 10, pre: (x) => x.oppRank >= 1 && x.oppRank <= 10 },
-  { key: 'top5', label: 'vs top 5', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 5, pre: (x) => x.oppRank >= 1 && x.oppRank <= 5 },
-  { key: 'unranked', label: 'vs unranked', group: 'opp rank', x: true, test: (x) => x.oppRank === 0, pre: (x) => x.oppRank === 0 },
+  { key: 'state', label: 'in [state]', group: 'site', param: 'state', test: (x, p) => x.vst === p, pre: (x, p) => x.vst === p },
+  { key: 'ranked', label: 'vs ranked opponents', group: 'opp rank', x: true, test: (x) => x.oppRank > 0, pre: (x) => x.oppRank > 0 },
+  { key: 'top10', label: 'vs top-10 opponents', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 10, pre: (x) => x.oppRank >= 1 && x.oppRank <= 10 },
+  { key: 'top5', label: 'vs top-5 opponents', group: 'opp rank', x: true, test: (x) => x.oppRank >= 1 && x.oppRank <= 5, pre: (x) => x.oppRank >= 1 && x.oppRank <= 5 },
+  { key: 'unranked', label: 'vs unranked opponents', group: 'opp rank', x: true, test: (x) => x.oppRank === 0, pre: (x) => x.oppRank === 0 },
   { key: 'whileranked', label: 'while ranked', group: 'own rank', x: true, test: (x) => x.ownRank > 0, pre: (x) => x.ownRank > 0 },
   { key: 'whileunranked', label: 'while unranked', group: 'own rank', x: true, test: (x) => x.ownRank === 0, pre: (x) => x.ownRank === 0 },
-  { key: 'fav', label: 'as favorite', group: 'betting', x: true, test: (x) => x.sp != null && x.sp < 0, pre: null, note: 'lines through 2025' },
-  { key: 'dog', label: 'as underdog', group: 'betting', x: true, test: (x) => x.sp != null && x.sp > 0, pre: null, note: 'lines through 2025' },
-  { key: 'dog7', label: 'as 7+ pt dog', group: 'betting', x: true, test: (x) => x.sp != null && x.sp >= 7, pre: null, note: 'lines through 2025' },
-  { key: 'dog14', label: 'as 14+ pt dog', group: 'betting', x: true, test: (x) => x.sp != null && x.sp >= 14, pre: null, note: 'lines through 2025' },
+  { key: 'fav', label: 'as the favorite', group: 'betting', x: true, test: (x) => x.sp != null && x.sp < 0, pre: null, note: 'lines through 2025' },
+  { key: 'dog', label: 'as an underdog', group: 'betting', x: true, test: (x) => x.sp != null && x.sp > 0, pre: null, note: 'lines through 2025' },
+  { key: 'dog7', label: 'as a 7+ point underdog', group: 'betting', x: true, test: (x) => x.sp != null && x.sp >= 7, pre: null, note: 'lines through 2025' },
+  { key: 'dog14', label: 'as a 14+ point underdog', group: 'betting', x: true, test: (x) => x.sp != null && x.sp >= 14, pre: null, note: 'lines through 2025' },
   { key: 'close', label: 'close spread (≤ 3)', group: 'betting', x: true, test: (x) => x.sp != null && Math.abs(x.sp) <= 3, pre: null, note: 'lines through 2025' },
-  { key: 'confgame', label: 'conference game', group: 'conference', x: true, test: (x) => x.conf, pre: (x) => x.conf },
-  { key: 'nonconf', label: 'non-conference', group: 'conference', x: true, test: (x) => !x.conf, pre: (x) => !x.conf },
-  { key: 'vsconf', label: 'vs conference…', group: 'conference', param: 'conf', test: (x, p) => confOf(x.oppIdx, x.se) === p, pre: (x, p) => confOf(x.oppIdx, P.currentSeason) === p },
-  { key: 'vsteam', label: 'vs team…', group: 'opponent', param: 'team', test: (x, p) => x.oppIdx === p, pre: (x, p) => x.oppIdx === p },
+  { key: 'confgame', label: 'in conference games', group: 'conference', x: true, test: (x) => x.conf, pre: (x) => x.conf },
+  { key: 'nonconf', label: 'in non-conference games', group: 'conference', x: true, test: (x) => !x.conf, pre: (x) => !x.conf },
+  { key: 'vsconf', label: 'vs the [conference]', group: 'conference', param: 'conf', test: (x, p) => confOf(x.oppIdx, x.se) === p, pre: (x, p) => confOf(x.oppIdx, P.currentSeason) === p },
+  { key: 'vsteam', label: 'vs [team]', group: 'opponent', param: 'team', test: (x, p) => x.oppIdx === p, pre: (x, p) => x.oppIdx === p },
   { key: 'rivalry', label: 'rivalry game', group: 'opponent', test: (x) => x.rv > 0, pre: (x) => x.rv > 0 },
   { key: 'instate', label: 'in-state opponent', group: 'opponent', test: (x, _p, ownState) => sameState(teams[x.oppIdx]?.st, ownState), pre: (x, _p, ownState) => sameState(teams[x.oppIdx]?.st, ownState) },
   { key: 'curcoach', label: 'under current head coach', group: 'coach', test: (x) => !!x.hcCur, pre: (x) => !!x.hcCur },
   { key: 'newcoach', label: 'in a coach’s first season', group: 'coach', test: (x) => !!x.hcNew, pre: (x) => !!x.hcNew },
   { key: 'vsnewcoach', label: 'vs a first-year head coach', group: 'coach', test: (x) => !!x.vsNew, pre: (x) => !!x.vsNew },
-  { key: 'month', label: 'in month…', group: 'calendar', param: 'month', test: (x, p) => x.month === p, pre: (x, p) => x.month === p },
+  { key: 'month', label: 'in [month]', group: 'calendar', param: 'month', test: (x, p) => x.month === p, pre: (x, p) => x.month === p },
   { key: 'opener', label: 'season opener', group: 'calendar', test: (x) => !!x.opener, pre: (x) => !!x.opener },
-  { key: 'finale', label: 'reg-season finale', group: 'calendar', test: (x) => !!x.finale, pre: (x) => !!x.finale },
-  { key: 'postseason', label: 'bowls + playoff', group: 'calendar', x: true, test: (x) => x.post, pre: (x) => x.post },
+  { key: 'finale', label: 'regular-season finale', group: 'calendar', test: (x) => !!x.finale, pre: (x) => !!x.finale },
+  { key: 'postseason', label: 'bowl or playoff game', group: 'calendar', x: true, test: (x) => x.post, pre: (x) => x.post },
   { key: 'afterloss', label: 'after a loss', group: 'context', x: true, test: (x) => x.prevR === 'L', pre: null },
   { key: 'afterwin', label: 'after a win', group: 'context', x: true, test: (x) => x.prevR === 'W', pre: null },
   { key: 'afterbye', label: 'after a bye', group: 'context', test: (x) => x.rest != null && x.rest >= 13, pre: null },
-  { key: 'leadhalf', label: 'leading at half…', group: 'half', x: true, param: 'hmargin', test: (x, p) => x.h1 != null && x.h1 >= p, pre: null, floor: 2001 },
-  { key: 'trailhalf', label: 'trailing at half…', group: 'half', x: true, param: 'hmargin', test: (x, p) => x.h1 != null && x.h1 <= -p, pre: null, floor: 2001 },
+  { key: 'leadhalf', label: 'leading at half', group: 'half', x: true, param: 'hmargin', test: (x, p) => x.h1 != null && x.h1 >= p, pre: null, floor: 2001 },
+  { key: 'trailhalf', label: 'trailing at half', group: 'half', x: true, param: 'hmargin', test: (x, p) => x.h1 != null && x.h1 <= -p, pre: null, floor: 2001 },
   { key: 'wonpos', label: 'won the clock', group: 'possession', x: true, test: (x) => x.pos != null && x.pos > 0.5, pre: null, floor: 2004 },
   { key: 'dompos', label: 'dominated the clock (60%+)', group: 'possession', x: true, test: (x) => x.pos != null && x.pos >= 0.6, pre: null, floor: 2004 },
   { key: 'onescore', label: 'one-score game', group: 'shape', x: true, test: (x) => x.margin <= 8, pre: null },
@@ -234,7 +242,8 @@ export const CHIPS = [
   // all-time mean of 51.0) decided by fewer than 10 — 4.9% of games. A 73-0
   // blowout is not a shootout. struggle keeps the 1σ low bound (~15% tail).
   { key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', x: true, test: (x) => x.total >= 70 && x.margin < 10, pre: null },
-  { key: 'struggle', label: 'defensive struggle (≤ 33)', group: 'shape', x: true, test: (x) => x.total <= 33, pre: null },
+  { key: 'struggle', label: 'rock fight (≤ 33)', group: 'shape', x: true, test: (x) => x.total <= 33, pre: null },
+  { key: 'overtime', label: 'overtime game', group: 'shape', test: (x) => x.ot > 0, pre: null, floor: 2001 },
   { key: 'night', label: 'night game (6pm+)', group: 'kickoff', test: (x) => x.hh !== 31 && x.hh >= 18, pre: (x) => x.hh !== 31 && x.hh >= 18, floor: 2002 },
 ];
 export const chipByKey = new Map(CHIPS.map((c) => [c.key, c]));
@@ -294,6 +303,45 @@ export function board(active, dir, sort, todayEp) {
     const be = b.s.atEdge ? -1 : b.s.ender.ep;
     return b.s.len - a.s.len || ae - be;
   });
+  return rows;
+}
+
+/**
+ * The all-time board: every run of `dir` in every team's qualifying list,
+ * ended or not, so a team can appear more than once. Rows carry the same
+ * shape as board() plus `ended` (the game that broke the run, null when it is
+ * still active), `live`, and `key` (team + start, unique per run).
+ */
+export function allTimeBoard(active, dir, todayEp) {
+  const rows = [];
+  for (const ti of fbsNow) {
+    const ownState = teams[ti].st;
+    const filter = makeFilter(active, ownState);
+    const qual = gamesOf(ti).filter(filter);
+    if (!qual.length) continue;
+    const pre = makePre(active, ownState);
+    let i = 0;
+    while (i < qual.length) {
+      if (qual[i].r !== dir) { i++; continue; }
+      const startIdx = i;
+      while (i < qual.length && qual[i].r === dir) i++;
+      const endIdx = i - 1;
+      const live = endIdx === qual.length - 1;
+      const s = {
+        dir, len: endIdx - startIdx + 1, atEdge: startIdx === 0, last: qual[endIdx],
+        ender: startIdx > 0 ? qual[startIdx - 1] : null,
+        start: qual[startIdx], end: qual[endIdx], startIdx, endIdx,
+      };
+      let onTheLine = false;
+      let next = null;
+      if (live && pre) {
+        next = upcomingOf(ti).find((u) => u.ep >= todayEp && pre(u)) ?? null;
+        onTheLine = !!next && next.ep - todayEp <= 8;
+      }
+      rows.push({ ti, s, qual, next, onTheLine, ended: live ? null : qual[endIdx + 1], live, key: `${teams[ti].id}:${s.start.ep}` });
+    }
+  }
+  rows.sort((a, b) => b.s.len - a.s.len || b.s.end.ep - a.s.end.ep);
   return rows;
 }
 

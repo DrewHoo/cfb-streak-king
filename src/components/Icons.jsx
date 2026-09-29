@@ -1,0 +1,16 @@
+export const ShareIcon = () => (
+  <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12.5" cy="3" r="2" /><circle cx="3.5" cy="8" r="2" /><circle cx="12.5" cy="13" r="2" />
+    <path d="M5.3 7l5.4-3M5.3 9l5.4 3" />
+  </svg>
+);
+
+export const StarIcon = ({ filled }) => (
+  <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+    <path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z" />
+  </svg>
+);
+
+export const Caret = () => (
+  <svg viewBox="0 0 10 6" width="9" height="6" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M1 1l4 4 4-4" /></svg>
+);

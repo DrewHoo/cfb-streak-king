@@ -1,22 +1,968 @@
 {
-  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, and non-contiguous tenures. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment. 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts: Utah 2004 credits the Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure. Boise State 1996: Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, died 12/30; Mason interim from the opener. Georgia State 2016: Miles fired 2016-11-12 after a 2-8 start (ESPN), Lappano interim from 11/19. Tulane 2011-2012: Toledo resigned 2011-10-18 at 2-5, Hutson 0-6 interim from 10/22 — CFBD misfiles that stint under 2012, where Johnson coached all 12. WKU 2018: CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12. Louisville 2018: Petrino fired 2018-11-11 after game 10, Ward interim from 11/17.",
-  "utah|2004": [{ "coach": "Urban Meyer", "startOrd": 0 }],
+  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, and non-contiguous tenures. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment. 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts: Utah 2004 credits the Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure. Boise State 1996: Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, died 12/30; Mason interim from the opener. Georgia State 2016: Miles fired 2016-11-12 after a 2-8 start (ESPN), Lappano interim from 11/19. Tulane 2011-2012: Toledo resigned 2011-10-18 at 2-5, Hutson 0-6 interim from 10/22 \u2014 CFBD misfiles that stint under 2012, where Johnson coached all 12. WKU 2018: CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12. Louisville 2018: Petrino fired 2018-11-11 after game 10, Ward interim from 11/17. The 2026-09-28 batch: CFBD dropped one coach from each of these two-coach seasons and left a single row covering part of it; ordinals follow that row's record against the result sequence (Paterno 8-1 = games 1-9 of 2011, Bradley the last four; Sarkisian 3-2 = USC's first five of 2015, Helton from game 6; Hope 6-6 = Purdue's twelve regular-season games of 2012, Higgins the Heart of Dallas Bowl; and so on).",
+  "utah|2004": [
+    {
+      "coach": "Urban Meyer",
+      "startOrd": 0
+    }
+  ],
   "boise-state|1996": [
-    { "coach": "Tom Mason", "startOrd": 0, "interim": true },
-    { "coach": "Pokey Allen", "start": "1996-11-16" }
+    {
+      "coach": "Tom Mason",
+      "startOrd": 0,
+      "interim": true
+    },
+    {
+      "coach": "Pokey Allen",
+      "start": "1996-11-16"
+    }
   ],
   "georgia-state|2016": [
-    { "coach": "Trent Miles", "startOrd": 0 },
-    { "coach": "Tim Lappano", "start": "2016-11-19" }
+    {
+      "coach": "Trent Miles",
+      "startOrd": 0
+    },
+    {
+      "coach": "Tim Lappano",
+      "start": "2016-11-19"
+    }
   ],
   "tulane|2011": [
-    { "coach": "Bob Toledo", "startOrd": 0 },
-    { "coach": "Mark Hutson", "start": "2011-10-22" }
+    {
+      "coach": "Bob Toledo",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mark Hutson",
+      "start": "2011-10-22"
+    }
   ],
-  "tulane|2012": [{ "coach": "Curtis Johnson", "startOrd": 0 }],
-  "western-kentucky|2018": [{ "coach": "Mike Sanford Jr.", "startOrd": 0 }],
+  "tulane|2012": [
+    {
+      "coach": "Curtis Johnson",
+      "startOrd": 0
+    }
+  ],
+  "western-kentucky|2018": [
+    {
+      "coach": "Mike Sanford Jr.",
+      "startOrd": 0
+    }
+  ],
   "louisville|2018": [
-    { "coach": "Bobby Petrino", "startOrd": 0 },
-    { "coach": "Lorenzo Ward", "start": "2018-11-17" }
-  ]
+    {
+      "coach": "Bobby Petrino",
+      "startOrd": 0
+    },
+    {
+      "coach": "Lorenzo Ward",
+      "start": "2018-11-17"
+    }
+  ],
+  "toledo|2011": [
+    {
+      "coach": "Tim Beckman",
+      "startOrd": 0
+    },
+    {
+      "coach": "Matt Campbell",
+      "startOrd": 12,
+      "interim": true
+    }
+  ],
+  "texas-tech|1986": [
+    {
+      "coach": "David McWilliams",
+      "startOrd": 0
+    },
+    {
+      "coach": "Spike Dykes",
+      "startOrd": 11
+    }
+  ],
+  "southern-miss|1990": [
+    {
+      "coach": "Curley Hallman",
+      "startOrd": 0
+    },
+    {
+      "coach": "Jeff Bower",
+      "startOrd": 11
+    }
+  ],
+  "smu|2014": [
+    {
+      "coach": "June Jones",
+      "startOrd": 0
+    },
+    {
+      "coach": "Tom Mason",
+      "startOrd": 2,
+      "interim": true
+    }
+  ],
+  "florida|1984": [
+    {
+      "coach": "Charley Pell",
+      "startOrd": 0
+    },
+    {
+      "coach": "Galen Hall",
+      "startOrd": 3
+    }
+  ],
+  "georgia-tech|1994": [
+    {
+      "coach": "Bill Lewis",
+      "startOrd": 0
+    },
+    {
+      "coach": "George O'Leary",
+      "startOrd": 8
+    }
+  ],
+  "uconn|2013": [
+    {
+      "coach": "Paul Pasqualoni",
+      "startOrd": 0
+    },
+    {
+      "coach": "T.J. Weist",
+      "startOrd": 4,
+      "interim": true
+    }
+  ],
+  "kansas|2014": [
+    {
+      "coach": "Charlie Weis",
+      "startOrd": 0
+    },
+    {
+      "coach": "Clint Bowen",
+      "startOrd": 4,
+      "interim": true
+    }
+  ],
+  "florida-international|2016": [
+    {
+      "coach": "Ron Turner",
+      "startOrd": 0
+    },
+    {
+      "coach": "Ron Cooper",
+      "startOrd": 4,
+      "interim": true
+    }
+  ],
+  "arizona-state|1979": [
+    {
+      "coach": "Frank Kush",
+      "startOrd": 0
+    },
+    {
+      "coach": "Bob Owens",
+      "startOrd": 5,
+      "interim": true
+    }
+  ],
+  "arizona|2003": [
+    {
+      "coach": "John Mackovic",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mike Hankwitz",
+      "startOrd": 5,
+      "interim": true
+    }
+  ],
+  "north-texas|2015": [
+    {
+      "coach": "Dan McCarney",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mike Canales",
+      "startOrd": 5,
+      "interim": true
+    }
+  ],
+  "texas-am|1978": [
+    {
+      "coach": "Emory Bellard",
+      "startOrd": 0
+    },
+    {
+      "coach": "Tom Wilson",
+      "startOrd": 6
+    }
+  ],
+  "auburn|1998": [
+    {
+      "coach": "Terry Bowden",
+      "startOrd": 0
+    },
+    {
+      "coach": "Bill Oliver",
+      "startOrd": 6,
+      "interim": true
+    }
+  ],
+  "maryland|2015": [
+    {
+      "coach": "Randy Edsall",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mike Locksley",
+      "startOrd": 6,
+      "interim": true
+    }
+  ],
+  "miami-fl|2015": [
+    {
+      "coach": "Al Golden",
+      "startOrd": 0
+    },
+    {
+      "coach": "Larry Scott",
+      "startOrd": 7,
+      "interim": true
+    }
+  ],
+  "navy|2001": [
+    {
+      "coach": "Charlie Weatherbie",
+      "startOrd": 0
+    },
+    {
+      "coach": "Rick Lantz",
+      "startOrd": 7,
+      "interim": true
+    }
+  ],
+  "ucf|2015": [
+    {
+      "coach": "George O'Leary",
+      "startOrd": 0
+    },
+    {
+      "coach": "Danny Barrett",
+      "startOrd": 8,
+      "interim": true
+    }
+  ],
+  "colorado|2010": [
+    {
+      "coach": "Dan Hawkins",
+      "startOrd": 0
+    },
+    {
+      "coach": "Brian Cabral",
+      "startOrd": 9,
+      "interim": true
+    }
+  ],
+  "penn-state|2011": [
+    {
+      "coach": "Joe Paterno",
+      "startOrd": 0
+    },
+    {
+      "coach": "Tom Bradley",
+      "startOrd": 9,
+      "interim": true
+    }
+  ],
+  "usc|2015": [
+    {
+      "coach": "Steve Sarkisian",
+      "startOrd": 0
+    },
+    {
+      "coach": "Clay Helton",
+      "startOrd": 5
+    }
+  ],
+  "ucla|2011": [
+    {
+      "coach": "Rick Neuheisel",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mike Johnson",
+      "startOrd": 12,
+      "interim": true
+    }
+  ],
+  "purdue|2012": [
+    {
+      "coach": "Danny Hope",
+      "startOrd": 0
+    },
+    {
+      "coach": "Patrick Higgins",
+      "startOrd": 12,
+      "interim": true
+    }
+  ],
+  "_note_interim_bowls": "Interim-coached final games, researched 2026-09-28 against each season's Wikipedia page (infobox head_coach2 and the bowl section) or the bowl game's own page. CFBD credits the departing coach with the whole season; the bowl goes to the coach who stood on the sideline. Where that coach was already the permanent successor (Gutekunst 1985, Hackett 1989, Tepper 1991, Torbush 1997, Scelfo 1998, B. Williams 1999, Stewart 2007, Levine 2011) no interim flag is set, since his stint runs on into the next season. Louisiana-Monroe 2015 is not a bowl: Berry was fired after the 10th game (Arkansas State) and John Mumford coached the final three.",
+  "minnesota|1985": [
+    {
+      "coach": "Lou Holtz",
+      "startOrd": 0
+    },
+    {
+      "coach": "John Gutekunst",
+      "start": "1985-12-21"
+    }
+  ],
+  "pittsburgh|1989": [
+    {
+      "coach": "Mike Gottfried",
+      "startOrd": 0
+    },
+    {
+      "coach": "Paul Hackett",
+      "start": "1989-12-30"
+    }
+  ],
+  "illinois|1991": [
+    {
+      "coach": "John Mackovic",
+      "startOrd": 0
+    },
+    {
+      "coach": "Lou Tepper",
+      "start": "1991-12-31"
+    }
+  ],
+  "north-carolina|1997": [
+    {
+      "coach": "Mack Brown",
+      "startOrd": 0
+    },
+    {
+      "coach": "Carl Torbush",
+      "start": "1998-01-01"
+    }
+  ],
+  "tulane|1998": [
+    {
+      "coach": "Tommy Bowden",
+      "startOrd": 0
+    },
+    {
+      "coach": "Chris Scelfo",
+      "start": "1998-12-31"
+    }
+  ],
+  "michigan-state|1999": [
+    {
+      "coach": "Nick Saban",
+      "startOrd": 0
+    },
+    {
+      "coach": "Bobby Williams",
+      "start": "2000-01-01"
+    }
+  ],
+  "georgia-tech|2001": [
+    {
+      "coach": "George O'Leary",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mac McWhorter",
+      "start": "2001-12-27",
+      "interim": true
+    }
+  ],
+  "ucla|2002": [
+    {
+      "coach": "Bob Toledo",
+      "startOrd": 0
+    },
+    {
+      "coach": "Ed Kezirian",
+      "start": "2002-12-25",
+      "interim": true
+    }
+  ],
+  "notre-dame|2004": [
+    {
+      "coach": "Tyrone Willingham",
+      "startOrd": 0
+    },
+    {
+      "coach": "Kent Baer",
+      "start": "2004-12-28",
+      "interim": true
+    }
+  ],
+  "colorado|2005": [
+    {
+      "coach": "Gary Barnett",
+      "startOrd": 0
+    },
+    {
+      "coach": "Mike Hankwitz",
+      "start": "2005-12-27",
+      "interim": true
+    }
+  ],
+  "boston-college|2006": [
+    {
+      "coach": "Tom O'Brien",
+      "startOrd": 0
+    },
+    {
+      "coach": "Frank Spaziani",
+      "start": "2006-12-30",
+      "interim": true
+    }
+  ],
+  "central-michigan|2006": [
+    {
+      "coach": "Brian Kelly",
+      "startOrd": 0
+    },
+    {
+      "coach": "Jeff Quinn",
+      "start": "2006-12-26",
+      "interim": true
+    }
+  ],
+  "arkansas|2007": [
+    {
+      "coach": "Houston Nutt",
+      "startOrd": 0
+    },
+    {
+      "coach": "Reggie Herring",
+      "start": "2008-01-01",
+      "interim": true
+    }
+  ],
+  "houston|2007": [
+    {
+      "coach": "Art Briles",
+      "startOrd": 0
+    },
+    {
+      "coach": "Chris Thurmond",
+      "start": "2007-12-28",
+      "interim": true
+    }
+  ],
+  "west-virginia|2007": [
+    {
+      "coach": "Rich Rodriguez",
+      "startOrd": 0
+    },
+    {
+      "coach": "Bill Stewart",
+      "start": "2008-01-02"
+    }
+  ],
+  "central-michigan|2009": [
+    {
+      "coach": "Butch Jones",
+      "startOrd": 0
+    },
+    {
+      "coach": "Steve Stripling",
+      "start": "2010-01-06",
+      "interim": true
+    }
+  ],
+  "cincinnati|2009": [
+    {
+      "coach": "Brian Kelly",
+      "startOrd": 0
+    },
+    {
+      "coach": "Jeff Quinn",
+      "start": "2010-01-01",
+      "interim": true
+    }
+  ],
+  "texas-tech|2009": [
+    {
+      "coach": "Mike Leach",
+      "startOrd": 0
+    },
+    {
+      "coach": "Ruffin McNeill",
+      "start": "2010-01-02",
+      "interim": true
+    }
+  ],
+  "miami-fl|2010": [
+    {
+      "coach": "Randy Shannon",
+      "startOrd": 0
+    },
+    {
+      "coach": "Jeff Stoutland",
+      "start": "2010-12-31",
+      "interim": true
+    }
+  ],
+  "northern-illinois|2010": [
+    {
+      "coach": "Jerry Kill",
+      "startOrd": 0
+    },
+    {
+      "coach": "Tom Matukewicz",
+      "start": "2010-12-18",
+      "interim": true
+    }
+  ],
+  "houston|2011": [
+    {
+      "coach": "Kevin Sumlin",
+      "startOrd": 0
+    },
+    {
+      "coach": "Tony Levine",
+      "start": "2012-01-02"
+    }
+  ],
+  "illinois|2011": [
+    {
+      "coach": "Ron Zook",
+      "startOrd": 0
+    },
+    {
+      "coach": "Vic Koenning",
+      "start": "2011-12-31",
+      "interim": true
+    }
+  ],
+  "pittsburgh|2011": [
+    {
+      "coach": "Todd Graham",
+      "startOrd": 0
+    },
+    {
+      "coach": "Keith Patterson",
+      "start": "2012-01-07",
+      "interim": true
+    }
+  ],
+  "arkansas-state|2012": [
+    {
+      "coach": "Gus Malzahn",
+      "startOrd": 0
+    },
+    {
+      "coach": "John Thompson",
+      "start": "2013-01-06",
+      "interim": true
+    }
+  ],
+  "cincinnati|2012": [
+    {
+      "coach": "Butch Jones",
+      "startOrd": 0
+    },
+    {
+      "coach": "Steve Stripling",
+      "start": "2012-12-27",
+      "interim": true
+    }
+  ],
+  "nc-state|2012": [
+    {
+      "coach": "Tom O'Brien",
+      "startOrd": 0
+    },
+    {
+      "coach": "Dana Bible",
+      "start": "2012-12-31",
+      "interim": true
+    }
+  ],
+  "san-jose-state|2012": [
+    {
+      "coach": "Mike MacIntyre",
+      "startOrd": 0
+    },
+    {
+      "coach": "Kent Baer",
+      "start": "2012-12-27",
+      "interim": true
+    }
+  ],
+  "texas-tech|2012": [
+    {
+      "coach": "Tommy Tuberville",
+      "startOrd": 0
+    },
+    {
+      "coach": "Chris Thomsen",
+      "start": "2012-12-28",
+      "interim": true
+    }
+  ],
+  "western-kentucky|2012": [
+    {
+      "coach": "Willie Taggart",
+      "startOrd": 0
+    },
+    {
+      "coach": "Lance Guidry",
+      "start": "2012-12-26",
+      "interim": true
+    }
+  ],
+  "arkansas-state|2013": [
+    {
+      "coach": "Bryan Harsin",
+      "startOrd": 0
+    },
+    {
+      "coach": "John Thompson",
+      "start": "2014-01-05",
+      "interim": true
+    }
+  ],
+  "boise-state|2013": [
+    {
+      "coach": "Chris Petersen",
+      "startOrd": 0
+    },
+    {
+      "coach": "Bob Gregory",
+      "start": "2013-12-24",
+      "interim": true
+    }
+  ],
+  "colorado-state|2014": [
+    {
+      "coach": "Jim McElwain",
+      "startOrd": 0
+    },
+    {
+      "coach": "Dave Baldwin",
+      "start": "2014-12-20",
+      "interim": true
+    }
+  ],
+  "nebraska|2014": [
+    {
+      "coach": "Bo Pelini",
+      "startOrd": 0
+    },
+    {
+      "coach": "Barney Cotton",
+      "start": "2014-12-27",
+      "interim": true
+    }
+  ],
+  "pittsburgh|2014": [
+    {
+      "coach": "Paul Chryst",
+      "startOrd": 0
+    },
+    {
+      "coach": "Joe Rudolph",
+      "start": "2015-01-02",
+      "interim": true
+    }
+  ],
+  "bowling-green|2015": [
+    {
+      "coach": "Dino Babers",
+      "startOrd": 0
+    },
+    {
+      "coach": "Brian Ward",
+      "start": "2015-12-23",
+      "interim": true
+    }
+  ],
+  "georgia|2015": [
+    {
+      "coach": "Mark Richt",
+      "startOrd": 0
+    },
+    {
+      "coach": "Bryan McClendon",
+      "start": "2016-01-02",
+      "interim": true
+    }
+  ],
+  "memphis|2015": [
+    {
+      "coach": "Justin Fuente",
+      "startOrd": 0
+    },
+    {
+      "coach": "Darrell Dickey",
+      "start": "2015-12-30",
+      "interim": true
+    }
+  ],
+  "south-florida|2016": [
+    {
+      "coach": "Willie Taggart",
+      "startOrd": 0
+    },
+    {
+      "coach": "T.J. Weist",
+      "start": "2016-12-29",
+      "interim": true
+    }
+  ],
+  "temple|2016": [
+    {
+      "coach": "Matt Rhule",
+      "startOrd": 0
+    },
+    {
+      "coach": "Ed Foley",
+      "start": "2016-12-27",
+      "interim": true
+    }
+  ],
+  "western-kentucky|2016": [
+    {
+      "coach": "Jeff Brohm",
+      "startOrd": 0
+    },
+    {
+      "coach": "Nick Holt",
+      "start": "2016-12-20",
+      "interim": true
+    }
+  ],
+  "boston-college|2019": [
+    {
+      "coach": "Steve Addazio",
+      "startOrd": 0
+    },
+    {
+      "coach": "Rich Gunnell",
+      "start": "2020-01-02",
+      "interim": true
+    }
+  ],
+  "louisiana-monroe|2015": [
+    {
+      "coach": "Todd Berry",
+      "startOrd": 0
+    },
+    {
+      "coach": "John Mumford",
+      "start": "2015-11-19",
+      "interim": true
+    }
+  ],
+  "old-dominion|2013": [
+    {
+      "coach": "Bobby Wilder",
+      "startOrd": 0
+    }
+  ],
+  "colgate|1978": [
+    {
+      "coach": "Fred Dunlap",
+      "startOrd": 0
+    }
+  ],
+  "colgate|1979": [
+    {
+      "coach": "Fred Dunlap",
+      "startOrd": 0
+    }
+  ],
+  "colgate|1980": [
+    {
+      "coach": "Fred Dunlap",
+      "startOrd": 0
+    }
+  ],
+  "colgate|1981": [
+    {
+      "coach": "Fred Dunlap",
+      "startOrd": 0
+    }
+  ],
+  "florida-am|2004": [
+    {
+      "coach": "Billy Joe",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2000": [
+    {
+      "coach": "Tom Cable",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2001": [
+    {
+      "coach": "Tom Cable",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2002": [
+    {
+      "coach": "Tom Cable",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2003": [
+    {
+      "coach": "Tom Cable",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2007": [
+    {
+      "coach": "Robb Akey",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2008": [
+    {
+      "coach": "Robb Akey",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2009": [
+    {
+      "coach": "Robb Akey",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2010": [
+    {
+      "coach": "Robb Akey",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2011": [
+    {
+      "coach": "Robb Akey",
+      "startOrd": 0
+    }
+  ],
+  "long-beach-state|1987": [
+    {
+      "coach": "Larry Reisbig",
+      "startOrd": 0
+    }
+  ],
+  "long-beach-state|1988": [
+    {
+      "coach": "Larry Reisbig",
+      "startOrd": 0
+    }
+  ],
+  "long-beach-state|1989": [
+    {
+      "coach": "Larry Reisbig",
+      "startOrd": 0
+    }
+  ],
+  "long-beach-state|1990": [
+    {
+      "coach": "George Allen",
+      "startOrd": 0
+    }
+  ],
+  "long-beach-state|1991": [
+    {
+      "coach": "Willie Brown",
+      "startOrd": 0
+    }
+  ],
+  "pacific|1983": [
+    {
+      "coach": "Bob Cope",
+      "startOrd": 0
+    }
+  ],
+  "pacific|1984": [
+    {
+      "coach": "Bob Cope",
+      "startOrd": 0
+    }
+  ],
+  "pacific|1985": [
+    {
+      "coach": "Bob Cope",
+      "startOrd": 0
+    }
+  ],
+  "pacific|1986": [
+    {
+      "coach": "Bob Cope",
+      "startOrd": 0
+    }
+  ],
+  "pacific|1987": [
+    {
+      "coach": "Bob Cope",
+      "startOrd": 0
+    }
+  ],
+  "pacific|1988": [
+    {
+      "coach": "Bob Cope",
+      "startOrd": 0
+    }
+  ],
+  "richmond|1978": [
+    {
+      "coach": "Jim Tait",
+      "startOrd": 0
+    }
+  ],
+  "richmond|1979": [
+    {
+      "coach": "Jim Tait",
+      "startOrd": 0
+    }
+  ],
+  "richmond|1980": [
+    {
+      "coach": "Dal Shealy",
+      "startOrd": 0
+    }
+  ],
+  "richmond|1981": [
+    {
+      "coach": "Dal Shealy",
+      "startOrd": 0
+    }
+  ],
+  "richmond|1982": [
+    {
+      "coach": "Dal Shealy",
+      "startOrd": 0
+    }
+  ],
+  "richmond|1983": [
+    {
+      "coach": "Dal Shealy",
+      "startOrd": 0
+    }
+  ],
+  "idaho|2012": [
+    {
+      "coach": "Robb Akey",
+      "startOrd": 0
+    },
+    {
+      "coach": "Jason Gesser",
+      "start": "2012-11-03",
+      "interim": true
+    }
+  ],
+  "_note_norows": "Seasons CFBD has no coach row for at all (Idaho 2000-03 and 2007-12, Pacific 1983-88, Long Beach State 1987-91, Richmond 1978-83, Colgate 1978-81, Florida A&M 2004, Old Dominion 2013), from the teams' Wikipedia season and coach-list pages; Idaho 2012 is Akey fired 2012-10-21 at 1-7, Gesser interim from 11/3."
 }

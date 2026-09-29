@@ -13,11 +13,15 @@ import { ROOT, ensureDir } from '../lib/util.mjs';
 import { canon, slug, reportUnmatched } from '../lib/names.mjs';
 
 const RAW = path.join(ROOT, 'data', 'raw', 'repole');
+const errata = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ref', 'repole-errata.json'), 'utf8')).rows;
+const errataBy = new Map(errata.map((e) => [`${e.date}|${e.visitor}|${e.home}`, e]));
+const errataHit = new Set();
 const altHome = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'data', 'ref', 'alt-home.json'), 'utf8'),
 ).pairs;
 
 const games = [];
+let unscored = 0;
 const cityPairs = new Map(); // "team|city" -> count, for the review report
 const infoOddities = new Map();
 
@@ -43,7 +47,12 @@ function parseFile(file, season, seasonType) {
         teams.push({
           tnum: Number(tm[1]),
           name: /<name>([^<]*)<\/name>/.exec(t)?.[1]?.trim(),
-          score: Number(/<score>([^<]*)<\/score>/.exec(t)?.[1]),
+          // a blank <score> </score> (Repole's 2011 file stops mid-bowl-season)
+          // is null, never 0: Number(' ') is 0
+          score: (() => {
+            const v = /<score>([^<]*)<\/score>/.exec(t)?.[1];
+            return v === undefined || v.trim() === '' ? null : Number(v);
+          })(),
           site: /<site>([^<]*)<\/site>/.exec(t)?.[1] ?? null,
           line: (() => {
             const l = /<line>([^<]*)<\/line>/.exec(t)?.[1];
@@ -53,8 +62,20 @@ function parseFile(file, season, seasonType) {
       }
       if (teams.length !== 2) continue;
       teams.sort((a, b) => a.tnum - b.tnum);
-      const [v, h] = teams;
-      if (!v.name || !h.name || !Number.isFinite(v.score) || !Number.isFinite(h.score)) continue;
+      let [v, h] = teams;
+      // data/ref/repole-errata.json: audited fixes to the file itself
+      const fix = errataBy.get(`${date}|${v.name}|${h.name}`);
+      if (fix) {
+        errataHit.add(`${date}|${v.name}|${h.name}`);
+        if (fix.score) [v.score, h.score] = fix.score.split('-').map(Number);
+        if (fix.homeSpread != null) { h.line = fix.homeSpread; v.line = -fix.homeSpread; }
+        if (fix.swapHome) [v, h] = [h, v];
+      }
+      const gameDate = fix?.newDate ?? date;
+      if (!v.name || !h.name) continue;
+      if ([v.score, h.score].some((x) => x !== null && !Number.isFinite(x))) continue;
+      // one blank score blanks both; build-payload fills the game from Howell / cfbfastR
+      if (v.score === null || h.score === null) { v.score = null; h.score = null; unscored++; }
 
       // Site sanity: when site tags exist they must agree with tnum order.
       if (v.site && v.site !== 'V') infoOddities.set(`site mismatch V ${season} ${date} ${v.name}`, 1);
@@ -82,7 +103,7 @@ function parseFile(file, season, seasonType) {
       games.push({
         season,
         seasonType,
-        date,
+        date: gameDate,
         away: teamId(v.name),
         home,
         awayRaw: v.name,
@@ -108,6 +129,10 @@ for (let season = 1978; season <= 2013; season++) {
   if (fs.existsSync(bowl)) parseFile(bowl, season, 'postseason');
 }
 
+const stale = errata.filter((e) => !errataHit.has(`${e.date}|${e.visitor}|${e.home}`));
+if (stale.length) throw new Error(`repole-errata: ${stale.length} entries matched no row: ${stale.map((e) => `${e.date} ${e.visitor}@${e.home}`).join(', ')}`);
+console.log(`repole-errata: ${errataHit.size} corrections applied`);
+
 games.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
 ensureDir(path.join(ROOT, 'data', 'build'));
@@ -118,7 +143,7 @@ fs.writeFileSync(
 
 const lined = games.filter((g) => g.homeSpread !== null).length;
 const neutral = games.filter((g) => g.neutral).length;
-console.log(`spine 1978-2013: ${games.length} games, ${lined} lined, ${neutral} neutral`);
+console.log(`spine 1978-2013: ${games.length} games, ${lined} lined, ${neutral} neutral, ${unscored} with blank scores (filled downstream)`);
 
 console.log('\n(home team, city) pairs by count — review any HOME-looking site into alt-home.json:');
 const pairs = [...cityPairs.entries()].sort((a, b) => b[1] - a[1]);

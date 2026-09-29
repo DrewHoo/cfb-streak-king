@@ -1,5 +1,6 @@
 // CFBD box pulls -> data/build/boxes.json rows
-//   { home, away, ep, h1h, h1a, tph, tpa }
+//   { home, away, ep, h1h, h1a, tph, tpa, otp }
+// otp: overtime periods = line-score entries beyond four (0 = regulation).
 // h1h/h1a: halftime points (sum of the first two line scores). tph/tpa:
 // possession seconds. Missing fields are simply absent; build-payload writes
 // -1 sentinels. Joined to the spine by canon ids + epoch day (±1 for TZ).
@@ -29,6 +30,7 @@ for (const f of fs.readdirSync(GAMES)) {
       row.h1a = (g.awayLineScores[0] ?? 0) + (g.awayLineScores[1] ?? 0);
       half++;
     }
+    if (g.homeLineScores?.length >= 4) row.otp = g.homeLineScores.length - 4;
     byId.set(g.id, row);
   }
 }
@@ -45,6 +47,7 @@ if (fs.existsSync(postF)) {
       row.h1a = (g.awayLineScores[0] ?? 0) + (g.awayLineScores[1] ?? 0);
       half++;
     }
+    if (g.homeLineScores?.length >= 4) row.otp = g.homeLineScores.length - 4;
     byId.set(g.id, row);
   }
 }
@@ -65,7 +68,7 @@ for (const f of fs.existsSync(STATS) ? fs.readdirSync(STATS) : []) {
   }
 }
 
-const rows = [...byId.values()].filter((r) => r.h1h != null || r.tph != null);
+const rows = [...byId.values()].filter((r) => r.h1h != null || r.tph != null || r.otp != null);
 ensureDir(path.join(ROOT, 'data', 'build'));
 fs.writeFileSync(path.join(ROOT, 'data', 'build', 'boxes.json'), JSON.stringify(rows));
 const withHalf = rows.filter((r) => r.h1h != null).length;

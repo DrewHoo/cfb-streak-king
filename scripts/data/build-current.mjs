@@ -84,7 +84,7 @@ const pollTimeline = polls.map((p) => [epochDay(p.date), new Map(p.ranks.map((r)
 function rankOf(id, ep) {
   let cur = null;
   for (const [d, m] of pollTimeline) {
-    if (d > ep) break;
+    if (d >= ep) break; // same-day poll is post-game
     cur = m;
   }
   return cur?.get(id) ?? 0;
@@ -198,6 +198,7 @@ for (const g of gamesRaw26 ?? []) {
     row.h1h = (g.homeLineScores[0] ?? 0) + (g.homeLineScores[1] ?? 0);
     row.h1a = (g.awayLineScores[0] ?? 0) + (g.awayLineScores[1] ?? 0);
   }
+  if (g.homeLineScores?.length >= 4) row.otp = g.homeLineScores.length - 4;
   box26ById.set(g.id, row);
   const ep = epochDay(String(g.startDate).slice(0, 10));
   for (const d of [ep - 1, ep, ep + 1]) box26.set(`${h}|${a}|${d}`, row);
@@ -270,6 +271,7 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     cols.af.push(bx?.h1a ?? -1);
     cols.hp.push(bx?.tph ?? -1);
     cols.ap.push(bx?.tpa ?? -1);
+    cols.ot.push(bx?.h1h != null && bx.otp != null ? bx.otp : -1);
     added++;
   } else if (!r.completed) {
     upcoming.vs.push(r.neutral ? 0 : stateIdxOf(teamInfo[r.home]?.state));
