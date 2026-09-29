@@ -8,6 +8,9 @@ import pkg from './package.json' with { type: 'json' }
 export default defineConfig({
   base: `/${pkg.name}/`,
   plugins: [react()],
+  // the suite walks the real 63k-game payload; CI runners are a few times
+  // slower than a laptop, so the 5s default is too tight
+  test: { testTimeout: 30000 },
   // the data in its own chunk: a code-only deploy leaves the cached payload
   // alone, and the payload refresh leaves the cached code alone
   build: {
