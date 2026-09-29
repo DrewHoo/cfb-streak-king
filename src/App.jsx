@@ -321,9 +321,9 @@ export default function App({ initial } = {}) {
             Rock for Arkansas, and similar) counts as a home game.
           </li>
           <li>
-            In a team's expanded view, “leads” lists every definition under which that team holds the longest
-            active streak outright, counting only definitions where at least 10 teams have a streak of 4 or
-            more games. The {NP_COUNT} plain words alone make {DEF_COUNT.toLocaleString('en-US')} possible definitions,{' '}
+            A team's page lists every streak it is king of: each definition under which that team alone holds
+            the longest active or all-time streak, at least 4 games long, among at least 10 teams with a streak
+            under it. The {NP_COUNT} plain words alone make {DEF_COUNT.toLocaleString('en-US')} possible definitions,{' '}
             {(DEF_COUNT * 2).toLocaleString('en-US')} counting winning and losing separately; the words that take a choice
             (a state, a conference, an opponent, a month) push that past 24 million.
           </li>
