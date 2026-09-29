@@ -56,6 +56,11 @@ describe('covering', () => {
     expect(activeRun([g('L', 'P'), g('L', 'W'), g('W', 'W')], 'C')).toMatchObject({ len: 2, atEdge: false });
     expect(activeRun([g('W', 'W'), g('W', 'P')], 'C')).toBeNull();
   });
+  test('not covering counts misses whatever the result; a push ends it', () => {
+    expect(activeRun([g('W', 'P'), g('W', 'L'), g('L', 'L')], 'N')).toMatchObject({ len: 2, atEdge: false });
+    expect(activeRun([g('L', 'L'), g('L', 'P')], 'N')).toBeNull();
+    expect(decided('N', g('L', null))).toBe(false);
+  });
   test('only lined games take part', () => {
     expect(decided('C', g('W', null))).toBe(false);
     expect(decided('W', g('W', null))).toBe(true);

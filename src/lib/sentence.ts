@@ -167,6 +167,7 @@ const VERBS: Record<Dir, [live: string, ended: string]> = {
   L: ['has lost', 'lost'],
   U: ['is undefeated in', 'went undefeated in'],
   C: ['has covered', 'covered'],
+  N: ['has failed to cover', 'failed to cover'],
 };
 const span = (y0: number, y1: number) => (y0 === y1 ? ` in ${y0}` : `, ${y0}–${y1}`);
 

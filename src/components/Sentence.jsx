@@ -145,6 +145,7 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, startFr
         <Item on={dir === 'L'} onSelect={() => on.dir('L')}>losing</Item>
         <Item on={dir === 'U'} onSelect={() => on.dir('U')}>undefeated</Item>
         <Item on={dir === 'C'} onSelect={() => on.dir('C')}>covering</Item>
+        <Item on={dir === 'N'} onSelect={() => on.dir('N')}>not covering</Item>
       </Word>
       <span>streaks</span>
       {active.length === 0 && <span className="allgames">in all games</span>}

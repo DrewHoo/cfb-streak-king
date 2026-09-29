@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { teams, firstSeason } from '../lib/model.ts';
 import { chipByKey } from '../lib/chips.ts';
-import { streakGames } from '../lib/streaks.ts';
+import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
 import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText } from '../lib/format.ts';
@@ -77,7 +77,7 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
     <div className="leads">
       <p className="leads-lead">
         {name} is the King of{' '}
-        <b className={crownsDir === 'L' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
+        <b className={crownsDir === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
         <select className="leads-sel" value={crownsScope} onChange={(e) => onCrownsScope(e.target.value)} aria-label="Active or all-time">
           <option value="active">Active</option>
           <option value="all">All-time</option>
@@ -87,6 +87,7 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
           <option value="L">Losing</option>
           <option value="U">Undefeated</option>
           <option value="C">Covering</option>
+          <option value="N">Not covering</option>
         </select>{' '}
         Streaks
       </p>
@@ -102,7 +103,7 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
         return (
           <div className={'lead' + (here ? ' here' : '')} key={cr.dir + cr.chips.join()}>
             <button className="lead-apply" onClick={() => onApply(cr)}>
-              <span className={'lead-len' + (cr.dir === 'L' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
+              <span className={'lead-len' + (cr.dir === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
               <span className="lead-txt">{cr.chips.length ? cr.chips.map((k) => chipByKey.get(k).label).join(' · ') : 'all games'}</span>
               <span className="lead-meta">longest of {cr.field}{span ? ` · ${span}` : ''}{here ? ' · shown above' : ''}</span>
             </button>
@@ -139,13 +140,13 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crow
           {row.onTheLine && row.next && (
             <span className="otl">could be broken {dayOf(row.next.ep)} {siteWord(row.next)} {row.next.oppRank > 0 ? `#${row.next.oppRank} ` : ''}{teams[row.next.oppIdx]?.name}</span>
           )}
-          {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}${dir === 'C' && row.ended.sp != null ? ` (${spreadText(row.ended.sp)})` : ''}`}
+          {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}${againstSpread(dir) && row.ended.sp != null ? ` (${spreadText(row.ended.sp)})` : ''}`}
           {row.s.atEdge && !row.onTheLine && row.live !== false && (edge?.joined
             ? `${count(row.s)} means the streak runs back to ${t.name}'s first ${edge.year < 1978 ? 'major-college' : 'FBS'} season, ${edge.year}`
             : `${count(row.s)} means the streak runs past the start of the data`)}
         </p>
       )}
-      {row && <Ledger row={row} edge={edge} cover={dir === 'C'} />}
+      {row && <Ledger row={row} edge={edge} cover={againstSpread(dir)} />}
       <Crowns
         ti={ti} crowns={crowns} crownsScope={crownsScope} crownsDir={crownsDir} onCrownsScope={onCrownsScope} onCrownsDir={onCrownsDir}
         dir={dir} scope={scope} active={active} onApply={onApplyCrown} onShare={onShareCrown}

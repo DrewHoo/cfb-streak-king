@@ -1,5 +1,5 @@
 // Mine "streaks this team is king of": every ≤4-chip subset of the
-// parameterless catalog (exclusivity honored) × the three outcomes, evaluated
+// parameterless catalog (exclusivity honored) × the five outcomes, evaluated
 // over packed per-chip bitmasks. The whole space is 44,799 definitions (the
 // empty one included) and mines in a second or two, lazily in the client.
 //
@@ -15,7 +15,7 @@ import { PLAIN_CHIPS, conflicts, qualifies } from './chips.ts';
 import { fbsNow, gamesOf } from './model.ts';
 import { OUTCOMES } from './streaks.ts';
 
-interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; lined: Uint32Array; covered: Uint32Array }
+interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array }
 // live: no later qualifying game broke the run
 interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
 type Runs = Partial<Record<Dir, Run>>;
@@ -38,14 +38,17 @@ function buildData(): TeamData[] {
       for (let i = 0; i < n; i++) if (qualifies(c, gs[i])) m[i >> 5] |= 1 << (i & 31);
       return m;
     });
-    // covering streaks run over lined games only; covered = beat the spread
+    // spread streaks run over lined games only; covered = beat the spread,
+    // missed = failed to (a push is neither)
     const lined = new Uint32Array(words);
     const covered = new Uint32Array(words);
+    const missed = new Uint32Array(words);
     for (let i = 0; i < n; i++) {
       if (gs[i].cover != null) lined[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover === 'W') covered[i >> 5] |= 1 << (i & 31);
+      if (gs[i].cover === 'L') missed[i >> 5] |= 1 << (i & 31);
     }
-    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), lined, covered };
+    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), lined, covered, missed };
   });
 }
 
@@ -117,9 +120,9 @@ function walkLongest(td: TeamData, q: Uint32Array): Runs {
   return best;
 }
 
-// The covering run over the masked sequence's lined games: the trailing one
-// for 'active', the longest (earliest on a tie) for 'all'.
-function coverWalk(td: TeamData, q: Uint32Array, scope: Scope): Run | null {
+// The run of `hit` games (covered or missed) over the masked sequence's lined
+// games: the trailing one for 'active', the longest (latest on a tie) for 'all'.
+function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope: Scope): Run | null {
   const bit = (m: Uint32Array, i: number) => (m[i >> 5] & (1 << (i & 31))) !== 0;
   const idx: number[] = [];
   for (let w = 0; w < td.words; w++) {
@@ -130,14 +133,14 @@ function coverWalk(td: TeamData, q: Uint32Array, scope: Scope): Run | null {
   if (!idx.length) return null;
   if (scope === 'active') {
     let k = idx.length - 1;
-    while (k >= 0 && bit(td.covered, idx[k])) k--;
+    while (k >= 0 && bit(hit, idx[k])) k--;
     const len = idx.length - 1 - k;
     return len ? { len, atEdge: k < 0, lastIdx: idx[idx.length - 1], startIdx: idx[k + 1], live: true } : null;
   }
   let best: Run | null = null;
   let run = 0;
   for (let k = 0; k < idx.length; k++) {
-    if (bit(td.covered, idx[k])) {
+    if (bit(hit, idx[k])) {
       run++;
       if (!best || run >= best.len) best = { len: run, atEdge: k + 1 === run, lastIdx: idx[k], startIdx: idx[k - run + 1], live: k === idx.length - 1 };
     } else run = 0;
@@ -180,8 +183,10 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
         }
       }
       res[t] = walk(td, qb);
-      const c = coverWalk(td, qb, scope);
+      const c = spreadWalk(td, qb, td.covered, scope);
       if (c) res[t].C = c;
+      const nc = spreadWalk(td, qb, td.missed, scope);
+      if (nc) res[t].N = nc;
     }
     for (const dir of OUTCOMES) {
       let best = 0;

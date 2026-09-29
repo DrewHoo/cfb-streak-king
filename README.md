@@ -2,7 +2,8 @@
 
 Design a streak definition out of up to four constraints (on the road, vs
 ranked, as an underdog, in November) and rank every current FBS team by its
-longest all-time or active winning, losing, undefeated or covering streak under it,
+longest all-time or active winning, losing, undefeated, covering or not-covering
+streak under it,
 1936 (the first AP poll) to the present.
 Each team also gets a page listing every streak it alone is king of. Live at
 [drewhoover.com/cfb-streak-king](https://drewhoover.com/cfb-streak-king/).
@@ -74,7 +75,8 @@ reported, never dropped.
 - A covering streak counts games where the team beat the closing spread
   (margin plus the team's line above zero). A push ends it. A game without a
   line is invisible to it, as it is to the betting chips, so covering
-  streaks start no earlier than 1978.
+  streaks start no earlier than 1978. A not-covering streak counts the
+  games where the team failed to cover, under the same rules.
 - A team's list starts at its latest FBS entry (`windowStartOf`). FCS-era games
   stay in the payload for the FBS opponent but never in the team's own
   list, so Missouri State's streaks begin in 2025, not in its FCS years.

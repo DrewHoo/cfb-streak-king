@@ -6,7 +6,7 @@
 import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, UpcomingRow } from './types.ts';
 import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
-import { activeRun, runsOf, decided } from './streaks.ts';
+import { activeRun, runsOf, decided, againstSpread } from './streaks.ts';
 
 const DAY_MS = 86400000;
 const monthOf = (ep: number) => {
@@ -277,14 +277,14 @@ export function createModel(P: Payload) {
   /**
    * Where a streak that reaches the start of a team's list actually stops:
    * the latest data floor among the definition's chips (kickoff times from
-   * 2002, say) or the outcome's (a covering streak needs lines, from 1978),
+   * 2002, say) or the outcome's (a spread streak needs lines, from 1978),
    * else the team's first FBS season, else the first season in the data.
    * `what` names the missing data; `joined` says it's the team's FBS entry.
    */
   function edgeFor(active: ChipRef[], dir: Dir = 'W') {
     let floor = firstSeason;
     let what: string | null = null;
-    if (dir === 'C' && LINES_FROM > floor) { floor = LINES_FROM; what = 'closing-line'; }
+    if (againstSpread(dir) && LINES_FROM > floor) { floor = LINES_FROM; what = 'closing-line'; }
     for (const a of active) {
       const f = chipByKey.get(a.key)?.floor;
       if (f && f.season > floor) { floor = f.season; what = f.what; }

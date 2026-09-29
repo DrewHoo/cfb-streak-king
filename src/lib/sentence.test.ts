@@ -140,6 +140,7 @@ describe('claim', () => {
     expect(claim(live, chips('home'), 'U')).toMatch(/ is undefeated in \d+\+? straight games at home(, since [A-Z][a-z]{2} \d{4})?\.$/);
     expect(noClaim(idx('alabama'), [], 'U')).toBe('Alabama has no active undefeated streak in games.');
     expect(noClaim(idx('alabama'), [], 'C')).toBe('Alabama has no active covering streak in games.');
+    expect(noClaim(idx('alabama'), [], 'N')).toBe('Alabama has no active not covering streak in games.');
   });
 
   test('a crown reads like a claim', () => {
