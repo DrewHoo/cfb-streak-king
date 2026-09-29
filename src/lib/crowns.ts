@@ -76,13 +76,13 @@ function walkActive(td: TeamData, q: Uint32Array): Runs {
   return out;
 }
 
-// the longest run of each outcome anywhere in the masked sequence; the
-// earliest wins a tie
+// the longest run of each outcome anywhere in the masked sequence; on a tie
+// the later run wins, as it sorts first on the all-time board
 function walkLongest(td: TeamData, q: Uint32Array): Runs {
   const best: Runs = {};
   const keep = (o: Dir, len: number, startIdx: number, lastIdx: number) => {
     const b = best[o];
-    if (len && (!b || len > b.len)) best[o] = { len, atEdge: false, lastIdx, startIdx, live: false };
+    if (len && (!b || len >= b.len)) best[o] = { len, atEdge: false, lastIdx, startIdx, live: false };
   };
   let dir: Result | null = null;
   let len = 0, startIdx = -1;
@@ -139,7 +139,7 @@ function coverWalk(td: TeamData, q: Uint32Array, scope: Scope): Run | null {
   for (let k = 0; k < idx.length; k++) {
     if (bit(td.covered, idx[k])) {
       run++;
-      if (!best || run > best.len) best = { len: run, atEdge: k + 1 === run, lastIdx: idx[k], startIdx: idx[k - run + 1], live: k === idx.length - 1 };
+      if (!best || run >= best.len) best = { len: run, atEdge: k + 1 === run, lastIdx: idx[k], startIdx: idx[k - run + 1], live: k === idx.length - 1 };
     } else run = 0;
   }
   return best;
