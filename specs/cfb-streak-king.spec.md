@@ -34,6 +34,10 @@ These definitions are the contract everything else builds on.
   constraint before kickoff times exist.
 - Teams shown: the current FBS membership (~136). Opponents can be anyone, including
   FCS teams, and those games count. FCS teams just don't get leaderboard rows.
+- **A team's own list starts at its latest FBS entry** (added 2026-09-28). Games it
+  played while FCS stay in the payload for the FBS opponent but never count toward its
+  own streaks, so a program that joined in 2025 cannot carry a 38-game FCS losing streak
+  onto the board. The panel says when a streak runs back to the team's first FBS season.
 
 ## Constraint catalog (v1)
 
@@ -197,7 +201,8 @@ streaks) so crawlers see a real leaderboard.
   handling, unlined-game gaps), and straight-up W/L ships the product.
 - Unbeaten mode (ties don't break).
 - FCS/D-II boards.
-- Historical (non-current) streak leaderboards. The premise is current streaks only.
+- ~~Historical (non-current) streak leaderboards.~~ Shipped 2026-09-28 as the all-time
+  scope, now the default; see Amendments.
 
 ## Open questions
 
@@ -233,3 +238,63 @@ streaks render as a separate "curses" list. Deep link: ?view=crowns&team=id.
 Future axis noted: coach-carried streaks across schools (DeBoer 4-0 vs top-10
 on the road spans Washington + Alabama) need the coach as streak-holder, not
 the team; out of scope for the team boards.
+
+## Amendments (2026-09-28)
+
+What changed after the sections above were written. The README's Rulings and Pipeline
+sections carry the data details; this is the product and method record.
+
+- **Two scopes.** Every definition has an all-time board (each team's longest run anywhere
+  in the window, ended or live) and an active board. A bare URL opens all-time winning
+  streaks vs unranked opponents, the board Alabama's 100 tops; `scope=active` switches.
+  Presets always switch to active, because every preset is written as an active claim. In
+  the all-time grid an ended run shows its breaker at the top of the column and a live run
+  keeps that slot, filled by the team's next game in color with its date, so columns line
+  up. The social images mirror the same rule.
+- **Team pages replace the crowns tab.** The open team lives at `/team/<id>/`, prerendered
+  with its own OG image. The panel shows the claim sentence, the ledger, and "{Team} is the
+  King of N [Active | All-time] [Winning | Losing] Streaks" with the two words as selects.
+  All-time crowns mine on demand (`mineAll('all')` in `src/lib/crowns.js`); each row applies
+  the definition or shares it. Crowns carry scope, start and end season, and whether the run
+  is live. Deep link: `/team/<id>/?dir=L`.
+- **Starred streaks** left the constraint picker: a right-margin sidebar at 1440px and up,
+  a block above "What to read next" below that.
+- **Board growth.** "Show more" adds one full row of columns per click on desktop (whole-row
+  boundary from the rail width) and 40 on mobile; the label reads "N of M streaks" in
+  all-time mode and "N of M teams" in active mode. The limit resets on any definition,
+  scope or direction change.
+- **Sentence grammar.** Chips read "in conference games" and "in non-conference games";
+  state chips use the state name; a trailing context clause follows a comma; length 1 takes
+  a singular noun; overtime is its own kind.
+- **Overtime chip.** From CFBD line scores (periods beyond four), floor 2001. FBS overtime
+  began in 1996, but no source here marks 1996–2000 overtime games, so they cannot qualify.
+- **Data audit.** Every 1978–2013 game was compared three ways (Repole, Howell, cfbfastR,
+  and CFBD from 2001). Findings: 58 wrong Repole scores, 6 blank bowl scores, 9 reversed
+  home teams, 4 wrong lines (each confirmed against every book cfbfastR lists), 2 misdated
+  games, 38 games Repole never listed, and 28 neutral-site disagreements settled through
+  alt-home.json (renovation-year venues ruled home) and by distrusting CFBD's pre-2005
+  neutral flags. CFBD's own scores for UNC at Oklahoma 2001 and Cal at Kansas State 2003
+  are wrong. Ranks were clean except the same-day-poll rule (10 games). Coaches: 22
+  seasons where CFBD drops a fired coach's row, 42 bowl-only interims, and 33 seasons with
+  no CFBD rows at all, every one ruled in `data/ref/coach-overrides.json` with a source.
+  The corrections are public at github.com/DrewHoo/repole-errata (CC0).
+- **FCS methodology.** A loss to an FCS team breaks a streak and a win over one counts,
+  same as any other opponent; a "vs FBS opponents" chip is the right place to change that,
+  not the default. A team's own list starts at its latest FBS entry (Streak semantics).
+- **Analytics events.** definition, preset, team open, show more, share, save streak,
+  unsave streak, apply saved streak, lead apply, leads scope, leads dir, week filter.
+- **Social previews.** `gen-og.mjs` draws the real default board and 136 team cards from
+  the payload with opentype.js glyph outlines. Crawlers fetch the exact URL's HTML with no
+  JS and GitHub Pages ignores query strings, so a shared definition URL shows the root
+  image. Options, in order of fit: a Cloudflare worker in front of Pages that rewrites
+  `<head>` for query-string URLs and renders the PNG on a second route (needs the domain's
+  DNS on Cloudflare; Drew can move it); a client-side share card through
+  `navigator.share({ files })`; prerendered paths per preset.
+- **sportsdataverse.** `sdv-reference-data` (Sept 2026) has conference, division and
+  subdivision membership per team per season for 1869–2026 plus every source's aliases.
+  Worth diffing against the Howell-derived membership and canon table, and contributing
+  the Repole and Howell spellings as aliases. Nothing there covers results before 2002.
+
+Backlog after this pass: the Cloudflare worker; the "vs FBS opponents" chip; a loss cue on
+dark cells (deferred by Drew); coach-carried streaks across schools; sharing the
+corrections doc publicly so the README link works for others.
