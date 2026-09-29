@@ -3,10 +3,10 @@
 // how a chip reads as a word in the definition sentence.
 
 import type { ChipRef, Dir } from './types.ts';
-import { P, teams, confs } from './model.ts';
+import { P, teams, confs, activeBoard } from './model.ts';
 import { chipByKey, conflicts } from './chips.ts';
 import type { Chip, ParamKind } from './chips.ts';
-import { stateName } from './format.ts';
+import { count, stateName } from './format.ts';
 
 // the definition a bare URL opens on: all-time winning streaks vs unranked
 // opponents, the board Alabama's 100 tops
@@ -27,6 +27,14 @@ export const PRESETS: Preset[] = [
   { name: 'Chalk', chips: [{ key: 'fav' }], dir: 'L' },
   { name: 'Bowl Curse', chips: [{ key: 'postseason' }], dir: 'L' },
 ];
+
+/** Each preset with its active leader today, for the "start from" list. */
+export function presetLeaders(todayEp: number) {
+  return PRESETS.map((p) => {
+    const top = activeBoard(p.chips, p.dir, todayEp)[0];
+    return { ...p, leader: top ? teams[top.ti] : null, len: top ? count(top.s) : '' };
+  });
+}
 
 export const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff'];
 

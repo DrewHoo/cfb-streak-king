@@ -269,5 +269,25 @@ export function createModel(P: Payload) {
     return rows;
   }
 
-  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard };
+  /**
+   * Where a streak that reaches the start of a team's list actually stops:
+   * the latest data floor among the definition's chips (kickoff times from
+   * 2002, say), else the team's first FBS season, else the first season in
+   * the data. `what` names the missing data; `joined` says it's the team's
+   * FBS entry.
+   */
+  function edgeFor(active: ChipRef[]) {
+    let floor = firstSeason;
+    let what: string | null = null;
+    for (const a of active) {
+      const f = chipByKey.get(a.key)?.floor;
+      if (f && f.season > floor) { floor = f.season; what = f.what; }
+    }
+    return (ti: number) => {
+      const joined = windowStartOf(ti);
+      return joined > floor ? { year: joined, word: null, joined: true } : { year: floor, word: what, joined: false };
+    };
+  }
+
+  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, edgeFor };
 }

@@ -11,10 +11,10 @@ import { teams } from '../lib/model.ts';
 import { streakGames } from '../lib/streaks.ts';
 import { count, yy, yyOfYear, dirWord, rowKey, dayOf, monthDay, siteWord, kickOf } from '../lib/format.ts';
 import { track } from '../lib/analytics.ts';
+import { DESKTOP_CAP } from '../lib/view.ts';
 import { Chip, NextChip, TeamMark } from './Chip.jsx';
 
 const CHIP_CAP = 12;
-export const DESKTOP_CAP = 20;
 const MOBILE_ALLTIME_CAP = 40;
 const EXIT_MS = 280;
 
