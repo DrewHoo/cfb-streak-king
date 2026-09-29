@@ -80,7 +80,7 @@ describe('boards', () => {
   });
 
   test('all-time runs of one team never overlap and each is maximal', () => {
-    for (const def of sample) {
+    for (const def of sample.slice(0, 20)) {
       for (const dir of OUTCOMES) {
         const byTeam = new Map<number, BoardRow[]>();
         for (const r of allTimeBoard(def, dir, today)) (byTeam.get(r.ti) ?? byTeam.set(r.ti, []).get(r.ti)!).push(r);

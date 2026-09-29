@@ -9,7 +9,6 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import App from './App.jsx';
 import { teams } from './lib/model.ts';
-import { mineCrowns } from './lib/crowns.ts';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // jsdom has no matchMedia; useIsMobile only needs the shape
@@ -41,8 +40,9 @@ describe('prerender + hydrate', () => {
 
   test('a team page hydrates without a mismatch, crowns included', async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
-    const [active, all] = await Promise.all([mineCrowns('active'), mineCrowns('all')]);
-    const crowns = { active: active.get(ti), all: all.get(ti) };
+    // any crowns will do: this checks the render, crowns.test covers their contents
+    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, startSe: 2024, live: true, also: 0 });
+    const crowns = { active: [crown(['road'], 'W', 9), crown(['ranked'], 'W', 5), crown(['night'], 'L', 4)], all: [] };
     const { html, errors, unmount } = await hydrate({ team: ti, crowns }, '/cfb-streak-king/team/alabama/');
     expect(html).toContain('Alabama');
     expect(html).toContain(`<b class="w">${crowns.active.filter((c) => c.dir === 'W').length}</b>`);
