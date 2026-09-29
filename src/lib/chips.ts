@@ -114,3 +114,16 @@ export function qualifiesPregame(c: PregameChip, g: GameContext, p?: Param): boo
 
 /** Two chips that can't both be in a definition. */
 export const conflicts = (a: Chip, b: Chip) => !!a.exclusive && !!b.exclusive && a.group === b.group;
+
+/** The chips that take no choice: the space the crowns miner walks. */
+export const PLAIN_CHIPS = CHIPS.filter((c) => !c.param);
+/** How many definitions of up to 4 plain chips there are, the empty one included. */
+export const PLAIN_DEFINITIONS = (function count(start: number, chosen: number[]): number {
+  let n = 1;
+  if (chosen.length === 4) return n;
+  for (let i = start; i < PLAIN_CHIPS.length; i++) {
+    if (chosen.some((j) => conflicts(PLAIN_CHIPS[j], PLAIN_CHIPS[i]))) continue;
+    n += count(i + 1, [...chosen, i]);
+  }
+  return n;
+})(0, []);

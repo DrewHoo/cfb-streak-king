@@ -11,7 +11,7 @@
 // field of ≥ 10 teams holding any streak under the definition.
 
 import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
-import { CHIPS, conflicts, qualifies } from './chips.ts';
+import { PLAIN_CHIPS, conflicts, qualifies } from './chips.ts';
 import { fbsNow, gamesOf } from './model.ts';
 import { OUTCOMES } from './streaks.ts';
 
@@ -22,20 +22,7 @@ type Runs = Partial<Record<Dir, Run>>;
 export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
 
-const NP = CHIPS.filter((c) => !c.param);
-
-// how many definitions mine() walks (the empty one included), for the page copy
-export const NP_COUNT = NP.length;
-export const DEF_COUNT = (function count(start: number, chosen: number[]): number {
-  let n = 1;
-  if (chosen.length === 4) return n;
-  for (let i = start; i < NP.length; i++) {
-    const c = NP[i];
-    if (chosen.some((j) => conflicts(NP[j], c))) continue;
-    n += count(i + 1, [...chosen, i]);
-  }
-  return n;
-})(0, []);
+const NP = PLAIN_CHIPS;
 
 const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };
 const mining: Record<Scope, Promise<Map<number, Crown[]>> | null> = { active: null, all: null };

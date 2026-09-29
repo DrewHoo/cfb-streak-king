@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { P, teams, activeBoard, allTimeBoard, todayEpochDay, builtEpochDay, fbsNow, firstSeason, windowStartOf } from './lib/model.ts';
-import { chipByKey } from './lib/chips.ts';
-import { crownsFor, mineCrowns, isMined, NP_COUNT, DEF_COUNT } from './lib/crowns.ts';
+import { chipByKey, PLAIN_CHIPS, PLAIN_DEFINITIONS } from './lib/chips.ts';
+import { loadCrowns } from './lib/loadCrowns.ts';
 import { definitionPhrase, crownClaim } from './lib/sentence.ts';
 import {
   PRESETS, DEFAULT_SCOPE, encodeChips, decodeChips, chipsToParam, chipsFromParam, withChip, swapChip, withoutChip, withParam,
@@ -18,7 +18,8 @@ import { Starred } from './components/Starred.jsx';
 import { ShareIcon, StarIcon } from './components/Icons.jsx';
 
 // `initial` seeds state the prerender and the hydrate must agree on: a
-// per-team page (/team/<id>/) opens with that team's panel already open.
+// per-team page (/team/<id>/) opens with that team's panel already open and
+// its crowns ({ active, all }) already loaded.
 export default function App({ initial } = {}) {
   const [active, setActive] = useState(chipsFromParam(null));
   const [dir, setDir] = useState('W');
@@ -32,8 +33,8 @@ export default function App({ initial } = {}) {
   const [copied, setCopied] = useState(false);
   const [starred, setStarred] = useState([]);
   const [hydrated, setHydrated] = useState(false);
-  const [mined, setMined] = useState(false); // active-scope crowns
-  const [minedAll, setMinedAll] = useState(false); // all-time crowns, mined on demand
+  // crowns by team index: { active, all }
+  const [crownSets, setCrownSets] = useState(() => (initial?.crowns && initial.team != null ? { [initial.team]: initial.crowns } : {}));
   const [crownsScope, setCrownsScope] = useState('active');
   const [crownsDir, setCrownsDir] = useState('W');
   const isMobile = useIsMobile();
@@ -73,28 +74,13 @@ export default function App({ initial } = {}) {
     track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
   }, [active, dir, scope, week, team, run, hydrated]);
 
-  // the crowns mine runs once the page is idle, so the panel is ready before
-  // anyone opens it
+  // the open team's crowns: its page embeds them, any other team fetches its file
   useEffect(() => {
-    if (!hydrated || mined) return;
-    if (isMined()) { setMined(true); return; }
+    if (team == null || crownSets[team]) return;
     let live = true;
-    const start = () => mineCrowns().then(() => { if (live) setMined(true); });
-    const id = typeof requestIdleCallback === 'function' ? requestIdleCallback(start) : setTimeout(start, 1200);
-    return () => {
-      live = false;
-      if (typeof cancelIdleCallback === 'function') cancelIdleCallback(id); else clearTimeout(id);
-    };
-  }, [hydrated, mined]);
-
-  // all-time crowns mine only once someone asks for them
-  useEffect(() => {
-    if (crownsScope !== 'all' || minedAll) return;
-    if (isMined('all')) { setMinedAll(true); return; }
-    let live = true;
-    mineCrowns('all').then(() => { if (live) setMinedAll(true); });
+    loadCrowns(team).then((c) => { if (live) setCrownSets((cur) => ({ ...cur, [team]: c })); });
     return () => { live = false; };
-  }, [crownsScope, minedAll]);
+  }, [team, crownSets]);
 
   const rows = useMemo(
     () => (scope === 'all' ? allTimeBoard(active, dir, todayEp) : activeBoard(active, dir, todayEp)),
@@ -125,8 +111,7 @@ export default function App({ initial } = {}) {
     : null;
   const openKey = teamRow ? rowKey(teamRow) : null;
   const weekDay = rows.find((r) => r.onTheLine)?.next ? dayOf(rows.find((r) => r.onTheLine).next.ep) : 'Saturday';
-  const crownsReady = crownsScope === 'all' ? minedAll : mined;
-  const crowns = useMemo(() => (crownsReady && team != null ? crownsFor(team, crownsScope) : null), [crownsReady, team, crownsScope]);
+  const crowns = team != null ? crownSets[team]?.[crownsScope] ?? null : null;
 
   // leaders of the presets, for the start-from list
   const startFrom = useMemo(() => {
@@ -317,8 +302,8 @@ export default function App({ initial } = {}) {
           <li>
             A team's page lists every streak it is king of: each definition under which that team alone holds
             the longest active or all-time streak, at least 4 games long, among at least 10 teams with a streak
-            under it. The {NP_COUNT} plain words alone make {DEF_COUNT.toLocaleString('en-US')} possible definitions,{' '}
-            {(DEF_COUNT * 2).toLocaleString('en-US')} counting winning and losing separately; the words that take a choice
+            under it. The {PLAIN_CHIPS.length} plain words alone make {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible definitions,{' '}
+            {(PLAIN_DEFINITIONS * 3).toLocaleString('en-US')} counting winning, losing and unbeaten separately; the words that take a choice
             (a state, a conference, an opponent, a month) push that past 24 million.
           </li>
         </ul>

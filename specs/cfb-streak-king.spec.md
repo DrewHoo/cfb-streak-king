@@ -228,7 +228,10 @@ streaks) so crawlers see a real leaderboard.
 A second tab: every streak a team solely leads. The full parameterless space
 (34 chips, 39,138 definitions, 78,276 with direction) is mined client-side in
 ~4s on first open (chunked so the tab stays responsive; per-chip packed
-bitmasks, AND per definition, one backward walk). A crown = sole longest
+bitmasks, AND per definition, one backward walk). Superseded 2026-09-29: the
+build mines both scopes and all three outcomes (35 chips, 44,799 definitions,
+~2.5s in Node) and writes dist/crowns/<id>.json; a team's page embeds its file,
+and opening another team fetches it. A crown = sole longest
 active streak under a definition-direction, floors length >= 4 and field >= 10
 teams. Definitions producing the identical streak (same last game + length)
 collapse to one crown named by the fewest-chip definition; measured collision
@@ -256,7 +259,7 @@ sections carry the data details; this is the product and method record.
 - **Team pages replace the crowns tab.** The open team lives at `/team/<id>/`, prerendered
   with its own OG image. The panel shows the claim sentence, the ledger, and "{Team} is the
   King of N [Active | All-time] [Winning | Losing] Streaks" with the two words as selects.
-  All-time crowns mine on demand (`mineCrowns('all')` in `src/lib/crowns.ts`); each row applies
+  Crowns are mined at build time (`mineCrowns` in `src/lib/crowns.ts`, run by prerender.mjs); each row applies
   the definition or shares it. Crowns carry scope, start and end season, and whether the run
   is live. Deep link: `/team/<id>/?dir=L`.
 - **Starred streaks** left the constraint picker: a right-margin sidebar at 1440px and up,
