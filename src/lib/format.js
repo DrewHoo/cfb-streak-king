@@ -16,6 +16,7 @@ export const shortDate = (ep) => {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${String(d.getUTCFullYear()).slice(2)}`;
 };
 export const dayOf = (ep) => DAYS[new Date(ep * 86400000).getUTCDay()];
+export const monthDay = (ep) => { const d = new Date(ep * 86400000); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
 export const kickOf = (u) => (u.hh !== 31 ? `${u.hh % 12 || 12}${u.hh >= 12 ? 'pm' : 'am'}` : '');
 export const count = (s) => `${s.len}${s.atEdge ? '+' : ''}`;
 

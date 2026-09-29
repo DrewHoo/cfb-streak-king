@@ -8,8 +8,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { teams } from '../lib/model.js';
-import { count, yy, yyOfYear, dirWord, rowKey } from '../lib/format.js';
-import { Chip, TeamMark } from './Chip.jsx';
+import { count, yy, yyOfYear, dirWord, rowKey, dayOf, monthDay, siteWord, kickOf } from '../lib/format.js';
+import { Chip, NextChip, TeamMark } from './Chip.jsx';
 import { track } from '../lib/favs.js';
 
 const CHIP_CAP = 12;
@@ -46,6 +46,19 @@ function Column({ row, edgeFor, onOpen, hi }) {
       <TeamMark ti={row.ti} />
       {ended && (
         <span className="colbrk"><Chip g={row.ended} small /><span className="colyr">{yy(row.ended.ep)}</span></span>
+      )}
+      {!ended && row.s.start && (
+        // all-time mode: a live run keeps the slot an ended run's breaker
+        // takes, so the stacks line up; the next qualifying game fills it
+        // when one is scheduled, in color, else it stays open-ended
+        <span className={'colnext' + (row.next ? '' : ' open')}>
+          {row.next && (
+            <>
+              <NextChip u={row.next} color small title={`next: ${dayOf(row.next.ep)} ${monthDay(row.next.ep)}${kickOf(row.next) ? ' ' + kickOf(row.next) : ''} ${siteWord(row.next)} ${teams[row.next.oppIdx]?.name}`} />
+              <span className="colyr">{monthDay(row.next.ep)}</span>
+            </>
+          )}
+        </span>
       )}
       <span className={'colstack' + (games.length > shown.length ? ' fade' : '')}>
         {shown.map((g) => <Chip key={g.i} g={g} />)}

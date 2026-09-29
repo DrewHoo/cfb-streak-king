@@ -152,6 +152,11 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .colstack { display: flex; flex-direction: column; gap: 4px; }
 .colstack.fade { -webkit-mask-image: linear-gradient(#000 62%, transparent); mask-image: linear-gradient(#000 62%, transparent); }
 .colbrk { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+/* the slot above a live run in all-time mode: the next game, or nothing */
+.colnext { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+.colnext { min-height: 31px; } /* chip + year, so an open slot matches a breaker */
+.colnext.open { border-bottom-color: transparent; }
+.sq.p.c img { filter: none; opacity: 1; }
 .colender { margin-top: 2px; padding-top: 6px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; }
 .colyr { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: -0.02em; }
 .coledge { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); width: 28px; text-align: center; }

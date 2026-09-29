@@ -17,11 +17,12 @@ export function Chip({ g, small }) {
 }
 
 /** An upcoming opponent: dashed rust, since nothing has happened yet. */
-export function NextChip({ u }) {
+// the next qualifying game: dashed, and in color when it sits atop a column
+export function NextChip({ u, color, small, title }) {
   const t = teams[u.oppIdx];
   return (
-    <span className="sq p" title={`next: ${siteWord(u)} ${t?.name}`}>
-      {t?.espn ? <img src={`${BASE}logos/${t.espn}.png`} alt={t?.name} /> : <b>{t?.name?.[0]}</b>}
+    <span className={'sq p' + (color ? ' c' : '') + (small ? ' s' : '')} title={title ?? `next: ${siteWord(u)} ${t?.name}`}>
+      {t?.espn ? <img src={`${BASE}${color ? 'logos-color' : 'logos'}/${t.espn}.png`} alt={t?.name} /> : <b>{t?.name?.[0]}</b>}
     </span>
   );
 }
