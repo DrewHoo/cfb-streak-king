@@ -124,12 +124,21 @@ async function column(row, x, y, chipN, { countSize = 34, W = 56, sq = 46, gap =
   if (color) parts.push(`<image x="${x + (W - 44) / 2}" y="${y + countSize + 12}" width="44" height="44" href="${color}"/>`)
   const games = streakGames(row)
   let cy = y + countSize + 68
-  // an ended run: the game that broke it sits on top, dark
+  // the top slot: an ended run's breaker, dark; a live run's next game in
+  // color with a dashed border, or nothing, so every stack starts level
   if (row.live === false && row.ended) {
     const opp = teams[row.ended.oppIdx]
     const gray = opp?.espn && (await logoUri(opp.espn, 'gray'))
     parts.push(`<rect x="${x + (W - sq) / 2}" y="${cy}" width="${sq}" height="${sq}" rx="6" fill="${LIFT}" stroke="${LINE}"/>`)
     if (gray) parts.push(`<image x="${x + (W - 34) / 2}" y="${cy + 6}" width="34" height="34" href="${gray}" opacity="0.85"/>`)
+    cy += sq + gap + 4
+  } else if (row.s.start) {
+    if (row.next) {
+      const opp = teams[row.next.oppIdx]
+      const color = opp?.espn && (await logoUri(opp.espn, 'color'))
+      parts.push(`<rect x="${x + (W - sq) / 2}" y="${cy}" width="${sq}" height="${sq}" rx="6" fill="none" stroke="${RUST}" stroke-dasharray="4 3"/>`)
+      if (color) parts.push(`<image x="${x + (W - 34) / 2}" y="${cy + 6}" width="34" height="34" href="${color}"/>`)
+    }
     cy += sq + gap + 4
   }
   for (const game of games.slice(0, chipN)) {
