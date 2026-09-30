@@ -28,7 +28,7 @@ function columnsPerRow(rail) {
   return Math.max(1, kids.filter((el) => el.offsetTop === top).length);
 }
 
-function Column({ row, edgeFor, onOpen, hi, cover }) {
+function Column({ row, edgeFor, onOpen, hi, cover, slot }) {
   const t = teams[row.ti];
   const games = streakGames(row);
   const shown = games.slice(0, CHIP_CAP);
@@ -41,10 +41,10 @@ function Column({ row, edgeFor, onOpen, hi, cover }) {
       {ended && (
         <span className="colbrk"><Chip g={row.ended} small cover={cover} /><span className="colyr">{yy(row.ended.ep)}</span></span>
       )}
-      {!ended && row.s.start && (
-        // all-time mode: a live run keeps the slot an ended run's breaker
-        // takes, so the stacks line up; the next qualifying game fills it
-        // when one is scheduled, in color, else it stays open-ended
+      {!ended && slot && (
+        // a live run keeps the slot an ended run's breaker takes, so the
+        // stacks line up; the next qualifying game fills it when one is
+        // scheduled, in color, else it stays open-ended
         <span className={'colnext' + (row.next ? '' : ' open')}>
           {row.next && (
             <>
@@ -135,8 +135,11 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
     return () => cancelAnimationFrame(raf);
   }, [isMobile, shownKey]);
 
+  // the top slot: always on the all-time board, where ended runs fill it with
+  // their breaker; on the active board only when some run has a game coming
+  const slot = scope === 'all' || visible.some((r) => r.next);
   const col = (row) => (
-    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} />
+    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} slot={slot} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';

@@ -152,7 +152,7 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .colstack { display: flex; flex-direction: column; gap: 4px; }
 .colstack.fade { -webkit-mask-image: linear-gradient(#000 62%, transparent); mask-image: linear-gradient(#000 62%, transparent); }
 .colbrk { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
-/* the slot above a live run in all-time mode: the next game, or nothing */
+/* the slot above a live run: the next game, or nothing */
 .colnext { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
 .colnext { min-height: 31px; } /* chip + year, so an open slot matches a breaker */
 .colnext.open { border-bottom-color: transparent; }
@@ -200,10 +200,16 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .panel-id { display: flex; flex-direction: column; line-height: 1.2; }
 .panel-name { font-weight: 600; font-size: 14px; }
 .panel-meta { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
-.panel-head .ico { margin-left: auto; }
+.panel-head .ico:first-of-type { margin-left: auto; }
+/* the way out of the team view: a labeled button with a real tap target */
+.panel-close {
+  gap: 4px; align-items: center; padding: 6px 10px 6px 8px; min-height: 34px;
+  border: 1px solid var(--line); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.panel-close:hover, .panel-close:focus-visible { border-color: var(--ink-muted); color: var(--cream); outline: none; }
 .ledger { display: flex; flex-direction: column; margin-top: 8px; max-width: 420px; }
 .xrow {
-  display: grid; grid-template-columns: 24px 54px 1fr 30px 56px;
+  display: grid; grid-template-columns: 24px 54px 24px 1fr 56px;
   gap: 8px; align-items: center; padding: 4px 0;
   border-bottom: 1px dotted var(--line);
   font-family: 'IBM Plex Mono', monospace; font-size: 11px;
@@ -214,7 +220,8 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .xd { font-size: 10px; color: var(--ink-faint); }
 .xn { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .xn i { font-style: normal; color: var(--rust); margin-right: 4px; }
-.xopp { font-size: 10px; color: var(--rust); text-align: right; }
+.xown { font-size: 10px; color: var(--ink-muted); text-align: right; }
+.xn b { font-weight: 400; color: var(--rust); }
 .xsc { text-align: right; color: var(--ink-muted); white-space: nowrap; }
 .xsc.w { color: var(--cream); }
 .xsp { font-style: normal; color: var(--ink-faint); }
@@ -293,7 +300,7 @@ footer a { color: var(--ink-muted); }
   }
   .railslot.enter, .railslot.exit { width: 40px; opacity: 0; }
   .railslot .panel { margin-top: 0; padding-top: 0; border-top: none; width: var(--slot-w); }
-  .railslot .xrow { grid-template-columns: 22px 44px 1fr 26px 42px; gap: 5px; font-size: 10.5px; }
+  .railslot .xrow { grid-template-columns: 22px 44px 20px 1fr 42px; gap: 5px; font-size: 10.5px; }
   .railslot .xd { font-size: 9px; }
 }
 
