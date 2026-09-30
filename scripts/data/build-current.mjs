@@ -132,6 +132,9 @@ function localParts(utcIso, tz) {
 // Failures log and continue: the season layer still builds without them.
 try { process.loadEnvFile(path.join(ROOT, '.env')); } catch {}
 const CFBD_KEY = process.env.CFBD_API_KEY;
+// the cache copies below land here; CI's checkout has no data/raw/ (it's
+// gitignored), and a failed cache write would throw away the fetch with it
+fs.mkdirSync(path.join(ROOT, 'data', 'raw'), { recursive: true });
 async function cfbd(pathq, cacheFile) {
   const f = path.join(ROOT, 'data', 'raw', cacheFile);
   if (CACHE) {
@@ -369,9 +372,17 @@ const out = {
   games: cols,
   teams,
 };
+const lined26 = cols.sp.filter((s, i) => cols.se[i] === SEASON && s !== NO_LINE).length;
+// Lines post before kickoff, so played games with none at all means the CFBD
+// lines never arrived. Fail before writing: CI then builds the committed
+// payload, whose lines are real, instead of one where every spread streak
+// silently skips the season.
+if (added && !lined26) {
+  console.error(`payload: ${added} completed ${SEASON} games and none lined; the CFBD lines are missing. Not writing.`);
+  process.exit(1);
+}
 ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
-const lined26 = cols.sp.filter((s, i) => cols.se[i] === SEASON && s !== NO_LINE).length;
 console.log(
   `payload: +${added} completed ${SEASON} games (${lined26} lined), ${upcoming.ep.length} upcoming, ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );
