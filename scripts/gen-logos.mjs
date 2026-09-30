@@ -8,12 +8,55 @@ import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 
 const OUT = 'public/logos';
 mkdirSync(OUT, { recursive: true });
-// Teams whose primary mark carries black lettering or outlines that vanish on
-// the dark page. ESPN's dark-background variant feeds their COLOR logos only.
-// The mono pipeline always uses the standard mark: its dark lettering and
-// keylines are exactly the ink the density formula needs, and the dark
-// variant's white detail would knock them out into mush on both square types.
-const DARK_SOURCE = new Set(['194' /* ohio-state */, '2641' /* texas-tech */]);
+// Teams whose primary mark carries black lettering, fills or keylines that
+// vanish on the dark page. ESPN's dark-background variant feeds their COLOR
+// logos only. The mono pipeline always uses the standard mark: its dark
+// lettering and keylines are exactly the ink the density formula needs, and
+// the dark variant's white detail would knock them out into mush on both
+// square types. Audited by CIE76 distance from the page background over the
+// logo's opaque pixels, then by eye on a contact sheet (Sept 2026).
+const DARK_SOURCE = new Set([
+  '2006', // akron
+  '2032', // arkansas-state
+  '2', // auburn
+  '2050', // ball-state
+  '103', // boston-college
+  '189', // bowling-green
+  '25', // california
+  '2132', // cincinnati
+  '324', // coastal-carolina
+  '2229', // florida-international
+  '61', // georgia
+  '356', // illinois
+  '2294', // iowa
+  '276', // marshall
+  '120', // maryland
+  '193', // miami-oh
+  '127', // michigan-state
+  '2440', // nevada
+  '166', // new-mexico-state
+  '87', // notre-dame
+  '194', // ohio-state
+  '197', // oklahoma-state
+  '204', // oregon-state
+  '164', // rutgers
+  '21', // san-diego-state
+  '2579', // south-carolina
+  '2572', // southern-miss
+  '2641', // texas-tech
+  '2649', // toledo
+  '202', // tulsa
+  '5', // uab
+  '113', // umass
+  '2439', // unlv
+  '328', // utah-state
+  '2638', // utep
+  '2636', // utsa
+  '238', // vanderbilt
+  '258', // virginia
+  '154', // wake-forest
+  '98', // western-kentucky
+]);
 const colorSrcUrl = (espn) =>
   `https://a.espncdn.com/i/teamlogos/ncaa/${DARK_SOURCE.has(String(espn)) ? '500-dark' : '500'}/${espn}.png`;
 const monoSrcUrl = (espn) => `https://a.espncdn.com/i/teamlogos/ncaa/500/${espn}.png`;
