@@ -8,12 +8,81 @@ import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 
 const OUT = 'public/logos';
 mkdirSync(OUT, { recursive: true });
-// Teams whose primary mark carries black lettering or outlines that vanish on
-// the dark page. ESPN's dark-background variant feeds their COLOR logos only.
-// The mono pipeline always uses the standard mark: its dark lettering and
-// keylines are exactly the ink the density formula needs, and the dark
-// variant's white detail would knock them out into mush on both square types.
-const DARK_SOURCE = new Set(['194' /* ohio-state */, '2641' /* texas-tech */]);
+// Teams whose primary mark carries black lettering, fills or keylines that
+// vanish on the dark page. ESPN's dark-background variant feeds their COLOR
+// logos only. The mono pipeline always uses the standard mark: its dark
+// lettering and keylines are exactly the ink the density formula needs, and
+// the dark variant's white detail would knock them out into mush on both
+// square types. Audited twice over each logo's opaque pixels (Sept 2026): by
+// CIE76 distance from the page background, which finds black, and by WCAG
+// luminance contrast under 1.6, which finds the navy, maroon and forest
+// green that have chroma but don't read. Each pass was then checked by eye
+// on a contact sheet; a team stays off the list when ESPN's two variants
+// are the same image.
+const DARK_SOURCE = new Set([
+  '2005', // air-force
+  '2006', // akron
+  '2032', // arkansas-state
+  '2', // auburn
+  '2050', // ball-state
+  '239', // baylor
+  '103', // boston-college
+  '189', // bowling-green
+  '25', // california
+  '2117', // central-michigan
+  '2132', // cincinnati
+  '324', // coastal-carolina
+  '57', // florida
+  '2229', // florida-international
+  '61', // georgia
+  '2247', // georgia-state
+  '59', // georgia-tech
+  '356', // illinois
+  '2294', // iowa
+  '2306', // kansas-state
+  '2309', // kent-state
+  '96', // kentucky
+  '2335', // liberty
+  '2348', // louisiana-tech
+  '99', // lsu
+  '276', // marshall
+  '120', // maryland
+  '193', // miami-oh
+  '127', // michigan-state
+  '2623', // missouri-state
+  '2440', // nevada
+  '166', // new-mexico-state
+  '87', // notre-dame
+  '194', // ohio-state
+  '197', // oklahoma-state
+  '295', // old-dominion
+  '204', // oregon-state
+  '213', // penn-state
+  '221', // pittsburgh
+  '242', // rice
+  '164', // rutgers
+  '21', // san-diego-state
+  '23', // san-jose-state
+  '2579', // south-carolina
+  '2572', // southern-miss
+  '2628', // tcu
+  '245', // texas-am
+  '2641', // texas-tech
+  '2649', // toledo
+  '202', // tulsa
+  '5', // uab
+  '113', // umass
+  '2439', // unlv
+  '328', // utah-state
+  '2638', // utep
+  '2636', // utsa
+  '238', // vanderbilt
+  '258', // virginia
+  '259', // virginia-tech
+  '154', // wake-forest
+  '277', // west-virginia
+  '98', // western-kentucky
+]);
 const colorSrcUrl = (espn) =>
   `https://a.espncdn.com/i/teamlogos/ncaa/${DARK_SOURCE.has(String(espn)) ? '500-dark' : '500'}/${espn}.png`;
 const monoSrcUrl = (espn) => `https://a.espncdn.com/i/teamlogos/ncaa/500/${espn}.png`;
