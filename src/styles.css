@@ -154,8 +154,9 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .colbrk { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
 /* the slot above a live run: the next game, or nothing */
 .colnext { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
-.colnext { min-height: 31px; } /* chip + year, so an open slot matches a breaker */
+/* an open slot holds the same chip and date, unseen, so it is exactly as tall */
 .colnext.open { border-bottom-color: transparent; }
+.colnext.open > * { visibility: hidden; }
 .sq.p.c img { filter: none; opacity: 1; }
 .colender { margin-top: 2px; padding-top: 6px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 2px; width: 28px; }
 .colyr { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: -0.02em; }
