@@ -8,6 +8,8 @@ streak under it,
 Each team also gets a page listing every streak it alone is king of. Live at
 [drewhoover.com/cfb-streak-king](https://drewhoover.com/cfb-streak-king/).
 
+[![The all-time board: the longest winning streaks against unranked opponents, one column per streak, one square per game](docs/screenshot.png)](https://drewhoover.com/cfb-streak-king/)
+
 The spec is [specs/cfb-streak-king.spec.md](specs/cfb-streak-king.spec.md);
 the research reports behind it are under [specs/research/](specs/research/).
 

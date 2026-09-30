@@ -7,21 +7,46 @@ import { chipByKey } from '../lib/chips.ts';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
-import { siteMark, siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText } from '../lib/format.ts';
-import { Chip, NextChip, TeamMark } from './Chip.jsx';
-import { ShareIcon } from './Icons.jsx';
+import { siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText } from '../lib/format.ts';
+import { TeamMark } from './Chip.jsx';
+import { ShareIcon, CloseIcon } from './Icons.jsx';
 
 const LEDGER_CAP = 8;
 const CROWNS_CAP = 6;
 
-function LedgerRow({ g, cls, win, cover }) {
+// the ledger reads like a schedule page: date, the team's own AP rank, the
+// opponent (site, result square, its rank, name), the score
+const siteTag = (g) => (g.neutral ? 'N' : g.home ? 'vs' : '@');
+function Opp({ g }) {
+  const t = teams[g.oppIdx];
+  return (
+    <span className="xn">
+      <i>{siteTag(g)}</i>
+      {t?.espn ? <TeamMark ti={g.oppIdx} className="xlogo" /> : <b className="xini">{t?.name?.[0] ?? '?'}</b>}
+      {g.oppRank > 0 && <b>#{g.oppRank} </b>}{t?.name ?? '?'}
+    </span>
+  );
+}
+function OwnRank({ ti, g }) {
+  return <span className="xown" title={`${teams[ti].name} ${g.ownRank > 0 ? `ranked #${g.ownRank}` : 'unranked'} at kickoff`}>{g.ownRank > 0 ? `#${g.ownRank}` : ''}</span>;
+}
+function LedgerHead() {
+  return (
+    <div className="xrow xhead" aria-hidden="true">
+      <span>date</span><span className="xown">rank</span><span className="xn">opponent</span><span className="xsc">score</span>
+    </div>
+  );
+}
+
+function LedgerRow({ ti, g, cls, cover }) {
+  // a win reads in cream; in cover mode, a cover does
+  const good = cover ? g.cover === 'W' : g.r === 'W';
   return (
     <div className={'xrow' + (cls ? ' ' + cls : '')}>
-      <Chip g={g} cover={cover} />
       <span className="xd">{shortDate(g.ep)}</span>
-      <span className="xn">{siteMark(g) ? <i>{siteMark(g)}</i> : null}{teams[g.oppIdx]?.name ?? '?'}</span>
-      <span className="xopp">{g.oppRank > 0 ? `#${g.oppRank}` : ''}</span>
-      <span className={'xsc' + (win ? ' w' : '')}>{g.us}–{g.them}{cover && g.sp != null ? <i className="xsp"> {spreadText(g.sp)}</i> : null}</span>
+      <OwnRank ti={ti} g={g} />
+      <Opp g={g} />
+      <span className={'xsc' + (good ? ' w' : '')}><i className="xr">{g.r}</i>{g.us}–{g.them}{cover && g.sp != null ? <i className="xsp"> {spreadText(g.sp)}</i> : null}</span>
     </div>
   );
 }
@@ -33,17 +58,17 @@ function Ledger({ row, edge, cover }) {
   const nxt = row.onTheLine ? row.next : null;
   return (
     <div className="ledger">
+      <LedgerHead />
       {nxt && (
         <div className="xrow next-row">
-          <NextChip u={nxt} />
           <span className="xd">{shortDate(nxt.ep)}</span>
-          <span className="xn">{siteMark(nxt) ? <i>{siteMark(nxt)}</i> : null}{teams[nxt.oppIdx]?.name}</span>
-          <span className="xopp">{nxt.oppRank > 0 ? `#${nxt.oppRank}` : ''}</span>
+          <OwnRank ti={row.ti} g={nxt} />
+          <Opp g={nxt} />
           <span className="xnext">{dayOf(nxt.ep)} {kickOf(nxt)}</span>
         </div>
       )}
-      {row.live === false && <LedgerRow g={row.ended} cls="brk-row" win cover={cover} />}
-      {list.map((g) => <LedgerRow key={g.i + '-' + g.ep} g={g} cover={cover} />)}
+      {row.live === false && <LedgerRow ti={row.ti} g={row.ended} cls="brk-row" cover={cover} />}
+      {list.map((g) => <LedgerRow key={g.i + '-' + g.ep} ti={row.ti} g={g} cover={cover} />)}
       {games.length > LEDGER_CAP && (
         <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${games.length - LEDGER_CAP} more`}</button>
       )}
@@ -57,7 +82,7 @@ function Ledger({ row, edge, cover }) {
                 : `every qualifying game in the data (${firstSeason} on) is in this streak; the one before it is older than the data`}
           </div>
         )
-        : <LedgerRow g={row.s.ender} cls="ender-row" win cover={cover} />}
+        : <LedgerRow ti={row.ti} g={row.s.ender} cls="ender-row" cover={cover} />}
     </div>
   );
 }
@@ -132,7 +157,7 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crow
           </span>
         </div>
         <button className="ico" onClick={() => onShare(sentence)} aria-label={`Share ${t.name}`}><ShareIcon /></button>
-        <button className="ico" onClick={onClose} aria-label="Close">×</button>
+        <button className="ico panel-close" onClick={onClose} aria-label="Close team view"><CloseIcon /></button>
       </div>
       <p className="claim">{sentence}</p>
       {row && (
