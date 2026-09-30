@@ -95,12 +95,16 @@ function rankOf(id, ep) {
 // --- teams index over the base (append new opponents as needed) ---
 const teams = base.teams;
 const teamsIdx = new Map(teams.map((t, i) => [t.id, i]));
-function teamIdx(id, rawName) {
+function teamIdx(id, rawName, espn) {
   let i = teamsIdx.get(id);
-  if (i !== undefined) return i;
+  if (i !== undefined) {
+    // the base takes ESPN ids from the bulk schedules; a team it never saw one for gets this season's
+    if (espn && !teams[i].espn) teams[i].espn = espn;
+    return i;
+  }
   i = teams.length;
   teamsIdx.set(id, i);
-  teams.push({ id, name: id.startsWith('x:') ? rawName : rawName, major: null, st: teamInfo[id]?.state });
+  teams.push({ id, name: id.startsWith('x:') ? rawName : rawName, major: null, st: teamInfo[id]?.state, espn: espn ?? null });
   return i;
 }
 const rivalByPair = new Map(
@@ -243,8 +247,8 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
   const { date, hour } = localParts(r.start, teamInfo[r.home]?.tz);
   const ep = epochDay(date);
   const hh = r.timeKnown ? hour : NO_HOUR;
-  const hi = teamIdx(r.home, r.homeRaw);
-  const ai = teamIdx(r.away, r.awayRaw);
+  const hi = teamIdx(r.home, r.homeRaw, r.espnHome);
+  const ai = teamIdx(r.away, r.awayRaw, r.espnAway);
   const fl =
     (r.neutral ? FLAG.neutral : 0) | (r.confGameRaw ? FLAG.conf : 0) | (r.seasonType === 'postseason' ? FLAG.post : 0);
   const rv = rivalByPair.get([r.home, r.away].sort().join('|'));
@@ -342,11 +346,18 @@ if (coachesRaw) {
   console.log(`coaches ${SEASON}: ${changes} stint changes layered${unresolved26 ? `, ${unresolved26} unresolved` : ''}`);
 }
 
-// a mark ESPN doesn't have (public/logos, fetched by gen-logos.mjs) would be
-// a broken image; without an id the chip shows the team's initial
+// a mark that isn't committed (public/logos and public/logos-color, fetched
+// by gen-logos.mjs) would be a broken image; without an id the chip shows the
+// team's initial. The ids dropped here go to data/build/logo-wants.json, which
+// gen-logos reads: run it, then this script again, to pick the marks up.
+const hasMark = (espn) => ['logos', 'logos-color'].every((d) => fs.existsSync(path.join(ROOT, 'public', d, `${espn}.png`)));
+const wants = [];
 for (const t of teams) {
-  if (t.espn && !fs.existsSync(path.join(ROOT, 'public', 'logos', `${t.espn}.png`))) t.espn = null;
+  if (t.espn && !hasMark(t.espn)) { wants.push({ id: t.id, espn: t.espn }); t.espn = null; }
 }
+fs.mkdirSync(path.join(ROOT, 'data', 'build'), { recursive: true });
+fs.writeFileSync(path.join(ROOT, 'data', 'build', 'logo-wants.json'), JSON.stringify(wants));
+if (wants.length) console.log(`logos: ${wants.length} teams have an ESPN id but no committed mark (run scripts/gen-logos.mjs): ${wants.map((w) => w.id).join(', ')}`);
 
 const out = {
   ...base,

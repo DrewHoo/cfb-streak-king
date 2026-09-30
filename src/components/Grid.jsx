@@ -28,14 +28,14 @@ function columnsPerRow(rail) {
   return Math.max(1, kids.filter((el) => el.offsetTop === top).length);
 }
 
-function Column({ row, edgeFor, onOpen, hi, cover, slot }) {
+function Column({ row, edgeFor, onOpen, hi, cover, slot, otl }) {
   const t = teams[row.ti];
   const games = streakGames(row);
   const shown = games.slice(0, CHIP_CAP);
   const ended = row.live === false;
   return (
     <button className={'colbtn' + (hi ? ' hi' : '')} onClick={onOpen} aria-label={`${t.name}: ${count(row.s)} straight`} aria-pressed={hi}>
-      <span className={'colcount' + (row.onTheLine ? ' is-otl' : '') + (ended ? ' is-ended' : '')}>{count(row.s)}</span>
+      <span className={'colcount' + (otl && row.onTheLine ? ' is-otl' : '') + (ended ? ' is-ended' : '')}>{count(row.s)}</span>
       {row.s.start && <span className="colspan">{yy(row.s.start.ep)}–{ended ? yy(row.s.end.ep) : 'now'}</span>}
       <TeamMark ti={row.ti} />
       {ended && (
@@ -44,14 +44,12 @@ function Column({ row, edgeFor, onOpen, hi, cover, slot }) {
       {!ended && slot && (
         // a live run keeps the slot an ended run's breaker takes, so the
         // stacks line up; the next qualifying game fills it when one is
-        // scheduled, in color, else it stays open-ended
-        <span className={'colnext' + (row.next ? '' : ' open')}>
-          {row.next && (
-            <>
-              <NextChip u={row.next} color small title={`next: ${dayOf(row.next.ep)} ${monthDay(row.next.ep)}${kickOf(row.next) ? ' ' + kickOf(row.next) : ''} ${siteWord(row.next)} ${teams[row.next.oppIdx]?.name}`} />
-              <span className="colyr">{monthDay(row.next.ep)}</span>
-            </>
-          )}
+        // scheduled, in color, else the same chip and date hold it open, unseen
+        <span className={'colnext' + (row.next ? '' : ' open')} aria-hidden={row.next ? undefined : true}>
+          {row.next
+            ? <NextChip u={row.next} color small title={`next: ${dayOf(row.next.ep)} ${monthDay(row.next.ep)}${kickOf(row.next) ? ' ' + kickOf(row.next) : ''} ${siteWord(row.next)} ${teams[row.next.oppIdx]?.name}`} />
+            : <span className="sq p s" />}
+          <span className="colyr">{row.next ? monthDay(row.next.ep) : '0/0'}</span>
         </span>
       )}
       <span className={'colstack' + (games.length > shown.length ? ' fade' : '')}>
@@ -138,8 +136,10 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
   // the top slot: always on the all-time board, where ended runs fill it with
   // their breaker; on the active board only when some run has a game coming
   const slot = scope === 'all' || visible.some((r) => r.next);
+  // the all-time board marks a live run that's on the line this week with a
+  // rust count; on the active board the next-game chip already says so
   const col = (row) => (
-    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} slot={slot} />
+    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';
