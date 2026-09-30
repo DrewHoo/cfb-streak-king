@@ -127,7 +127,7 @@ node scripts/data/parse-coaches.mjs    # CFBD /coaches -> data/build/coaches.jso
 node scripts/data/build-payload.mjs    # join everything -> data/payload-base.json (committed)
 node scripts/data/build-current.mjs    # + in-progress season -> src/data/payload.json (CACHE=1 for offline)
 node scripts/data/export-errata.mjs <dir>  # -> the DrewHoo/repole-errata checkout
-node scripts/gen-logos.mjs             # one-color marks -> public/logos/<espnId>.png
+node scripts/gen-logos.mjs             # one-color marks -> public/logos/<espnId>.png, color -> public/logos-color/ (then build-current again)
 npm run gen:og                         # og.png, card.png, public/og/team/<id>.png (committed)
 npm run build                          # vite build + prerender (root, 136 team pages, sitemap)
 ```
