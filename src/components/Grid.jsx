@@ -213,13 +213,20 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
 
   if (isMobile) {
     const inRail = visible.some((r) => rowKey(r) === shownKey);
-    const slot = <div key="panel" className={'railslot ' + phase} ref={slotRef}>{panel}</div>;
+    // the column stays under the panel and cross-fades with it, so it's in
+    // place as the slot shrinks back to its width rather than popping in after
+    const slot = (row) => (
+      <div key="panel" className={'railslot ' + phase} ref={slotRef}>
+        {row && <div className="railslot-col" inert>{col(row)}</div>}
+        <div className="railslot-panel">{panel}</div>
+      </div>
+    );
     return (
       <div ref={wrapRef}>
         <div className="colwrap is-open" ref={railRef}>
           {empty}
-          {!inRail && slot}
-          {visible.map((row) => (rowKey(row) === shownKey ? slot : col(row)))}
+          {!inRail && slot(null)}
+          {visible.map((row) => (rowKey(row) === shownKey ? slot(row) : col(row)))}
           {railMore}
         </div>
       </div>

@@ -242,7 +242,7 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 /* the panel fades and slides in from the left, and back out on close */
 .split-panel { transition: opacity 0.26s ease, transform 0.26s ease; }
 .split.enter .split-panel, .split.exit .split-panel { opacity: 0; transform: translateX(-14px); }
-@media (prefers-reduced-motion: reduce) { .split-panel, .railslot { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .split-panel, .railslot, .railslot-col, .railslot-panel { transition: none !important; } }
 .split .colwrap { margin-top: 0; border-top: none; padding-top: 0; }
 .panel-head { display: flex; align-items: center; gap: 9px; }
 .panel-head .colteam { margin-bottom: 0; width: 30px; height: 30px; }
@@ -348,10 +348,15 @@ footer a { color: var(--ink-muted); }
   .colwrap.is-open { overflow-x: hidden; }
   .railslot {
     --slot-w: calc(100vw - 32px);
-    flex: none; width: var(--slot-w); overflow: hidden;
-    transition: width 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.22s ease;
+    position: relative; flex: none; width: var(--slot-w); overflow: hidden;
+    transition: width 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
-  .railslot.enter, .railslot.exit { width: 40px; opacity: 0; }
+  .railslot.enter, .railslot.exit { width: 40px; }
+  /* the team's own column under the panel: shown while the slot is column-wide */
+  .railslot-col { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.22s ease; }
+  .railslot-panel { transition: opacity 0.22s ease; }
+  .railslot.enter .railslot-col, .railslot.exit .railslot-col { opacity: 1; }
+  .railslot.enter .railslot-panel, .railslot.exit .railslot-panel { opacity: 0; }
   .railslot .panel { margin-top: 0; padding-top: 0; border-top: none; width: var(--slot-w); }
 }
 
