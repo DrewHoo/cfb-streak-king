@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import { teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase, crownClaim } from './lib/sentence.ts';
-import { encodeChips, decodeChips, presetLeaders, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
+import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
 import { parseUrl, toUrl, crownUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { dirWord, dayOf, rowKey } from './lib/format.ts';
@@ -66,7 +66,6 @@ export default function App({ initial } = {}) {
     : null;
   const nextUp = rows.find((r) => r.onTheLine)?.next;
   const weekDay = nextUp ? dayOf(nextUp.ep) : 'Saturday';
-  const startFrom = useMemo(() => (addOpen ? presetLeaders(todayEp) : []), [addOpen, todayEp]);
 
   const define = (chips, d) => dispatch({ type: 'define', active: chips, dir: d });
   const on = {
@@ -78,7 +77,6 @@ export default function App({ initial } = {}) {
     setParam: (key, param) => define(withParam(active, key, param)),
     week: () => { dispatch({ type: 'week', on: true }); track('week filter', { on: true }); },
     unweek: () => { dispatch({ type: 'week', on: false }); track('week filter', { on: false }); },
-    start: (e) => { dispatch({ type: 'preset', active: e.chips, dir: e.dir, scope: e.scope }); track('preset', { name: e.name }); },
   };
   function pickRow(row) {
     if (!isOpen(view, row)) {
@@ -122,7 +120,7 @@ export default function App({ initial } = {}) {
 
       <Sentence
         active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay}
-        startFrom={startFrom} isMobile={isMobile} addOpen={addOpen} setAddOpen={setAddOpen} on={on}
+        isMobile={isMobile} addOpen={addOpen} setAddOpen={setAddOpen} on={on}
       />
 
       <Grid

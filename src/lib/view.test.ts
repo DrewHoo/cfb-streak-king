@@ -20,11 +20,6 @@ describe('view', () => {
     expect(viewReducer(v, { type: 'scope', scope: 'active' }).week).toBe(true);
   });
 
-  test('a preset switches to active streaks unless it says otherwise', () => {
-    const v = viewReducer({ ...initialView(), run: 5 }, { type: 'preset', active: [{ key: 'opener' }], dir: 'W' });
-    expect([v.scope, v.run, v.active]).toEqual(['active', null, [{ key: 'opener' }]]);
-  });
-
   test('picking a run opens it; picking it again closes it', () => {
     let v = initialView();
     v = viewReducer(v, { type: 'pick', row: row(3, 100) });

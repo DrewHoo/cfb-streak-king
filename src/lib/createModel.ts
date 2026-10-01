@@ -7,6 +7,7 @@ import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, Upco
 import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
 import { activeRun, runsOf, decided, againstSpread } from './streaks.ts';
+import { underFullMoon } from './moon.ts';
 
 const DAY_MS = 86400000;
 const monthOf = (ep: number) => {
@@ -106,6 +107,8 @@ export function createModel(P: Payload) {
       rv: cols.rv[i],
       vst: P.states[cols.vs?.[i] ?? 0] || null,
       month: monthOf(cols.ep[i]),
+      wday: ((cols.ep[i] % 7) + 11) % 7, // 1970-01-01 was a Thursday
+      moon: underFullMoon(cols.ep[i]),
       oppConf: confOf(oppIdx, se),
       inState: sameState(teams[oppIdx]?.st, teams[ti]?.st),
     };
