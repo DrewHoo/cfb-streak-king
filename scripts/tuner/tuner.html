@@ -132,6 +132,14 @@ li.cut span { grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; le
           <input type="range" id="fallback" min="0" max="5" step="1">
         </div>
         <div class="ctl">
+          <span class="ctl-top"><label>Order the kept crowns by</label></span>
+          <div class="seg" id="sort" role="group" aria-label="Sort order">
+            <button type="button" data-v="score">score</button>
+            <button type="button" data-v="odds">odds by chance</button>
+          </div>
+          <div class="hint">Odds leave out the word penalty and the span bonus; the score keeps them.</div>
+        </div>
+        <div class="ctl">
           <span class="ctl-top"><label>A+B hides behind A when A is</label></span>
           <div class="seg" id="dom" role="group" aria-label="Dominance rule">
             <button type="button" data-v="none">off</button>
@@ -175,7 +183,7 @@ li.cut span { grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; le
 <script>
 const D = JSON.parse(document.getElementById('data').textContent);
 // the site's rules are the defaults; the rest is this page's display
-const DEFAULTS = { zeroChip: true, dom: 'score', mergeU: true, era: true, rowsN: 12, nearN: 2, ...D.rank,
+const DEFAULTS = { zeroChip: true, dom: 'score', sort: 'score', mergeU: true, era: true, rowsN: 12, nearN: 2, ...D.rank,
   teams: ['Alabama','Georgia','Ohio State','Michigan','Texas','Notre Dame','USC','LSU','Oklahoma','Penn State','Tennessee','Auburn'] };
 let S = load();
 
@@ -260,6 +268,8 @@ function evaluate(rows, scope) {
   }
   const pass = items.filter((it) => it.v >= S.cutoff || (S.zeroChip && it.r.k === 0));
   const below = items.filter((it) => !pass.includes(it));
+  // the formula decides what's kept; the order can follow the odds alone
+  if (S.sort === 'odds') pass.sort((a, b) => chanceOf(a.r, scope) - chanceOf(b.r, scope));
   if (!pass.length) return { shown: items.slice(0, S.fallback).map((it) => ({ ...it, fallback: true })), near: [], count: 0, total: rows.length };
   return { shown: pass, near: below.slice(0, S.nearN), count: pass.length, total: rows.length };
 }
@@ -300,6 +310,7 @@ function sync() {
   for (const id of ['zeroChip', 'mergeU', 'era']) document.getElementById(id).checked = S[id];
   document.getElementById('eraOv').disabled = !S.era;
   for (const b of document.querySelectorAll('#dom button')) b.setAttribute('aria-pressed', String(b.dataset.v === S.dom));
+  for (const b of document.querySelectorAll('#sort button')) b.setAttribute('aria-pressed', String(b.dataset.v === S.sort));
   for (const b of document.querySelectorAll('#picker button')) b.setAttribute('aria-pressed', String(S.teams.includes(b.dataset.t)));
 }
 let queued = false;
@@ -307,6 +318,7 @@ function update() { sync(); save(); if (queued) return; queued = true; requestAn
 for (const id of RANGES) document.getElementById(id).addEventListener('input', (e) => { S[id] = +e.target.value; update(); });
 for (const id of ['zeroChip', 'mergeU', 'era']) document.getElementById(id).addEventListener('change', (e) => { S[id] = e.target.checked; update(); });
 for (const b of document.querySelectorAll('#dom button')) b.addEventListener('click', () => { S.dom = b.dataset.v; update(); });
+for (const b of document.querySelectorAll('#sort button')) b.addEventListener('click', () => { S.sort = b.dataset.v; update(); });
 document.getElementById('picker').innerHTML = D.teams.map((t) => `<button type="button" data-t="${esc(t.name)}">${esc(t.name)}</button>`).join('');
 for (const b of document.querySelectorAll('#picker button')) b.addEventListener('click', () => {
   const n = b.dataset.t;
