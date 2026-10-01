@@ -209,29 +209,39 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
     </button>
   );
 
-  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>{more}</div>;
-
   if (isMobile) {
-    const inRail = visible.some((r) => rowKey(r) === shownKey);
-    // the column stays under the panel and cross-fades with it, so it's in
-    // place as the slot shrinks back to its width rather than popping in after
-    const slot = (row) => (
-      <div key="panel" className={'railslot ' + phase} ref={slotRef}>
-        {row && <div className="railslot-col" inert>{col(row)}</div>}
-        <div className="railslot-panel">{panel}</div>
-      </div>
-    );
+    // One rail whether or not a team is open, every column in its own cell,
+    // so nothing remounts (and no logo re-decodes) when the panel closes.
+    // The open team's cell is the slot: its column stays under the panel and
+    // cross-fades with it, so it's in place as the slot shrinks back to its
+    // width rather than popping in after.
+    const cell = (row) => {
+      const open = rowKey(row) === shownKey;
+      return (
+        <div key={rowKey(row)} className={open ? 'railslot ' + phase : 'railcell'} ref={open ? slotRef : null}>
+          <div className="railslot-col" inert={open}>{col(row)}</div>
+          {open && <div className="railslot-panel">{panel}</div>}
+        </div>
+      );
+    };
+    // a team opened from elsewhere than the rail (the + menu's kings) gets a
+    // slot of its own at the front; the position is kept so the cells don't move
+    const floating = shownKey != null && !visible.some((r) => rowKey(r) === shownKey)
+      ? <div key="panel" className={'railslot ' + phase} ref={slotRef}><div className="railslot-panel">{panel}</div></div>
+      : null;
     return (
       <div ref={wrapRef}>
-        <div className="colwrap is-open" ref={railRef}>
+        <div className={'colwrap' + (shownKey != null ? ' is-open' : '')} ref={railRef}>
           {empty}
-          {!inRail && slot(null)}
-          {visible.map((row) => (rowKey(row) === shownKey ? slot(row) : col(row)))}
+          {floating}
+          {visible.map(cell)}
           {railMore}
         </div>
       </div>
     );
   }
+
+  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>{more}</div>;
 
   return (
     <div ref={wrapRef} className={'split ' + phase}>
