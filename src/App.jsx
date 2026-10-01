@@ -13,6 +13,7 @@ import { useStarred } from './hooks/useStarred.ts';
 import { useShare } from './hooks/useShare.ts';
 import { Dateline } from './components/Dateline.jsx';
 import { Sentence } from './components/Sentence.jsx';
+import { BaseRate } from './components/BaseRate.jsx';
 import { Grid } from './components/Grid.jsx';
 import { TeamPanel } from './components/TeamPanel.jsx';
 import { Starred } from './components/Starred.jsx';
@@ -124,6 +125,7 @@ export default function App({ initial } = {}) {
         active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay}
         startFrom={startFrom} isMobile={isMobile} addOpen={addOpen} setAddOpen={setAddOpen} on={on}
       />
+      <BaseRate active={active} dir={dir} />
 
       <Grid
         rows={shown} curTeam={team} openKey={teamRow ? rowKey(teamRow) : null} onPick={pickRow} edgeFor={edgeFor} isMobile={isMobile}
