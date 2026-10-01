@@ -211,6 +211,20 @@ for (const t of D.teams) for (const scope of ['active', 'all']) {
   t[scope] = rows;
 }
 
+// the odds chance alone makes a streak this long, as the site's panel shows them
+function chanceOf(r, scope) {
+  const tries = scope === 'active' ? D.nFbs : Math.max(1, r.Q * (1 - r.p));
+  return -Math.expm1(tries * Math.log1p(-(r.p ** r.len)));
+}
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+function oddsText(chance) {
+  if (chance >= 0.5) return 'likely';
+  const n = 1 / chance;
+  if (n < 10) return `1 in ${n.toFixed(1)}`;
+  if (n < 1e6) return `1 in ${Number(n.toPrecision(2)).toLocaleString('en-US')}`;
+  if (n < 1e15) { const [w, u] = n < 1e9 ? ['million', 1e6] : n < 1e12 ? ['billion', 1e9] : ['trillion', 1e12]; return `1 in ${Number((n / u).toPrecision(2)).toLocaleString('en-US')} ${w}`; }
+  return `1 in 10${String(Math.round(Math.log10(n))).replace(/\d/g, (d) => SUP[+d])}`;
+}
 function score(r, scope) {
   const chance = scope === 'active' ? log2(D.nFbs) : log2(Math.max(2, r.Q * (1 - r.p)));
   const span = (scope === 'active' ? S.spanA : S.spanAll) * log2(Math.max(1, r.s1 - r.s0 + 1));
@@ -251,17 +265,17 @@ function evaluate(rows, scope) {
 }
 
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
-function rowHtml(it, cls) {
+function rowHtml(it, cls, scope) {
   const r = it.r;
-  const meta = [`base ${Math.round(r.p * 100)}%`, r.k === 1 ? '1 chip' : `${r.k} chips`];
+  const meta = [`${oddsText(chanceOf(r, scope))} by chance`, `base ${Math.round(r.p * 100)}%`, r.k === 1 ? '1 chip' : `${r.k} chips`];
   if (r.post) meta.push(`<span class="post">${r.post} postgame</span>`);
   if (it.also) meta.push(`+${it.also} same era`);
   return `<li class="row ${cls}"><span class="sc${it.v < 0 ? ' neg' : ''}">${it.v.toFixed(1)}</span><div><div class="claim">${esc(r.text)}</div><div class="meta">${meta.join('<span>·</span>')}</div></div></li>`;
 }
-function listHtml(res) {
+function listHtml(res, scope) {
   if (!res.shown.length) return '<p class="empty">Nothing to show.</p>';
-  let h = res.shown.slice(0, S.rowsN).map((it) => rowHtml(it, it.fallback ? 'fallback' : '')).join('');
-  if (res.near.length) h += `<li class="row cut"><span>cutoff ${S.cutoff.toFixed(1)}</span></li>` + res.near.map((it) => rowHtml(it, 'near')).join('');
+  let h = res.shown.slice(0, S.rowsN).map((it) => rowHtml(it, it.fallback ? 'fallback' : '', scope)).join('');
+  if (res.near.length) h += `<li class="row cut"><span>cutoff ${S.cutoff.toFixed(1)}</span></li>` + res.near.map((it) => rowHtml(it, 'near', scope)).join('');
   return `<ol>${h}</ol>`;
 }
 function render() {
@@ -272,8 +286,8 @@ function render() {
     const a = evaluate(t.active, 'active'), b = evaluate(t.all, 'all');
     const head = (label, res) => `<h3><span>${label}</span><span class="n">${res.count ? `${res.count} of ${res.total}` : `0 of ${res.total}, fallback`}</span></h3>`;
     return `<section class="team"><h2>${esc(t.name)}</h2><div class="cols">
-      <div class="col">${head('Active', a)}${listHtml(a)}</div>
-      <div class="col">${head('All-time', b)}${listHtml(b)}</div></div></section>`;
+      <div class="col">${head('Active', a)}${listHtml(a, 'active')}</div>
+      <div class="col">${head('All-time', b)}${listHtml(b, 'all')}</div></div></section>`;
   }).join('');
   document.getElementById('teams').innerHTML = html || '<p class="empty">Pick a team.</p>';
 }

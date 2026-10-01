@@ -161,4 +161,6 @@ export interface Crown {
   endSe?: number;
   live: boolean;
   also: number;
+  /** The chance some team's streak reaches this length under the definition by luck alone, 0–1. */
+  chance: number;
 }

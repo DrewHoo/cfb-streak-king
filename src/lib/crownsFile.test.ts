@@ -8,6 +8,7 @@ test('every team’s crowns survive the file encoding', async () => {
   for (const ti of fbsNow) {
     const c = { active: active.get(ti) ?? [], all: all.get(ti) ?? [] };
     const back = decodeCrowns(JSON.parse(JSON.stringify(encodeCrowns(c))));
-    expect(back).toEqual(JSON.parse(JSON.stringify(c)));
+    const rounded = (list: typeof c.active) => list.map((x) => ({ ...x, chance: +x.chance.toPrecision(2) }));
+    expect(back).toEqual(JSON.parse(JSON.stringify({ active: rounded(c.active), all: rounded(c.all) })));
   }
 }, 60000);

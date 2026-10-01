@@ -48,7 +48,7 @@ describe('view', () => {
   });
 
   test('applying a crown takes its definition, direction and scope', () => {
-    const v = viewReducer(initialView(7), { type: 'crown', crown: { chips: ['road', 'ranked'], dir: 'L', scope: 'active', len: 4, atEdge: false, field: 12, live: true, also: 0 } });
+    const v = viewReducer(initialView(7), { type: 'crown', crown: { chips: ['road', 'ranked'], dir: 'L', scope: 'active', len: 4, atEdge: false, field: 12, live: true, also: 0, chance: 0 } });
     expect([v.active, v.dir, v.scope, v.team]).toEqual([[{ key: 'road' }, { key: 'ranked' }], 'L', 'active', 7]);
   });
 });

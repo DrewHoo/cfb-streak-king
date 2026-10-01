@@ -7,7 +7,7 @@ import { chipByKey } from '../lib/chips.ts';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
-import { siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText } from '../lib/format.ts';
+import { siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText, oddsText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, CloseIcon } from './Icons.jsx';
 
@@ -130,7 +130,7 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
             <button className="lead-apply" onClick={() => onApply(cr)}>
               <span className={'lead-len' + (cr.dir === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
               <span className="lead-txt">{cr.chips.length ? cr.chips.map((k) => chipByKey.get(k).label).join(' · ') : 'all games'}</span>
-              <span className="lead-meta">longest of {cr.field}{span ? ` · ${span}` : ''}{here ? ' · shown above' : ''}</span>
+              <span className="lead-meta">longest of {cr.field}{span ? ` · ${span}` : ''} · {oddsText(cr.chance)} by chance{here ? ' · shown above' : ''}</span>
             </button>
             <button className="ico lead-share" onClick={() => onShare(cr)} aria-label="Share this streak"><ShareIcon /></button>
           </div>

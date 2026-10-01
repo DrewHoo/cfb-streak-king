@@ -144,7 +144,7 @@ describe('claim', () => {
   });
 
   test('a crown reads like a claim', () => {
-    const base = { chips: ['road', 'ranked'], scope: 'all' as const, atEdge: false, field: 40, also: 0 };
+    const base = { chips: ['road', 'ranked'], scope: 'all' as const, atEdge: false, field: 40, also: 0, chance: 0 };
     expect(crownClaim(idx('alabama'), { ...base, dir: 'W', len: 12, live: false, startSe: 2008, endSe: 2012 }))
       .toBe('Alabama won 12 straight games against ranked opponents on the road, 2008–2012.');
     expect(crownClaim(idx('alabama'), { ...base, dir: 'U', len: 5, live: true, startSe: 2024 }))

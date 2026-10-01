@@ -44,8 +44,8 @@ export const RANK = {
  */
 export const IN_GAME_GROUPS = new Set(['half', 'possession', 'shape']);
 
-/** A mined crown plus its definition's pooled rate and qualifying-game count. */
-export interface MinedCrown extends Crown { p: number; n: number }
+/** A mined crown with its definition's pooled rate and qualifying-game count, before its chance is worked out. */
+export type MinedCrown = Omit<Crown, 'chance'> & { p: number; n: number };
 export interface RankContext {
   /** Definitions with each chip count, 0–4. */
   M: number[];
@@ -54,8 +54,19 @@ export interface RankContext {
 }
 
 const P_MAX = 0.995;
-const seasons = (c: Crown) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
-const inGame = (c: Crown) => c.chips.filter((k) => IN_GAME_GROUPS.has(chipByKey.get(k)?.group ?? '')).length;
+const seasons = (c: Omit<Crown, 'chance'>) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
+const inGame = (c: Omit<Crown, 'chance'>) => c.chips.filter((k) => IN_GAME_GROUPS.has(chipByKey.get(k)?.group ?? '')).length;
+
+/**
+ * How likely chance alone makes a streak this long under the definition: each
+ * of the places a run could start (every team, for an active streak; every
+ * non-matching game, all-time) gets p^len, as independent tries.
+ */
+export function chanceOf(c: MinedCrown, ctx: RankContext): number {
+  const p = Math.min(c.p, P_MAX);
+  const tries = c.scope === 'active' ? ctx.teams : Math.max(1, c.n * (1 - p));
+  return -Math.expm1(tries * Math.log1p(-(p ** c.len)));
+}
 
 export function crownScore(c: MinedCrown, ctx: RankContext, w = RANK): number {
   const p = Math.min(c.p, P_MAX);
@@ -68,14 +79,14 @@ export function crownScore(c: MinedCrown, ctx: RankContext, w = RANK): number {
     + span * Math.log2(seasons(c));
 }
 
-const strip = ({ p: _p, n: _n, ...c }: MinedCrown): Crown => c;
+const finish = (c: MinedCrown, ctx: RankContext): Crown => { const { p: _p, n: _n, ...rest } = c; return { ...rest, chance: chanceOf(c, ctx) }; };
 
 /** One team's crowns in one scope: the ones worth showing, best first. */
 export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crown[] {
   const score = new Map(list.map((c) => [c, crownScore(c, ctx, w)]));
-  const subsetOf = (a: Crown, b: Crown) => a.chips.length < b.chips.length && a.chips.every((k) => b.chips.includes(k));
-  const overlap = (a: Crown, b: Crown) => !(a.endSe! < b.startSe! || b.endSe! < a.startSe!);
-  const sameRun = (a: Crown, b: Crown) => a.len === b.len && a.startSe === b.startSe && a.endSe === b.endSe
+  const subsetOf = (a: Omit<Crown, 'chance'>, b: Omit<Crown, 'chance'>) => a.chips.length < b.chips.length && a.chips.every((k) => b.chips.includes(k));
+  const overlap = (a: Omit<Crown, 'chance'>, b: Omit<Crown, 'chance'>) => !(a.endSe! < b.startSe! || b.endSe! < a.startSe!);
+  const sameRun = (a: Omit<Crown, 'chance'>, b: Omit<Crown, 'chance'>) => a.len === b.len && a.startSe === b.startSe && a.endSe === b.endSe
     && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
   let kept = list.filter((c) => (
     !list.some((o) => o.dir === c.dir && subsetOf(o, c) && overlap(o, c) && score.get(o)! >= score.get(c)!)
@@ -96,6 +107,6 @@ export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crow
     kept = eras;
   }
   const pass = kept.filter((c) => score.get(c)! >= w.cutoff || c.chips.length === 0);
-  return (pass.length ? pass : kept.slice(0, w.fallback)).map(strip);
+  return (pass.length ? pass : kept.slice(0, w.fallback)).map((c) => finish(c, ctx));
 }
 

@@ -356,6 +356,8 @@ footer a { color: var(--ink-muted); }
   .railslot-col { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.22s ease; }
   .railslot-panel { transition: opacity 0.22s ease; }
   .railslot.enter .railslot-col, .railslot.exit .railslot-col { opacity: 1; }
+  /* closing unmounts the panel, so the column is what gives the slot a height */
+  .railslot.exit .railslot-col { position: static; }
   .railslot.enter .railslot-panel, .railslot.exit .railslot-panel { opacity: 0; }
   .railslot .panel { margin-top: 0; padding-top: 0; border-top: none; width: var(--slot-w); }
 }
