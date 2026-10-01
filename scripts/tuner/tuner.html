@@ -144,7 +144,7 @@ li.cut span { grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; le
         <div class="ctl">
           <div class="ctl-top"><label for="eraOv">Same era at seasons overlapping</label><output id="eraOv-o"></output></div>
           <input type="range" id="eraOv" min="10" max="100" step="5">
-          <div class="hint">Share of the shorter run's seasons. Winning and undefeated count as one family.</div>
+          <div class="hint">Share of the shorter run's seasons. Only crowns of the same outcome whose definitions nest, one inside the other.</div>
         </div>
         <div class="ctl">
           <div class="ctl-top"><label for="rowsN">Rows per list</label><output id="rowsN-o"></output></div>
@@ -187,7 +187,6 @@ function save() { try { localStorage.setItem('crown-tuner', JSON.stringify(S)); 
 
 const log2 = Math.log2;
 const POST = D.chips.map((c) => c.post);
-const DIRW = { W: 'W', U: 'W', L: 'L', C: 'C', N: 'N' };
 
 // decode rows once; the subset lists don't depend on any setting
 for (const t of D.teams) for (const scope of ['active', 'all']) {
@@ -235,7 +234,9 @@ function evaluate(rows, scope) {
     const kept = [];
     for (const it of items) {
       const same = kept.find((k) => {
-        if (DIRW[k.r.dir] !== DIRW[it.r.dir]) return false;
+        // unrelated definitions in the same years are different stories
+        const nested = (a, b) => (a.lo & ~b.lo) === 0 && (a.hi & ~b.hi) === 0;
+        if (k.r.dir !== it.r.dir || !(nested(k.r, it.r) || nested(it.r, k.r))) return false;
         const ov = Math.min(k.r.s1, it.r.s1) - Math.max(k.r.s0, it.r.s0) + 1;
         return ov > 0 && ov / Math.min(k.r.s1 - k.r.s0 + 1, it.r.s1 - it.r.s0 + 1) >= S.eraOv / 100;
       });

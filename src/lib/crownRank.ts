@@ -16,7 +16,8 @@
 //   - a crown with a subset of its chips, same outcome and overlapping
 //     seasons, scores as well (a slice of the same run)
 //   - it's an undefeated run identical to a winning one
-//   - (all-time) it shares an era with a better crown of the same family
+//   - (all-time) it retells a better crown's era: same outcome, one
+//     definition inside the other, most of the seasons shared
 //   - it scores under the cutoff, unless it has no chips
 // and shows its top `fallback` when nothing is left. The weights were set by
 // eye with the crown tuner (scripts/tuner/), which reads them from here.
@@ -55,7 +56,6 @@ export interface RankContext {
 const P_MAX = 0.995;
 const seasons = (c: Crown) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
 const inGame = (c: Crown) => c.chips.filter((k) => IN_GAME_GROUPS.has(chipByKey.get(k)?.group ?? '')).length;
-const family = (d: Dir) => (d === 'U' ? 'W' : d);
 
 export function crownScore(c: MinedCrown, ctx: RankContext, w = RANK): number {
   const p = Math.min(c.p, P_MAX);
@@ -86,7 +86,8 @@ export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crow
     const eras: MinedCrown[] = [];
     for (const c of kept) {
       const same = eras.some((e) => {
-        if (family(e.dir) !== family(c.dir)) return false;
+        // unrelated definitions in the same years are different stories
+        if (e.dir !== c.dir || !(subsetOf(e, c) || subsetOf(c, e))) return false;
         const shared = Math.min(e.endSe!, c.endSe!) - Math.max(e.startSe!, c.startSe!) + 1;
         return shared > 0 && shared / Math.min(seasons(e), seasons(c)) >= w.eraOv / 100;
       });

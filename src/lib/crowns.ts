@@ -26,6 +26,12 @@ export type Runs = Partial<Record<Dir, Run>>;
 
 export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
+/**
+ * A chip that keeps more than this share of all games ("on a weekend", 91%)
+ * barely filters: added to a definition it mostly lets a streak skip a stray
+ * weeknight game. It stays in the menus but never names a crown.
+ */
+export const NEAR_UNIVERSAL = 0.9;
 
 const NP = PLAIN_CHIPS;
 
@@ -169,10 +175,23 @@ export function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope
   return best;
 }
 
+/** The plain chips (indices) that keep more than NEAR_UNIVERSAL of every team's games. */
+export function nearUniversalChips(data: TeamData[] = teamData()): Set<number> {
+  const games = data.reduce((a, td) => a + td.n, 0);
+  const out = new Set<number>();
+  NP.forEach((_, i) => {
+    let kept = 0;
+    for (const td of data) for (const w of td.masks[i]) kept += popcount(w);
+    if (kept > NEAR_UNIVERSAL * games) out.add(i);
+  });
+  return out;
+}
+
 async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: number[]; teams: number }> {
   const data = teamData();
   const T = data.map((d) => d.ti);
   const walk = scope === 'all' ? walkLongest : walkActive;
+  const loose = nearUniversalChips(data);
 
   const subsets: number[][] = [];
   (function rec(start: number, chosen: number[]) {
@@ -180,7 +199,7 @@ async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: 
     if (chosen.length === 4) return;
     for (let i = start; i < NP.length; i++) {
       const c = NP[i];
-      if (chosen.some((j) => conflicts(NP[j], c))) continue;
+      if (loose.has(i) || chosen.some((j) => conflicts(NP[j], c))) continue;
       rec(i + 1, [...chosen, i]);
     }
   })(0, []);

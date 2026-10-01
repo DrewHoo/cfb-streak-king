@@ -51,13 +51,18 @@ describe('rankCrowns', () => {
     expect(keys(rankCrowns([w, crown({ dir: 'U', len: 30 }), crown({ dir: 'U', len: 31 })], ctx))).toEqual(['U ', 'W ']);
   });
 
-  test('all-time crowns from one era collapse into the best', () => {
-    // no chips in common, so only the era rule can join them
-    const dynasty = crown({ scope: 'all', chips: ['home'], len: 40, startSe: 1946, endSe: 1959 });
-    const sameEra = crown({ scope: 'all', dir: 'U', chips: ['road'], len: 30, startSe: 1950, endSe: 1957 });
-    const later = crown({ scope: 'all', chips: ['road'], len: 30, startSe: 1971, endSe: 1980 });
-    const losing = crown({ scope: 'all', dir: 'L', chips: ['night'], len: 30, startSe: 1950, endSe: 1957 });
-    expect(keys(rankCrowns([dynasty, sameEra, later, losing], ctx))).toEqual(['W home', 'W road', 'L night']);
+  test('an all-time crown that retells a better one\'s era collapses into it', () => {
+    // Oklahoma: unbeaten in 74 conference games holds the 47 plain wins of the same years
+    const dynasty = crown({ scope: 'all', dir: 'U', chips: ['confgame'], len: 74, startSe: 1946, endSe: 1959 });
+    const retold = crown({ scope: 'all', dir: 'U', len: 48, startSe: 1953, endSe: 1957 });
+    expect(keys(rankCrowns([dynasty, retold], ctx))).toEqual(['U confgame']);
+  });
+
+  test('same years alone don\'t make one era: another outcome or an unrelated definition stands', () => {
+    const run = crown({ scope: 'all', chips: ['unranked'], len: 100, startSe: 2007, endSe: 2021 });
+    const vsRanked = crown({ scope: 'all', chips: ['away', 'ranked'], len: 16, startSe: 2014, endSe: 2017 });
+    const unbeaten = crown({ scope: 'all', dir: 'U', chips: ['unranked', 'home'], len: 60, startSe: 2008, endSe: 2020 });
+    expect(keys(rankCrowns([run, vsRanked, unbeaten], ctx))).toEqual(['W unranked', 'U unranked+home', 'W away+ranked']);
   });
 
   test('the cutoff hides what chance would produce, but not a zero-chip crown', () => {

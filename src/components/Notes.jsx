@@ -89,7 +89,8 @@ export function Notes() {
             how far its streak runs past where the field's leader would be expected to land, given how often teams
             get that result in those games, less a cost for each word in the definition (more for words that
             describe the game itself, like a one-score finish). A run across decades earns a little back. A crown
-            that's only a slice of a better one, or that chance would explain, isn't listed.
+            that's only a slice of a better one, or that chance would explain, isn't listed, and a word that keeps
+            nearly every game (on a weekend) never names one.
           </li>
         </ul>
       </div>
