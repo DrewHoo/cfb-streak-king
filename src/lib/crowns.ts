@@ -1,6 +1,6 @@
 // Mine "streaks this team is king of": every ≤4-chip subset of the
 // parameterless catalog (exclusivity honored) × the five outcomes, evaluated
-// over packed per-chip bitmasks. The whole space is 44,799 definitions (the
+// over packed per-chip bitmasks. The whole space is 64,687 definitions (the
 // empty one included) and mines in a second or two, lazily in the client.
 //
 // Two scopes. 'active': the definition-direction whose sole longest active
@@ -19,10 +19,10 @@ import type { MinedCrown } from './crownRank.ts';
 import { fbsNow, gamesOf } from './model.ts';
 import { OUTCOMES } from './streaks.ts';
 
-interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array }
+export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array }
 // live: no later qualifying game broke the run
-interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
-type Runs = Partial<Record<Dir, Run>>;
+export interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
+export type Runs = Partial<Record<Dir, Run>>;
 
 export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
@@ -38,6 +38,12 @@ const popcount = (x: number) => {
   return (((x + (x >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
 };
 const countAnd = (a: Uint32Array, b: Uint32Array) => { let n = 0; for (let w = 0; w < a.length; w++) n += popcount(a[w] & b[w]); return n; };
+
+let built: TeamData[] | null = null;
+/** Each current-FBS team's games as per-chip bitmasks, built once and shared with kings.ts. */
+export function teamData(): TeamData[] {
+  return (built ??= buildData());
+}
 
 function buildData(): TeamData[] {
   return [...fbsNow].map((ti) => {
@@ -69,7 +75,7 @@ function buildData(): TeamData[] {
 
 // The trailing runs of the masked sequence: the run of the latest result
 // (W or L) and the undefeated run, each set when it has at least one game.
-function walkActive(td: TeamData, q: Uint32Array): Runs {
+export function walkActive(td: TeamData, q: Uint32Array): Runs {
   let r0: Result | null = null;
   let lastIdx = -1;
   let same = 0, sameStart = -1, sameOpen = true;
@@ -96,7 +102,7 @@ function walkActive(td: TeamData, q: Uint32Array): Runs {
 
 // the longest run of each outcome anywhere in the masked sequence; on a tie
 // the later run wins, as it sorts first on the all-time board
-function walkLongest(td: TeamData, q: Uint32Array): Runs {
+export function walkLongest(td: TeamData, q: Uint32Array): Runs {
   const best: Runs = {};
   const keep = (o: Dir, len: number, startIdx: number, lastIdx: number) => {
     const b = best[o];
@@ -137,7 +143,7 @@ function walkLongest(td: TeamData, q: Uint32Array): Runs {
 
 // The run of `hit` games (covered or missed) over the masked sequence's lined
 // games: the trailing one for 'active', the longest (latest on a tie) for 'all'.
-function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope: Scope): Run | null {
+export function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope: Scope): Run | null {
   const bit = (m: Uint32Array, i: number) => (m[i >> 5] & (1 << (i & 31))) !== 0;
   const idx: number[] = [];
   for (let w = 0; w < td.words; w++) {
@@ -164,7 +170,7 @@ function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope: Scope
 }
 
 async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: number[]; teams: number }> {
-  const data = buildData();
+  const data = teamData();
   const T = data.map((d) => d.ti);
   const walk = scope === 'all' ? walkLongest : walkActive;
 

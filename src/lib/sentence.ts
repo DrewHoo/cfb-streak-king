@@ -75,6 +75,9 @@ export const SLOTS: Record<string, SlotRow> = {
   rivalry: ['kind', 'rivalry'],
   onescore: ['kind', 'one-score'],
   night: ['kind', 'night'],
+  fullmoon: ['kind', 'werewolf'],
+  weekend: ['when', 'on weekends'],
+  weekday: ['when', 'on weekdays'],
   overtime: ['kind', 'overtime'],
   shootout: ['noun', 'shootouts', 'in shootouts'],
   struggle: ['noun', 'rock fights', 'in rock fights'],
@@ -90,10 +93,10 @@ export const SLOTS: Record<string, SlotRow> = {
   leadhalf: ['half', (p) => (p > 1 ? `when leading at half by ${p}+` : 'when leading at half')],
   trailhalf: ['half', (p) => (p > 1 ? `when trailing at half by ${p}+` : 'when trailing at half')],
   wonpos: ['pos', 'when winning the possession battle'],
-  dompos: ['pos', 'when dominating possession'],
+  lostpos: ['pos', 'when losing the possession battle'],
 };
-// adjectives read in this order: "one-score conference rivalry night games"
-const KIND_ORDER = ['onescore', 'overtime', 'rivalry', 'night'];
+// adjectives read in this order: "one-score rivalry werewolf night games"
+const KIND_ORDER = ['onescore', 'overtime', 'rivalry', 'fullmoon', 'night'];
 // opponent adjectives read rank, then conference, then in-state
 const ADJ_ORDER = ['ranked', 'top10', 'top5', 'unranked', 'confgame', 'nonconf', 'instate'];
 

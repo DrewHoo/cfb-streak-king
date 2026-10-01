@@ -3,8 +3,8 @@ import type { Chip } from './chips.ts';
 import type { ChipRef } from './types.ts';
 import { teams, CHIPS, chipByKey } from './model.ts';
 import {
-  DEFAULT_CHIPS, MAX_CHIPS, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS, PRESETS,
-  encodeChips, decodeChips, chipsToParam, chipsFromParam, defaultParam, withChip, swapChip, withoutChip, withParam, chipWord,
+  DEFAULT_CHIPS, MAX_CHIPS, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS,
+  encodeChips, decodeChips, chipsToParam, chipsFromParam, defaultParam, withChip, swapChip, withoutChip, withParam, chipWord, swapTargets,
 } from './definition.ts';
 
 // every value a chip's parameter can take in the UI
@@ -75,6 +75,15 @@ test('every chip reads as a word', () => {
   }
 });
 
-test('presets only use real chips', () => {
-  for (const p of PRESETS) for (const { key } of p.chips) expect(chipByKey.has(key), `${p.name}: ${key}`).toBe(true);
+test('a constraint changes only to chips no other constraint excludes', () => {
+  const keys = (active: { key: string }[], key: string) => swapTargets(active, key).map((c) => c.key);
+  // weekday can become any site word when the site is open...
+  expect(keys([{ key: 'weekday' }], 'weekday')).toEqual(expect.arrayContaining(['home', 'road', 'weekend', 'fullmoon']));
+  // ...but not one that clashes with "on the road", and never a word already in
+  const t = keys([{ key: 'road' }, { key: 'weekday' }], 'weekday');
+  expect(t).not.toContain('home');
+  expect(t).not.toContain('road');
+  expect(t).not.toContain('weekday');
+  // its own group-mates stay: swapping replaces this constraint
+  expect(keys([{ key: 'road' }, { key: 'weekday' }], 'road')).toEqual(expect.arrayContaining(['home', 'neutral']));
 });

@@ -75,6 +75,10 @@ export interface GameContext {
   /** Venue state, postal code. */
   vst: string | null;
   month: number;
+  /** Day of the week of the game date, 0 Sunday. */
+  wday: number;
+  /** The moon is full within a day of the game's evening (moon.ts). */
+  moon: boolean;
   /** The opponent's conference that season. */
   oppConf: string | null;
   /** The opponent's campus is in our campus's state. */

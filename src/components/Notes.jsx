@@ -70,6 +70,10 @@ export function Notes() {
             halftime scores (2001 on) and time of possession (2004 on).
           </li>
           <li>
+            Full moons are worked out to the minute with Jean Meeus’s lunar-phase method. A game is a werewolf
+            game when the moon is full within a day of 8pm Eastern on game day.
+          </li>
+          <li>
             A team's regular off-campus home field (Legion Field for Alabama, War Memorial Stadium in Little
             Rock for Arkansas, and similar) counts as a home game.
           </li>

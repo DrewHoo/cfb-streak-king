@@ -20,11 +20,6 @@ describe('view', () => {
     expect(viewReducer(v, { type: 'scope', scope: 'active' }).week).toBe(true);
   });
 
-  test('a preset switches to active streaks unless it says otherwise', () => {
-    const v = viewReducer({ ...initialView(), run: 5 }, { type: 'preset', active: [{ key: 'opener' }], dir: 'W' });
-    expect([v.scope, v.run, v.active]).toEqual(['active', null, [{ key: 'opener' }]]);
-  });
-
   test('a one-score or shootout chip drops from a spread streak, however it arrives', () => {
     const one = [{ key: 'home' }, { key: 'onescore' }];
     expect(viewReducer(initialView(), { type: 'define', active: one, dir: 'N' }).active).toEqual([{ key: 'home' }]);

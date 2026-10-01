@@ -1,12 +1,12 @@
 // A definition is up to four chips plus a direction. This module owns how it
-// round-trips through the URL, the defaults a new chip takes, the presets, and
-// how a chip reads as a word in the definition sentence.
+// round-trips through the URL, the defaults a new chip takes, what a chip can
+// be changed to, and how a chip reads as a word in the definition sentence.
 
 import type { ChipRef, Dir } from './types.ts';
-import { P, teams, confs, activeBoard } from './model.ts';
-import { chipByKey, conflicts } from './chips.ts';
+import { P, teams, confs } from './model.ts';
+import { CHIPS, chipByKey, conflicts, fitsDir } from './chips.ts';
 import type { Chip, ParamKind } from './chips.ts';
-import { count, stateName } from './format.ts';
+import { stateName } from './format.ts';
 
 // the definition a bare URL opens on: all-time winning streaks vs unranked
 // opponents, the board Alabama's 100 tops
@@ -14,29 +14,7 @@ export const DEFAULT_CHIPS: ChipRef[] = [{ key: 'unranked' }];
 export const DEFAULT_SCOPE = 'all';
 export const MAX_CHIPS = 4;
 
-export interface Preset { name: string; chips: ChipRef[]; dir: Dir }
-export const PRESETS: Preset[] = [
-  { name: 'The Saban Standard', chips: [{ key: 'unranked' }], dir: 'W' },
-  { name: 'Ranked Futility', chips: [{ key: 'ranked' }], dir: 'L' },
-  { name: 'Road Kill', chips: [{ key: 'road' }, { key: 'confgame' }], dir: 'L' },
-  { name: 'Saturday Night Lights', chips: [{ key: 'home' }, { key: 'night' }], dir: 'W' },
-  { name: 'Never Twice', chips: [{ key: 'afterloss' }], dir: 'W' },
-  { name: 'Opening Day', chips: [{ key: 'opener' }], dir: 'W' },
-  { name: 'Kings of the State', chips: [{ key: 'instate' }], dir: 'W' },
-  { name: 'Giant Killers', chips: [{ key: 'dog' }], dir: 'W' },
-  { name: 'Chalk', chips: [{ key: 'fav' }], dir: 'L' },
-  { name: 'Bowl Curse', chips: [{ key: 'postseason' }], dir: 'L' },
-];
-
-/** Each preset with its active leader today, for the "start from" list. */
-export function presetLeaders(todayEp: number) {
-  return PRESETS.map((p) => {
-    const top = activeBoard(p.chips, p.dir, todayEp)[0];
-    return { ...p, leader: top ? teams[top.ti] : null, len: top ? count(top.s) : '' };
-  });
-}
-
-export const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff'];
+export const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 'opponent', 'coach', 'calendar', 'context', 'shape', 'half', 'possession', 'kickoff', 'almanac'];
 
 // data-coverage notes for the group headings in the + menu
 const RANK_NOTE = 'AP rank at kickoff. The AP ranked 20 teams through 1960, 10 in 1961–67, 20 through 1988 and 25 since. There was no preseason poll before 1950; games before a season’s first poll can’t qualify.';
@@ -48,6 +26,7 @@ export const GROUP_NOTES: Record<string, string> = {
   half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
   possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
+  almanac: 'Weekend and weekday go by the game’s date. A full-moon game is played within a day of the moment the moon is full, counted from 8pm Eastern on game day, with full moons worked out to the minute by Meeus’s lunar-phase method.',
   shape: 'Overtime comes from quarter-by-quarter line scores, known from 2001 and solid from 2002. FBS overtime began in 1996, but no source here marks 1996–2000 overtime games, so they can’t qualify.',
 };
 
@@ -165,4 +144,16 @@ export function swapChip(active: ChipRef[], oldKey: string, newKey: string): Chi
   return active.map((a) => (a.key === oldKey ? (c.param ? { key: newKey, param: defaultParam(c) } : { key: newKey }) : a));
 }
 export const withoutChip = (active: ChipRef[], key: string) => active.filter((a) => a.key !== key);
+
+/**
+ * What one constraint can be changed to: any chip not already in the
+ * definition that no *other* constraint excludes. Changing "on a weekday" to
+ * "at home" while "on the road" is in the definition would drop two words, so
+ * "at home" isn't offered. Given the outcome, it also leaves out chips that
+ * can't define it (one-score or shootout for a spread streak).
+ */
+export function swapTargets(active: ChipRef[], key: string, dir?: Dir): Chip[] {
+  const others = active.filter((a) => a.key !== key).map((a) => chipByKey.get(a.key)!);
+  return CHIPS.filter((c) => c.key !== key && !active.some((a) => a.key === c.key) && !others.some((o) => conflicts(o, c)) && (!dir || fitsDir(c, dir)));
+}
 export const withParam = (active: ChipRef[], key: string, param: string | number) => active.map((a) => (a.key === key ? { ...a, param } : a));

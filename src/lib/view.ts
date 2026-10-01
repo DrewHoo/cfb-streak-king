@@ -1,9 +1,8 @@
 // The view's state and every way it changes. Pure, so the rules are testable:
 // a new definition, scope or direction starts the board at its first columns
-// again; all-time mode has no "this week" filter; presets are written for
-// active streaks, so applying one leaves all-time mode. A chip that can't
-// define the direction's streaks (one-score vs the spread) drops, whatever
-// brought the pair in: an old URL, a saved streak.
+// again; all-time mode has no "this week" filter. A chip that can't define
+// the direction's streaks (one-score or shootout vs the spread) drops,
+// whatever brought the pair in: an old URL, a saved streak.
 
 import type { BoardRow, ChipRef, Crown, Dir, Scope } from './types.ts';
 import type { View } from './url.ts';
@@ -24,7 +23,6 @@ export type ViewAction =
   | { type: 'scope'; scope: Scope }
   | { type: 'dir'; dir: Dir }
   | { type: 'week'; on: boolean }
-  | { type: 'preset'; active: ChipRef[]; dir: Dir; scope?: Scope }
   | { type: 'crown'; crown: Crown }
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
@@ -56,8 +54,6 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       return { ...v, dir: a.dir, limit: DESKTOP_CAP };
     case 'week':
       return { ...v, week: a.on };
-    case 'preset':
-      return { ...v, active: a.active, dir: a.dir, scope: a.scope ?? 'active', run: null, limit: DESKTOP_CAP };
     case 'crown':
       return { ...v, active: a.crown.chips.map((key) => ({ key })), dir: a.crown.dir, scope: a.crown.scope, run: null, limit: DESKTOP_CAP };
     case 'pick': {
