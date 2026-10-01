@@ -1,6 +1,6 @@
 // What to read next, and the Method notes: the page's static copy.
 
-import { P, firstSeason } from '../lib/model.ts';
+import { P, firstSeason, fbsNow } from '../lib/model.ts';
 import { PLAIN_CHIPS, PLAIN_DEFINITIONS, PLAIN_STREAK_KINDS } from '../lib/chips.ts';
 
 export function Notes() {
@@ -90,7 +90,15 @@ export function Notes() {
             get that result in those games, less a cost for each word in the definition (more for words that
             describe the game itself, like a one-score finish). A run across decades earns a little back. A crown
             that's only a slice of a better one, or that chance would explain, isn't listed, and a word that keeps
-            nearly every game (on a weekend) never names one.
+            nearly every game (on a weekend) never names one. Each crown shows the odds that luck alone produces a
+            streak that long under its definition: every team (or, all-time, every place a run could start) gets
+            that many tries at the field's rate.
+          </li>
+          <li>
+            The rate under the sentence pools today's {fbsNow.size} FBS teams' games, each from that team's side. A
+            game between two of them counts once each way and comes out even; a game against anyone else (an FCS
+            team, a program that has since dropped out) counts once, and FBS teams win most of those. So a
+            condition that favors neither side, like a full moon, sits a little above 50%.
           </li>
         </ul>
       </div>

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { Dir, Scope } from './types.ts';
 import type { MinedCrown } from './crownRank.ts';
-import { RANK, crownScore, rankCrowns } from './crownRank.ts';
+import { RANK, chanceOf, crownScore, rankCrowns } from './crownRank.ts';
 
 const ctx = { M: [1, 35, 566, 5626, 38571], teams: 136 };
 const crown = (o: Partial<MinedCrown> & { dir?: Dir; scope?: Scope } = {}): MinedCrown => ({
@@ -20,6 +20,15 @@ describe('crownScore', () => {
     expect(one('afterloss')).toBe(one('home'));
     expect(one('fav')).toBe(one('home'));
     expect(one('home') - one('onescore')).toBeCloseTo(RANK.postBits, 10);
+  });
+
+  test('chance: every team gets len tries at the field\'s rate', () => {
+    // 10 coin flips, 136 teams: 1 − (1 − 2^-10)^136
+    expect(chanceOf(crown(), ctx)).toBeCloseTo(1 - (1 - 2 ** -10) ** 136, 12);
+    // all-time: a try at every non-matching game
+    expect(chanceOf(crown({ scope: 'all', n: 2000, p: 0.5 }), ctx)).toBeCloseTo(1 - (1 - 2 ** -10) ** 1000, 12);
+    // a long run doesn't underflow to zero
+    expect(chanceOf(crown({ len: 100, p: 0.58 }), ctx)).toBeGreaterThan(0);
   });
 
   test('all-time charges every place a run could start, and pays for span', () => {
@@ -76,7 +85,9 @@ describe('rankCrowns', () => {
     expect(rankCrowns(weak, ctx).map((c) => c.len)).toEqual([8, 7, 6]);
   });
 
-  test('ranked crowns drop the rate fields', () => {
-    expect(Object.keys(rankCrowns([crown()], ctx)[0])).not.toContain('p');
+  test('ranked crowns carry their chance and drop the rate fields', () => {
+    const out = rankCrowns([crown()], ctx)[0];
+    expect(Object.keys(out)).not.toContain('p');
+    expect(out.chance).toBeCloseTo(chanceOf(crown(), ctx), 12);
   });
 });

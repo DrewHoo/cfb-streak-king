@@ -41,7 +41,7 @@ describe('url', () => {
   });
 
   test('a crown links to its team page with its definition', () => {
-    const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, live: true, also: 0 });
+    const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, live: true, also: 0, chance: 0 });
     expect(u.path).toBe('team/alabama/');
     expect(search(u.params)).toBe('c=road&dir=U&scope=active');
   });

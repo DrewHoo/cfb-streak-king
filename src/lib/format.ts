@@ -26,6 +26,24 @@ export const kickOf = (u: { hh: number }) => (u.hh !== 31 ? `${u.hh % 12 || 12}$
 export const spreadText = (sp: number) => (sp === 0 ? 'PK' : sp > 0 ? `+${sp}` : `${sp}`);
 export const count = (s: Pick<Streak, 'len' | 'atEdge'>) => `${s.len}${s.atEdge ? '+' : ''}`;
 
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sup = (n: number) => String(n).replace(/\d/g, (d) => SUP[+d]);
+/**
+ * A probability as odds against, two significant figures: "1 in 42", "1 in
+ * 4,200", "1 in 4.2 million", "1 in 10²²". At even odds or worse, "likely".
+ */
+export function oddsText(chance: number): string {
+  if (chance >= 0.5) return 'likely';
+  const n = 1 / chance;
+  if (n < 10) return `1 in ${n.toFixed(1)}`;
+  if (n < 1e6) return `1 in ${Number(n.toPrecision(2)).toLocaleString('en-US')}`;
+  if (n < 1e15) {
+    const [word, unit] = n < 1e9 ? ['million', 1e6] : n < 1e12 ? ['billion', 1e9] : ['trillion', 1e12];
+    return `1 in ${Number((n / unit).toPrecision(2)).toLocaleString('en-US')} ${word}`;
+  }
+  return `1 in 10${sup(Math.round(Math.log10(n)))}`;
+}
+
 // state names for the "in [state]" chip: the payload carries postal codes
 export const STATE_NAMES: Record<string, string> = {
   AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'Washington, DC',
