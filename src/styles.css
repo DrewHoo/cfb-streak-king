@@ -346,6 +346,9 @@ footer a { color: var(--ink-muted); }
      the 40px column and shrinks back into it; the panel inside keeps its final
      width so its text never reflows mid-motion */
   .colwrap.is-open { overflow-x: hidden; }
+  /* a closed cell is no box at all: its column is the rail's item */
+  .railcell { display: contents; }
+  .railslot-col { flex: none; }
   .railslot {
     --slot-w: calc(100vw - 32px);
     position: relative; flex: none; width: var(--slot-w); overflow: hidden;
@@ -353,7 +356,7 @@ footer a { color: var(--ink-muted); }
   }
   .railslot.enter, .railslot.exit { width: 40px; }
   /* the team's own column under the panel: shown while the slot is column-wide */
-  .railslot-col { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.22s ease; }
+  .railslot .railslot-col { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.22s ease; }
   .railslot-panel { transition: opacity 0.22s ease; }
   .railslot.enter .railslot-col, .railslot.exit .railslot-col { opacity: 1; }
   /* closing unmounts the panel, so the column is what gives the slot a height */
