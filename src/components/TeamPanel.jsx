@@ -118,7 +118,7 @@ function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir
       </p>
       {crowns === null && <p className="empty">finding every streak {name} is king of…</p>}
       {crowns !== null && list0.length === 0 && (
-        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of 4+ games that {name} alone holds.</p>
+        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak {name} alone holds stands out from chance.</p>
       )}
       {list.map((cr) => {
         const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;
