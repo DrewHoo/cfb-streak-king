@@ -4,7 +4,8 @@ import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
 import { activeRun, runsOf, matches, decided, OUTCOMES } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard, baseRate } from './model.ts';
-import { mineRawCrowns, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
+import { mineRawCrowns, nearUniversalChips, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
+import { PLAIN_CHIPS } from './chips.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
 const seq = (s: string) => [...s].map((r, i) => ({ r: r as Result, i }));
@@ -174,4 +175,16 @@ describe('crowns agree with the boards', () => {
       }
     }, 60000);
   }
+});
+
+describe('near-universal chips', () => {
+  test('on a weekend keeps nearly every game; on a weekday doesn\'t', () => {
+    expect([...nearUniversalChips()].map((i) => PLAIN_CHIPS[i].key)).toEqual(['weekend']);
+  });
+
+  test('never names a crown', async () => {
+    for (const scope of ['active', 'all'] as const) {
+      for (const list of (await mineRawCrowns(scope)).values()) for (const c of list) expect(c.chips).not.toContain('weekend');
+    }
+  }, 60000);
 });
