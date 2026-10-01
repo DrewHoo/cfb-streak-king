@@ -4,7 +4,7 @@
 
 import * as DM from '@radix-ui/react-dropdown-menu';
 import { Drawer } from 'vaul';
-import { CHIPS, chipByKey, conflicts } from '../lib/chips.ts';
+import { CHIPS, chipByKey, conflicts, fitsDir } from '../lib/chips.ts';
 import {
   GROUPS, GROUP_NOTES, PARAMS, chipWord, MAX_CHIPS,
 } from '../lib/definition.ts';
@@ -28,8 +28,8 @@ function Word({ label, children, strong }) {
   );
 }
 
-const Item = ({ on, muted, onSelect, children }) => (
-  <DM.Item className={'mi' + (on ? ' on' : '') + (muted ? ' muted' : '')} onSelect={onSelect}>
+const Item = ({ on, muted, disabled, title, onSelect, children }) => (
+  <DM.Item className={'mi' + (on ? ' on' : '') + (muted ? ' muted' : '')} onSelect={onSelect} disabled={disabled} title={title}>
     <span>{children}</span>{on && <span className="mi-check">✓</span>}
   </DM.Item>
 );
@@ -37,9 +37,9 @@ const Heading = ({ children, title }) => <DM.Label className="menu-h" title={tit
 const Rule = () => <DM.Separator className="menu-rule" />;
 
 /** A constraint's own menu: its parameter (if any), its group-mates, remove. */
-function ChipWord({ a, active, on }) {
+function ChipWord({ a, active, dir, on }) {
   const c = chipByKey.get(a.key);
-  const siblings = CHIPS.filter((s) => s.group === c.group && s.key !== a.key && !active.some((x) => x.key === s.key));
+  const siblings = CHIPS.filter((s) => s.group === c.group && s.key !== a.key && !active.some((x) => x.key === s.key) && fitsDir(s, dir));
   const params = c.param ? PARAMS[c.param].options(c) : [];
   return (
     <Word label={chipWord(a)} strong>
@@ -54,12 +54,12 @@ function ChipWord({ a, active, on }) {
 }
 
 /** The body of the + menu, shared by the dropdown and the sheet. */
-function AddBody({ active, scope, week, weekCount, weekDay, startFrom, on, Item: I, Heading: H, Group: G }) {
+function AddBody({ active, dir, scope, week, weekCount, weekDay, startFrom, on, Item: I, Heading: H, Group: G }) {
   const full = active.length >= MAX_CHIPS;
   return (
     <>
       {GROUPS.map((grp) => {
-        const chips = CHIPS.filter((c) => c.group === grp && !active.some((a) => a.key === c.key));
+        const chips = CHIPS.filter((c) => c.group === grp && !active.some((a) => a.key === c.key) && fitsDir(c, dir));
         if (!chips.length) return null;
         return (
           <G key={grp}>
@@ -133,6 +133,12 @@ function AddMenu({ isMobile, open, setOpen, ...body }) {
 }
 
 export function Sentence({ active, dir, scope, week, weekCount, weekDay, startFrom, isMobile, addOpen, setAddOpen, on }) {
+  // an outcome the definition's chips can't pair with: one-score vs the spread
+  const blocker = (d) => active.map((a) => chipByKey.get(a.key)).find((c) => c && !fitsDir(c, d));
+  const dirItem = (d, word) => {
+    const b = blocker(d);
+    return <Item on={dir === d} disabled={!!b} title={b ? `not with ${b.label}` : undefined} onSelect={() => on.dir(d)}>{word}</Item>;
+  };
   return (
     <div className="sentence">
       <span>Longest</span>
@@ -141,15 +147,15 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, startFr
         <Item on={scope === 'all'} onSelect={() => on.scope('all')}>all-time</Item>
       </Word>
       <Word label={dirWord(dir)}>
-        <Item on={dir === 'W'} onSelect={() => on.dir('W')}>winning</Item>
-        <Item on={dir === 'L'} onSelect={() => on.dir('L')}>losing</Item>
-        <Item on={dir === 'U'} onSelect={() => on.dir('U')}>undefeated</Item>
-        <Item on={dir === 'C'} onSelect={() => on.dir('C')}>covering</Item>
-        <Item on={dir === 'N'} onSelect={() => on.dir('N')}>not covering</Item>
+        {dirItem('W', 'winning')}
+        {dirItem('L', 'losing')}
+        {dirItem('U', 'undefeated')}
+        {dirItem('C', 'covering')}
+        {dirItem('N', 'not covering')}
       </Word>
       <span>streaks</span>
       {active.length === 0 && <span className="allgames">in all games</span>}
-      {active.map((a) => <ChipWord key={a.key} a={a} active={active} on={on} />)}
+      {active.map((a) => <ChipWord key={a.key} a={a} active={active} dir={dir} on={on} />)}
       {week && (
         <Word label={`could be broken ${weekDay}`} strong>
           <Item muted onSelect={on.unweek}>remove</Item>
@@ -157,7 +163,7 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, startFr
       )}
       <AddMenu
         isMobile={isMobile} open={addOpen} setOpen={setAddOpen}
-        active={active} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay} startFrom={startFrom} on={on}
+        active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay} startFrom={startFrom} on={on}
       />
     </div>
   );

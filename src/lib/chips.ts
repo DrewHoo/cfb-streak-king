@@ -12,10 +12,13 @@
 //   floor     the first season the chip's data exists, and what that data
 //             is called, for "this streak may be longer than we can show".
 //             chips.test.ts checks every floor against the payload.
+//   notWith   outcomes the chip can't define a streak of, because it nearly
+//             decides them: a one-score final, or a shootout's margin under
+//             10, mostly settles the cover.
 //
 // Every test reads only the row, so the catalog has no dependencies.
 
-import type { GameContext, GameRow } from './types.ts';
+import type { Dir, GameContext, GameRow } from './types.ts';
 
 export type ParamKind = 'state' | 'conf' | 'team' | 'month' | 'hmargin';
 export type Param = string | number | undefined;
@@ -28,6 +31,7 @@ interface ChipBase {
   exclusive?: boolean;
   param?: ParamKind;
   floor?: { season: number; what: string };
+  notWith?: Dir[];
 }
 export interface PregameChip extends ChipBase {
   pregame: true;
@@ -91,11 +95,11 @@ export const CHIPS: Chip[] = [
   post({ key: 'trailhalf', label: 'trailing at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! <= -num(p), floor: HALF }),
   post({ key: 'wonpos', label: 'won the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! > 0.5, floor: CLOCK }),
   post({ key: 'dompos', label: 'dominated the clock (60%+)', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! >= 0.6, floor: CLOCK }),
-  post({ key: 'onescore', label: 'one-score game', group: 'shape', exclusive: true, test: (x) => x.margin <= 8 }),
+  post({ key: 'onescore', label: 'one-score game', group: 'shape', exclusive: true, notWith: ['C', 'N'], test: (x) => x.margin <= 8 }),
   // a shootout is high-scoring AND contested: 70+ combined (1σ above the
   // all-time mean of 51.0) decided by fewer than 10 — 4.9% of games. A 73-0
   // blowout is not a shootout. struggle keeps the 1σ low bound (~15% tail).
-  post({ key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', exclusive: true, test: (x) => x.total >= 70 && x.margin < 10 }),
+  post({ key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', exclusive: true, notWith: ['C', 'N'], test: (x) => x.total >= 70 && x.margin < 10 }),
   post({ key: 'struggle', label: 'rock fight (≤ 33)', group: 'shape', exclusive: true, test: (x) => x.total <= 33 }),
   post({ key: 'overtime', label: 'overtime game', group: 'shape', known: (x) => x.ot >= 0, test: (x) => x.ot > 0, floor: { season: 2001, what: 'overtime' } }),
   pre({ key: 'night', label: 'night game (6pm+)', group: 'kickoff', known: (x) => x.hh !== 31, test: (x) => x.hh >= 18, floor: { season: 2002, what: 'kickoff-time' } }),
@@ -112,18 +116,30 @@ export function qualifiesPregame(c: PregameChip, g: GameContext, p?: Param): boo
   return (c.known ? c.known(g) : true) && c.test(g, p);
 }
 
+/** Whether a chip can define a streak of outcome `dir`. */
+export const fitsDir = (c: Chip, dir: Dir) => !c.notWith?.includes(dir);
+
 /** Two chips that can't both be in a definition. */
 export const conflicts = (a: Chip, b: Chip) => !!a.exclusive && !!b.exclusive && a.group === b.group;
 
 /** The chips that take no choice: the space the crowns miner walks. */
 export const PLAIN_CHIPS = CHIPS.filter((c) => !c.param);
-/** How many definitions of up to 4 plain chips there are, the empty one included. */
-export const PLAIN_DEFINITIONS = (function count(start: number, chosen: number[]): number {
-  let n = 1;
-  if (chosen.length === 4) return n;
-  for (let i = start; i < PLAIN_CHIPS.length; i++) {
-    if (chosen.some((j) => conflicts(PLAIN_CHIPS[j], PLAIN_CHIPS[i]))) continue;
-    n += count(i + 1, [...chosen, i]);
-  }
-  return n;
-})(0, []);
+/**
+ * How many definitions of up to 4 plain chips there are, the empty one
+ * included, and how many kinds of streak they make with the outcomes each
+ * can define.
+ */
+export const [PLAIN_DEFINITIONS, PLAIN_STREAK_KINDS] = (() => {
+  const outcomes: Dir[] = ['W', 'L', 'U', 'C', 'N'];
+  let defs = 0, kinds = 0;
+  (function walk(start: number, chosen: number[]) {
+    defs++;
+    kinds += outcomes.filter((d) => chosen.every((j) => fitsDir(PLAIN_CHIPS[j], d))).length;
+    if (chosen.length === 4) return;
+    for (let i = start; i < PLAIN_CHIPS.length; i++) {
+      if (chosen.some((j) => conflicts(PLAIN_CHIPS[j], PLAIN_CHIPS[i]))) continue;
+      walk(i + 1, [...chosen, i]);
+    }
+  })(0, []);
+  return [defs, kinds];
+})();
