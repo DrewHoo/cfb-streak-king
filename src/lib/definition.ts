@@ -2,9 +2,9 @@
 // round-trips through the URL, the defaults a new chip takes, what a chip can
 // be changed to, and how a chip reads as a word in the definition sentence.
 
-import type { ChipRef } from './types.ts';
+import type { ChipRef, Dir } from './types.ts';
 import { P, teams, confs } from './model.ts';
-import { CHIPS, chipByKey, conflicts } from './chips.ts';
+import { CHIPS, chipByKey, conflicts, fitsDir } from './chips.ts';
 import type { Chip, ParamKind } from './chips.ts';
 import { stateName } from './format.ts';
 
@@ -149,10 +149,11 @@ export const withoutChip = (active: ChipRef[], key: string) => active.filter((a)
  * What one constraint can be changed to: any chip not already in the
  * definition that no *other* constraint excludes. Changing "on a weekday" to
  * "at home" while "on the road" is in the definition would drop two words, so
- * "at home" isn't offered.
+ * "at home" isn't offered. Given the outcome, it also leaves out chips that
+ * can't define it (one-score or shootout for a spread streak).
  */
-export function swapTargets(active: ChipRef[], key: string): Chip[] {
+export function swapTargets(active: ChipRef[], key: string, dir?: Dir): Chip[] {
   const others = active.filter((a) => a.key !== key).map((a) => chipByKey.get(a.key)!);
-  return CHIPS.filter((c) => c.key !== key && !active.some((a) => a.key === c.key) && !others.some((o) => conflicts(o, c)));
+  return CHIPS.filter((c) => c.key !== key && !active.some((a) => a.key === c.key) && !others.some((o) => conflicts(o, c)) && (!dir || fitsDir(c, dir)));
 }
 export const withParam = (active: ChipRef[], key: string, param: string | number) => active.map((a) => (a.key === key ? { ...a, param } : a));

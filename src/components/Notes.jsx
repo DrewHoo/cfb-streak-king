@@ -1,7 +1,7 @@
 // What to read next, and the Method notes: the page's static copy.
 
 import { P, firstSeason } from '../lib/model.ts';
-import { PLAIN_CHIPS, PLAIN_DEFINITIONS } from '../lib/chips.ts';
+import { PLAIN_CHIPS, PLAIN_DEFINITIONS, PLAIN_STREAK_KINDS } from '../lib/chips.ts';
 
 export function Notes() {
   return (
@@ -78,11 +78,18 @@ export function Notes() {
             Rock for Arkansas, and similar) counts as a home game.
           </li>
           <li>
-            A team's page lists every streak it is king of: each definition under which that team alone holds
+            A team's page lists the streaks it is king of that stand out: each definition under which that team alone holds
             the longest active or all-time streak, at least 4 games long, among at least 10 teams with a streak
             under it. The {PLAIN_CHIPS.length} plain words alone make {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible definitions,{' '}
-            {(PLAIN_DEFINITIONS * 5).toLocaleString('en-US')} counting winning, losing, undefeated, covering and not covering separately; the words that take a choice
+            {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting winning, losing, undefeated, covering and not covering separately; the words that take a choice
             (a state, a conference, an opponent, a month) push that past 24 million.
+          </li>
+          <li>
+            With that many definitions, some team leads almost any of them by chance, so each crown gets a score:
+            how far its streak runs past where the field's leader would be expected to land, given how often teams
+            get that result in those games, less a cost for each word in the definition (more for words that
+            describe the game itself, like a one-score finish). A run across decades earns a little back. A crown
+            that's only a slice of a better one, or that chance would explain, isn't listed.
           </li>
         </ul>
       </div>

@@ -20,6 +20,15 @@ describe('view', () => {
     expect(viewReducer(v, { type: 'scope', scope: 'active' }).week).toBe(true);
   });
 
+  test('a one-score or shootout chip drops from a spread streak, however it arrives', () => {
+    const one = [{ key: 'home' }, { key: 'onescore' }];
+    expect(viewReducer(initialView(), { type: 'define', active: one, dir: 'N' }).active).toEqual([{ key: 'home' }]);
+    expect(viewReducer({ ...initialView(), active: one }, { type: 'dir', dir: 'C' }).active).toEqual([{ key: 'home' }]);
+    expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), active: one, dir: 'N' } }).active).toEqual([{ key: 'home' }]);
+    expect(viewReducer(initialView(), { type: 'define', active: one, dir: 'L' }).active).toEqual(one);
+    expect(viewReducer(initialView(), { type: 'define', active: [{ key: 'shootout' }], dir: 'C' }).active).toEqual([]);
+  });
+
   test('picking a run opens it; picking it again closes it', () => {
     let v = initialView();
     v = viewReducer(v, { type: 'pick', row: row(3, 100) });

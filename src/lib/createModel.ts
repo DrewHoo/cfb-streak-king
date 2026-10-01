@@ -6,7 +6,7 @@
 import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, UpcomingRow } from './types.ts';
 import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
-import { activeRun, runsOf, decided, againstSpread } from './streaks.ts';
+import { activeRun, runsOf, decided, matches, againstSpread } from './streaks.ts';
 import { underFullMoon } from './moon.ts';
 
 const DAY_MS = 86400000;
@@ -278,6 +278,26 @@ export function createModel(P: Payload) {
   }
 
   /**
+   * How often the outcome happens under a definition: every current FBS
+   * team's qualifying games, pooled. `n` counts the games that can decide it
+   * (lined ones for a spread outcome), `from` is the first season among them.
+   * Null when no game qualifies.
+   */
+  function baseRate(active: ChipRef[], dir: Dir) {
+    const filter = makeFilter(active);
+    let n = 0, hit = 0, from = Infinity;
+    for (const ti of fbsNow) {
+      for (const g of gamesOf(ti)) {
+        if (!filter(g) || !decided(dir, g)) continue;
+        n++;
+        if (matches(dir, g)) hit++;
+        if (g.se < from) from = g.se;
+      }
+    }
+    return n ? { hit, n, from } : null;
+  }
+
+  /**
    * Where a streak that reaches the start of a team's list actually stops:
    * the latest data floor among the definition's chips (kickoff times from
    * 2002, say) or the outcome's (a spread streak needs lines, from 1978),
@@ -298,5 +318,5 @@ export function createModel(P: Payload) {
     };
   }
 
-  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, edgeFor };
+  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, baseRate, edgeFor };
 }

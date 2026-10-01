@@ -3,8 +3,8 @@ import type { BoardRow, ChipRef, Dir, Result } from './types.ts';
 import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
 import { activeRun, runsOf, matches, decided, OUTCOMES } from './streaks.ts';
-import { P, teams, CHIPS, activeBoard, allTimeBoard } from './model.ts';
-import { mineCrowns, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
+import { P, teams, CHIPS, activeBoard, allTimeBoard, baseRate } from './model.ts';
+import { mineRawCrowns, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
 const seq = (s: string) => [...s].map((r, i) => ({ r: r as Result, i }));
@@ -142,11 +142,12 @@ describe('boards', () => {
 
 // crowns.js walks packed bitmasks; the boards walk game lists. They are
 // independent implementations of the same semantics, so check one against the
-// other: every crown's definition must put that team alone on top of the board.
+// other: every crown's definition must put that team alone on top of the board,
+// and its pooled rate must match baseRate's count over the game lists.
 describe('crowns agree with the boards', () => {
   for (const scope of ['active', 'all'] as const) {
     test(`${scope} crowns`, async () => {
-      const cache = await mineCrowns(scope);
+      const cache = await mineRawCrowns(scope);
       const rand = rng(scope === 'all' ? 3 : 5);
       const picked = [];
       for (const [ti, list] of cache) for (const cr of list) if (rand() < 0.02) picked.push({ ti, cr });
@@ -167,6 +168,9 @@ describe('crowns agree with the boards', () => {
         expect(cr.len).toBeGreaterThanOrEqual(LEN_FLOOR);
         expect(rows.length).toBeGreaterThanOrEqual(FIELD_FLOOR);
         expect(cr.live, label).toBe(rows[0].live ?? true);
+        const rate = baseRate(def, cr.dir)!;
+        expect(cr.n, label).toBe(rate.n);
+        expect(cr.p, label).toBeCloseTo(rate.hit / rate.n, 12);
       }
     }, 60000);
   }

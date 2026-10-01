@@ -1,0 +1,312 @@
+<!-- Template for scripts/tuner/build-tuner.mjs, which replaces the DATA
+     marker below with the current payload's crowns and the site's weights
+     (RANK in src/lib/crownRank.ts), which are the defaults. "Copy settings"
+     puts the page's current values on the clipboard to paste back there. -->
+<title>Crown Score Tuner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Graduate&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Streak King's own look (src/styles.css): dark-only, cream type, rust for data.
+   Layout: a sticky control rail on the left, team ledgers on the right; one column on a phone. */
+:root {
+  --bg: #282127;
+  --bg-lift: #322a30;
+  --ink: #efe6d9;
+  --ink-muted: #bfb2a6;
+  --ink-faint: #857a75;
+  --line: #453a42;
+  --cream: #f3e2bc;
+  --rust: #c36c36;
+  --display: 'Graduate', Georgia, serif;
+  --body: 'Source Serif 4', Georgia, serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: 20px; padding-block: 24px 64px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+h1 { font-family: var(--display); font-weight: 400; color: var(--cream); font-size: clamp(26px, 4vw, 38px); letter-spacing: 0.03em; margin: 0; line-height: 1.1; }
+.dateline { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+.formula { font-family: var(--mono); font-size: 12.5px; color: var(--ink-muted); margin: 14px 0 0; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+.formula b { color: var(--cream); font-weight: 500; }
+
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 28px; margin-top: 18px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 18px; max-height: calc(100vh - 24px); overflow-y: auto; padding-right: 4px; }
+@media (max-width: 860px) { aside { position: static; max-height: none; } }
+fieldset { border: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+legend { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); padding: 0 0 8px; border-bottom: 1px solid var(--line); width: 100%; margin-bottom: 4px; }
+.ctl { display: grid; gap: 3px; }
+.ctl-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.ctl label { font-size: 14px; color: var(--ink); }
+.ctl output { font-family: var(--mono); font-size: 12.5px; color: var(--cream); font-variant-numeric: tabular-nums; }
+.ctl .hint { font-size: 12.5px; color: var(--ink-faint); line-height: 1.4; }
+input[type=range] { width: 100%; accent-color: var(--rust); }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.check input { accent-color: var(--rust); margin-top: 4px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { flex: 1; font: 13px var(--body); color: var(--ink-muted); background: transparent; border: none; padding: 5px 4px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed=true] { background: var(--bg-lift); color: var(--cream); }
+.btn { font: 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); background: transparent; border: 1px dashed var(--ink-faint); border-radius: 4px; padding: 6px 10px; cursor: pointer; justify-self: start; }
+.btn:hover, .seg button:hover { color: var(--cream); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.copied { width: 100%; min-height: 120px; font: 11.5px var(--mono); color: var(--ink); background: var(--bg-lift); border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
+:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+
+.picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.picker button { font: 13px var(--body); color: var(--ink-faint); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.picker button[aria-pressed=true] { color: var(--cream); border-color: var(--ink-faint); background: var(--bg-lift); }
+
+.teams { display: grid; gap: 26px; min-width: 0; }
+.team h2 { font-family: var(--display); font-weight: 400; font-size: 21px; letter-spacing: 0.04em; color: var(--cream); margin: 0 0 8px; }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+@media (max-width: 1060px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.col h3 { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-weight: 400; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin: 0; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.col h3 .n { font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+ol { list-style: none; margin: 0; padding: 0; }
+li.row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px dotted var(--line); }
+.sc { font-family: var(--mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; color: var(--cream); padding-top: 1px; }
+.sc.neg { color: var(--ink-faint); }
+.claim { font-size: 14.5px; line-height: 1.4; }
+.meta { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.meta .post { color: var(--rust); }
+li.fallback .claim { color: var(--ink-muted); }
+li.near { opacity: 0.55; }
+li.cut { border-bottom: none; padding: 5px 0 2px; }
+li.cut span { grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--rust); border-top: 1px dashed var(--rust); padding-top: 4px; }
+.empty { font-size: 13.5px; color: var(--ink-faint); padding: 8px 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Crown Score Tuner</h1>
+    <span class="dateline" id="dateline"></span>
+  </header>
+  <p class="formula" id="formula"></p>
+
+  <div class="layout">
+    <aside>
+      <fieldset>
+        <legend>Score</legend>
+        <div class="ctl">
+          <div class="ctl-top"><label for="chanceW">Chance weight</label><output id="chanceW-o"></output></div>
+          <input type="range" id="chanceW" min="0" max="1.5" step="0.05">
+          <div class="hint">Charges log₂ of the teams in the field (active) or of every place a run could start (all-time).</div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><label for="chipW">Chip penalty weight</label><output id="chipW-o"></output></div>
+          <input type="range" id="chipW" min="0" max="1.5" step="0.05">
+          <div class="hint">Charges log₂ of how many definitions have that many chips: 35 with one, 566 with two, 5,626 with three, 38,571 with four.</div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><label for="postBits">Postgame chip penalty</label><output id="postBits-o"></output></div>
+          <input type="range" id="postBits" min="0" max="15" step="0.5">
+          <div class="hint">Extra bits for each chip only known after the game: halftime, possession, one-score, shootout, rock fight, overtime.</div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><label for="spanA">Span bonus, active</label><output id="spanA-o"></output></div>
+          <input type="range" id="spanA" min="0" max="4" step="0.25">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><label for="spanAll">Span bonus, all-time</label><output id="spanAll-o"></output></div>
+          <input type="range" id="spanAll" min="0" max="4" step="0.25">
+          <div class="hint">Bits per doubling of the seasons a streak covers.</div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>What shows</legend>
+        <div class="ctl">
+          <div class="ctl-top"><label for="cutoff">Cutoff</label><output id="cutoff-o"></output></div>
+          <input type="range" id="cutoff" min="-15" max="20" step="0.5">
+          <div class="hint">Below this, chance alone would likely produce a king this size.</div>
+        </div>
+        <label class="check"><input type="checkbox" id="zeroChip"> Always show zero-chip crowns</label>
+        <div class="ctl">
+          <div class="ctl-top"><label for="fallback">If nothing passes, show the top</label><output id="fallback-o"></output></div>
+          <input type="range" id="fallback" min="0" max="5" step="1">
+        </div>
+        <div class="ctl">
+          <span class="ctl-top"><label>A+B hides behind A when A is</label></span>
+          <div class="seg" id="dom" role="group" aria-label="Dominance rule">
+            <button type="button" data-v="none">off</button>
+            <button type="button" data-v="len">as long</button>
+            <button type="button" data-v="score">as good</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="mergeU"> Merge an undefeated streak into the identical winning one</label>
+        <label class="check"><input type="checkbox" id="era"> Collapse all-time crowns from the same era</label>
+        <div class="ctl">
+          <div class="ctl-top"><label for="eraOv">Same era at seasons overlapping</label><output id="eraOv-o"></output></div>
+          <input type="range" id="eraOv" min="10" max="100" step="5">
+          <div class="hint">Share of the shorter run's seasons. Winning and undefeated count as one family.</div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><label for="rowsN">Rows per list</label><output id="rowsN-o"></output></div>
+          <input type="range" id="rowsN" min="1" max="12" step="1">
+        </div>
+        <div class="ctl">
+          <div class="ctl-top"><label for="nearN">Near misses below the cutoff</label><output id="nearN-o"></output></div>
+          <input type="range" id="nearN" min="0" max="5" step="1">
+        </div>
+        <div class="btns">
+          <button type="button" class="btn" id="reset">Reset to defaults</button>
+          <button type="button" class="btn" id="copy">Copy settings</button>
+        </div>
+        <textarea id="copied" class="copied" readonly hidden aria-label="Settings to copy"></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Teams</legend>
+        <div class="picker" id="picker"></div>
+      </fieldset>
+    </aside>
+
+    <main class="teams" id="teams"></main>
+  </div>
+</div>
+
+<script type="application/json" id="data">/*DATA*/</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+// the site's rules are the defaults; the rest is this page's display
+const DEFAULTS = { zeroChip: true, dom: 'score', mergeU: true, era: true, rowsN: 12, nearN: 2, ...D.rank,
+  teams: ['Alabama','Georgia','Ohio State','Michigan','Texas','Notre Dame','USC','LSU','Oklahoma','Penn State','Tennessee','Auburn'] };
+let S = load();
+
+function load() {
+  try { const s = JSON.parse(localStorage.getItem('crown-tuner') || 'null'); if (s) return { ...DEFAULTS, ...s }; } catch {}
+  return { ...DEFAULTS, teams: [...DEFAULTS.teams] };
+}
+function save() { try { localStorage.setItem('crown-tuner', JSON.stringify(S)); } catch {} }
+
+const log2 = Math.log2;
+const POST = D.chips.map((c) => c.post);
+const DIRW = { W: 'W', U: 'W', L: 'L', C: 'C', N: 'N' };
+
+// decode rows once; the subset lists don't depend on any setting
+for (const t of D.teams) for (const scope of ['active', 'all']) {
+  const rows = t[scope].map(([text, dir, len, chips, s0, s1, p, Q]) => {
+    let lo = 0, hi = 0;
+    for (const i of chips) { if (i < 32) lo |= 1 << i; else hi |= 1 << (i - 32); }
+    return { text, dir, len, chips, k: chips.length, post: chips.filter((i) => POST[i]).length, s0, s1, p: Math.min(p, 0.995), Q, lo, hi, subs: [], twin: -1 };
+  });
+  const byDir = {};
+  rows.forEach((r, i) => (byDir[r.dir] ??= []).push(i));
+  for (const idx of Object.values(byDir)) {
+    for (const i of idx) for (const j of idx) {
+      const a = rows[j], b = rows[i];
+      if (a.k < b.k && (a.lo & ~b.lo) === 0 && (a.hi & ~b.hi) === 0) b.subs.push(j);
+    }
+  }
+  // an undefeated run with the same chips, length and seasons as a winning one is the same run
+  for (const r of rows) if (r.dir === 'U') {
+    const w = rows.findIndex((o) => o.dir === 'W' && o.len === r.len && o.s0 === r.s0 && o.s1 === r.s1 && o.lo === r.lo && o.hi === r.hi);
+    r.twin = w;
+  }
+  t[scope] = rows;
+}
+
+function score(r, scope) {
+  const chance = scope === 'active' ? log2(D.nFbs) : log2(Math.max(2, r.Q * (1 - r.p)));
+  const span = (scope === 'active' ? S.spanA : S.spanAll) * log2(Math.max(1, r.s1 - r.s0 + 1));
+  return r.len * log2(1 / r.p) - S.chanceW * chance - S.chipW * log2(D.M[r.k]) - S.postBits * r.post + span;
+}
+
+function evaluate(rows, scope) {
+  const v = rows.map((r) => score(r, scope));
+  let live = rows.map((r, i) => i).filter((i) => {
+    const r = rows[i];
+    // only a slice of the same run hides: an all-time run in other seasons stands
+    const same = (j) => !(rows[j].s1 < r.s0 || r.s1 < rows[j].s0);
+    if (S.dom === 'len' && r.subs.some((j) => same(j) && rows[j].len >= r.len)) return false;
+    if (S.dom === 'score' && r.subs.some((j) => same(j) && v[j] >= v[i])) return false;
+    if (S.mergeU && r.twin >= 0) return false;
+    return true;
+  });
+  live.sort((a, b) => v[b] - v[a]);
+  let items = live.map((i) => ({ r: rows[i], v: v[i], also: 0 }));
+  if (scope === 'all' && S.era) {
+    const kept = [];
+    for (const it of items) {
+      const same = kept.find((k) => {
+        if (DIRW[k.r.dir] !== DIRW[it.r.dir]) return false;
+        const ov = Math.min(k.r.s1, it.r.s1) - Math.max(k.r.s0, it.r.s0) + 1;
+        return ov > 0 && ov / Math.min(k.r.s1 - k.r.s0 + 1, it.r.s1 - it.r.s0 + 1) >= S.eraOv / 100;
+      });
+      if (same) same.also++; else kept.push(it);
+    }
+    items = kept;
+  }
+  const pass = items.filter((it) => it.v >= S.cutoff || (S.zeroChip && it.r.k === 0));
+  const below = items.filter((it) => !pass.includes(it));
+  if (!pass.length) return { shown: items.slice(0, S.fallback).map((it) => ({ ...it, fallback: true })), near: [], count: 0, total: rows.length };
+  return { shown: pass, near: below.slice(0, S.nearN), count: pass.length, total: rows.length };
+}
+
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+function rowHtml(it, cls) {
+  const r = it.r;
+  const meta = [`base ${Math.round(r.p * 100)}%`, r.k === 1 ? '1 chip' : `${r.k} chips`];
+  if (r.post) meta.push(`<span class="post">${r.post} postgame</span>`);
+  if (it.also) meta.push(`+${it.also} same era`);
+  return `<li class="row ${cls}"><span class="sc${it.v < 0 ? ' neg' : ''}">${it.v.toFixed(1)}</span><div><div class="claim">${esc(r.text)}</div><div class="meta">${meta.join('<span>·</span>')}</div></div></li>`;
+}
+function listHtml(res) {
+  if (!res.shown.length) return '<p class="empty">Nothing to show.</p>';
+  let h = res.shown.slice(0, S.rowsN).map((it) => rowHtml(it, it.fallback ? 'fallback' : '')).join('');
+  if (res.near.length) h += `<li class="row cut"><span>cutoff ${S.cutoff.toFixed(1)}</span></li>` + res.near.map((it) => rowHtml(it, 'near')).join('');
+  return `<ol>${h}</ol>`;
+}
+function render() {
+  const sp = (x) => x.toFixed(2).replace(/\.?0+$/, '');
+  document.getElementById('formula').innerHTML =
+    `score = L·log₂(1/p) − <b>${sp(S.chanceW)}</b>·chance − <b>${sp(S.chipW)}</b>·log₂(M<sub>k</sub>) − <b>${sp(S.postBits)}</b>·postgame chips + <b>${sp(S.spanA)}</b> | <b>${sp(S.spanAll)}</b>·log₂(seasons)`;
+  const html = D.teams.filter((t) => S.teams.includes(t.name)).map((t) => {
+    const a = evaluate(t.active, 'active'), b = evaluate(t.all, 'all');
+    const head = (label, res) => `<h3><span>${label}</span><span class="n">${res.count ? `${res.count} of ${res.total}` : `0 of ${res.total}, fallback`}</span></h3>`;
+    return `<section class="team"><h2>${esc(t.name)}</h2><div class="cols">
+      <div class="col">${head('Active', a)}${listHtml(a)}</div>
+      <div class="col">${head('All-time', b)}${listHtml(b)}</div></div></section>`;
+  }).join('');
+  document.getElementById('teams').innerHTML = html || '<p class="empty">Pick a team.</p>';
+}
+
+// controls
+const RANGES = ['chanceW', 'chipW', 'postBits', 'spanA', 'spanAll', 'cutoff', 'fallback', 'eraOv', 'rowsN', 'nearN'];
+const FMT = { eraOv: (v) => v + '%', cutoff: (v) => v.toFixed(1), fallback: String, rowsN: String, nearN: String, postBits: (v) => v + ' bits' };
+function sync() {
+  for (const id of RANGES) { const el = document.getElementById(id); el.value = S[id]; document.getElementById(id + '-o').textContent = (FMT[id] ?? ((v) => v.toFixed(2)))(S[id]); }
+  for (const id of ['zeroChip', 'mergeU', 'era']) document.getElementById(id).checked = S[id];
+  document.getElementById('eraOv').disabled = !S.era;
+  for (const b of document.querySelectorAll('#dom button')) b.setAttribute('aria-pressed', String(b.dataset.v === S.dom));
+  for (const b of document.querySelectorAll('#picker button')) b.setAttribute('aria-pressed', String(S.teams.includes(b.dataset.t)));
+}
+let queued = false;
+function update() { sync(); save(); if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; render(); }); }
+for (const id of RANGES) document.getElementById(id).addEventListener('input', (e) => { S[id] = +e.target.value; update(); });
+for (const id of ['zeroChip', 'mergeU', 'era']) document.getElementById(id).addEventListener('change', (e) => { S[id] = e.target.checked; update(); });
+for (const b of document.querySelectorAll('#dom button')) b.addEventListener('click', () => { S.dom = b.dataset.v; update(); });
+document.getElementById('picker').innerHTML = D.teams.map((t) => `<button type="button" data-t="${esc(t.name)}">${esc(t.name)}</button>`).join('');
+for (const b of document.querySelectorAll('#picker button')) b.addEventListener('click', () => {
+  const n = b.dataset.t;
+  S.teams = S.teams.includes(n) ? S.teams.filter((x) => x !== n) : [...S.teams, n];
+  update();
+});
+document.getElementById('reset').addEventListener('click', () => { S = { ...DEFAULTS, teams: [...DEFAULTS.teams] }; update(); });
+document.getElementById('copy').addEventListener('click', async (e) => {
+  const text = JSON.stringify(S);
+  const btn = e.currentTarget, box = document.getElementById('copied');
+  try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; box.hidden = true; }
+  catch { box.value = text; box.hidden = false; box.select(); btn.textContent = 'Select and copy'; }
+  setTimeout(() => { btn.textContent = 'Copy settings'; }, 2000);
+});
+document.getElementById('dateline').textContent = `Streak King crowns · data ${String(D.builtAt).slice(0, 10)} · ${D.teams.length} teams`;
+sync();
+render();
+</script>

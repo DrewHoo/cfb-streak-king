@@ -4,7 +4,7 @@
 // definition picking it would make.
 
 import type { ChipRef, Dir, GameRow, Scope } from './types.ts';
-import { PLAIN_CHIPS, chipByKey, qualifies } from './chips.ts';
+import { PLAIN_CHIPS, chipByKey, fitsDir, qualifies } from './chips.ts';
 import type { Param, ParamKind } from './chips.ts';
 import { PARAMS, swapChip, swapTargets, withChip, withParam } from './definition.ts';
 import { teamData, walkActive, walkLongest, spreadWalk } from './crowns.ts';
@@ -107,7 +107,7 @@ export function addKings(active: ChipRef[], dir: Dir, scope: Scope) {
   const cur = kingOf(active, dir, scope);
   const byKey = new Map<string, King | null>();
   for (const c of PLAIN_CHIPS) {
-    if (active.some((a) => a.key === c.key)) continue;
+    if (active.some((a) => a.key === c.key) || !fitsDir(c, dir)) continue;
     const next = withChip(active, c.key);
     if (next === active) continue;
     byKey.set(c.key, kingOf(next, dir, scope));
@@ -126,6 +126,6 @@ export function chipKings(active: ChipRef[], key: string, dir: Dir, scope: Scope
   const params = new Map<Param, King | null>();
   if (c.param) for (const [v] of PARAMS[c.param].options(c)) params.set(v, kingOf(withParam(active, key, v), dir, scope));
   const swaps = new Map<string, King | null>();
-  for (const s of swapTargets(active, key)) if (!s.param) swaps.set(s.key, kingOf(swapChip(active, key, s.key), dir, scope));
+  for (const s of swapTargets(active, key, dir)) if (!s.param) swaps.set(s.key, kingOf(swapChip(active, key, s.key), dir, scope));
   return { cur, params, swaps };
 }

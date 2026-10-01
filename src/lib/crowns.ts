@@ -8,14 +8,18 @@
 // window, ended or not. Definitions that produce the identical streak (same
 // last game, same length) collapse to one crown named by the fewest-chip
 // definition; `also` counts the collapsed labels. Floors: length ≥ 4 and a
-// field of ≥ 10 teams holding any streak under the definition.
+// field of ≥ 10 teams holding any streak under the definition. Each crown
+// carries its definition's pooled rate, and crownRank.ts picks which of a
+// team's crowns to show and orders them.
 
 import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
-import { PLAIN_CHIPS, conflicts, qualifies } from './chips.ts';
+import { PLAIN_CHIPS, conflicts, fitsDir, qualifies } from './chips.ts';
+import { rankCrowns } from './crownRank.ts';
+import type { MinedCrown } from './crownRank.ts';
 import { fbsNow, gamesOf } from './model.ts';
 import { OUTCOMES } from './streaks.ts';
 
-export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array }
+export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array }
 // live: no later qualifying game broke the run
 export interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
 export type Runs = Partial<Record<Dir, Run>>;
@@ -26,7 +30,14 @@ export const FIELD_FLOOR = 10;
 const NP = PLAIN_CHIPS;
 
 const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };
-const mining: Record<Scope, Promise<Map<number, Crown[]>> | null> = { active: null, all: null };
+const mining: Record<Scope, Promise<Map<number, MinedCrown[]>> | null> = { active: null, all: null };
+
+const popcount = (x: number) => {
+  x -= (x >>> 1) & 0x55555555;
+  x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+  return (((x + (x >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
+};
+const countAnd = (a: Uint32Array, b: Uint32Array) => { let n = 0; for (let w = 0; w < a.length; w++) n += popcount(a[w] & b[w]); return n; };
 
 let built: TeamData[] | null = null;
 /** Each current-FBS team's games as per-chip bitmasks, built once and shared with kings.ts. */
@@ -49,12 +60,16 @@ function buildData(): TeamData[] {
     const lined = new Uint32Array(words);
     const covered = new Uint32Array(words);
     const missed = new Uint32Array(words);
+    const won = new Uint32Array(words);
+    const lost = new Uint32Array(words);
     for (let i = 0; i < n; i++) {
+      if (gs[i].r === 'W') won[i >> 5] |= 1 << (i & 31);
+      if (gs[i].r === 'L') lost[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover != null) lined[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover === 'W') covered[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover === 'L') missed[i >> 5] |= 1 << (i & 31);
     }
-    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), lined, covered, missed };
+    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), won, lost, lined, covered, missed };
   });
 }
 
@@ -154,7 +169,7 @@ export function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope
   return best;
 }
 
-async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
+async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: number[]; teams: number }> {
   const data = teamData();
   const T = data.map((d) => d.ti);
   const walk = scope === 'all' ? walkLongest : walkActive;
@@ -170,7 +185,10 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
     }
   })(0, []);
 
-  const perTeam = new Map(T.map((ti) => [ti, new Map<string, Crown>()])); // dedupe key -> crown
+  const M = [0, 0, 0, 0, 0];
+  for (const s of subsets) M[s.length]++;
+
+  const perTeam = new Map(T.map((ti) => [ti, new Map<string, MinedCrown>()])); // dedupe key -> crown
   const q = data.map((td) => new Uint32Array(td.words));
   const res: Runs[] = new Array(T.length);
   let done = 0;
@@ -194,7 +212,32 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
       const nc = spreadWalk(td, qb, td.missed, scope);
       if (nc) res[t].N = nc;
     }
+    // the definition's outcome rates over every team's games, counted once
+    // and only when it names a king: [qualifying, won, lost, lined, covered, missed]
+    let pooled: number[] | null = null;
+    const rateOf = (dir: Dir) => {
+      if (!pooled) {
+        pooled = [0, 0, 0, 0, 0, 0];
+        for (let t = 0; t < T.length; t++) {
+          const td = data[t], qb = q[t];
+          // the empty definition fills every bit, past the last game too
+          for (let w = 0; w < td.words; w++) {
+            const rem = td.n - (w << 5);
+            pooled[0] += popcount(rem >= 32 ? qb[w] : qb[w] & ((1 << rem) - 1));
+          }
+          pooled[1] += countAnd(qb, td.won);
+          pooled[2] += countAnd(qb, td.lost);
+          pooled[3] += countAnd(qb, td.lined);
+          pooled[4] += countAnd(qb, td.covered);
+          pooled[5] += countAnd(qb, td.missed);
+        }
+      }
+      const [g, won, lost, lined, cov, miss] = pooled;
+      const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'U' ? [g - lost, g] : dir === 'C' ? [cov, lined] : [miss, lined];
+      return { p: n ? hit / n : 1, n };
+    };
     for (const dir of OUTCOMES) {
+      if (def.some((i) => !fitsDir(NP[i], dir))) continue;
       let best = 0;
       let leader = -1;
       let leaders = 0;
@@ -221,6 +264,7 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
           endSe: gs[s.lastIdx]?.se,
           live: s.live,
           also: 0,
+          ...rateOf(dir),
         });
       } else {
         prev.also++;
@@ -233,27 +277,31 @@ async function mine(scope: Scope): Promise<Map<number, Crown[]>> {
           prev.endSe = gs[s.lastIdx]?.se;
           prev.atEdge = s.atEdge;
           prev.live = s.live;
+          Object.assign(prev, rateOf(dir));
         }
       }
     }
   }
 
-  const cache = new Map<number, Crown[]>();
-  for (const [ti, held] of perTeam) {
-    const list = [...held.values()];
-    // simplest claim first: skip-gap streaks lengthen as chips stack, so
-    // sorting by length rewards chip-stuffed definitions over clean ones
-    list.sort((a, b) => a.chips.length - b.chips.length || b.len - a.len || b.field - a.field);
-    cache.set(ti, list);
-  }
-  caches[scope] = cache;
-  return cache;
+  const raw = new Map<number, MinedCrown[]>();
+  for (const [ti, held] of perTeam) raw.set(ti, [...held.values()]);
+  return { raw, M, teams: T.length };
 }
 
-export function mineCrowns(scope: Scope = 'active'): Promise<Map<number, Crown[]>> {
-  const done = caches[scope];
-  if (done) return Promise.resolve(done);
-  return (mining[scope] ??= mine(scope));
+/** Every crown each team holds, unfiltered, with its definition's pooled rate. The crown tuner reads these. */
+export function mineRawCrowns(scope: Scope = 'active'): Promise<Map<number, MinedCrown[]>> {
+  return (mining[scope] ??= mine(scope).then(({ raw, M, teams }) => {
+    const cache = new Map<number, Crown[]>();
+    for (const [ti, list] of raw) cache.set(ti, rankCrowns(list, { M, teams }));
+    caches[scope] = cache;
+    return raw;
+  }));
+}
+
+/** The crowns worth showing per team, best first (crownRank.ts). */
+export async function mineCrowns(scope: Scope = 'active'): Promise<Map<number, Crown[]>> {
+  if (!caches[scope]) await mineRawCrowns(scope);
+  return caches[scope]!;
 }
 
 export const isMined = (scope: Scope = 'active') => !!caches[scope];
