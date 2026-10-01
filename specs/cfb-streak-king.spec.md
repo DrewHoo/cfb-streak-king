@@ -62,8 +62,9 @@ noted. Users pick at most 4; chips within a group are mutually exclusive where m
 | Context | after a loss / after a win / after a bye | previous game in the team's own timeline; bye = 13+ days rest |
 | Game shape | one-score game (≤8) / shootout (70+ combined AND decided by <10; 4.9% of games) / defensive struggle (≤33 combined, ~15% tail) | 70/33 are ±1σ from the all-time mean total (51.0, σ 18.1); the margin condition keeps 73-0 blowouts out of shootouts post-hoc: the filter reads the final score. Famous framing ("won 9 straight one-score games") justifies keeping it |
 | Score state | leading/trailing at half, by any/3+/7+/10+/14+ (param) | SHIPPED 2026-09-27. CFBD /games line scores, floor 2001 (solid 2003). Anchor stat: Alabama 178-9 when leading at half under Saban |
-| Possession | won the clock (>50%) / dominated the clock (60%+) | SHIPPED 2026-09-27. CFBD /games/teams possessionTime, floor 2004 |
+| Possession | won the clock (>50%) / lost the clock (<50%) | SHIPPED 2026-09-27; lost replaced dominated (60%+) 2026-09-30, a win-more condition. CFBD /games/teams possessionTime, floor 2004 |
 | Kickoff | night game (6pm+ local) | **floor: 2002**, solid from 2014. Board shows "within available data (2002+)" |
+| Almanac | on a weekend / on a weekday / under a full moon | SHIPPED 2026-09-30. Weekend/weekday by game date, exclusive. Full moon = the moon is full within 24h of 00:00 UTC after the game date (8pm Eastern), instants by Meeus ch. 49 (src/lib/moon.ts, within ~2 min of NASA eclipse times); 6.8% of days. The sentence calls them werewolf games |
 
 Cut from v1 after research: TV network (coverage unverified before the 2010s), weather
 (paid tier only), attendance (zeroed for whole seasons), uniforms and homecoming
@@ -72,6 +73,9 @@ streaks), P4-vs-G5 tier (the tier concept doesn't exist before 2014 and back-def
 it is a judgment project).
 
 ## Presets
+
+Removed 2026-09-30: the menus now show the king of every constraint and choice, so the
+famous answers are one click from any definition and the "start from" list went.
 
 Ship ~10 presets that load a constraint set + direction and rediscover a famous streak.
 Candidates, all verified by the research pass:
@@ -231,7 +235,7 @@ A second tab: every streak a team solely leads. The full parameterless space
 ~4s on first open (chunked so the tab stays responsive; per-chip packed
 bitmasks, AND per definition, one backward walk). Superseded 2026-09-29: the
 build mines both scopes and all three outcomes (35 chips, 44,799 definitions,
-~2.5s in Node) and writes dist/crowns/<id>.json; a team's page embeds its file,
+~2.5s in Node; 38 chips and 64,687 definitions since the almanac chips) and writes dist/crowns/<id>.json; a team's page embeds its file,
 and opening another team fetches it. A crown = sole longest
 active streak under a definition-direction, floors length >= 4 and field >= 10
 teams. Definitions producing the identical streak (same last game + length)

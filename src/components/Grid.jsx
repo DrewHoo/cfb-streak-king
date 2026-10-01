@@ -1,10 +1,12 @@
 // The grid: teams as columns, one square per game, newest on top. When a team
 // is open, desktop splits into panel | grid and a phone puts the panel in the
-// team's slot of the rail with the next two columns peeking beside it.
+// team's slot of the rail, grown to the rail's full width.
 //
-// Opening and closing animate: the slot grows out of the 40px column and
-// shrinks back into it, so nothing jumps and the neighbours slide rather than
-// snap. The panel stays mounted through the exit (phase machine below).
+// Opening and closing animate. On desktop the columns glide from where they
+// were to where the new layout puts them (FLIP, below). On a phone the slot
+// grows out of the 40px column and shrinks back into it while the rail scrolls
+// to it and back, so the neighbours slide away and return rather than snap.
+// The panel stays mounted through the exit (phase machine below).
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { teams } from '../lib/model.ts';
@@ -28,13 +30,13 @@ function columnsPerRow(rail) {
   return Math.max(1, kids.filter((el) => el.offsetTop === top).length);
 }
 
-function Column({ row, edgeFor, onOpen, hi, cover, slot, otl }) {
+function Column({ row, edgeFor, onOpen, hi, cover, slot, otl, flipKey }) {
   const t = teams[row.ti];
   const games = streakGames(row);
   const shown = games.slice(0, CHIP_CAP);
   const ended = row.live === false;
   return (
-    <button className={'colbtn' + (hi ? ' hi' : '')} onClick={onOpen} aria-label={`${t.name}: ${count(row.s)} straight`} aria-pressed={hi}>
+    <button className={'colbtn' + (hi ? ' hi' : '')} data-flip={flipKey} onClick={onOpen} aria-label={`${t.name}: ${count(row.s)} straight`} aria-pressed={hi}>
       <span className={'colcount' + (otl && row.onTheLine ? ' is-otl' : '') + (ended ? ' is-ended' : '')}>{count(row.s)}</span>
       {row.s.start && <span className="colspan">{yy(row.s.start.ep)}–{ended ? yy(row.s.end.ep) : 'now'}</span>}
       <TeamMark ti={row.ti} />
@@ -72,6 +74,52 @@ function Empty({ week, scope, dir }) {
   );
 }
 
+// a column's place on the page, ignoring transforms, so a column caught
+// mid-glide still measures where the layout put it
+function pagePos(el) {
+  let x = 0;
+  let y = 0;
+  for (let e = el; e; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; }
+  return [x, y];
+}
+const measure = (root) => new Map([...root.querySelectorAll('[data-flip]')].map((el) => [el.dataset.flip, pagePos(el)]));
+
+/**
+ * Desktop: when the layout changes between the plain grid and panel | grid,
+ * every column glides from its old place to its new one. Positions are kept
+ * current after each render and on resize, so a later switch starts from the
+ * truth.
+ */
+function useColumnGlide(ref, mode) {
+  const last = useRef({ pos: null, mode: null });
+  useLayoutEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const next = measure(root);
+    const { pos, mode: was } = last.current;
+    last.current = { pos: next, mode };
+    if (!pos || was === mode || mode === 'rail' || was === 'rail') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    for (const el of root.querySelectorAll('[data-flip]')) {
+      const from = pos.get(el.dataset.flip);
+      const to = next.get(el.dataset.flip);
+      if (!from) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease-out' }); continue; }
+      const dx = from[0] - to[0];
+      const dy = from[1] - to[1];
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+      el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 440, easing: 'cubic-bezier(0.2, 0.7, 0.2, 1)' });
+    }
+  });
+  useEffect(() => {
+    const root = ref.current;
+    if (!root || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => { last.current.pos = measure(root); });
+    ro.observe(root);
+    return () => ro.disconnect();
+    // each mode renders its own wrapper, so observe the new one
+  }, [ref, mode]);
+}
+
 /**
  * Which team the panel shows and which animation phase it is in. The panel
  * outlives `curTeam` by one exit animation so it can shrink away.
@@ -106,6 +154,10 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
   const shownTeam = shownKey == null ? null : curTeam;
   const railRef = useRef(null);
   const slotRef = useRef(null);
+  const wrapRef = useRef(null);
+  // where the rail was scrolled before a team opened, to return to on close
+  const railHome = useRef(null);
+  useColumnGlide(wrapRef, isMobile ? 'rail' : shownKey == null ? 'grid' : 'split');
 
   // a phone: slide the rail sideways (never the page) so the slot sits at the
   // left edge with the next columns peeking
@@ -116,22 +168,17 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
     const rail = railRef.current;
     const slot = slotRef.current;
     if (!rail || !slot) return;
-    // tweened by hand, in step with the width transition: a smooth scrollTo
-    // would be clamped by the rail's not-yet-grown content and restart on
-    // every call
-    const from = rail.scrollLeft;
-    const to = slot.getBoundingClientRect().left - rail.getBoundingClientRect().left + from;
-    const t0 = performance.now();
-    let raf = 0;
-    const step = () => {
-      const t = Math.min(1, (performance.now() - t0) / 320);
-      const eased = 1 - (1 - t) ** 3;
-      rail.scrollLeft = Math.min(from + (to - from) * eased, rail.scrollWidth - rail.clientWidth);
-      if (t < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    railHome.current ??= rail.scrollLeft;
+    return tweenScroll(rail, slot.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft);
   }, [isMobile, shownKey]);
+
+  // closing on a phone: scroll back to where the rail was as the slot shrinks
+  useEffect(() => {
+    if (!isMobile || phase !== 'exit' || !railRef.current) return;
+    const home = railHome.current ?? 0;
+    railHome.current = null;
+    return tweenScroll(railRef.current, home);
+  }, [isMobile, phase]);
 
   // the top slot: always on the all-time board, where ended runs fill it with
   // their breaker; on the active board only when some run has a game coming
@@ -139,7 +186,7 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
   // the all-time board marks a live run that's on the line this week with a
   // rust count; on the active board the next-game chip already says so
   const col = (row) => (
-    <Column key={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
+    <Column key={rowKey(row)} flipKey={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';
@@ -162,23 +209,25 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
     </button>
   );
 
-  if (shownKey == null) return <><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>{more}</>;
+  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>{more}</div>;
 
   if (isMobile) {
     const inRail = visible.some((r) => rowKey(r) === shownKey);
     const slot = <div key="panel" className={'railslot ' + phase} ref={slotRef}>{panel}</div>;
     return (
-      <div className="colwrap" ref={railRef}>
-        {empty}
-        {!inRail && slot}
-        {visible.map((row) => (rowKey(row) === shownKey ? slot : col(row)))}
-        {railMore}
+      <div ref={wrapRef}>
+        <div className="colwrap is-open" ref={railRef}>
+          {empty}
+          {!inRail && slot}
+          {visible.map((row) => (rowKey(row) === shownKey ? slot : col(row)))}
+          {railMore}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={'split ' + phase}>
+    <div ref={wrapRef} className={'split ' + phase}>
       <div className="split-panel">{panel}</div>
       <div className="split-grid">
         <div className="colwrap" ref={railRef}>{empty}{visible.map(col)}</div>
@@ -186,4 +235,21 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
       </div>
     </div>
   );
+}
+
+// scroll the rail by hand, in step with the slot's width transition: a smooth
+// scrollTo would be clamped by the rail's not-yet-resized content and restart
+// on every call. Returns the cancel.
+function tweenScroll(rail, to) {
+  const from = rail.scrollLeft;
+  const t0 = performance.now();
+  let raf = 0;
+  const step = () => {
+    const t = Math.min(1, (performance.now() - t0) / 320);
+    const eased = 1 - (1 - t) ** 3;
+    rail.scrollLeft = Math.min(from + (to - from) * eased, rail.scrollWidth - rail.clientWidth);
+    if (t < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+  return () => cancelAnimationFrame(raf);
 }

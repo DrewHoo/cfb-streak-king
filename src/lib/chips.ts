@@ -90,7 +90,7 @@ export const CHIPS: Chip[] = [
   post({ key: 'leadhalf', label: 'leading at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! >= num(p), floor: HALF }),
   post({ key: 'trailhalf', label: 'trailing at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! <= -num(p), floor: HALF }),
   post({ key: 'wonpos', label: 'won the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! > 0.5, floor: CLOCK }),
-  post({ key: 'dompos', label: 'dominated the clock (60%+)', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! >= 0.6, floor: CLOCK }),
+  post({ key: 'lostpos', label: 'lost the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! < 0.5, floor: CLOCK }),
   post({ key: 'onescore', label: 'one-score game', group: 'shape', exclusive: true, test: (x) => x.margin <= 8 }),
   // a shootout is high-scoring AND contested: 70+ combined (1σ above the
   // all-time mean of 51.0) decided by fewer than 10 — 4.9% of games. A 73-0
@@ -98,6 +98,10 @@ export const CHIPS: Chip[] = [
   post({ key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', exclusive: true, test: (x) => x.total >= 70 && x.margin < 10 }),
   post({ key: 'struggle', label: 'rock fight (≤ 33)', group: 'shape', exclusive: true, test: (x) => x.total <= 33 }),
   post({ key: 'overtime', label: 'overtime game', group: 'shape', known: (x) => x.ot >= 0, test: (x) => x.ot > 0, floor: { season: 2001, what: 'overtime' } }),
+  // weekend and weekday by the game date; a full moon within a day of its evening (moon.ts)
+  pre({ key: 'weekend', label: 'on a weekend', group: 'almanac', exclusive: true, test: (x) => x.wday === 0 || x.wday === 6 }),
+  pre({ key: 'weekday', label: 'on a weekday', group: 'almanac', exclusive: true, test: (x) => x.wday >= 1 && x.wday <= 5 }),
+  pre({ key: 'fullmoon', label: 'under a full moon', group: 'almanac', test: (x) => x.moon }),
   pre({ key: 'night', label: 'night game (6pm+)', group: 'kickoff', known: (x) => x.hh !== 31, test: (x) => x.hh >= 18, floor: { season: 2002, what: 'kickoff-time' } }),
 ];
 
