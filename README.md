@@ -5,7 +5,8 @@ ranked, as an underdog, in November) and rank every current FBS team by its
 longest all-time or active winning, losing, undefeated, covering or not-covering
 streak under it,
 1936 (the first AP poll) to the present.
-Each team also gets a page listing every streak it alone is king of. Live at
+Each team also gets a page listing the streaks it alone is king of that chance
+wouldn't explain, each with its odds. Live at
 [drewhoover.com/cfb-streak-king](https://drewhoover.com/cfb-streak-king/).
 
 [![The all-time board: the longest winning streaks against unranked opponents, one column per streak, one square per game](docs/screenshot.png)](https://drewhoover.com/cfb-streak-king/)
@@ -137,7 +138,10 @@ client reads it from the payload.
 
 CI runs only `build-current.mjs` (it fetches the current schedule CSV, AP
 poll pages, and CFBD lines, coaches and box scores) before `npm run build`,
-on push and on a twice-weekly cron.
+on push and on a twice-weekly cron. That step is allowed to fail: the script
+exits before writing when the season has completed games and no lines at
+all, and the build then uses the committed payload. Its log line
+`payload: +N completed … (M lined)` is the thing to check after a deploy.
 
 ## Not here yet
 
