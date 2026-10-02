@@ -98,7 +98,7 @@ reported, never dropped.
 `npm test` (Vitest) runs against the payload that ships, in CI after the
 season refresh: the known answers below through the client's own decode, a
 sweep of every parameterless definition through the sentence builder, URL
-round-trips for every chip, crowns cross-checked against the boards, and a
+round-trips for every chip, crowns (the code's word for a streak one team alone leads under a definition) cross-checked against the boards, and a
 prerender-then-hydrate check that fails on any mismatch. `npm run typecheck`
 checks `src/lib` (TypeScript; components are still JSX).
 

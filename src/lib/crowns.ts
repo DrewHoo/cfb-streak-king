@@ -1,3 +1,7 @@
+// A crown is a streak one team alone leads among every team that has a streak
+// under the same definition and outcome. The word is the code's and the
+// docs'; the site says "king of".
+//
 // Mine "streaks this team is king of": every ≤4-chip subset of the
 // parameterless catalog (exclusivity honored) × the five outcomes, evaluated
 // over packed per-chip bitmasks. The whole space is 64,687 definitions (the

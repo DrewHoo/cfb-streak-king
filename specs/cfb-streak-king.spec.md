@@ -230,6 +230,11 @@ streaks) so crawlers see a real leaderboard.
 
 ## Crowns (shipped 2026-09-27)
 
+"Crown" is internal shorthand, used in the code and these docs only: a streak that one team
+alone leads among all the teams that have a streak under the same definition and outcome.
+The site never says it. A team page says "{Team} is the King of N Streaks", and the notes
+say "a streak it is king of".
+
 A second tab: every streak a team solely leads. The full parameterless space
 (34 chips, 39,138 definitions, 78,276 with direction) is mined client-side in
 ~4s on first open (chunked so the tab stays responsive; per-chip packed

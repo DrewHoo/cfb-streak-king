@@ -85,12 +85,12 @@ export function Notes() {
             (a state, a conference, an opponent, a month) push that past 24 million.
           </li>
           <li>
-            With that many definitions, some team leads almost any of them by chance, so each crown gets a score:
+            With that many definitions, some team leads almost any of them by chance, so each streak a team is king of gets a score:
             how far its streak runs past where the field's leader would be expected to land, given how often teams
             get that result in those games, less a cost for each word in the definition (more for words that
-            describe the game itself, like a one-score finish). A run across decades earns a little back. A crown
+            describe the game itself, like a one-score finish). A run across decades earns a little back. A streak
             that's only a slice of a better one, or that chance would explain, isn't listed, and a word that keeps
-            nearly every game (on a weekend) never names one. Each crown shows the odds that luck alone produces a
+            nearly every game (on a weekend) never names one. Each listed streak shows the odds that luck alone produces a
             streak that long under its definition: every team (or, all-time, every place a run could start) gets
             that many tries at the field's rate.
           </li>
