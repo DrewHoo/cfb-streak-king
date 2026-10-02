@@ -230,6 +230,11 @@ streaks) so crawlers see a real leaderboard.
 
 ## Crowns (shipped 2026-09-27)
 
+"Crown" is internal shorthand, used in the code and these docs only: a streak that one team
+alone leads among all the teams that have a streak under the same definition and outcome.
+The site never says it. A team page says "{Team} is the King of N Streaks", and the notes
+say "a streak it is king of".
+
 A second tab: every streak a team solely leads. The full parameterless space
 (34 chips, 39,138 definitions, 78,276 with direction) is mined client-side in
 ~4s on first open (chunked so the tab stays responsive; per-chip packed
@@ -243,7 +248,8 @@ collapse to one crown named by the fewest-chip definition; measured collision
 rate 2.3 labels per crown, 52% have exactly one label, worst cases are
 Army-Navy style where the collapse is exactly right. Sorted simplest-claim
 first (chips asc, then length desc) because skip-gap streaks lengthen as chips
-stack, so length-first ranking rewards chip-stuffed definitions. Losing
+stack, so length-first ranking rewards chip-stuffed definitions (superseded
+2026-09-30 by the crown score, under Amendments). Losing
 streaks render as a separate "curses" list. Deep link: ?view=crowns&team=id.
 Future axis noted: coach-carried streaks across schools (DeBoer 4-0 vs top-10
 on the road spans Washington + Alabama) need the coach as streak-holder, not
@@ -310,6 +316,82 @@ sections carry the data details; this is the product and method record.
   Undefeated, covering and not covering are the third, fourth and fifth outcomes. The build, the rulings and the research are in
   specs/research/pre-1978.md.
 
+- **Crown score (2026-09-30).** A team holds hundreds of crowns, and most are what chance
+  produces when 64,687 definitions each crown somebody. `crownRank.ts` scores each crown in
+  bits and decides which ones a team page lists and in what order:
+
+  ```
+  len·log2(1/p) − chance − 0.75·log2(M[k]) − 7 per in-game chip + span·log2(seasons)
+  ```
+
+  `p` is how often the outcome happens under the definition, pooled over every current FBS
+  team's qualifying games (`baseRate()` in createModel; the miner counts the same thing from
+  its bitmasks and a test holds the two equal). `chance` is log2 of the teams for an active
+  streak, and log2 of every non-matching game (each a place a run could start) all-time.
+  `M[k]` is the number of definitions with k chips. In-game chips are the halftime,
+  possession and score-shape groups. The catalog's `pregame` flag is wider than that: the
+  previous-result and betting chips are `post()` only because a scheduled game can't be
+  decided by them. `span` is 0.75 active and 1.75 all-time.
+
+  A team's list then drops a crown when:
+  1. a crown with a subset of its chips, the same outcome and overlapping seasons scores at
+     least as well (it's a slice of that run);
+  2. it's an undefeated run identical to a winning one;
+  3. all-time only, a better crown of the same outcome has a definition that contains it or
+     is contained by it, and they share half the shorter run's seasons (Oklahoma's 74
+     unbeaten conference games holds its 47 plain wins);
+  4. it scores under −6.5 and has at least one chip.
+
+  A team left with nothing shows its best 3. Rule 3 first joined any two winning or
+  undefeated runs that shared seasons. That hid 16 straight away wins vs ranked teams behind
+  100 vs unranked, and Alabama's all-time winning list showed 2 crowns of 512, so it now
+  needs nested definitions and the same outcome.
+
+  Each listed crown shows the odds that chance alone produces it ("1 in 16 trillion by
+  chance"): `1 − (1 − p^len)^tries`, with the same tries the `chance` term counts. The list
+  is ordered by score, not by those odds. The odds leave out the chip cost and the span
+  bonus, so a crown with worse odds can sit higher when it has fewer chips or runs across
+  more seasons. Drew is still weighing odds-only ordering.
+
+  The weights are `RANK` in crownRank.ts. They were set by eye in the crown tuner:
+  `npm run tuner` writes `data/build/crown-tuner.html`, which re-ranks 20 teams' raw crowns
+  under sliders and starts from `RANK`. It isn't part of the site build.
+- **Chips that can't define an outcome.** A one-score final, or a shootout's margin under
+  10, nearly settles the cover. So `onescore` and `shootout` carry `notWith: ['C', 'N']`:
+  the menus leave them out for covering and not covering, the direction menu greys those
+  two out while either chip is on, the view reducer drops the chip when an old URL or saved
+  streak pairs them, and the miner skips the pair.
+- **Near-universal chips never name a crown.** "On a weekend" keeps 91% of all games, so
+  adding it to a definition mostly lets a streak skip one weeknight game. A plain chip that
+  keeps more than 90% of games (`NEAR_UNIVERSAL` in crowns.ts, worked out from the data)
+  stays in the menus and is left out of the miner. Today that's only weekend; the next,
+  vs unranked, keeps 77%.
+- **Base-rate line.** Under the sentence: "Since 1936, FBS teams have won 52% of their
+  6,785 werewolf games." The pool is today's FBS teams' games, each from that team's side.
+  A game between two of them counts once each way and comes out even. A game against
+  anyone else counts once, and FBS teams win most of those, so a condition that favors
+  neither side sits a little above 50%. Counting only games between two current FBS teams
+  would make it exactly 50% and would leave out games the streaks include.
+- **CI and the season's lines (2026-09-30).** `build-current.mjs` saved each CFBD response
+  to `data/raw/` inside the same `try` as the fetch. CI's checkout has no `data/raw/`, so
+  the write threw and the catch discarded the response. Every deploy from 9/26 to 9/30
+  shipped 0 lined 2026 games, and spread streaks skipped the season (Arkansas's
+  not-covering streak survived a cover). The script now creates `data/raw/` first. It also
+  exits 1 before writing the payload when the season has completed games and none are
+  lined. The CI step is `continue-on-error`, so the build then uses the committed payload.
+- **Phone rail.** A phone renders one rail whether or not a team is open, with each column
+  in its own cell. A closed cell is `display: contents`; the open team's cell is the slot,
+  with its column under the panel. Two separate trees for open and closed put the column
+  list at a different child position, so closing remounted every column and every logo
+  flashed. Closing also unmounts the panel, so the column is what gives the closing slot
+  its height.
+- **Decided against:** "in wins" / "in losses" chips for spread streaks (won without
+  covering, lost but covered).
+
 Backlog after this pass: the Cloudflare worker; the "vs FBS opponents" chip; a loss cue on
 dark cells (deferred by Drew); coach-carried streaks across schools; sharing the
-corrections doc publicly so the README link works for others.
+corrections doc publicly so the README link works for others; head-to-head crowns (the
+vs-team chip takes a choice, so the miner never walks it, and a series streak is the crown
+a team like Auburn would care about most); the 1990 Iron Bowl, which Repole lists as
+Auburn's home game at Legion Field and so rules neutral, where Alabama looks to have been
+the designated home team.
