@@ -16,10 +16,12 @@ describe('team', () => {
     expect(r.cw + r.cl + r.cp).toBe(games.filter((g) => g.cover != null).length);
   });
 
-  test('the next game is the first one scheduled; a matchup falls back to it', () => {
-    const ti = teamList().find((t) => upcomingOf(t).some((u) => u.ep >= today))!;
+  test('the next game is the first one scheduled, past its date or not; a matchup falls back to it', () => {
+    const ti = teamList().find((t) => upcomingOf(t).length)!;
     const next = nextGameOf(ti, today)!;
-    expect(next).toBe(upcomingOf(ti).find((u) => u.ep >= today));
+    expect(next).toBe(upcomingOf(ti)[0]);
+    // a game played but not yet recorded is still the next one, not gone
+    expect(nextGameOf(ti, next.ep + 3)).toBe(next);
     expect(gameVs(ti, next.oppIdx, today)).toBe(next);
     expect(gameVs(ti, ti, today)).toBe(next); // nobody plays itself
     expect(gameVs(ti, null, today)).toBe(next);

@@ -33,12 +33,12 @@ const wlt = (w: number, l: number, t: number) => `${w}–${l}${t ? `–${t}` : '
 export const recordText = (r: SeasonRecord) => wlt(r.w, r.l, r.t);
 export const atsText = (r: SeasonRecord) => wlt(r.cw, r.cl, r.cp);
 
-/** The team's next scheduled game. */
-export const nextGameOf = (ti: number, todayEp: number): UpcomingRow | null => upcomingOf(ti).find((u) => u.ep >= todayEp) ?? null;
+/** The team's next scheduled game: the first one no build has recorded a result for, whatever its date. */
+export const nextGameOf = (ti: number, _todayEp: number): UpcomingRow | null => upcomingOf(ti)[0] ?? null;
 
 /** The team's scheduled game against `opp`, else its next game: a matchup link read after that game was played still lands on one. */
-export function gameVs(ti: number, opp: number | null, todayEp: number): UpcomingRow | null {
-  const ahead = upcomingOf(ti).filter((u) => u.ep >= todayEp);
+export function gameVs(ti: number, opp: number | null, _todayEp: number): UpcomingRow | null {
+  const ahead = upcomingOf(ti);
   return (opp != null ? ahead.find((u) => u.oppIdx === opp) : null) ?? ahead[0] ?? null;
 }
 

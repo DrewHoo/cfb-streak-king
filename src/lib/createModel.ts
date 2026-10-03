@@ -227,8 +227,11 @@ export function createModel(P: Payload) {
     if (fns.some((f) => !f)) return null;
     return (x: GameContext) => fns.every((f) => f!(x));
   }
+  // A scheduled game stays the next one until a build records its result,
+  // even past its date: the payload is rebuilt weekly, and a game played
+  // Saturday is unknown until then, not gone.
   function nextQualifying(ti: number, pre: ((x: GameContext) => boolean) | null, todayEp: number) {
-    const next = pre ? upcomingOf(ti).find((u) => u.ep >= todayEp && pre(u)) ?? null : null;
+    const next = pre ? upcomingOf(ti).find((u) => pre(u)) ?? null : null;
     return { next, onTheLine: !!next && next.ep - todayEp <= 8 };
   }
 
