@@ -606,4 +606,10 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
   .gm-line { grid-column: 2; text-align: left; }
   .gm-tease { grid-column: 2; white-space: normal; }
   .gm-team { font-size: 13.5px; }
+  /* the two teams stay on one line: a marked team is its mark, rank and record */
+  .gm-teams { flex-wrap: nowrap; }
+  .gm-team.marked .gm-nm { display: none; }
+  .gm-team.marked .gm-name:empty { display: none; }
+  .gm-team.marked .gm-name i { margin-right: 0; }
+  .gm-logo { width: 24px; height: 24px; }
 }
