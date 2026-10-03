@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { teams, builtEpochDay, upcomingOf, activeBoard, gamesOf, P } from './model.ts';
+import { PLAIN_CHIPS } from './chips.ts';
+import { nearUniversalChips } from './crowns.ts';
 import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, LEN_FLOOR, worthShowing } from './team.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -69,6 +71,14 @@ describe('team', () => {
     const next = nextGameOf(ti, today)!;
     const on = streaksOn(teamStreaks(ti, today), next);
     expect(on.every((s) => s.next!.i === next.i)).toBe(true);
+  });
+
+  test('a near-universal condition names no row, as it names no crown', () => {
+    const loose = [...nearUniversalChips()].map((i) => PLAIN_CHIPS[i].key);
+    expect(loose).toContain('weekend');
+    for (const ti of teamList().slice(0, 30)) {
+      for (const s of teamStreaks(ti, today)) expect(s.chips.some((k) => loose.includes(k))).toBe(false);
+    }
   });
 
   test(`a run under ${LEN_FLOOR} games shows only when the team alone leads with it`, () => {
