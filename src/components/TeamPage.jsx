@@ -1,8 +1,8 @@
-// A team's page: its record and rank, its next game, its current streaks
-// (the ones with a game still to come first, then the most surprising), its
-// schedule, and every streak it is king of. The name is a picker for any
-// other team. A streak row opens that streak on the board; a scheduled game
-// opens its matchup.
+// A team's page: its record and rank, its next game, its schedule, and its
+// current streaks, the most surprising first (the single conditions it
+// stands out under, and the streaks it is king of). The name is a picker for
+// any other team. A streak row opens that streak on the board; a scheduled
+// game opens its matchup.
 
 import { useMemo, useState } from 'react';
 import { P, teams, confOf, gamesOf, upcomingOf } from '../lib/model.ts';
@@ -12,7 +12,7 @@ import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow } from './Matchup.jsx';
-import { Crowns, LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
+import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 
 const STREAKS_CAP = 10;
 
@@ -46,7 +46,7 @@ function NextCard({ ti, game, onLine, onGame }) {
   );
 }
 
-export function TeamPage({ ti, todayEp, crowns, isMobile, active, dir, scope, copied, on }) {
+export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
   const t = teams[ti];
   const [all, setAll] = useState(false);
   const r = seasonRecord(ti);
@@ -97,7 +97,7 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, active, dir, scope, co
       )}
 
       <h2>Streaks</h2>
-      <p className="tpg-note">{t.name}’s current run under each condition and where it ranks. Ones with a game still on the schedule come first.</p>
+      <p className="tpg-note">{t.name}’s current runs and where each ranks, the ones furthest past chance first.</p>
       <div className="tpg-streaks">
         {(all ? streaks : streaks.slice(0, STREAKS_CAP)).map((s) => (
           <StreakRow key={s.dir + s.chips.join()} s={s} next onClick={() => on.streak(s, ti)} />
@@ -105,10 +105,6 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, active, dir, scope, co
         {streaks.length > STREAKS_CAP && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `all ${streaks.length}`}</button>}
       </div>
 
-      <Crowns
-        ti={ti} crowns={crowns.crowns} crownsScope={crowns.scope} crownsDir={crowns.dir} onCrownsScope={crowns.onScope} onCrownsDir={crowns.onDir}
-        dir={dir} scope={scope} active={active} onApply={(cr) => on.streak(cr, ti)} onShare={(cr) => on.shareCrown(cr, ti)}
-      />
     </div>
   );
 }

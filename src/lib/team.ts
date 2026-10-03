@@ -3,10 +3,10 @@
 // each with its place in the field.
 //
 // The streaks are every team's at once (one pass per condition over the
-// crowns miner's bitmasks), kept per day, so a second team costs nothing. A team's list adds
-// the multi-condition streaks it is king of (its crowns) and sorts streaks
-// with a qualifying game still on the schedule first, then by crownRank's
-// score: how far the run sits past what chance would produce.
+// crowns miner's bitmasks), kept per day, so a second team costs nothing. A
+// team's list adds the multi-condition streaks it is king of (its crowns) and
+// orders the whole list the way the King-of list is ordered: by crownRank's
+// score, how far the run sits past what chance would produce.
 
 import type { Crown, Dir, GameRow, UpcomingRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
@@ -175,21 +175,26 @@ function singleStreaks(todayEp: number): Map<number, TeamStreak[]> {
   return byTeam;
 }
 
-/** Streaks with a scheduled qualifying game first, then the most surprising. */
-const byInterest = (a: TeamStreak, b: TeamStreak) => Number(!!b.next) - Number(!!a.next) || b.score - a.score || b.len - a.len;
+/** The most surprising first: the King-of list's order. */
+const byInterest = (a: TeamStreak, b: TeamStreak) => b.score - a.score || b.len - a.len;
+
+// the same run told with more words: a slice of it under fewer conditions is already on the list
+const sliceOf = (c: TeamStreak, s: TeamStreak) => s.dir === c.dir && s.len === c.len && s.since === c.since
+  && s.chips.length < c.chips.length && s.chips.every((k) => c.chips.includes(k));
 
 /**
  * A team's current streaks worth reading, best first: its single-condition
  * ones of LEN_FLOOR or more games, or that it alone leads, plus the
  * multi-condition ones it is king of (`crowns`, its active crowns; null
- * while they load).
+ * while they load) that aren't a single-condition run retold.
  */
 export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null = null): TeamStreak[] {
-  const list = (singleStreaks(todayEp).get(ti) ?? []).filter(worthShowing);
+  const singles = (singleStreaks(todayEp).get(ti) ?? []).filter(worthShowing);
+  const list = [...singles];
   for (const cr of crowns ?? []) {
     if (cr.scope !== 'active' || cr.chips.length < 2 || !SHEET_DIRS.includes(cr.dir)) continue;
     const s = streaksUnder(cr.chips, todayEp).get(ti)?.find((x) => x.dir === cr.dir);
-    if (s) list.push(s);
+    if (s && !singles.some((x) => sliceOf(s, x))) list.push(s);
   }
   return list.sort(byInterest);
 }

@@ -180,14 +180,13 @@ export default function App({ initial } = {}) {
     <main>
       {page != null ? (
         <TeamPage
-          ti={page} todayEp={todayEp} crowns={crowns} isMobile={isMobile} active={active} dir={dir} scope={scope} copied={copied}
+          ti={page} todayEp={todayEp} crowns={crowns} isMobile={isMobile} copied={copied}
           on={{
             board: () => dispatch({ type: 'board' }),
             team: (ti) => openTeam(ti, 'picker'),
             game: (ti, g) => openGame(ti, g, 'team page'),
             streak: (s, ti) => openStreak(s, ti, 'team page'),
             share: shareTeam,
-            shareCrown,
           }}
         />
       ) : (

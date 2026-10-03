@@ -48,12 +48,20 @@ describe('team', () => {
     for (const k of under('C')) expect(under('N')).not.toContain(k);
   });
 
-  test('streaks with a scheduled qualifying game come first, then the higher score', () => {
+  test('the list runs from the highest score down, as the King-of list does', () => {
     const list = teamStreaks(idx('georgia'), today);
-    const firstWithout = list.findIndex((s) => !s.next);
-    if (firstWithout >= 0) expect(list.slice(firstWithout).every((s) => !s.next)).toBe(true);
-    const ahead = list.filter((s) => s.next);
-    for (let i = 1; i < ahead.length; i++) expect(ahead[i - 1].score).toBeGreaterThanOrEqual(ahead[i].score);
+    expect(list.length).toBeGreaterThan(1);
+    for (let i = 1; i < list.length; i++) expect(list[i - 1].score).toBeGreaterThanOrEqual(list[i].score);
+  });
+
+  test('a crown that only retells a single-condition run on the list is left out', () => {
+    const ti = idx('georgia');
+    const base = teamStreaks(ti, today).find((s) => s.chips.length === 1 && s.dir === 'W' && s.len >= LEN_FLOOR);
+    if (!base) return;
+    // the same run under one more condition: whichever of the pair every game of it meets has the same length and start
+    const pair = (['weekend', 'weekday'] as const).map((k) => ({ chips: [base.chips[0], k], dir: 'W' as const, scope: 'active' as const, len: base.len, atEdge: base.atEdge, field: base.field, live: true, also: 0, chance: 0.5 }));
+    const withCrowns = teamStreaks(ti, today, pair);
+    for (const s of withCrowns.filter((s) => s.chips.length === 2)) expect(s.len === base.len && s.since === base.since).toBe(false);
   });
 
   test("a game puts on the line the streaks whose next qualifying game it is", () => {

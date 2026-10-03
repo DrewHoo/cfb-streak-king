@@ -549,7 +549,7 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
     left: 50%; right: auto; top: 50%; bottom: auto; width: min(860px, calc(100vw - 48px)); max-height: min(86vh, 900px);
     transform: translate(-50%, -50%) !important; border: 1px solid var(--ink-faint); border-radius: 12px; padding-top: 6px;
   }
-  .sheet.matchup::before { display: none; }
+  .sheet.matchup::before, .sheet.matchup[data-vaul-drawer]::after { display: none; }
   .mu-close { display: inline-flex; }
   .mu-body { padding: 4px 24px 26px; }
   .mu-top { grid-template-columns: 1fr auto 1fr; padding: 14px 40px 18px; }

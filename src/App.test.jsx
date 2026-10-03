@@ -47,8 +47,9 @@ describe('prerender + hydrate', () => {
     expect(html).toContain('Alabama');
     expect(html).toContain('pick another team');
     expect(html).not.toContain('<h1>Streak King</h1>');
-    expect(html).toContain(`<b class="w">${crowns.active.filter((c) => c.dir === 'W').length}</b>`);
-    expect(html).not.toContain('finding every streak');
+    // the page's one list: the team's streaks, crowns folded in; no King-of list of its own
+    expect(html).toContain('class="tpg-streaks"');
+    expect(html).not.toContain('is the King of');
     expect(errors).toEqual([]);
     await unmount();
   });
