@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, teamFromPath } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, teamFromPath } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -22,6 +22,7 @@ describe('url', () => {
       { ...DEFAULT_VIEW, active: [{ key: 'vsteam', param: idx('auburn') }], team: idx('kansas'), run: -4000 },
       { ...DEFAULT_VIEW, page: idx('byu') },
       { ...DEFAULT_VIEW, page: idx('byu'), game: idx('byu'), vs: idx('tcu') },
+      { ...DEFAULT_VIEW, games: true },
     ];
     for (const v of views) expect(roundTrip(v)).toEqual(v);
   });
@@ -44,6 +45,12 @@ describe('url', () => {
   test('old links still open the panel: ?team=, and /team/<id>/ with a definition', () => {
     expect(parseUrl('/cfb-streak-king/', '?team=georgia').team).toBe(idx('georgia'));
     expect(parseUrl('/cfb-streak-king/team/georgia/', '?c=road&dir=L')).toMatchObject({ team: idx('georgia'), page: null, dir: 'L', active: [{ key: 'road' }] });
+  });
+
+  test('the schedule is /games/, and a team page or matchup takes precedence over it', () => {
+    expect(gamesUrl()).toMatchObject({ path: 'games/', params: { c: null, t: null } });
+    expect(parseUrl('/cfb-streak-king/games/', '')).toMatchObject({ games: true, page: null, team: null });
+    expect(toUrl({ ...DEFAULT_VIEW, games: true, page: idx('byu') }).path).toBe('team/byu/');
   });
 
   test('a matchup hangs off the team: its game against ?vs=, or its next', () => {

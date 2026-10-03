@@ -54,6 +54,14 @@ describe('prerender + hydrate', () => {
     await unmount();
   });
 
+  test('the schedule hydrates without a mismatch', async () => {
+    const { html, errors, unmount } = await hydrate({ page: null, games: true }, '/cfb-streak-king/games/');
+    expect(html).toContain('class="gpg"');
+    expect(html).toContain('Week ');
+    expect(errors).toEqual([]);
+    await unmount();
+  });
+
   test('a URL with a definition hydrates first, then applies it', async () => {
     const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?c=road&dir=L');
     expect(errors).toEqual([]);

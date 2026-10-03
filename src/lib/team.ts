@@ -16,6 +16,7 @@ import { teamData, walkActive, spreadWalk, nearUniversalChips } from './crowns.t
 import type { Run } from './crowns.ts';
 import { crownScore, chanceOf } from './crownRank.ts';
 import { ordinal } from './sentence.ts';
+import { spreadText } from './format.ts';
 
 export interface SeasonRecord { w: number; l: number; t: number; cw: number; cl: number; cp: number }
 
@@ -212,3 +213,61 @@ export const rankText = (s: Pick<TeamStreak, 'rank' | 'tied'>) => (s.tied > 1 ? 
 
 /** Current FBS teams, by name, for the team picker. */
 export const teamList = () => [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name));
+
+/** One scheduled game, once, whichever side it was read from. */
+export interface ScheduledGame {
+  i: number;
+  ep: number;
+  wk: number;
+  home: number;
+  away: number;
+  neutral: boolean;
+  hh: number;
+  homeRank: number | null;
+  awayRank: number | null;
+  /** The line from the home side, + = home underdog; null when unlined. */
+  sp: number | null;
+  /** The game from each FBS side. */
+  sides: { ti: number; row: UpcomingRow }[];
+}
+
+let scheduled: ScheduledGame[] | null = null;
+/** Every scheduled game with an FBS side, by date, then kickoff (unknown last), then home team. */
+export function scheduledGames(): ScheduledGame[] {
+  if (scheduled) return scheduled;
+  const byI = new Map<number, ScheduledGame>();
+  for (const ti of fbsNow) {
+    for (const u of upcomingOf(ti)) {
+      const g = byI.get(u.i);
+      if (g) { g.sides.push({ ti, row: u }); continue; }
+      byI.set(u.i, {
+        i: u.i, ep: u.ep, wk: u.wk, neutral: u.neutral, hh: u.hh,
+        home: u.home ? ti : u.oppIdx, away: u.home ? u.oppIdx : ti,
+        homeRank: u.home ? u.ownRank : u.oppRank, awayRank: u.home ? u.oppRank : u.ownRank,
+        sp: u.sp == null ? null : u.home ? u.sp : -u.sp,
+        sides: [{ ti, row: u }],
+      });
+    }
+  }
+  const hour = (h: number) => (h === 31 ? 99 : h);
+  scheduled = [...byI.values()].sort((a, b) => a.ep - b.ep || hour(a.hh) - hour(b.hh) || teams[a.home].name.localeCompare(teams[b.home].name));
+  return scheduled;
+}
+
+/** "Georgia -25", "PK", or null when the game has no line. */
+export function lineText(g: Pick<ScheduledGame, 'home' | 'away' | 'sp'>): string | null {
+  if (g.sp == null) return null;
+  if (g.sp === 0) return 'PK';
+  return `${teams[g.sp < 0 ? g.home : g.away].name} ${spreadText(-Math.abs(g.sp))}`;
+}
+
+/** The streak either side puts most on the line in the game: the highest score among them, with its team. */
+export function topOnLine(g: ScheduledGame, todayEp: number): { ti: number; s: TeamStreak } | null {
+  let best: { ti: number; s: TeamStreak } | null = null;
+  for (const { ti, row } of g.sides) {
+    for (const s of streaksOn(teamStreaks(ti, todayEp), row)) {
+      if (!best || s.score > best.s.score) best = { ti, s };
+    }
+  }
+  return best;
+}
