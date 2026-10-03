@@ -1,10 +1,12 @@
 // The view's state and every way it changes. Pure, so the rules are testable:
 // a new definition, scope or direction starts the board at its first columns
-// again; all-time mode has no "this week" filter. A chip that can't define
+// again; all-time mode has no "this week" filter. Three things open: a streak
+// (the board's panel), a game (the matchup sheet, over whatever is showing)
+// and a team (its page, in place of the board). A chip that can't define
 // the direction's streaks (one-score or shootout vs the spread) drops,
 // whatever brought the pair in: an old URL, a saved streak.
 
-import type { BoardRow, ChipRef, Crown, Dir, Scope } from './types.ts';
+import type { BoardRow, ChipRef, Dir, Scope } from './types.ts';
 import type { View } from './url.ts';
 import { DEFAULT_VIEW } from './url.ts';
 import { chipByKey, fitsDir } from './chips.ts';
@@ -23,12 +25,16 @@ export type ViewAction =
   | { type: 'scope'; scope: Scope }
   | { type: 'dir'; dir: Dir }
   | { type: 'week'; on: boolean }
-  | { type: 'crown'; crown: Crown }
+  | { type: 'streak'; chips: string[]; dir: Dir; scope: Scope; team?: number }
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
+  | { type: 'page'; team: number }
+  | { type: 'board' }
+  | { type: 'game'; team: number; vs: number | null }
+  | { type: 'closeGame' }
   | { type: 'limit'; limit: number | ((l: number) => number) };
 
-export const initialView = (team: number | null = null): ViewState => ({ ...DEFAULT_VIEW, team, limit: DESKTOP_CAP });
+export const initialView = (page: number | null = null): ViewState => ({ ...DEFAULT_VIEW, page, limit: DESKTOP_CAP });
 
 /** Whether a board row is the one already open. */
 export const isOpen = (v: View, row: BoardRow) => v.team === row.ti && (v.scope !== 'all' || v.run === row.s.start?.ep);
@@ -45,7 +51,10 @@ export function viewReducer(v: ViewState, a: ViewAction): ViewState {
 function reduce(v: ViewState, a: ViewAction): ViewState {
   switch (a.type) {
     case 'load':
-      return { ...v, ...a.view };
+      // a team page's or a matchup's URL says nothing of the board; keep the one in memory
+      return a.view.page != null || a.view.game != null
+        ? { ...v, page: a.view.page, game: a.view.game, vs: a.view.vs }
+        : { ...v, ...a.view };
     case 'define':
       return { ...v, active: a.active, dir: a.dir ?? v.dir, limit: DESKTOP_CAP };
     case 'scope':
@@ -54,8 +63,12 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       return { ...v, dir: a.dir, limit: DESKTOP_CAP };
     case 'week':
       return { ...v, week: a.on };
-    case 'crown':
-      return { ...v, active: a.crown.chips.map((key) => ({ key })), dir: a.crown.dir, scope: a.crown.scope, run: null, limit: DESKTOP_CAP };
+    case 'streak':
+      // one streak's board; from a team page or a matchup it comes with that team's panel open
+      return {
+        ...v, active: a.chips.map((key) => ({ key })), dir: a.dir, scope: a.scope, run: null, limit: DESKTOP_CAP,
+        team: a.team ?? v.team, page: null, game: null, vs: null, week: a.scope === 'all' ? false : v.week,
+      };
     case 'pick': {
       // picking the open row closes it; in all-time mode a team has one row per run
       if (isOpen(v, a.row)) return { ...v, team: null, run: null };
@@ -63,6 +76,14 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
     }
     case 'close':
       return { ...v, team: null, run: null };
+    case 'page':
+      return { ...v, page: a.team, game: null, vs: null };
+    case 'board':
+      return { ...v, page: null, game: null, vs: null };
+    case 'game':
+      return { ...v, game: a.team, vs: a.vs };
+    case 'closeGame':
+      return { ...v, game: null, vs: null };
     case 'limit':
       return { ...v, limit: typeof a.limit === 'function' ? a.limit(v.limit) : a.limit };
   }

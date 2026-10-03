@@ -68,7 +68,7 @@ export const CHIPS: Chip[] = [
   pre({ key: 'unranked', label: 'vs unranked opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank === 0 }),
   pre({ key: 'whileranked', label: 'while ranked', group: 'own rank', exclusive: true, known: ownRankKnown, test: (x) => x.ownRank! > 0 }),
   pre({ key: 'whileunranked', label: 'while unranked', group: 'own rank', exclusive: true, known: ownRankKnown, test: (x) => x.ownRank === 0 }),
-  // lines for scheduled games aren't in the payload, so betting chips are post-hoc
+  // a scheduled game's line moves until kickoff, so betting chips are post-hoc
   post({ key: 'fav', label: 'as the favorite', group: 'betting', ...BETTING, test: (x) => x.sp! < 0 }),
   post({ key: 'dog', label: 'as an underdog', group: 'betting', ...BETTING, test: (x) => x.sp! > 0 }),
   post({ key: 'dog7', label: 'as a 7+ point underdog', group: 'betting', ...BETTING, test: (x) => x.sp! >= 7 }),

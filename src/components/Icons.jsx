@@ -18,3 +18,11 @@ export const Caret = () => (
 export const CloseIcon = () => (
   <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13" /></svg>
 );
+
+export const SearchIcon = () => (
+  <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"><circle cx="7" cy="7" r="4.5" /><path d="M10.5 10.5L14 14" /></svg>
+);
+
+export const Chevron = ({ left }) => (
+  <svg viewBox="0 0 6 10" width="6" height="10" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d={left ? 'M5 1L1 5l4 4' : 'M1 1l4 4-4 4'} /></svg>
+);

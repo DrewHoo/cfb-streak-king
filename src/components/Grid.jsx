@@ -1,6 +1,9 @@
-// The grid: teams as columns, one square per game, newest on top. When a team
-// is open, desktop splits into panel | grid and a phone puts the panel in the
-// team's slot of the rail, grown to the rail's full width.
+// The grid: teams as columns, one square per game, newest on top. A column
+// opens its streak's panel; when the run has a qualifying game scheduled,
+// everything above the settled games (count, mark, next opponent) is a second
+// button that opens that game's matchup. When a team is open, desktop splits
+// into panel | grid and a phone puts the panel in the team's slot of the
+// rail, grown to the rail's full width.
 //
 // Opening and closing animate. On desktop the columns glide from where they
 // were to where the new layout puts them (FLIP, below). On a phone the slot
@@ -30,29 +33,34 @@ function columnsPerRow(rail) {
   return Math.max(1, kids.filter((el) => el.offsetTop === top).length);
 }
 
-function Column({ row, edgeFor, onOpen, hi, cover, slot, otl, flipKey }) {
+function Column({ row, edgeFor, onOpen, onGame, hi, cover, slot, otl, flipKey }) {
   const t = teams[row.ti];
   const games = streakGames(row);
   const shown = games.slice(0, CHIP_CAP);
   const ended = row.live === false;
-  return (
-    <button className={'colbtn' + (hi ? ' hi' : '')} data-flip={flipKey} onClick={onOpen} aria-label={`${t.name}: ${count(row.s)} straight`} aria-pressed={hi}>
+  const nextTitle = row.next && `next: ${dayOf(row.next.ep)} ${monthDay(row.next.ep)}${kickOf(row.next) ? ' ' + kickOf(row.next) : ''} ${siteWord(row.next)} ${teams[row.next.oppIdx]?.name}`;
+  const head = (
+    <>
       <span className={'colcount' + (otl && row.onTheLine ? ' is-otl' : '') + (ended ? ' is-ended' : '')}>{count(row.s)}</span>
       {row.s.start && <span className="colspan">{yy(row.s.start.ep)}–{ended ? yy(row.s.end.ep) : 'now'}</span>}
       <TeamMark ti={row.ti} />
-      {ended && (
-        <span className="colbrk"><Chip g={row.ended} small cover={cover} /><span className="colyr">{yy(row.ended.ep)}</span></span>
-      )}
       {!ended && slot && (
         // a live run keeps the slot an ended run's breaker takes, so the
         // stacks line up; the next qualifying game fills it when one is
         // scheduled, in color, else the same chip and date hold it open, unseen
         <span className={'colnext' + (row.next ? '' : ' open')} aria-hidden={row.next ? undefined : true}>
           {row.next
-            ? <NextChip u={row.next} color small title={`next: ${dayOf(row.next.ep)} ${monthDay(row.next.ep)}${kickOf(row.next) ? ' ' + kickOf(row.next) : ''} ${siteWord(row.next)} ${teams[row.next.oppIdx]?.name}`} />
+            ? <NextChip u={row.next} color small title={nextTitle} />
             : <span className="sq p s" />}
           <span className="colyr">{row.next ? monthDay(row.next.ep) : '0/0'}</span>
         </span>
+      )}
+    </>
+  );
+  const body = (
+    <>
+      {ended && (
+        <span className="colbrk"><Chip g={row.ended} small cover={cover} /><span className="colyr">{yy(row.ended.ep)}</span></span>
       )}
       <span className={'colstack' + (games.length > shown.length ? ' fade' : '')}>
         {shown.map((g) => <Chip key={g.i} g={g} cover={cover} />)}
@@ -60,7 +68,18 @@ function Column({ row, edgeFor, onOpen, hi, cover, slot, otl, flipKey }) {
       {row.s.atEdge
         ? <span className="coledge">{yyOfYear(edgeFor(row.ti).year)}</span>
         : <span className="colender"><Chip g={row.s.ender} small cover={cover} /><span className="colyr">{yy(row.s.ender.ep)}</span></span>}
-    </button>
+    </>
+  );
+  const label = `${t.name}: ${count(row.s)} straight`;
+  // no game to open: the whole column is the streak's button, as it always was
+  if (!row.next) {
+    return <button className={'colbtn' + (hi ? ' hi' : '')} data-flip={flipKey} onClick={onOpen} aria-label={label} aria-pressed={hi}>{head}{body}</button>;
+  }
+  return (
+    <div className={'colbtn two' + (hi ? ' hi' : '')} data-flip={flipKey}>
+      <button className="colhead" onClick={() => onGame(row.ti, row.next)} aria-label={`${t.name} ${nextTitle}: the matchup`}>{head}</button>
+      <button className="colbody" onClick={onOpen} aria-label={label} aria-pressed={hi}>{body}</button>
+    </div>
   );
 }
 
@@ -145,7 +164,7 @@ function usePanelPhase(curTeam) {
   return [shown, phase];
 }
 
-export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit, setLimit, week, scope, dir, panel }) {
+export function Grid({ rows, curTeam, openKey, onPick, onGame, edgeFor, isMobile, limit, setLimit, week, scope, dir, panel }) {
   // a phone shows every active streak; the all-time list runs to thousands,
   // so it grows a chunk at a time there and a full row at a time on desktop
   const cap = isMobile ? (scope === 'all' ? Math.max(limit, MOBILE_ALLTIME_CAP) : rows.length) : limit;
@@ -186,7 +205,7 @@ export function Grid({ rows, curTeam, openKey, onPick, edgeFor, isMobile, limit,
   // the all-time board marks a live run that's on the line this week with a
   // rust count; on the active board the next-game chip already says so
   const col = (row) => (
-    <Column key={rowKey(row)} flipKey={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
+    <Column key={rowKey(row)} flipKey={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} onGame={onGame} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';

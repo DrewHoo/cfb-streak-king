@@ -30,6 +30,8 @@ export interface GameCols {
 export interface UpcomingCols {
   ep: number[]; hi: number[]; ai: number[]; fl: number[]; hr: number[]; ar: number[];
   hh: number[]; rv: number[]; wk: number[]; vs: number[];
+  /** The line as of the build, encoded like games.sp; absent in payloads built before it was added. */
+  sp?: number[];
 }
 
 export interface Payload {
@@ -68,7 +70,7 @@ export interface GameContext {
   /** AP rank at kickoff, 0 unranked, null when no poll was in effect. */
   oppRank: number | null;
   ownRank: number | null;
-  /** Closing line from our side, + = we were underdogs; null when unlined. */
+  /** The line from our side, + = we were underdogs; null when unlined. Closing for a played game, as of the build for a scheduled one. */
   sp: number | null;
   hh: number;
   rv: number;

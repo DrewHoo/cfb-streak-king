@@ -237,7 +237,7 @@ for (const l of linesRaw ?? []) {
 const rows = parseCsv(schedCsv).map(mapScheduleRow).filter(Boolean);
 const res26 = new Map(); // ti -> ['W','L','T'...] in date order, for coach splits
 const cols = base.games;
-const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [], vs: [] };
+const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [], vs: [], sp: [] };
 const stateIdxOf = (code) => {
   if (!code) return 0;
   const i = base.states.indexOf(code);
@@ -293,6 +293,9 @@ for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')
     upcoming.hh.push(hh);
     upcoming.rv.push(rv === undefined ? 0 : rv + 1);
     upcoming.wk.push(r.week);
+    // the line as of this build; it moves until kickoff, so the client shows it and no chip reads it
+    const usp = lineByKey.get(`${r.home}|${r.away}|${ep}`);
+    upcoming.sp.push(usp == null ? NO_LINE : Math.round(usp * 2));
   }
 }
 
@@ -384,5 +387,5 @@ if (added && !lined26) {
 ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
 console.log(
-  `payload: +${added} completed ${SEASON} games (${lined26} lined), ${upcoming.ep.length} upcoming, ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
+  `payload: +${added} completed ${SEASON} games (${lined26} lined), ${upcoming.ep.length} upcoming (${upcoming.sp.filter((s) => s !== NO_LINE).length} lined), ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );

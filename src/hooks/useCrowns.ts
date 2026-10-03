@@ -5,13 +5,13 @@ import { loadCrowns } from '../lib/loadCrowns.ts';
 import { track } from '../lib/analytics.ts';
 
 /**
- * The open team's crowns and the panel's two selects. A team page arrives
- * with its own crowns in `initial` (so the prerender and the hydrate agree);
- * any other team's load when it opens.
+ * The open team's crowns (the panel's, or the team page's) and the two
+ * selects over them. A team page arrives with its own crowns in `initial` (so
+ * the prerender and the hydrate agree); any other team's load when it opens.
  */
-export function useCrowns(team: number | null, initial?: { team?: number | null; crowns?: TeamCrowns | null }) {
+export function useCrowns(team: number | null, initial?: { page?: number | null; crowns?: TeamCrowns | null }) {
   const [sets, setSets] = useState<Record<number, TeamCrowns>>(() => (
-    initial?.crowns && initial.team != null ? { [initial.team]: initial.crowns } : {}
+    initial?.crowns && initial.page != null ? { [initial.page]: initial.crowns } : {}
   ));
   const [scope, setScope] = useState<Scope>('active');
   const [dir, setDir] = useState<Dir>('W');
@@ -26,6 +26,8 @@ export function useCrowns(team: number | null, initial?: { team?: number | null;
   return {
     /** null while the team's crowns are loading */
     crowns: team != null ? sets[team]?.[scope] ?? null : null,
+    /** The team's active crowns whatever the select says; null while loading. */
+    active: team != null ? sets[team]?.active ?? null : null,
     scope,
     dir,
     // analytics event names predate "crowns"; kept so the history stays continuous
