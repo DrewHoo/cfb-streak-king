@@ -54,7 +54,7 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
   const next = nextGameOf(ti, todayEp);
   const streaks = useMemo(() => teamStreaks(ti, todayEp, crowns.active), [ti, todayEp, crowns.active]);
   const played = gamesOf(ti).filter((g) => g.se === P.currentSeason);
-  const ahead = upcomingOf(ti).filter((u) => u.ep >= todayEp);
+  const ahead = upcomingOf(ti);
   const meta = [confOf(ti, P.currentSeason), coachLine(ti)].filter(Boolean).join(' · ');
   return (
     <div className="tpg">
