@@ -64,6 +64,16 @@ describe('view', () => {
     expect(viewReducer(v, { type: 'load', view: initialView() }).active).toEqual(initialView().active);
   });
 
+  test('the schedule opens in the board’s place and a streak or the board closes it', () => {
+    let v = viewReducer(initialView(), { type: 'games' });
+    expect([v.games, v.page]).toEqual([true, null]);
+    v = viewReducer(v, { type: 'page', team: 2 }); // a team page over it; Back returns to it
+    expect([v.games, v.page]).toEqual([true, 2]);
+    expect(viewReducer(v, { type: 'streak', chips: [], dir: 'W', scope: 'active', team: 2 }).games).toBe(false);
+    expect(viewReducer(v, { type: 'board' }).games).toBe(false);
+    expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), games: true } }).games).toBe(true);
+  });
+
   test('a matchup opens over the board or a page and closes back to it; a page closes a matchup', () => {
     let v = viewReducer({ ...initialView(), team: 3 }, { type: 'game', team: 3, vs: null });
     expect([v.game, v.team, v.page]).toEqual([3, 3, null]);

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase, crownClaim } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
-import { parseUrl, toUrl, crownUrl, teamUrl } from './lib/url.ts';
+import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { gameVs } from './lib/team.ts';
 import { dirWord, dayOf, rowKey, siteWord } from './lib/format.ts';
@@ -18,6 +18,7 @@ import { BaseRate } from './components/BaseRate.jsx';
 import { Grid } from './components/Grid.jsx';
 import { TeamPanel } from './components/TeamPanel.jsx';
 import { TeamPage } from './components/TeamPage.jsx';
+import { GamesPage } from './components/GamesPage.jsx';
 import { Matchup } from './components/Matchup.jsx';
 import { Starred } from './components/Starred.jsx';
 import { Notes } from './components/Notes.jsx';
@@ -26,10 +27,10 @@ const BASE = import.meta.env.BASE_URL;
 
 // `initial` seeds state the prerender and the hydrate must agree on: a
 // per-team page (/team/<id>/) starts on that team's page with its crowns
-// ({ active, all }) already loaded.
+// ({ active, all }) already loaded; /games/ starts on the schedule.
 export default function App({ initial } = {}) {
-  const [view, dispatch] = useReducer(viewReducer, initial?.page ?? null, initialView);
-  const { active, dir, scope, week, team, run, limit, page, game, vs } = view;
+  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games));
+  const { active, dir, scope, week, team, run, limit, page, game, vs, games } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -70,13 +71,13 @@ export default function App({ initial } = {}) {
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && was.page !== page;
+    const moved = !!was && (was.page !== page || was.games !== games);
     const opened = !!was && ((game != null && was.game == null) || (page == null && game == null && team != null && was.team == null && was.game == null));
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     if (pushed && moved) window.scrollTo(0, 0);
-    if (page == null && game == null) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
+    if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, run, page, game, vs, hydrated]);
+  }, [active, dir, scope, week, team, run, page, game, vs, games, hydrated]);
 
   // Closing a panel or a matchup: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -161,6 +162,14 @@ export default function App({ initial } = {}) {
     track('share', { team: teams[ti].id, page: true });
     share(`${teams[ti].name}’s streaks, record and next game`, absoluteUrl(BASE, teamUrl(ti)));
   }
+  function openGames() {
+    track('games');
+    dispatch({ type: 'games' });
+  }
+  function shareGames() {
+    track('share', { games: true });
+    share(`This week's college football games, with every streak on the line`, absoluteUrl(BASE, gamesUrl()));
+  }
   function shareGame() {
     track('share', { team: teams[game].id, matchup: true });
     share(`${teams[game].name} ${siteWord(matchup)} ${teams[matchup.oppIdx]?.name}: every streak on the line`, absoluteUrl(BASE, toUrl({ ...view, vs: matchup.oppIdx })));
@@ -189,9 +198,11 @@ export default function App({ initial } = {}) {
             share: shareTeam,
           }}
         />
+      ) : games ? (
+        <GamesPage todayEp={todayEp} copied={copied} on={{ board: () => dispatch({ type: 'board' }), game: (ti, g) => openGame(ti, g, 'games'), share: shareGames }} />
       ) : (
         <>
-          <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} isMobile={isMobile} />
+          <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} onGames={openGames} isMobile={isMobile} />
           <h1>Streak King</h1>
 
           <Sentence

@@ -2,7 +2,8 @@
 // a new definition, scope or direction starts the board at its first columns
 // again; all-time mode has no "this week" filter. Three things open: a streak
 // (the board's panel), a game (the matchup sheet, over whatever is showing)
-// and a team (its page, in place of the board). A chip that can't define
+// and a team (its page, in place of the board); the schedule of every game
+// is a fourth view in the board's place. A chip that can't define
 // the direction's streaks (one-score or shootout vs the spread) drops,
 // whatever brought the pair in: an old URL, a saved streak.
 
@@ -29,12 +30,13 @@ export type ViewAction =
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
   | { type: 'page'; team: number }
+  | { type: 'games' }
   | { type: 'board' }
   | { type: 'game'; team: number; vs: number | null }
   | { type: 'closeGame' }
   | { type: 'limit'; limit: number | ((l: number) => number) };
 
-export const initialView = (page: number | null = null): ViewState => ({ ...DEFAULT_VIEW, page, limit: DESKTOP_CAP });
+export const initialView = (page: number | null = null, games = false): ViewState => ({ ...DEFAULT_VIEW, page, games, limit: DESKTOP_CAP });
 
 /** Whether a board row is the one already open. */
 export const isOpen = (v: View, row: BoardRow) => v.team === row.ti && (v.scope !== 'all' || v.run === row.s.start?.ep);
@@ -51,9 +53,9 @@ export function viewReducer(v: ViewState, a: ViewAction): ViewState {
 function reduce(v: ViewState, a: ViewAction): ViewState {
   switch (a.type) {
     case 'load':
-      // a team page's or a matchup's URL says nothing of the board; keep the one in memory
-      return a.view.page != null || a.view.game != null
-        ? { ...v, page: a.view.page, game: a.view.game, vs: a.view.vs }
+      // a team page's, a matchup's or the schedule's URL says nothing of the board; keep the one in memory
+      return a.view.page != null || a.view.game != null || a.view.games
+        ? { ...v, page: a.view.page, game: a.view.game, vs: a.view.vs, games: a.view.games }
         : { ...v, ...a.view };
     case 'define':
       return { ...v, active: a.active, dir: a.dir ?? v.dir, limit: DESKTOP_CAP };
@@ -67,7 +69,7 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       // one streak's board; from a team page or a matchup it comes with that team's panel open
       return {
         ...v, active: a.chips.map((key) => ({ key })), dir: a.dir, scope: a.scope, run: null, limit: DESKTOP_CAP,
-        team: a.team ?? v.team, page: null, game: null, vs: null, week: a.scope === 'all' ? false : v.week,
+        team: a.team ?? v.team, page: null, game: null, vs: null, games: false, week: a.scope === 'all' ? false : v.week,
       };
     case 'pick': {
       // picking the open row closes it; in all-time mode a team has one row per run
@@ -78,8 +80,10 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       return { ...v, team: null, run: null };
     case 'page':
       return { ...v, page: a.team, game: null, vs: null };
+    case 'games':
+      return { ...v, games: true, page: null, game: null, vs: null };
     case 'board':
-      return { ...v, page: null, game: null, vs: null };
+      return { ...v, page: null, game: null, vs: null, games: false };
     case 'game':
       return { ...v, game: a.team, vs: a.vs };
     case 'closeGame':

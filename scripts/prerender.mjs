@@ -131,10 +131,31 @@ for (const ti of fbsNow) {
 }
 console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
 
+// --- the schedule: every scheduled game, by week ---
+{
+  const url = `${SITE}games/`
+  const title = `This week's games · ${config.title}`
+  const description = `Every scheduled FBS game, with the line and the streak most on the line in it.`
+  const { html } = page({
+    initial: { games: true },
+    url,
+    title,
+    description,
+    image: `${SITE}og.png`,
+    imageAlt: config.ogImageAlt,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', url]])],
+    },
+  })
+  fs.mkdirSync(path.join(ROOT, 'dist', 'games'), { recursive: true })
+  fs.writeFileSync(path.join(ROOT, 'dist', 'games', 'index.html'), html)
+}
+
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE]
+const urls = [SITE, `${SITE}games/`]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]

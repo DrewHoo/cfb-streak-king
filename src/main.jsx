@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath } from './lib/url.ts'
+import { teamFromPath, gamesFromPath } from './lib/url.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
 import './styles.css'
 
@@ -15,7 +15,7 @@ import './styles.css'
 const page = teamFromPath(window.location.pathname)
 // a team page embeds that team's crowns (scripts/prerender.mjs)
 const embedded = document.getElementById('crowns-data')
-const initial = { page, crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null }
+const initial = { page, games: page == null && gamesFromPath(window.location.pathname), crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null }
 
 const root = document.getElementById('root')
 const app = (
