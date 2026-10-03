@@ -545,9 +545,12 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .mu-last { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); margin: 14px 0 0; }
 /* desktop: a dialog in the middle of the screen, the two lists side by side, closed by its ✕ */
 @media (min-width: 641px) {
+  /* centered the way a <dialog> is: inset 0 with auto margins and a fit-content
+     height. The transform stays vaul's: it reads it back on every pointer-up,
+     and an override there made WebKit close the sheet on a plain click */
   .sheet.matchup {
-    left: 50%; right: auto; top: 50%; bottom: auto; width: min(860px, calc(100vw - 48px)); max-height: min(86vh, 900px);
-    transform: translate(-50%, -50%) !important; border: 1px solid var(--ink-faint); border-radius: 12px; padding-top: 6px;
+    inset: 0; margin: auto; width: min(860px, calc(100vw - 48px)); height: fit-content; max-height: min(86vh, 900px);
+    border: 1px solid var(--ink-faint); border-radius: 12px; padding-top: 6px;
   }
   .sheet.matchup::before, .sheet.matchup[data-vaul-drawer]::after { display: none; }
   .mu-close { display: inline-flex; }

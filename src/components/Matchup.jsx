@@ -9,6 +9,7 @@ import { chipByKey } from '../lib/chips.ts';
 import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, LEN_FLOOR } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord, oddsText } from '../lib/format.ts';
 import { CloseIcon } from './Icons.jsx';
+import { useActiveCrowns } from '../hooks/useCrowns.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron } from './Icons.jsx';
 
@@ -59,9 +60,11 @@ function Side({ ti, rank, onTeam }) {
 
 const sameStreak = (a, b) => a.dir === b.dir && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
 
-// `pin` is the streak on the board underneath, when this game is its next: it leads the list
-function OnLine({ ti, game, crowns, pin, todayEp, onStreak, cap }) {
+// `pin` is the streak on the board underneath, when this game is its next: it
+// leads the list. The team's crowns join it as soon as they're loaded.
+function OnLine({ ti, game, crowns: seed, pin, todayEp, onStreak, cap }) {
   const [all, setAll] = useState(false);
+  const crowns = useActiveCrowns(ti, seed);
   const mine = streaksOn(teamStreaks(ti, todayEp, crowns), game);
   const list = pin ? [pin, ...mine.filter((s) => !sameStreak(s, pin))] : mine;
   return (
@@ -76,8 +79,8 @@ function OnLine({ ti, game, crowns, pin, todayEp, onStreak, cap }) {
 
 /**
  * `game` is the scheduled game from `ti`'s side (null closes the sheet);
- * `crowns` are that team's active crowns when they're loaded, `pin` its
- * streak on the board underneath.
+ * `crowns` are that team's active crowns when the caller has them (each
+ * side loads its own otherwise), `pin` its streak on the board underneath.
  */
 export function Matchup({ ti, game, crowns, pin, todayEp, isMobile, onClose, onTeam, onStreak, onShare }) {
   const cap = isMobile ? ON_LINE_CAP.phone : ON_LINE_CAP.desk;
