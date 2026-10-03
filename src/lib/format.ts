@@ -24,6 +24,9 @@ export const monthDay = (ep: number) => { const d = new Date(ep * 86400000); ret
 export const kickOf = (u: { hh: number }) => (u.hh !== 31 ? `${u.hh % 12 || 12}${u.hh >= 12 ? 'pm' : 'am'}` : '');
 /** Our line, as a bettor reads it: -7 favored by 7, +3.5 getting 3.5, PK even. */
 export const spreadText = (sp: number) => (sp === 0 ? 'PK' : sp > 0 ? `+${sp}` : `${sp}`);
+/** A streak's games, by outcome: "8 covers", "1 loss". */
+const GAMES: Record<string, [string, string]> = { W: ['win', 'wins'], L: ['loss', 'losses'], U: ['game undefeated', 'games undefeated'], C: ['cover', 'covers'], N: ['missed cover', 'missed covers'] };
+export const gamesWord = (dir: string, n: number) => (GAMES[dir] ?? GAMES.W)[n === 1 ? 0 : 1];
 export const count = (s: Pick<Streak, 'len' | 'atEdge'>) => `${s.len}${s.atEdge ? '+' : ''}`;
 
 const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';

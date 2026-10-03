@@ -24,6 +24,8 @@ const rank = (r: number) => (r === RANK_UNKNOWN ? null : r);
 // the first season with closing lines (Repole's files)
 const LINES_FROM = 1978;
 const coverOf = (m: number) => (m > 0 ? 'W' : m < 0 ? 'L' : 'P');
+// stored in half-points from the home side; ours is + when we're the underdogs
+const lineOf = (raw: number | undefined, home: boolean) => (raw == null || raw === NO_LINE ? null : (home ? raw : -raw) / 2);
 
 export type Model = ReturnType<typeof createModel>;
 
@@ -141,7 +143,7 @@ export function createModel(P: Payload) {
         r: us > them ? 'W' : us < them ? 'L' : 'T',
         margin: Math.abs(us - them),
         total: us + them,
-        sp: spRaw === NO_LINE ? null : (home ? spRaw : -spRaw) / 2, // + = we were underdogs
+        sp: lineOf(spRaw, home),
         cover: spRaw === NO_LINE ? null : coverOf(us - them + (home ? spRaw : -spRaw) / 2),
         ot: g.ot?.[i] ?? UNKNOWN,
         h1: g.hf[i] >= 0 ? (home ? g.hf[i] - g.af[i] : g.af[i] - g.hf[i]) : null,
@@ -190,7 +192,7 @@ export function createModel(P: Payload) {
       arr.push({
         ...ctx,
         wk: upc.wk[i],
-        sp: null,
+        sp: lineOf(upc.sp?.[i], home),
         hcCur: known(own),
         hcNew: known(own) && !own[3] && firstSeasonOf(own) === P.currentSeason,
         vsNew: known(opp) && !opp[3] && firstSeasonOf(opp) === P.currentSeason,

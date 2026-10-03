@@ -47,8 +47,30 @@ describe('view', () => {
     expect(v.team).toBeNull();
   });
 
-  test('applying a crown takes its definition, direction and scope', () => {
-    const v = viewReducer(initialView(7), { type: 'crown', crown: { chips: ['road', 'ranked'], dir: 'L', scope: 'active', len: 4, atEdge: false, field: 12, live: true, also: 0, chance: 0 } });
+  test('applying a streak takes its definition, direction and scope, and keeps the open team', () => {
+    const v = viewReducer({ ...initialView(), team: 7 }, { type: 'streak', chips: ['road', 'ranked'], dir: 'L', scope: 'active' });
     expect([v.active, v.dir, v.scope, v.team]).toEqual([[{ key: 'road' }, { key: 'ranked' }], 'L', 'active', 7]);
+  });
+
+  test('a streak picked on a team page or a matchup lands on the board with that team open', () => {
+    const v = viewReducer({ ...initialView(4), game: 4, vs: 9 }, { type: 'streak', chips: ['home'], dir: 'C', scope: 'active', team: 4 });
+    expect([v.page, v.game, v.vs, v.team, v.dir]).toEqual([null, null, null, 4, 'C']);
+  });
+
+  test("loading a team page's URL keeps the board that was showing", () => {
+    const board = { ...initialView(), active: [{ key: 'road' }], dir: 'L' as const, team: 3 };
+    const v = viewReducer(board, { type: 'load', view: { ...initialView(), page: 5 } });
+    expect([v.page, v.active, v.dir, v.team]).toEqual([5, [{ key: 'road' }], 'L', 3]);
+    expect(viewReducer(v, { type: 'load', view: initialView() }).active).toEqual(initialView().active);
+  });
+
+  test('a matchup opens over the board or a page and closes back to it; a page closes a matchup', () => {
+    let v = viewReducer({ ...initialView(), team: 3 }, { type: 'game', team: 3, vs: null });
+    expect([v.game, v.team, v.page]).toEqual([3, 3, null]);
+    v = viewReducer(v, { type: 'closeGame' });
+    expect([v.game, v.team]).toEqual([null, 3]);
+    v = viewReducer(viewReducer(v, { type: 'game', team: 3, vs: 5 }), { type: 'page', team: 5 });
+    expect([v.page, v.game, v.vs, v.team]).toEqual([5, null, null, 3]);
+    expect(viewReducer(v, { type: 'board' }).page).toBeNull();
   });
 });

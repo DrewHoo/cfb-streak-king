@@ -78,7 +78,7 @@ export function Notes() {
             Rock for Arkansas, and similar) counts as a home game.
           </li>
           <li>
-            A team's page lists the streaks it is king of that stand out: each definition under which that team alone holds
+            Under an open streak, the King-of list is the streaks its team is king of that stand out: each definition under which that team alone holds
             the longest active or all-time streak, at least 4 games long, among at least 10 teams with a streak
             under it. The {PLAIN_CHIPS.length} plain words alone make {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible definitions,{' '}
             {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting winning, losing, undefeated, covering and not covering separately; the words that take a choice

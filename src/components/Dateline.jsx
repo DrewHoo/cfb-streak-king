@@ -1,13 +1,17 @@
-// The line above the title: site, window, last update, and the star and share buttons.
+// The line above the title: site, window, last update, and the find-a-team, star and share buttons.
 
 import { P, firstSeason } from '../lib/model.ts';
-import { ShareIcon, StarIcon } from './Icons.jsx';
+import { ShareIcon, StarIcon, SearchIcon } from './Icons.jsx';
+import { TeamPicker } from './TeamPicker.jsx';
 
-export function Dateline({ isStarred, onStar, onShare, copied }) {
+export function Dateline({ isStarred, onStar, onShare, copied, onTeam, isMobile }) {
   return (
     <div className="dateline">
       <span>drewhoover.com · {firstSeason}–{P.currentSeason}<span className="dateline-upd"> · updated {String(P.builtAt).slice(0, 10)}</span></span>
       <span className="dateline-acts">
+        <TeamPicker onPick={onTeam} isMobile={isMobile}>
+          <button className="ico" aria-label="Find a team"><SearchIcon /></button>
+        </TeamPicker>
         <button className={'ico' + (isStarred ? ' on' : '')} onClick={onStar} aria-pressed={isStarred} aria-label={isStarred ? 'Saved' : 'Save this streak'}>
           <StarIcon filled={isStarred} />
         </button>

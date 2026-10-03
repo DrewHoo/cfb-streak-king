@@ -1,6 +1,6 @@
 // Runs after `vite build`. Bakes the rendered app into dist/index.html, writes
 // the <head> from site.config.js, and renders one page per current FBS team
-// at dist/team/<id>/index.html with that team's panel open and its own
+// at dist/team/<id>/index.html, that team's page, with its own
 // social preview (public/og/team/<id>.png when it exists).
 //
 // Without this the deployed page is `<div id="root"></div>` and every word on
@@ -131,7 +131,7 @@ for (const ti of fbsNow) {
 }
 console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
 
-// --- one page per current FBS team, opened on its run of the default board ---
+// --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
 const urls = [SITE]
@@ -142,12 +142,12 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const url = `${SITE}team/${t.id}/`
   const title = `${t.name} streaks · ${config.title}`
   const since = windowStartOf(ti)
-  const tail = `Every winning and losing streak ${t.name} is king of, under any definition, since ${since}.`
+  const tail = `${t.name}'s record, next game, and every streak it's on or king of, under any definition, since ${since}.`
   const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { team: ti, crowns: decodeCrowns(crownsOf(ti)) },
+    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)) },
     embed: crownsOf(ti),
     url,
     title,

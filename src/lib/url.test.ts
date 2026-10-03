@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamFromPath } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, teamFromPath } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -20,6 +20,8 @@ describe('url', () => {
       { ...DEFAULT_VIEW, active: [], dir: 'U', team: idx('alabama'), run: 7933 },
       { ...DEFAULT_VIEW, active: [{ key: 'road' }], dir: 'N' },
       { ...DEFAULT_VIEW, active: [{ key: 'vsteam', param: idx('auburn') }], team: idx('kansas'), run: -4000 },
+      { ...DEFAULT_VIEW, page: idx('byu') },
+      { ...DEFAULT_VIEW, page: idx('byu'), game: idx('byu'), vs: idx('tcu') },
     ];
     for (const v of views) expect(roundTrip(v)).toEqual(v);
   });
@@ -28,21 +30,37 @@ describe('url', () => {
     expect(toUrl({ ...DEFAULT_VIEW, scope: 'active', run: 100 }).params.run).toBeNull();
   });
 
-  test('the team comes from the path, or an old ?team= link', () => {
+  test('the path names a team page; the open panel is ?t=', () => {
     expect(teamFromPath('/cfb-streak-king/team/alabama/')).toBe(idx('alabama'));
     expect(teamFromPath('/cfb-streak-king/team/not-a-team/')).toBeNull();
     expect(teamFromPath('/cfb-streak-king/team/x:tarletonstate/')).toBeNull();
+    expect(parseUrl('/cfb-streak-king/team/georgia/', '')).toMatchObject({ page: idx('georgia'), team: null, game: null });
+    expect(teamUrl(idx('georgia'))).toMatchObject({ path: 'team/georgia/', params: { t: null, c: null } });
+    const panel = toUrl({ ...DEFAULT_VIEW, team: idx('georgia') });
+    expect([panel.path, panel.params.t]).toEqual(['', 'georgia']);
+    expect(parseUrl('/cfb-streak-king/', '?t=georgia').team).toBe(idx('georgia'));
+  });
+
+  test('old links still open the panel: ?team=, and /team/<id>/ with a definition', () => {
     expect(parseUrl('/cfb-streak-king/', '?team=georgia').team).toBe(idx('georgia'));
-    expect(toUrl({ ...DEFAULT_VIEW, team: idx('georgia') }).path).toBe('team/georgia/');
+    expect(parseUrl('/cfb-streak-king/team/georgia/', '?c=road&dir=L')).toMatchObject({ team: idx('georgia'), page: null, dir: 'L', active: [{ key: 'road' }] });
+  });
+
+  test('a matchup hangs off the team: its game against ?vs=, or its next', () => {
+    expect(parseUrl('/cfb-streak-king/team/byu/', '?vs=tcu')).toMatchObject({ page: idx('byu'), game: idx('byu'), vs: idx('tcu') });
+    expect(parseUrl('/cfb-streak-king/team/byu/', '?vs=next')).toMatchObject({ game: idx('byu'), vs: null });
+    // opened over the board, it still takes the team's address and leaves the definition out
+    const u = toUrl({ ...DEFAULT_VIEW, active: [{ key: 'road' }], team: idx('utah'), game: idx('byu'), vs: null });
+    expect([u.path, search(u.params)]).toEqual(['team/byu/', 'vs=next']);
   });
 
   test('junk params fall back to defaults', () => {
     expect(parseUrl('/', '?dir=X&scope=nope&run=abc&week=yes')).toEqual(DEFAULT_VIEW);
   });
 
-  test('a crown links to its team page with its definition', () => {
+  test('a crown links to the board under its definition with the team open', () => {
     const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, live: true, also: 0, chance: 0 });
-    expect(u.path).toBe('team/alabama/');
-    expect(search(u.params)).toBe('c=road&dir=U&scope=active');
+    expect(u.path).toBe('');
+    expect(search(u.params)).toBe('t=alabama&c=road&dir=U&scope=active');
   });
 });
