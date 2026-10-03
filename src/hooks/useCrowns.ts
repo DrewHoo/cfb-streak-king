@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Dir, Scope } from '../lib/types.ts';
+import type { Crown, Dir, Scope } from '../lib/types.ts';
 import type { TeamCrowns } from '../lib/crownsFile.ts';
 import { loadCrowns } from '../lib/loadCrowns.ts';
 import { track } from '../lib/analytics.ts';
@@ -36,4 +36,20 @@ export function useCrowns(team: number | null, initial?: { page?: number | null;
     /** Follow the board's direction without an event (opening a team, loading a URL). */
     followDir: setDir,
   };
+}
+
+/**
+ * One team's active crowns, for a list that isn't the panel's: a side of a
+ * matchup. `seed` is the list when the caller already has it; otherwise the
+ * team's file loads (once per team, loadCrowns caches). Null while loading.
+ */
+export function useActiveCrowns(ti: number | null, seed: Crown[] | null = null): Crown[] | null {
+  const [sets, setSets] = useState<Record<number, Crown[]>>({});
+  useEffect(() => {
+    if (ti == null || seed || sets[ti]) return;
+    let live = true;
+    loadCrowns(ti).then((c) => { if (live) setSets((cur) => ({ ...cur, [ti]: c.active })); });
+    return () => { live = false; };
+  }, [ti, seed, sets]);
+  return ti == null ? null : seed ?? sets[ti] ?? null;
 }
