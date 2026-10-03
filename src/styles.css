@@ -597,8 +597,10 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .gm-at { font-style: normal; font-size: 9.5px; color: var(--rust); text-align: center; }
 .gm-line { font-size: 10px; font-weight: 600; color: var(--cream); white-space: nowrap; text-align: right; }
 /* the most interesting streak on the line, as a line: the panel's claim with the fat trimmed */
-.gm-claim { grid-column: 2 / -1; font-family: 'Source Serif 4', Georgia, serif; font-size: 12px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: -1px; }
-.gm-claim b { font-family: 'Graduate', serif; font-weight: 400; font-size: 13px; color: var(--cream); }
+.gm-claim { grid-column: 2 / -1; font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; line-height: 15px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* a row with nothing on the line keeps the claim's height, so the rows all stand the same */
+.gm:not(.gm-head) { grid-template-rows: 20px 15px; }
+.gm-claim b { font-family: 'Graduate', serif; font-weight: 400; font-size: 12px; color: var(--cream); }
 .gm-claim b.l { color: var(--rust); }
 .gm-claim small { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); }
 @media (max-width: 640px) {
@@ -607,5 +609,5 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
   .gm-team.marked .gm-nm { display: none; }
   .gm-logo { width: 20px; height: 20px; }
   .gm-line { font-size: 9.5px; overflow: hidden; text-overflow: ellipsis; }
-  .gm-claim { white-space: normal; }
+  .gm-claim { font-size: 10.5px; }
 }
