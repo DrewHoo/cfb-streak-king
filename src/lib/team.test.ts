@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams, builtEpochDay, upcomingOf, activeBoard, gamesOf, P } from './model.ts';
-import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList } from './team.ts';
+import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, LEN_FLOOR, worthShowing } from './team.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const today = builtEpochDay;
@@ -31,9 +31,12 @@ describe('team', () => {
       const rows = activeBoard(chips.map((key) => ({ key })), dir, today);
       const row = rows.find((r) => r.ti === ti);
       const s = list.find((x) => x.dir === dir && x.chips.join() === chips.join());
-      if (!row) { expect(s).toBeUndefined(); continue; }
-      expect(s).toMatchObject({ len: row.s.len, field: rows.length, rank: rows.findIndex((r) => r.s.len === row.s.len) + 1 });
-      expect(s!.tied).toBe(rows.filter((r) => r.s.len === row.s.len).length);
+      const level = row ? rows.filter((r) => r.s.len === row.s.len).length : 0;
+      if (!row || !worthShowing({ len: row.s.len, rank: rows.findIndex((r) => r.s.len === row.s.len) + 1, tied: level })) { expect(s).toBeUndefined(); continue; }
+      expect(s).toMatchObject({ len: row.s.len, field: rows.length, rank: rows.findIndex((r) => r.s.len === row.s.len) + 1, tied: level });
+      expect(s!.since).toBe(row.qual[row.qual.length - row.s.len].se);
+      expect(s!.chance).toBeGreaterThan(0);
+      expect(s!.chance).toBeLessThanOrEqual(1);
       expect(rankText(s!)).toMatch(/^(T-)?\d+(st|nd|rd|th)$/);
     }
   });
@@ -54,12 +57,18 @@ describe('team', () => {
   });
 
   test("a game puts on the line the streaks whose next qualifying game it is", () => {
-    const ti = teamList().find((t) => nextGameOf(t, today))!;
+    const ti = teamList().find((t) => nextGameOf(t, today) && teamStreaks(t, today).some((s) => s.next))!;
     const next = nextGameOf(ti, today)!;
     const on = streaksOn(teamStreaks(ti, today), next);
-    // every game qualifies under no condition, so the plain streak is always there
-    expect(on.some((s) => s.chips.length === 0)).toBe(true);
     expect(on.every((s) => s.next!.i === next.i)).toBe(true);
+  });
+
+  test(`a run under ${LEN_FLOOR} games shows only when the team alone leads with it`, () => {
+    for (const ti of teamList().slice(0, 20)) {
+      for (const s of teamStreaks(ti, today)) expect(s.len >= LEN_FLOOR || (s.rank === 1 && s.tied === 1)).toBe(true);
+    }
+    expect(worthShowing({ len: 1, rank: 1, tied: 1 })).toBe(true);
+    expect(worthShowing({ len: 3, rank: 1, tied: 2 })).toBe(false);
   });
 
   test("a multi-condition crown joins the list with the team's own row", () => {

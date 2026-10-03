@@ -108,7 +108,8 @@ export default function App({ initial } = {}) {
     const row = rows.find((r) => r.ti === game);
     if (!row || row.next?.i !== matchup.i) return null;
     const level = rows.filter((r) => r.s.len === row.s.len);
-    return { chips: active.map((a) => a.key), dir, len: row.s.len, atEdge: row.s.atEdge, rank: rows.indexOf(level[0]) + 1, tied: level.length, field: rows.length, next: row.next, score: 0 };
+    const since = row.qual[row.qual.length - row.s.len].se;
+    return { chips: active.map((a) => a.key), dir, len: row.s.len, atEdge: row.s.atEdge, rank: rows.indexOf(level[0]) + 1, tied: level.length, field: rows.length, next: row.next, since, chance: null, score: 0 };
   }, [matchup, page, scope, active, dir, rows, game]);
 
   const define = (chips, d) => dispatch({ type: 'define', active: chips, dir: d });
@@ -210,7 +211,7 @@ export default function App({ initial } = {}) {
       )}
 
       <Matchup
-        ti={matchup ? game : null} game={matchup} crowns={game === crownTeam ? crowns.active : null} pin={pin} todayEp={todayEp}
+        ti={matchup ? game : null} game={matchup} crowns={game === crownTeam ? crowns.active : null} pin={pin} todayEp={todayEp} isMobile={isMobile}
         onClose={() => close({ type: 'closeGame' })} onTeam={(ti) => openTeam(ti, 'matchup')}
         onStreak={(s, ti) => openStreak(s, ti, 'matchup')} onShare={shareGame}
       />

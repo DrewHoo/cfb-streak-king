@@ -6,24 +6,35 @@ import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { P, teams, fbsNow, upcomingOf } from '../lib/model.ts';
 import { chipByKey } from '../lib/chips.ts';
-import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting } from '../lib/team.ts';
-import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord } from '../lib/format.ts';
+import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, LEN_FLOOR } from '../lib/team.ts';
+import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord, oddsText } from '../lib/format.ts';
+import { CloseIcon } from './Icons.jsx';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron } from './Icons.jsx';
 
-const ON_LINE_CAP = 4;
+const ON_LINE_CAP = { phone: 4, desk: 6 };
 const bad = (dir) => dir === 'L' || dir === 'N';
 export const streakWords = (chips) => (chips.length ? chips.map((k) => chipByKey.get(k).label).join(' · ') : 'all games');
 
-/** One streak with its place in the field: the row a team page and a matchup share. `next` adds its next qualifying game, `tag` a word after the field. */
+/**
+ * One streak with its place in the field, shaped like a crown in the King-of
+ * list: the length, the words, then rank, start, odds. `next` adds its next
+ * qualifying game, `tag` a word after the field.
+ */
 export function StreakRow({ s, onClick, next, tag }) {
   const n = next ? s.next : null;
   return (
     <button className="srow" onClick={onClick}>
-      <span className={'srow-rank' + (s.rank === 1 ? ' k' : '')}>{rankText(s)}</span>
+      <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}</span>
       <span className="srow-txt">
-        <span><b className={bad(s.dir) ? 'l' : ''}>{s.len}{s.atEdge ? '+' : ''}</b> {gamesWord(s.dir, s.len)} · {streakWords(s.chips)}</span>
-        <small>of {s.field}{tag ? ` · ${tag}` : ''}{n ? <i> · next {monthDay(n.ep)} {siteWord(n)} {teams[n.oppIdx]?.name}</i> : null}</small>
+        <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips)}</span>
+        <small>
+          <b className={s.rank === 1 && s.tied === 1 ? 'k' : ''}>{rankText(s)} of {s.field}</b>
+          {s.since != null && ` · since ${s.since}`}
+          {s.chance != null && ` · ${oddsText(s.chance)} by chance`}
+          {tag ? ` · ${tag}` : ''}
+          {n ? <i> · next {monthDay(n.ep)} {siteWord(n)} {teams[n.oppIdx]?.name}</i> : null}
+        </small>
       </span>
       <Chevron />
     </button>
@@ -49,16 +60,16 @@ function Side({ ti, rank, onTeam }) {
 const sameStreak = (a, b) => a.dir === b.dir && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
 
 // `pin` is the streak on the board underneath, when this game is its next: it leads the list
-function OnLine({ ti, game, crowns, pin, todayEp, onStreak }) {
+function OnLine({ ti, game, crowns, pin, todayEp, onStreak, cap }) {
   const [all, setAll] = useState(false);
   const mine = streaksOn(teamStreaks(ti, todayEp, crowns), game);
   const list = pin ? [pin, ...mine.filter((s) => !sameStreak(s, pin))] : mine;
-  if (!list.length) return null;
   return (
     <div className="mu-on">
       <h3>On the line for {teams[ti].name} <span>{list.length}</span></h3>
-      {(all ? list : list.slice(0, ON_LINE_CAP)).map((s) => <StreakRow key={s.dir + s.chips.join()} s={s} tag={s === pin ? 'this board' : null} onClick={() => onStreak(s, ti)} />)}
-      {list.length > ON_LINE_CAP && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${list.length - ON_LINE_CAP} more`}</button>}
+      {!list.length && <p className="empty">No run of {LEN_FLOOR} or more that this game could end, and none {teams[ti].name} alone leads.</p>}
+      {(all ? list : list.slice(0, cap)).map((s) => <StreakRow key={s.dir + s.chips.join()} s={s} tag={s === pin ? 'this board' : null} onClick={() => onStreak(s, ti)} />)}
+      {list.length > cap && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${list.length - cap} more`}</button>}
     </div>
   );
 }
@@ -68,7 +79,8 @@ function OnLine({ ti, game, crowns, pin, todayEp, onStreak }) {
  * `crowns` are that team's active crowns when they're loaded, `pin` its
  * streak on the board underneath.
  */
-export function Matchup({ ti, game, crowns, pin, todayEp, onClose, onTeam, onStreak, onShare }) {
+export function Matchup({ ti, game, crowns, pin, todayEp, isMobile, onClose, onTeam, onStreak, onShare }) {
+  const cap = isMobile ? ON_LINE_CAP.phone : ON_LINE_CAP.desk;
   const open = ti != null && !!game;
   const opp = open ? game.oppIdx : null;
   // the same game from the other side, when the opponent is an FBS team
@@ -84,7 +96,10 @@ export function Matchup({ ti, game, crowns, pin, todayEp, onClose, onTeam, onStr
             <>
               <div className="mu-head">
                 <Drawer.Title className="sheet-title">{dayOf(game.ep)} {monthDay(game.ep)}{kickOf(game) ? ` · ${kickOf(game)}` : ''} · {game.neutral ? 'neutral site' : `at ${teams[game.home ? ti : opp].name}`}</Drawer.Title>
-                <button className="ico" onClick={onShare} aria-label="Share this matchup"><ShareIcon /></button>
+                <span className="mu-acts">
+                  <button className="ico" onClick={onShare} aria-label="Share this matchup"><ShareIcon /></button>
+                  <button className="ico mu-close" onClick={onClose} aria-label="Close the matchup"><CloseIcon /></button>
+                </span>
               </div>
               <div className="sheet-body mu-body">
                 <div className="mu-top">
@@ -95,8 +110,10 @@ export function Matchup({ ti, game, crowns, pin, todayEp, onClose, onTeam, onStr
                   </span>
                   <Side ti={opp} rank={game.oppRank} onTeam={onTeam} />
                 </div>
-                <OnLine ti={ti} game={game} crowns={crowns} pin={pin} todayEp={todayEp} onStreak={onStreak} />
-                {theirs && <OnLine ti={opp} game={theirs} crowns={null} todayEp={todayEp} onStreak={onStreak} />}
+                <div className="mu-cols">
+                  <OnLine ti={ti} game={game} crowns={crowns} pin={pin} todayEp={todayEp} onStreak={onStreak} cap={cap} />
+                  {theirs && <OnLine ti={opp} game={theirs} crowns={null} todayEp={todayEp} onStreak={onStreak} cap={cap} />}
+                </div>
                 {last && (
                   <p className="mu-last">
                     Last meeting {shortDate(last.ep)}: {teams[last.r === 'L' ? opp : ti].name} {Math.max(last.us, last.them)}–{Math.min(last.us, last.them)}

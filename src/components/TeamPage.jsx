@@ -85,15 +85,6 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, active, dir, scope, co
 
       {next && <NextCard ti={ti} game={next} onLine={streaksOn(streaks, next).length} onGame={on.game} />}
 
-      <h2>Streaks</h2>
-      <p className="tpg-note">{t.name}’s current run under each condition and where it ranks. Ones with a game still on the schedule come first.</p>
-      <div className="tpg-streaks">
-        {(all ? streaks : streaks.slice(0, STREAKS_CAP)).map((s) => (
-          <StreakRow key={s.dir + s.chips.join()} s={s} next onClick={() => on.streak(s, ti)} />
-        ))}
-        {streaks.length > STREAKS_CAP && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `all ${streaks.length}`}</button>}
-      </div>
-
       {(played.length > 0 || ahead.length > 0) && (
         <>
           <h2>{P.currentSeason} schedule</h2>
@@ -104,6 +95,15 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, active, dir, scope, co
           </div>
         </>
       )}
+
+      <h2>Streaks</h2>
+      <p className="tpg-note">{t.name}’s current run under each condition and where it ranks. Ones with a game still on the schedule come first.</p>
+      <div className="tpg-streaks">
+        {(all ? streaks : streaks.slice(0, STREAKS_CAP)).map((s) => (
+          <StreakRow key={s.dir + s.chips.join()} s={s} next onClick={() => on.streak(s, ti)} />
+        ))}
+        {streaks.length > STREAKS_CAP && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `all ${streaks.length}`}</button>}
+      </div>
 
       <Crowns
         ti={ti} crowns={crowns.crowns} crownsScope={crowns.scope} crownsDir={crowns.dir} onCrownsScope={crowns.onScope} onCrownsDir={crowns.onDir}

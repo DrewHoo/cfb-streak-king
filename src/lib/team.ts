@@ -14,7 +14,7 @@ import { PLAIN_CHIPS, conflicts, fitsDir, qualifiesPregame } from './chips.ts';
 import type { PregameChip } from './chips.ts';
 import { teamData, walkActive, spreadWalk } from './crowns.ts';
 import type { Run } from './crowns.ts';
-import { crownScore } from './crownRank.ts';
+import { crownScore, chanceOf } from './crownRank.ts';
 import { ordinal } from './sentence.ts';
 
 export interface SeasonRecord { w: number; l: number; t: number; cw: number; cl: number; cp: number }
@@ -64,8 +64,16 @@ export interface TeamStreak {
   field: number;
   /** The next scheduled game that qualifies; null when none does, or when a condition can't be known before kickoff. */
   next: UpcomingRow | null;
+  /** The season the run started in. */
+  since: number;
+  /** The chance some team's streak reaches this length under the definition by luck alone, 0–1. */
+  chance: number;
   score: number;
 }
+
+/** A run shorter than this stays off a team's list unless the team alone leads the field with it (the crowns' floor). */
+export const LEN_FLOOR = 4;
+export const worthShowing = (s: Pick<TeamStreak, 'len' | 'rank' | 'tied'>) => s.len >= LEN_FLOOR || (s.rank === 1 && s.tied === 1);
 
 // the outcomes a team's sheet reads: every team is on one side of each pair
 const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N'];
@@ -134,15 +142,18 @@ function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[
     data.forEach((td, t) => {
       const run = runs[t][dir];
       if (!run) return;
+      const mined = {
+        chips, dir, scope: 'active' as const, len: run.len, atEdge: run.atEdge, field, live: true, also: 0,
+        startSe: td.gs[run.startIdx].se, endSe: td.gs[run.lastIdx].se, p: n ? hit / n : 1, n,
+      };
       const s: TeamStreak = {
         chips, dir, len: run.len, atEdge: run.atEdge, field,
         rank: 1 + lens.filter((l) => l > run.len).length,
         tied: lens.filter((l) => l === run.len).length,
         next: pre ? upcomingOf(td.ti).find((u) => u.ep >= todayEp && pre(u)) ?? null : null,
-        score: crownScore({
-          chips, dir, scope: 'active', len: run.len, atEdge: run.atEdge, field, live: true, also: 0,
-          startSe: td.gs[run.startIdx].se, endSe: td.gs[run.lastIdx].se, p: n ? hit / n : 1, n,
-        }, ctx),
+        since: mined.startSe,
+        chance: chanceOf(mined, ctx),
+        score: crownScore(mined, ctx),
       };
       const list = out.get(td.ti);
       if (list) list.push(s); else out.set(td.ti, [s]);
@@ -168,12 +179,13 @@ function singleStreaks(todayEp: number): Map<number, TeamStreak[]> {
 const byInterest = (a: TeamStreak, b: TeamStreak) => Number(!!b.next) - Number(!!a.next) || b.score - a.score || b.len - a.len;
 
 /**
- * A team's current streaks, most worth reading first: its single-condition
- * ones plus the multi-condition ones it is king of (`crowns`, its active
- * crowns; null while they load).
+ * A team's current streaks worth reading, best first: its single-condition
+ * ones of LEN_FLOOR or more games, or that it alone leads, plus the
+ * multi-condition ones it is king of (`crowns`, its active crowns; null
+ * while they load).
  */
 export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null = null): TeamStreak[] {
-  const list = [...(singleStreaks(todayEp).get(ti) ?? [])];
+  const list = (singleStreaks(todayEp).get(ti) ?? []).filter(worthShowing);
   for (const cr of crowns ?? []) {
     if (cr.scope !== 'active' || cr.chips.length < 2 || !SHEET_DIRS.includes(cr.dir)) continue;
     const s = streaksUnder(cr.chips, todayEp).get(ti)?.find((x) => x.dir === cr.dir);
