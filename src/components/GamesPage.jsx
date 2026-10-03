@@ -20,12 +20,13 @@ function span(a, b) {
   return monthName(a) === monthName(b) ? `${monthName(a)} ${dayNum(a)}–${dayNum(b)}` : `${monthName(a)} ${dayNum(a)} – ${monthName(b)} ${dayNum(b)}`;
 }
 
+// on a phone a team with a mark is its mark, rank and record; the name stays for one without
 function Side({ ti, rank }) {
   const t = teams[ti];
   return (
-    <span className="gm-team">
+    <span className={'gm-team' + (t?.espn ? ' marked' : '')} title={t?.name}>
       {t?.espn ? <TeamMark ti={ti} className="gm-logo" /> : <b className="gm-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
-      <span className="gm-name">{rank > 0 && <i>#{rank} </i>}{t?.name ?? '?'}</span>
+      <span className="gm-name">{rank > 0 && <i>#{rank} </i>}<span className="gm-nm">{t?.name ?? '?'}</span></span>
       {fbsNow.has(ti) && <small>{recordText(seasonRecord(ti))}</small>}
     </span>
   );
