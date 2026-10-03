@@ -12,7 +12,7 @@ import type { Crown, Dir, GameRow, UpcomingRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
 import { PLAIN_CHIPS, conflicts, fitsDir, qualifiesPregame } from './chips.ts';
 import type { PregameChip } from './chips.ts';
-import { teamData, walkActive, spreadWalk } from './crowns.ts';
+import { teamData, walkActive, spreadWalk, nearUniversalChips } from './crowns.ts';
 import type { Run } from './crowns.ts';
 import { crownScore, chanceOf } from './crownRank.ts';
 import { ordinal } from './sentence.ts';
@@ -164,11 +164,16 @@ function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[
 
 let cache: { todayEp: number; byTeam: Map<number, TeamStreak[]> } | null = null;
 
-/** Every team's current streaks under no condition and under each single one. */
+/**
+ * Every team's current streaks under no condition and under each single one.
+ * A chip that keeps nearly every game ("on a weekend") barely filters, so it
+ * never names a crown; it names no row here either.
+ */
 function singleStreaks(todayEp: number): Map<number, TeamStreak[]> {
   if (cache?.todayEp === todayEp) return cache.byTeam;
   const byTeam = new Map<number, TeamStreak[]>([...fbsNow].map((ti) => [ti, []]));
-  for (const c of [null, ...PLAIN_CHIPS]) {
+  const loose = nearUniversalChips();
+  for (const c of [null, ...PLAIN_CHIPS.filter((_, i) => !loose.has(i))]) {
     for (const [ti, list] of streaksUnder(c ? [c.key] : [], todayEp)) byTeam.get(ti)!.push(...list);
   }
   cache = { todayEp, byTeam };
