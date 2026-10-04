@@ -12,9 +12,9 @@
 // one holding the latest recorded current-season game.
 
 import type { Dir, GameRow } from './types.ts';
-import { P, fbsNow, gamesOf } from './model.ts';
+import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { FLAG } from './schema.ts';
-import { PLAIN_CHIPS, fitsDir } from './chips.ts';
+import { PLAIN_CHIPS, chipByKey, fitsDir } from './chips.ts';
 import { matches } from './streaks.ts';
 import { teamData, nearUniversalChips } from './crowns.ts';
 import { crownScore, chanceOf } from './crownRank.ts';
@@ -64,17 +64,14 @@ export const BROKEN_CUTOFF = -2.5;
 const TUE = 5;
 const weekIdx = (ep: number) => Math.floor((ep - TUE) / 7);
 
-/** The last completed week: its index on the Tuesday grid and its games' span. */
-function completedWeek(): { w: number; wk: number | null; lo: number; hi: number } | null {
-  const { se, ep } = P.games;
-  let hi = -1, lo = -1;
-  for (let i = se.length - 1; i >= 0 && se[i] === P.currentSeason; i--) {
-    if (hi < 0) { hi = ep[i]; lo = ep[i]; continue; }
-    if (weekIdx(ep[i]) !== weekIdx(hi)) break;
-    lo = Math.min(lo, ep[i]);
-  }
-  if (hi < 0) return null;
-  // the offset the scheduled games agree on turns the grid index into the schedule's week number
+/** One completed week of the running season: its grid index, its schedule number, and its games' span. */
+export interface CompletedWeek { w: number; wk: number | null; lo: number; hi: number }
+
+let weekList: CompletedWeek[] | null = null;
+/** Every completed week of the running season, in order. Empty before any result. */
+export function completedWeeks(): CompletedWeek[] {
+  if (weekList) return weekList;
+  // the offset the scheduled games agree on turns a grid index into the schedule's week number
   const counts = new Map<number, number>();
   const u = P.upcoming;
   for (let i = 0; i < (u?.ep.length ?? 0); i++) {
@@ -83,8 +80,15 @@ function completedWeek(): { w: number; wk: number | null; lo: number; hi: number
     counts.set(k, (counts.get(k) ?? 0) + 1);
   }
   const K = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
-  const w = weekIdx(hi);
-  return { w, wk: K == null ? null : w + K, lo, hi };
+  const { se, ep } = P.games;
+  const out: CompletedWeek[] = [];
+  for (let i = se.length - 1; i >= 0 && se[i] === P.currentSeason; i--) {
+    const w = weekIdx(ep[i]);
+    const cur = out[0];
+    if (cur && cur.w === w) cur.lo = Math.min(cur.lo, ep[i]);
+    else out.unshift({ w, wk: K == null ? null : w + K, lo: ep[i], hi: ep[i] });
+  }
+  return (weekList = out);
 }
 
 const DIRS: Dir[] = ['W', 'L', 'C', 'N'];
@@ -141,6 +145,7 @@ function minePlain(w: number): BrokenStreak[] {
         let last = e.cut - 1;
         for (let k = e.cut; k < e.q.length; k++) {
           const row = e.td.gs[e.q[k]];
+          if (row.ep > wlo + 6) break; // a run that survives the whole week isn't broken
           if (matches(dir, row)) { len++; last = k; } else { ender = row; break; }
         }
         if (!ender || len < LEN_FLOOR) continue;
@@ -216,18 +221,11 @@ function mineH2H(w: number): BrokenStreak[] {
   return [...best.values()];
 }
 
-let cache: BrokenWeek | null | undefined;
+const cache = new Map<number, BrokenWeek>();
 
-/**
- * The digest: the streaks broken in the last completed week worth telling,
- * best first, one telling per run — a team, a direction and the game that
- * broke it keep only their highest-scoring definition. Null before any
- * current-season game has a result.
- */
-export function brokenLastWeek(): BrokenWeek | null {
-  if (cache !== undefined) return cache;
-  const win = completedWeek();
-  if (!win) return (cache = null);
+function digest(win: CompletedWeek): BrokenWeek {
+  const got = cache.get(win.w);
+  if (got) return got;
   const best = new Map<string, BrokenStreak>();
   for (const b of minePlain(win.w)) {
     const k = `${b.ti}|${b.dir}|${b.ender.i}`;
@@ -238,5 +236,32 @@ export function brokenLastWeek(): BrokenWeek | null {
     .filter((b) => b.score >= BROKEN_CUTOFF)
     .sort((a, b) => b.score - a.score || b.len - a.len)
     .slice(0, BROKEN_CAP);
-  return (cache = { wk: win.wk, lo: win.lo, hi: win.hi, list });
+  const out = { wk: win.wk, lo: win.lo, hi: win.hi, list };
+  cache.set(win.w, out);
+  return out;
+}
+
+/**
+ * The digest of one completed week, by its schedule number: the streaks
+ * broken that week worth telling, best first, one telling per run — a team,
+ * a direction and the game that broke it keep only their highest-scoring
+ * definition. Null for a week with no results yet (or whose number nothing
+ * scheduled pins down).
+ */
+export function brokenWeek(wk: number): BrokenWeek | null {
+  const win = completedWeeks().find((x) => x.wk === wk);
+  return win ? digest(win) : null;
+}
+
+/** The digest of the last completed week. Null before any current-season game has a result. */
+export function brokenLastWeek(): BrokenWeek | null {
+  const win = completedWeeks().at(-1);
+  return win ? digest(win) : null;
+}
+
+/** The claim a broken run makes, in plain words: "Michigan had won 18 straight on the road vs Minnesota". */
+export function brokenClaim(b: BrokenStreak): string {
+  const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[b.dir as 'W' | 'L' | 'C' | 'N'];
+  const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : chipByKey.get(k)?.label ?? k)).join(' ');
+  return `${teams[b.ti]?.name} ${verb} ${b.len}${b.atEdge ? '+' : ''} straight${words ? ` ${words}` : ''}`;
 }

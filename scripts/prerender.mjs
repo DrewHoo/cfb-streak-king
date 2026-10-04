@@ -38,6 +38,7 @@ const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
+const { completedWeeks, brokenWeek, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
@@ -152,10 +153,44 @@ console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under di
   fs.writeFileSync(path.join(ROOT, 'dist', 'games', 'index.html'), html)
 }
 
+// --- one page per completed week: its broken streaks, with its own preview ---
+// GitHub Pages ignores query strings, so a shareable week lives at its own
+// path, /games/week/<n>/. Its image is committed by `npm run gen:og -- --weeks`;
+// a week without one falls back to the board.
+const weekUrls = []
+for (const w of completedWeeks().filter((x) => x.wk != null)) {
+  const broken = brokenWeek(w.wk)
+  if (!broken) continue
+  const url = `${SITE}games/week/${w.wk}/`
+  const title = `Week ${w.wk} streaks broken · ${config.title}`
+  const top = broken.list.slice(0, 3).map((b) => brokenClaim(b))
+  const description = top.length
+    ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${w.wk}.` : ''}`
+    : `No streak of note broke in Week ${w.wk}.`
+  const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'week', `${w.wk}.png`))
+  const { html } = page({
+    initial: { games: true, bwk: w.wk },
+    url,
+    title,
+    description,
+    image: hasImage ? `${SITE}og/week/${w.wk}.png` : `${SITE}og.png`,
+    imageAlt: hasImage ? `The streaks broken in Week ${w.wk}, on a dark leaderboard.` : config.ogImageAlt,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${w.wk}`, url]])],
+    },
+  })
+  const dir = path.join(ROOT, 'dist', 'games', 'week', String(w.wk))
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(path.join(dir, 'index.html'), html)
+  weekUrls.push(url)
+}
+console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
+
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE, `${SITE}games/`]
+const urls = [SITE, `${SITE}games/`, ...weekUrls]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]

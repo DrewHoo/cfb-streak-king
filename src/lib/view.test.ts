@@ -52,6 +52,17 @@ describe('view', () => {
     expect([v.active, v.dir, v.scope, v.team]).toEqual([[{ key: 'road' }, { key: 'ranked' }], 'L', 'active', 7]);
   });
 
+  test('picking a broken-streaks week stays on the schedule; the board or a streak clears it', () => {
+    let v = viewReducer(initialView(null, true), { type: 'bweek', wk: 3 });
+    expect([v.games, v.bwk]).toEqual([true, 3]);
+    expect(viewReducer(v, { type: 'board' }).bwk).toBeNull();
+    expect(viewReducer(v, { type: 'games' }).bwk).toBeNull();
+    expect(viewReducer(v, { type: 'streak', chips: [], dir: 'W', scope: 'active', team: 2 }).bwk).toBeNull();
+    // loading a week URL carries the week in
+    v = viewReducer(initialView(), { type: 'load', view: { ...initialView(), games: true, bwk: 4 } });
+    expect([v.games, v.bwk]).toEqual([true, 4]);
+  });
+
   test('a broken streak carries its chip choice and lands on its all-time run', () => {
     const v = viewReducer(initialView(), { type: 'streak', chips: [{ key: 'vsteam', param: 12 }], dir: 'W', scope: 'all', team: 3, run: 18000 });
     expect([v.active, v.scope, v.team, v.run]).toEqual([[{ key: 'vsteam', param: 12 }], 'all', 3, 18000]);

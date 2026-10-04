@@ -35,9 +35,11 @@ export interface View {
   vs: number | null;
   /** The schedule of every scheduled game is showing instead of the board. */
   games: boolean;
+  /** The schedule's broken-streaks week, /games/week/<n>/; null = the latest completed week. */
+  bwk: number | null;
 }
 
-export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, run: null, page: null, game: null, vs: null, games: false };
+export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, run: null, page: null, game: null, vs: null, games: false, bwk: null };
 
 const teamById = (id: string | null) => {
   const ti = id ? teams.findIndex((t) => t.id === id) : -1;
@@ -46,14 +48,20 @@ const teamById = (id: string | null) => {
 
 /** The team in a path like /cfb-streak-king/team/alabama/. */
 export const teamFromPath = (pathname: string) => teamById(/\/team\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1] ?? null);
-/** Whether a path is the schedule, /cfb-streak-king/games/. */
-export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname);
+/** The week in a schedule path like /cfb-streak-king/games/week/5/; null elsewhere. */
+export const weekFromPath = (pathname: string) => {
+  const m = /\/games\/week\/(\d{1,2})\/?$/.exec(pathname);
+  return m ? Number(m[1]) : null;
+};
+/** Whether a path is the schedule, /cfb-streak-king/games/ or a week of it. */
+export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) || weekFromPath(pathname) != null;
 
 export function parseUrl(pathname: string, search: string): View {
   const q = new URLSearchParams(search);
   const d = q.get('dir');
   const r = q.get('run');
   const inPath = teamFromPath(pathname);
+  const bwk = weekFromPath(pathname);
   const matchup = inPath != null && q.has('vs');
   // before team pages, /team/<id>/ was the board with that team's panel open;
   // a link that carries a definition still opens the panel
@@ -70,6 +78,7 @@ export function parseUrl(pathname: string, search: string): View {
     game: matchup ? inPath : null,
     vs: matchup ? teamById(q.get('vs')) : null,
     games: inPath == null && gamesFromPath(pathname),
+    bwk: inPath == null ? bwk : null,
   };
 }
 
@@ -80,7 +89,7 @@ export function toUrl(v: View): UrlParts {
   // a team page or a matchup is its own address; the board's definition stays in memory
   const board = v.page == null && v.game == null && !v.games;
   return {
-    path: v.game != null ? `team/${teams[v.game].id}/` : v.page != null ? `team/${teams[v.page].id}/` : v.games ? 'games/' : '',
+    path: v.game != null ? `team/${teams[v.game].id}/` : v.page != null ? `team/${teams[v.page].id}/` : v.games ? (v.bwk != null ? `games/week/${v.bwk}/` : 'games/') : '',
     params: {
       vs: v.game != null ? (v.vs != null ? teams[v.vs].id : 'next') : null,
       t: board && v.team != null ? teams[v.team].id : null,

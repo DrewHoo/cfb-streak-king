@@ -2,6 +2,11 @@
 //   public/og.png            1200x630, what X/Bluesky/LinkedIn/Reddit/iMessage show
 //   public/card.png          1200x750, the 8:5 cover for the index site's project card
 //   public/og/team/<id>.png  1200x630, one per current FBS team, used by /team/<id>/
+//   public/og/week/<n>.png   1200x630, one per completed week: its broken
+//                            streaks, used by /games/week/<n>/. A week's digest
+//                            is final once the week is, so `npm run gen:og --
+//                            --weeks` after the weekly payload refresh renders
+//                            just these without touching the board or team cards.
 //
 // The composition is the real thing: the default board (all-time winning
 // streaks vs unranked opponents) from src/data/payload.json, drawn in the
@@ -64,10 +69,14 @@ const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { streakGames } = await vite.ssrLoadModule('/src/lib/streaks.ts')
 
+const { completedWeeks, brokenWeek } = await vite.ssrLoadModule('/src/lib/broken.ts')
+
 const todayEp = todayEpochDay()
 const rows = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
 const crowns = await mineCrowns('active')
-const teamIds = process.argv.slice(2) // `npm run gen:og -- alabama` renders one card
+const args = process.argv.slice(2) // `npm run gen:og -- alabama` renders one card; `-- --weeks` only the week cards
+const weeksOnly = args.includes('--weeks')
+const teamIds = args.filter((a) => !a.startsWith('--'))
 
 // --- logo data URIs (color for the column team, ink/gray for chips) ---
 const uriCache = new Map()
@@ -235,27 +244,90 @@ async function renderTeam(ti, W, H) {
   return frame(W, H, parts.join('\n'))
 }
 
+// a week card: the week's broken streaks, the furthest past chance first
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+const md = (ep) => { const d = new Date(ep * 86400000); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}` }
+// ellipsize a run of text to a pixel width
+function fit(str, name, size, maxW) {
+  const f = FONT[name]
+  if (f.getAdvanceWidth(str, size, { kerning: true }) <= maxW) return str
+  let s = str
+  while (s.length > 1 && f.getAdvanceWidth(s + '…', size, { kerning: true }) > maxW) s = s.slice(0, -1).trimEnd()
+  return s + '…'
+}
+function enderWords(b) {
+  const g = b.ender
+  const opp = teams[g.oppIdx]?.name ?? '?'
+  if (b.dir === 'C' || b.dir === 'N') return `${g.cover === 'P' ? 'pushed' : g.cover === 'W' ? 'covered' : 'didn’t cover'} vs ${opp}`
+  if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`
+  return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`
+}
+async function renderWeek(broken, W, H) {
+  const parts = []
+  parts.push(text('DREWHOOVER.COM · STREAK KING', { x: 64, y: 76, font: 'MonoBold', size: 17, spacing: 4, fill: RUST }))
+  parts.push(text(`STREAKS BROKEN · WEEK ${broken.wk}`, { x: 60, y: 148, font: 'Graduate', size: 46, fill: CREAM }))
+  const spanTxt = broken.lo === broken.hi ? md(broken.lo) : `${md(broken.lo)} – ${md(broken.hi)}`
+  parts.push(text(`${spanTxt} · ${broken.list.length} OF NOTE`, { x: 64, y: 184, font: 'Mono', size: 15, spacing: 2, fill: FAINT }))
+  let y = 232
+  const shown = broken.list.slice(0, 5)
+  for (const b of shown) {
+    const bad = b.dir === 'L' || b.dir === 'N'
+    const count = `${b.len}${b.atEdge ? '+' : ''}`
+    parts.push(text(count, { x: 118, y: y + 30, font: 'Graduate', size: 30, fill: bad ? RUST : CREAM, anchor: 'end' }))
+    const t = teams[b.ti]
+    const color = t?.espn && (await logoUri(t.espn, 'color'))
+    if (color) parts.push(`<image x="136" y="${y}" width="40" height="40" href="${color}"/>`)
+    const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[b.dir]
+    const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : P.chipLabel?.[k] ?? k)).join(' ')
+    const claim = `${t?.name} ${verb} ${count} straight${words ? ` ${words}` : ''}`
+    parts.push(text(fit(claim, 'Serif', 25, W - 192 - 64), { x: 192, y: y + 22, font: 'Serif', size: 25, fill: INK }))
+    const tag = b.vs != null ? 'head-to-head' : `was ${b.tied > 1 ? 'T-' : ''}${b.rank} of ${b.field}`
+    const sub = `${tag} · since ${b.since} · ${enderWords(b)}`
+    parts.push(text(fit(sub.toUpperCase(), 'Mono', 13, W - 192 - 64), { x: 192, y: y + 46, font: 'Mono', size: 13, spacing: 1, fill: FAINT }))
+    y += 68
+    if (b !== shown[shown.length - 1]) parts.push(`<line x1="64" y1="${y - 14}" x2="${W - 64}" y2="${y - 14}" stroke="${LINE}" stroke-dasharray="1 4"/>`)
+  }
+  if (broken.list.length > shown.length) {
+    parts.push(text(`+${broken.list.length - shown.length} MORE`, { x: 192, y: y + 4, font: 'Mono', size: 14, spacing: 2, fill: FAINT }))
+  }
+  parts.push(text(`${firstSeason}–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 32, font: 'Mono', size: 15, spacing: 2, fill: FAINT }))
+  return frame(W, H, parts.join('\n'))
+}
+
 // crown rows name chips by key; the label lives in the chip catalog
 const { CHIPS } = await vite.ssrLoadModule('/src/lib/chips.ts')
 P.chipLabel = Object.fromEntries(CHIPS.map((c) => [c.key, c.label]))
 
 const outDir = resolve(ROOT, 'public')
 mkdirSync(resolve(outDir, 'og', 'team'), { recursive: true })
+mkdirSync(resolve(outDir, 'og', 'week'), { recursive: true })
 const png = (svg) => sharp(Buffer.from(svg), { density: 96 }).png({ compressionLevel: 9, palette: true, colors: 160 })
 
-if (!teamIds.length) {
+if (!teamIds.length && !weeksOnly) {
   for (const [file, W, H] of [['og.png', 1200, 630], ['card.png', 1200, 750]]) {
     await png(await renderBoard(W, H)).toFile(resolve(outDir, file))
     console.log(`${file}: ${W}x${H}`)
   }
   console.log('board shown:', rows.slice(0, 9).map((r) => `${teams[r.ti].id} ${r.s.len}${r.s.atEdge ? '+' : ''}`).join(', '))
 }
-let n = 0
-for (const ti of fbsNow) {
-  const t = teams[ti]
-  if (teamIds.length && !teamIds.includes(t.id)) continue
-  await png(await renderTeam(ti, 1200, 630)).toFile(resolve(outDir, 'og', 'team', `${t.id}.png`))
-  n++
+if (!weeksOnly) {
+  let n = 0
+  for (const ti of fbsNow) {
+    const t = teams[ti]
+    if (teamIds.length && !teamIds.includes(t.id)) continue
+    await png(await renderTeam(ti, 1200, 630)).toFile(resolve(outDir, 'og', 'team', `${t.id}.png`))
+    n++
+  }
+  console.log(`team cards: ${n} under public/og/team/`)
 }
-console.log(`team cards: ${n} under public/og/team/`)
+if (!teamIds.length) {
+  let n = 0
+  for (const w of completedWeeks().filter((x) => x.wk != null)) {
+    const broken = brokenWeek(w.wk)
+    if (!broken || !broken.list.length) continue
+    await png(await renderWeek(broken, 1200, 630)).toFile(resolve(outDir, 'og', 'week', `${w.wk}.png`))
+    n++
+  }
+  console.log(`week cards: ${n} under public/og/week/`)
+}
 await vite.close()

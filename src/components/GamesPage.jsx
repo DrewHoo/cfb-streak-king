@@ -7,10 +7,10 @@
 import { useMemo, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { scheduledGames, lineText, topOnLine, rankText } from '../lib/team.ts';
-import { brokenLastWeek } from '../lib/broken.ts';
+import { brokenLastWeek, brokenWeek, completedWeeks } from '../lib/broken.ts';
 import { dayOf, monthDay, kickOf } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
-import { ShareIcon, Chevron } from './Icons.jsx';
+import { ShareIcon, Chevron, Caret } from './Icons.jsx';
 import { streakWords } from './Matchup.jsx';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -71,15 +71,28 @@ function BrokenRow({ b, onOpen }) {
   );
 }
 
-// the digest of last week's broken runs, above the schedule
-function Broken({ onOpen }) {
-  const broken = useMemo(() => brokenLastWeek(), []);
-  if (!broken || !broken.list.length) return null;
+// the digest of a completed week's broken runs, above the schedule; the
+// week is a picker, each choice its own address (/games/week/<n>/), and
+// the default (/games/) is the latest completed week
+function Broken({ bwk, onOpen, onWeek }) {
+  const weeks = useMemo(() => completedWeeks().filter((w) => w.wk != null), []);
+  const broken = useMemo(() => (bwk != null ? brokenWeek(bwk) : null) ?? brokenLastWeek(), [bwk]);
+  if (!broken) return null;
   return (
     <section className="gwk">
       <div className="gwk-h gbk-h">
-        <span>Streaks broken{broken.wk != null ? ` in Week ${broken.wk}` : ''}</span>
-        <small>{span(broken.lo, broken.hi)} · {broken.list.length} of note</small>
+        <span className="gbk-ttl">
+          Streaks broken{broken.wk != null && weeks.length > 0 ? ' in' : ''}
+          {broken.wk != null && weeks.length > 0 && (
+            <span className="gbk-wk">
+              <select value={broken.wk} onChange={(e) => onWeek(Number(e.target.value))} aria-label="Pick a week of broken streaks">
+                {weeks.map((w) => <option key={w.wk} value={w.wk}>Week {w.wk}</option>)}
+              </select>
+              <Caret />
+            </span>
+          )}
+        </span>
+        <small>{span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}</small>
       </div>
       <div className="gbk-list">
         {broken.list.map((b) => (
@@ -125,7 +138,7 @@ function Week({ games, todayEp, onGame }) {
   return <div className="gwk-list"><div className="gm gm-head" aria-hidden="true"><span>kick</span><span>away</span><span /><span>home</span><span className="gm-line">line</span></div>{out}</div>;
 }
 
-export function GamesPage({ todayEp, copied, on }) {
+export function GamesPage({ todayEp, bwk, copied, on }) {
   const weeks = useMemo(() => {
     const byWk = new Map();
     for (const g of scheduledGames()) (byWk.get(g.wk) ?? byWk.set(g.wk, []).get(g.wk)).push(g);
@@ -144,7 +157,7 @@ export function GamesPage({ todayEp, copied, on }) {
       </div>
       <h1 className="gpg-h1">{P.currentSeason} games</h1>
       <p className="tpg-note">Every scheduled game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</p>
-      <Broken onOpen={on.streak} />
+      <Broken bwk={bwk} onOpen={on.streak} onWeek={on.week} />
       {weeks.length === 0 && <p className="empty">No games are scheduled.</p>}
       {weeks.map(([wk, games], i) => {
         const shown = i === 0 || open.has(wk);

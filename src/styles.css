@@ -579,8 +579,19 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .gwk-h:hover, .gwk-h:focus-visible { outline: none; }
 .gwk-h:hover small { color: var(--ink-muted); }
 .gwk-list { display: flex; flex-direction: column; }
-/* streaks broken in the last completed week: a digest above the weeks */
-.gbk-h { cursor: default; }
+/* streaks broken in a completed week: a digest above the weeks, the week a picker */
+.gbk-h { cursor: default; flex-wrap: wrap; }
+.gbk-ttl { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.gbk-wk { position: relative; display: inline-flex; align-items: baseline; gap: 4px; color: var(--cream); }
+.gbk-wk select {
+  appearance: none; -webkit-appearance: none; background: transparent; border: none; padding: 0; margin: 0;
+  font: inherit; font-family: 'Graduate', serif; font-size: 16px; letter-spacing: 0.04em; color: var(--cream);
+  border-bottom: 1px dotted var(--ink-faint); cursor: pointer;
+}
+.gbk-wk select:focus-visible { outline: none; border-bottom-color: var(--rust); }
+/* unwind .gwk-h's chevron styling for the picker's own caret */
+.gbk-h .gbk-wk svg { align-self: center; margin-left: 0; transform: none; color: var(--ink-faint); pointer-events: none; }
+.gbk-wk select option { background: var(--bg, #282127); color: var(--ink, #efe6d9); font-family: inherit; }
 .gbk-list { display: flex; flex-direction: column; }
 .bk {
   display: grid; grid-template-columns: 34px 18px minmax(0, 1fr) auto; gap: 0 8px; align-items: center; width: 100%;

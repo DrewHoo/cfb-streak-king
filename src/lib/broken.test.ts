@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { brokenLastWeek, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
+import { brokenLastWeek, brokenWeek, completedWeeks, brokenClaim, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { chipByKey, qualifies } from './chips.ts';
 import { matches, decided } from './streaks.ts';
@@ -74,6 +74,24 @@ describe('brokenLastWeek', () => {
     if (!broken) return;
     const keys = broken.list.map((b) => `${b.vs == null ? 'plain' : 'h2h'}|${b.ti}|${b.dir}|${b.ender.i}`);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  test('every completed week has a digest whose enders sit inside it, and the last is brokenLastWeek', () => {
+    const weeks = completedWeeks();
+    if (!weeks.length) return;
+    for (let i = 1; i < weeks.length; i++) expect(weeks[i].w).toBeGreaterThan(weeks[i - 1].w);
+    expect(weeks.at(-1)!.hi).toBe(P.games.ep[P.games.ep.length - 1]);
+    for (const w of weeks.filter((x) => x.wk != null)) {
+      const d = brokenWeek(w.wk!)!;
+      expect(d.wk).toBe(w.wk);
+      for (const b of d.list) {
+        expect(b.ender.ep).toBeGreaterThanOrEqual(w.lo);
+        expect(b.ender.ep).toBeLessThanOrEqual(w.hi);
+        expect(b.len).toBeGreaterThanOrEqual(LEN_FLOOR);
+        expect(brokenClaim(b)).toContain(teams[b.ti].name);
+      }
+    }
+    if (weeks.at(-1)!.wk != null) expect(brokenLastWeek()).toBe(brokenWeek(weeks.at(-1)!.wk!));
   });
 
   test('the rank entering the week holds against every team’s run then', () => {

@@ -49,8 +49,15 @@ describe('url', () => {
 
   test('the schedule is /games/, and a team page or matchup takes precedence over it', () => {
     expect(gamesUrl()).toMatchObject({ path: 'games/', params: { c: null, t: null } });
-    expect(parseUrl('/cfb-streak-king/games/', '')).toMatchObject({ games: true, page: null, team: null });
+    expect(parseUrl('/cfb-streak-king/games/', '')).toMatchObject({ games: true, page: null, team: null, bwk: null });
     expect(toUrl({ ...DEFAULT_VIEW, games: true, page: idx('byu') }).path).toBe('team/byu/');
+  });
+
+  test('a week of broken streaks is /games/week/<n>/, and round-trips', () => {
+    expect(parseUrl('/cfb-streak-king/games/week/5/', '')).toMatchObject({ games: true, bwk: 5, page: null });
+    expect(toUrl({ ...DEFAULT_VIEW, games: true, bwk: 5 }).path).toBe('games/week/5/');
+    expect(toUrl({ ...DEFAULT_VIEW, games: true, bwk: null }).path).toBe('games/');
+    expect(parseUrl('/cfb-streak-king/games/week/x/', '').bwk).toBeNull();
   });
 
   test('a matchup hangs off the team: its game against ?vs=, or its next', () => {

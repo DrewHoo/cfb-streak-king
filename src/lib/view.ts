@@ -31,12 +31,13 @@ export type ViewAction =
   | { type: 'close' }
   | { type: 'page'; team: number }
   | { type: 'games' }
+  | { type: 'bweek'; wk: number | null }
   | { type: 'board' }
   | { type: 'game'; team: number; vs: number | null }
   | { type: 'closeGame' }
   | { type: 'limit'; limit: number | ((l: number) => number) };
 
-export const initialView = (page: number | null = null, games = false): ViewState => ({ ...DEFAULT_VIEW, page, games, limit: DESKTOP_CAP });
+export const initialView = (page: number | null = null, games = false, bwk: number | null = null): ViewState => ({ ...DEFAULT_VIEW, page, games, bwk, limit: DESKTOP_CAP });
 
 /** Whether a board row is the one already open. */
 export const isOpen = (v: View, row: BoardRow) => v.team === row.ti && (v.scope !== 'all' || v.run === row.s.start?.ep);
@@ -55,7 +56,7 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
     case 'load':
       // a team page's, a matchup's or the schedule's URL says nothing of the board; keep the one in memory
       return a.view.page != null || a.view.game != null || a.view.games
-        ? { ...v, page: a.view.page, game: a.view.game, vs: a.view.vs, games: a.view.games }
+        ? { ...v, page: a.view.page, game: a.view.game, vs: a.view.vs, games: a.view.games, bwk: a.view.bwk }
         : { ...v, ...a.view };
     case 'define':
       return { ...v, active: a.active, dir: a.dir ?? v.dir, limit: DESKTOP_CAP };
@@ -72,7 +73,7 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       return {
         ...v, active: a.chips.map((c) => (typeof c === 'string' ? { key: c } : c)), dir: a.dir, scope: a.scope,
         run: (a.scope === 'all' ? a.run : null) ?? null, limit: DESKTOP_CAP,
-        team: a.team ?? v.team, page: null, game: null, vs: null, games: false, week: a.scope === 'all' ? false : v.week,
+        team: a.team ?? v.team, page: null, game: null, vs: null, games: false, bwk: null, week: a.scope === 'all' ? false : v.week,
       };
     case 'pick': {
       // picking the open row closes it; in all-time mode a team has one row per run
@@ -84,9 +85,12 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
     case 'page':
       return { ...v, page: a.team, game: null, vs: null };
     case 'games':
-      return { ...v, games: true, page: null, game: null, vs: null };
+      return { ...v, games: true, bwk: null, page: null, game: null, vs: null };
+    case 'bweek':
+      // one week's broken streaks, its own address; null returns to the latest
+      return { ...v, games: true, bwk: a.wk, page: null, game: null, vs: null };
     case 'board':
-      return { ...v, page: null, game: null, vs: null, games: false };
+      return { ...v, page: null, game: null, vs: null, games: false, bwk: null };
     case 'game':
       return { ...v, game: a.team, vs: a.vs };
     case 'closeGame':
