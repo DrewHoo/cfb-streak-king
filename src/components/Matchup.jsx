@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { P, teams, fbsNow, upcomingOf } from '../lib/model.ts';
 import { chipByKey } from '../lib/chips.ts';
-import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, h2hStreakOn, LEN_FLOOR } from '../lib/team.ts';
+import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, h2hStreaksOn, LEN_FLOOR } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord, oddsText } from '../lib/format.ts';
 import { CloseIcon } from './Icons.jsx';
 import { useActiveCrowns } from '../hooks/useCrowns.ts';
@@ -68,10 +68,10 @@ const sameStreak = (a, b) => a.dir === b.dir && a.chips.length === b.chips.lengt
 function OnLine({ ti, game, crowns: seed, pin, todayEp, onStreak, cap }) {
   const [all, setAll] = useState(false);
   const crowns = useActiveCrowns(ti, seed);
-  // the game puts the head-to-head run in too, when there's one worth telling
-  const h2h = h2hStreakOn(ti, game);
+  // the game puts the head-to-head runs in too, when they're worth telling
+  const h2h = h2hStreaksOn(ti, game);
   const on = streaksOn(teamStreaks(ti, todayEp, crowns), game);
-  const mine = h2h ? [...on, h2h].sort((a, b) => b.score - a.score || b.len - a.len) : on;
+  const mine = h2h.length ? [...on, ...h2h].sort((a, b) => b.score - a.score || b.len - a.len) : on;
   const list = pin ? [pin, ...mine.filter((s) => !sameStreak(s, pin))] : mine;
   return (
     <div className="mu-on">

@@ -210,20 +210,30 @@ export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null 
 /** The streaks a scheduled game puts on the line: the ones whose next qualifying game it is. */
 export const streaksOn = (list: TeamStreak[], game: UpcomingRow): TeamStreak[] => list.filter((s) => s.next?.i === game.i);
 
-// --- head-to-head: the team's run against one exact opponent ---
+// --- head-to-head: the team's run against one exact opponent, over every
+// meeting or only the meetings at one site ("18 straight at Minnesota") ---
+
+export type H2hSite = 'home' | 'road' | null;
+/** Whether a game sits on our side of the site: strictly home or strictly road, never neutral. */
+export const fitsSite = (site: H2hSite, g: { home: boolean; neutral: boolean }) => (
+  site == null || (site === 'home' ? g.home && !g.neutral : !g.home && !g.neutral)
+);
 
 let pooledRates: { W: number; L: number } | null = null;
 /**
- * How often `dir` happens to a team playing `opp`: the opponent's own record
- * mirrored (losing to them is what they do to everyone), or the pooled rate
- * over every team's games when the opponent is below FBS. Clamped: a
- * perfect record would make any run against it free or impossible.
+ * How often `dir` happens to a team playing `opp` (at `site`, from our
+ * side): the opponent's own record mirrored (losing at home to them is what
+ * they do to everyone who visits), or the pooled rate over every team's
+ * games when the opponent is below FBS. Clamped: a perfect record would
+ * make any run against it free or impossible.
  */
-export function h2hRate(opp: number, dir: 'W' | 'L'): number {
-  const gs = gamesOf(opp);
+export function h2hRate(opp: number, dir: 'W' | 'L', site: H2hSite = null): number {
+  // our road game is the opponent's home game
+  const theirs: H2hSite = site == null ? null : site === 'road' ? 'home' : 'road';
+  const pool = gamesOf(opp).filter((g) => fitsSite(theirs, g));
   let p: number;
-  if (gs.length) {
-    p = gs.filter((g) => g.r === (dir === 'W' ? 'L' : 'W')).length / gs.length;
+  if (pool.length) {
+    p = pool.filter((g) => g.r === (dir === 'W' ? 'L' : 'W')).length / pool.length;
   } else {
     if (!pooledRates) {
       let n = 0, w = 0, l = 0;
@@ -236,13 +246,13 @@ export function h2hRate(opp: number, dir: 'W' | 'L'): number {
 }
 
 /**
- * The team's current head-to-head run against a scheduled game's opponent,
- * when it's worth telling: LEN_FLOOR or more straight wins or losses across
- * their meetings. Scored like any streak, with the meetings' span counted,
- * so an 18-year reign over a rival outranks a 4-game run.
+ * The team's current run across its meetings with `opp` at `site` (null =
+ * every meeting), when it's worth telling: LEN_FLOOR or more straight wins
+ * or losses. Scored like any streak, with the meetings' span counted, so an
+ * 18-year reign over a rival outranks a 4-game run.
  */
-export function h2hStreakOn(ti: number, game: UpcomingRow): TeamStreak | null {
-  const ms = gamesOf(ti).filter((g) => g.oppIdx === game.oppIdx);
+export function h2hStreak(ti: number, opp: number, site: H2hSite, next: UpcomingRow | null = null): TeamStreak | null {
+  const ms = gamesOf(ti).filter((g) => g.oppIdx === opp && fitsSite(site, g));
   const last = ms.at(-1);
   if (!last || last.r === 'T') return null;
   const dir = last.r;
@@ -251,15 +261,30 @@ export function h2hStreakOn(ti: number, game: UpcomingRow): TeamStreak | null {
   const len = ms.length - 1 - i;
   if (len < LEN_FLOOR) return null;
   const first = ms[i + 1];
+  const chips = site ? [site, 'vsteam'] : ['vsteam'];
   const mined = {
-    chips: ['vsteam'], dir: dir as Dir, scope: 'active' as const, len, atEdge: i < 0, field: 2, live: true, also: 0,
-    startSe: first.se, endSe: last.se, p: h2hRate(game.oppIdx, dir), n: ms.length,
+    chips, dir: dir as Dir, scope: 'active' as const, len, atEdge: i < 0, field: 2, live: true, also: 0,
+    startSe: first.se, endSe: last.se, p: h2hRate(opp, dir, site), n: ms.length,
   };
   const ctx = { M: DEFS, teams: fbsNow.size };
   return {
-    chips: ['vsteam'], vs: game.oppIdx, dir, len, atEdge: i < 0, rank: 1, tied: 1, field: 2,
-    next: game, since: first.se, chance: chanceOf(mined, ctx), score: crownScore(mined, ctx),
+    chips, vs: opp, dir, len, atEdge: i < 0, rank: 1, tied: 1, field: 2,
+    next, since: first.se, chance: chanceOf(mined, ctx), score: crownScore(mined, ctx),
   };
+}
+
+/**
+ * The head-to-head runs a scheduled game puts on the line: across every
+ * meeting, and across the meetings at the game's site when that tells a
+ * different run (Michigan's 5 straight over Minnesota and its 18 straight
+ * in Minneapolis are different stories; the same run twice isn't).
+ */
+export function h2hStreaksOn(ti: number, game: UpcomingRow): TeamStreak[] {
+  const all = h2hStreak(ti, game.oppIdx, null, game);
+  const site: H2hSite = game.neutral ? null : game.home ? 'home' : 'road';
+  const at = site ? h2hStreak(ti, game.oppIdx, site, game) : null;
+  const retold = all && at && at.len === all.len && at.since === all.since;
+  return [all, retold ? null : at].filter((s): s is TeamStreak => s != null);
 }
 
 /** "T-3rd": the rank, marked when shared. */
@@ -322,8 +347,9 @@ export function topOnLine(g: ScheduledGame, todayEp: number): { ti: number; s: T
     for (const s of streaksOn(teamStreaks(ti, todayEp), row)) {
       if (!best || s.score > best.s.score) best = { ti, s };
     }
-    const h = h2hStreakOn(ti, row);
-    if (h && (!best || h.score > best.s.score)) best = { ti, s: h };
+    for (const h of h2hStreaksOn(ti, row)) {
+      if (!best || h.score > best.s.score) best = { ti, s: h };
+    }
   }
   return best;
 }

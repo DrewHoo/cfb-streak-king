@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { teams, builtEpochDay, upcomingOf, activeBoard, gamesOf, P } from './model.ts';
 import { PLAIN_CHIPS } from './chips.ts';
 import { nearUniversalChips } from './crowns.ts';
-import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, h2hStreakOn, h2hRate, LEN_FLOOR, worthShowing } from './team.ts';
+import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, h2hStreaksOn, h2hRate, fitsSite, LEN_FLOOR, worthShowing } from './team.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const today = builtEpochDay;
@@ -91,27 +91,36 @@ describe('team', () => {
     expect(worthShowing({ len: 3, rank: 1, tied: 2 })).toBe(false);
   });
 
-  test('a head-to-head run re-derives from the meetings and names its opponent', () => {
+  test('every head-to-head run re-derives from the meetings its chips keep', () => {
     let seen = 0;
+    let sited = 0;
     for (const ti of teamList()) {
       const next = nextGameOf(ti, today);
       if (!next) continue;
-      const s = h2hStreakOn(ti, next);
-      const ms = gamesOf(ti).filter((g) => g.oppIdx === next.oppIdx);
-      let i = ms.length - 1;
-      const last = ms.at(-1);
-      if (last && last.r !== 'T') while (i >= 0 && ms[i].r === last.r) i--;
-      const run = last && last.r !== 'T' ? ms.length - 1 - i : 0;
-      if (!s) { expect(run).toBeLessThan(LEN_FLOOR); continue; }
-      seen++;
-      expect(s.chips).toEqual(['vsteam']);
-      expect(s.vs).toBe(next.oppIdx);
-      expect(s.dir).toBe(last!.r);
-      expect(s.len).toBe(run);
-      expect(s.next).toBe(next);
-      expect(s.since).toBe(ms[i + 1].se);
+      const list = h2hStreaksOn(ti, next);
+      for (const s of list) {
+        const site = s.chips.includes('home') ? 'home' : s.chips.includes('road') ? 'road' : null;
+        if (site) {
+          sited++;
+          // a site run is only on the line when the game sits at that site
+          expect(fitsSite(site, next)).toBe(true);
+        }
+        const ms = gamesOf(ti).filter((g) => g.oppIdx === next.oppIdx && fitsSite(site, g));
+        let i = ms.length - 1;
+        while (i >= 0 && ms[i].r === s.dir) i--;
+        seen++;
+        expect(s.vs).toBe(next.oppIdx);
+        expect(s.dir).toBe(ms.at(-1)!.r);
+        expect(s.len).toBe(ms.length - 1 - i);
+        expect(s.len).toBeGreaterThanOrEqual(LEN_FLOOR);
+        expect(s.next).toBe(next);
+        expect(s.since).toBe(ms[i + 1].se);
+      }
+      // the site variant never retells the overall run
+      if (list.length === 2) expect(list[0].len === list[1].len && list[0].since === list[1].since).toBe(false);
     }
     expect(seen).toBeGreaterThan(0); // some pair somewhere has a run going
+    expect(sited).toBeGreaterThan(0); // and some of them hold at one stadium
   });
 
   test('the h2h rate mirrors the opponent and stays clamped', () => {
