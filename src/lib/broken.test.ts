@@ -3,7 +3,7 @@ import { brokenLastWeek, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { chipByKey, qualifies } from './chips.ts';
 import { matches, decided } from './streaks.ts';
-import { LEN_FLOOR } from './team.ts';
+import { LEN_FLOOR, fitsSite } from './team.ts';
 
 // the module's week grid: Tuesday through Monday, 1970-01-06 a Tuesday
 const weekIdx = (ep: number) => Math.floor((ep - 5) / 7);
@@ -54,12 +54,13 @@ describe('brokenLastWeek', () => {
     }
   });
 
-  test('each head-to-head run re-derives from the meetings, and no mirror is told twice', () => {
+  test('each head-to-head run re-derives from the meetings its chips keep, and no mirror is told twice', () => {
     if (!broken) return;
     const h2h = broken.list.filter((x) => x.vs != null);
     for (const b of h2h) {
-      expect(b.chips).toEqual(['vsteam']);
-      const ms = gamesOf(b.ti).filter((g) => g.oppIdx === b.vs);
+      expect(b.chips).toContain('vsteam');
+      const site = b.chips.includes('home') ? 'home' : b.chips.includes('road') ? 'road' : null;
+      const ms = gamesOf(b.ti).filter((g) => g.oppIdx === b.vs && fitsSite(site, g));
       const at = ms.indexOf(b.ender);
       expect(at).toBeGreaterThanOrEqual(b.len);
       expect(matches(b.dir, b.ender)).toBe(false);
@@ -69,10 +70,9 @@ describe('brokenLastWeek', () => {
     }
   });
 
-  test('one telling per broken run: no two plain rows share a team, direction and ender', () => {
+  test('one telling per broken run: no two rows share a team, direction and ender', () => {
     if (!broken) return;
-    const plain = broken.list.filter((x) => x.vs == null);
-    const keys = plain.map((b) => `${b.ti}|${b.dir}|${b.ender.i}`);
+    const keys = broken.list.map((b) => `${b.vs == null ? 'plain' : 'h2h'}|${b.ti}|${b.dir}|${b.ender.i}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
 

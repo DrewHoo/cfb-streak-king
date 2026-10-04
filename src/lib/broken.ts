@@ -19,7 +19,8 @@ import { matches } from './streaks.ts';
 import { teamData, nearUniversalChips } from './crowns.ts';
 import { crownScore, chanceOf } from './crownRank.ts';
 import type { MinedCrown } from './crownRank.ts';
-import { DEFS, LEN_FLOOR, h2hRate } from './team.ts';
+import { DEFS, LEN_FLOOR, fitsSite, h2hRate } from './team.ts';
+import type { H2hSite } from './team.ts';
 
 /** One run a result last week ended. */
 export interface BrokenStreak {
@@ -160,9 +161,12 @@ function minePlain(w: number): BrokenStreak[] {
 }
 
 // Head-to-head runs a week-`w` meeting ended: for each game that week, the
-// trailing run of straight wins or losses across the pair's meetings. A
-// broken losing run is the winner's side of the same story, so it only
-// stands when the other side isn't told (the winner was below FBS).
+// trailing run of straight wins or losses across the pair's meetings —
+// every meeting, and only the meetings at the game's site ("18 straight at
+// Minnesota" survives a home loss in between). One telling per broken run,
+// the best-scoring. A broken losing run is the winner's side of the same
+// story, so it only stands when the other side isn't told (the winner was
+// below FBS).
 function mineH2H(w: number): BrokenStreak[] {
   const ctx = { M: DEFS, teams: fbsNow.size };
   const out: BrokenStreak[] = [];
@@ -171,35 +175,45 @@ function mineH2H(w: number): BrokenStreak[] {
     for (let i = gs.length - 1; i >= 0 && gs[i].se === P.currentSeason; i--) {
       const x = gs[i];
       if (weekIdx(x.ep) !== w) continue;
+      const gameSite: H2hSite = x.neutral ? null : x.home ? 'home' : 'road';
       for (const dir of ['W', 'L'] as const) {
         if (matches(dir, x)) continue;
-        let len = 0;
-        let start = i;
-        let atEdge = true;
-        for (let j = i - 1; j >= 0; j--) {
-          if (gs[j].oppIdx !== x.oppIdx) continue;
-          if (!matches(dir, gs[j])) { atEdge = false; break; }
-          len++;
-          start = j;
+        for (const site of gameSite ? [null, gameSite] : [null]) {
+          let len = 0;
+          let start = i;
+          let endSe: number | null = null;
+          let atEdge = true;
+          for (let j = i - 1; j >= 0; j--) {
+            if (gs[j].oppIdx !== x.oppIdx || !fitsSite(site, gs[j])) continue;
+            if (!matches(dir, gs[j])) { atEdge = false; break; }
+            len++;
+            start = j;
+            endSe ??= gs[j].se; // the run's last meeting, nearest the ender
+          }
+          if (len < LEN_FLOOR) continue;
+          const first = gs[start];
+          const chips = site ? [site, 'vsteam'] : ['vsteam'];
+          const mined: MinedCrown = {
+            chips, dir, scope: 'active', len, atEdge, field: 2, live: false, also: 0,
+            startSe: first.se, endSe: endSe!, p: h2hRate(x.oppIdx, dir, site), n: len + 1,
+          };
+          out.push({
+            ti, chips, vs: x.oppIdx, dir, len, atEdge, rank: 1, tied: 1, field: 2,
+            since: first.se, ender: x, chance: chanceOf(mined, ctx), score: crownScore(mined, ctx), scope: 'all', run: first.ep,
+          });
         }
-        if (len < LEN_FLOOR) continue;
-        const first = gs[start];
-        // the run's last meeting is the latest one before the ender
-        let endSe = first.se;
-        for (let j = i - 1; j >= start; j--) if (gs[j].oppIdx === x.oppIdx) { endSe = gs[j].se; break; }
-        const mined: MinedCrown = {
-          chips: ['vsteam'], dir, scope: 'active', len, atEdge, field: 2, live: false, also: 0,
-          startSe: first.se, endSe, p: h2hRate(x.oppIdx, dir), n: len + 1,
-        };
-        out.push({
-          ti, chips: ['vsteam'], vs: x.oppIdx, dir, len, atEdge, rank: 1, tied: 1, field: 2,
-          since: first.se, ender: x, chance: chanceOf(mined, ctx), score: crownScore(mined, ctx), scope: 'all', run: first.ep,
-        });
       }
     }
   }
-  return out.filter((b) => b.dir === 'W'
+  const told = out.filter((b) => b.dir === 'W'
     || !out.some((o) => o.dir === 'W' && o.ti === b.vs && o.vs === b.ti && o.ender.i === b.ender.i));
+  const best = new Map<string, BrokenStreak>();
+  for (const b of told) {
+    const k = `${b.ti}|${b.dir}|${b.ender.i}`;
+    const cur = best.get(k);
+    if (!cur || b.score > cur.score) best.set(k, b);
+  }
+  return [...best.values()];
 }
 
 let cache: BrokenWeek | null | undefined;
