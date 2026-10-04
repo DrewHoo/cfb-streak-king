@@ -77,7 +77,11 @@ function BrokenRow({ b, onOpen }) {
 function Broken({ bwk, onOpen, onWeek }) {
   const weeks = useMemo(() => completedWeeks().filter((w) => w.wk != null), []);
   const broken = useMemo(() => (bwk != null ? brokenWeek(bwk) : null) ?? brokenLastWeek(), [bwk]);
+  // "more" opens per week, so flipping weeks folds it back up
+  const [moreWk, setMoreWk] = useState(null);
   if (!broken) return null;
+  const all = moreWk === broken.wk;
+  const rows = all ? [...broken.list, ...broken.more] : broken.list;
   return (
     <section className="gwk">
       <div className="gwk-h gbk-h">
@@ -95,9 +99,14 @@ function Broken({ bwk, onOpen, onWeek }) {
         <small>{span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}</small>
       </div>
       <div className="gbk-list">
-        {broken.list.map((b) => (
+        {rows.map((b) => (
           <BrokenRow key={`${b.ti}|${b.dir}|${b.chips.join()}|${b.vs ?? ''}`} b={b} onOpen={onOpen} />
         ))}
+        {broken.more.length > 0 && (
+          <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
+            {all ? 'fewer' : `${broken.more.length} more broken`}
+          </button>
+        )}
       </div>
     </section>
   );

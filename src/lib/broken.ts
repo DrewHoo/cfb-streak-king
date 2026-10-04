@@ -54,11 +54,15 @@ export interface BrokenWeek {
   hi: number;
   /** The runs worth telling, the furthest past chance first. */
   list: BrokenStreak[];
+  /** The rest, behind "more": real broken runs that chance explains better, down to BROKEN_FLOOR. */
+  more: BrokenStreak[];
 }
 
 export const BROKEN_CAP = 12;
-/** A broken run scoring under this isn't news. */
+/** A broken run scoring under this isn't news on its own. */
 export const BROKEN_CUTOFF = -2.5;
+/** Under this (the crowns' own cutoff), it isn't worth a tap either. */
+export const BROKEN_FLOOR = -6.5;
 
 // 1970-01-06, a Tuesday; weeks run Tuesday through Monday
 const TUE = 5;
@@ -232,11 +236,12 @@ function digest(win: CompletedWeek): BrokenWeek {
     const cur = best.get(k);
     if (!cur || b.score > cur.score) best.set(k, b);
   }
-  const list = [...best.values(), ...mineH2H(win.w)]
-    .filter((b) => b.score >= BROKEN_CUTOFF)
-    .sort((a, b) => b.score - a.score || b.len - a.len)
-    .slice(0, BROKEN_CAP);
-  const out = { wk: win.wk, lo: win.lo, hi: win.hi, list };
+  const all = [...best.values(), ...mineH2H(win.w)]
+    .filter((b) => b.score >= BROKEN_FLOOR)
+    .sort((a, b) => b.score - a.score || b.len - a.len);
+  // the digest is the of-note prefix; the rest sits behind "more"
+  const k = Math.min(BROKEN_CAP, all.filter((b) => b.score >= BROKEN_CUTOFF).length);
+  const out = { wk: win.wk, lo: win.lo, hi: win.hi, list: all.slice(0, k), more: all.slice(k) };
   cache.set(win.w, out);
   return out;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { brokenLastWeek, brokenWeek, completedWeeks, brokenClaim, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
+import { brokenLastWeek, brokenWeek, completedWeeks, brokenClaim, BROKEN_CAP, BROKEN_CUTOFF, BROKEN_FLOOR } from './broken.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { chipByKey, qualifies } from './chips.ts';
 import { matches, decided } from './streaks.ts';
@@ -9,6 +9,7 @@ import { LEN_FLOOR, fitsSite } from './team.ts';
 const weekIdx = (ep: number) => Math.floor((ep - 5) / 7);
 
 const broken = brokenLastWeek();
+const allRows = broken ? [...broken.list, ...broken.more] : [];
 
 describe('brokenLastWeek', () => {
   test('covers the last completed week: current-season games, all in one Tuesday–Monday span', () => {
@@ -37,9 +38,20 @@ describe('brokenLastWeek', () => {
     }
   });
 
+  test('"more" continues the digest: below the cut or past the cap, down to the floor, still in order', () => {
+    if (!broken) return;
+    const all = [...broken.list, ...broken.more];
+    for (let i = 1; i < all.length; i++) expect(all[i - 1].score).toBeGreaterThanOrEqual(all[i].score);
+    for (const b of broken.more) {
+      expect(b.score).toBeGreaterThanOrEqual(BROKEN_FLOOR);
+      expect(b.score < BROKEN_CUTOFF || broken.list.length === BROKEN_CAP).toBe(true);
+      expect(b.len).toBeGreaterThanOrEqual(LEN_FLOOR);
+    }
+  });
+
   test('each plain run re-derives from the team’s games: len straight, then the ender', () => {
     if (!broken) return;
-    for (const b of broken.list.filter((x) => x.vs == null)) {
+    for (const b of allRows.filter((x) => x.vs == null)) {
       const chips = b.chips.map((k) => chipByKey.get(k)!);
       const qual = gamesOf(b.ti).filter((g) => chips.every((c) => qualifies(c, g)) && decided(b.dir, g));
       const at = qual.indexOf(b.ender);
@@ -56,7 +68,7 @@ describe('brokenLastWeek', () => {
 
   test('each head-to-head run re-derives from the meetings its chips keep, and no mirror is told twice', () => {
     if (!broken) return;
-    const h2h = broken.list.filter((x) => x.vs != null);
+    const h2h = allRows.filter((x) => x.vs != null);
     for (const b of h2h) {
       expect(b.chips).toContain('vsteam');
       const site = b.chips.includes('home') ? 'home' : b.chips.includes('road') ? 'road' : null;
@@ -72,7 +84,7 @@ describe('brokenLastWeek', () => {
 
   test('one telling per broken run: no two rows share a team, direction and ender', () => {
     if (!broken) return;
-    const keys = broken.list.map((b) => `${b.vs == null ? 'plain' : 'h2h'}|${b.ti}|${b.dir}|${b.ender.i}`);
+    const keys = allRows.map((b) => `${b.vs == null ? 'plain' : 'h2h'}|${b.ti}|${b.dir}|${b.ender.i}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
 
@@ -97,7 +109,7 @@ describe('brokenLastWeek', () => {
   test('the rank entering the week holds against every team’s run then', () => {
     if (!broken) return;
     const wlo = weekIdx(broken.hi) * 7 + 5; // the week's Tuesday
-    for (const b of broken.list.filter((x) => x.vs == null)) {
+    for (const b of allRows.filter((x) => x.vs == null)) {
       const chips = b.chips.map((k) => chipByKey.get(k)!);
       let longer = 0;
       for (const ti of fbsNow) {
