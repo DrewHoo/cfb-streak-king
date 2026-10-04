@@ -33,7 +33,7 @@
 // to the chip's label so a new chip never breaks the sentence.
 
 import type { BoardRow, ChipRef, Crown, Dir } from './types.ts';
-import { teams } from './model.ts';
+import { P, teams } from './model.ts';
 import { chipByKey } from './chips.ts';
 import { dirWord, stateName } from './format.ts';
 
@@ -42,6 +42,11 @@ type SlotRow = [slot: string, frag: Frag, demoted?: string];
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const MON = MONTHS.map((m) => m.slice(0, 3));
+// the mascot classes said as an opponent noun; a name-group reads as itself
+const MASCOT_NOUNS: Record<string, string> = {
+  animal: 'animal mascots', people: 'human mascots', bird: 'bird mascots', cat: 'cat mascots',
+  canine: 'dog & wolf mascots', myth: 'mythical mascots', force: 'forces of nature',
+};
 // what describes the subject team comes before "against", so "as the
 // favorite" can't attach to the opponent
 const ORDER = ['self', 'bet', 'coach', 'opp', 'site', 'when', 'half', 'pos'];
@@ -62,6 +67,8 @@ export const SLOTS: Record<string, SlotRow> = {
   instate: ['adj', 'in-state'],
   vsteam: ['oppnoun', (p) => teams[p]?.name ?? '?'],
   vsconf: ['oppnoun', (p) => `${p} opponents`],
+  vsmascot: ['oppnoun', (p) => MASCOT_NOUNS[P.mascots?.[p] ?? ''] ?? P.mascots?.[p] ?? '?'],
+  vscolor: ['oppnoun', (p) => `${P.colors?.[p] ?? '?'} schools`],
   vsnewcoach: ['oppcoach', 'first-year head coach'],
   whileranked: ['self', 'while ranked'],
   whileunranked: ['self', 'while unranked'],
@@ -115,7 +122,8 @@ export function definitionPhrase(active: ChipRef[]): string {
       if (noun) push('when', demoted!);
       else noun = f;
     } else if (slot === 'kind' || slot === 'adj' || slot === 'oppnoun' || slot === 'oppcoach') {
-      push(slot, a.key === 'vsteam' || a.key === 'vsconf' || a.key === 'state' || a.key === 'month' ? frag(f, a.param) : f as string);
+      // a chip that takes a choice renders it; the rest are fixed words
+      push(slot, chipByKey.get(a.key)?.param ? frag(f, a.param) : f as string);
     } else {
       push(slot, frag(f, a.param));
     }

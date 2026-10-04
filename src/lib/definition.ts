@@ -42,6 +42,15 @@ export const teamOptions = teams
   .filter(({ t }) => t.major)
   .sort((a, b) => a.t.name.localeCompare(b.t.name));
 
+// mascot kinds: name-group labels as the payload ships them ("Bulldogs",
+// "Yellow Jackets"), classes said as a kind of mascot
+const MASCOT_CLASS_WORDS: Record<string, string> = {
+  animal: 'animal mascots', people: 'human mascots', bird: 'bird mascots', cat: 'cat mascots',
+  canine: 'dog & wolf mascots', myth: 'mythical mascots', force: 'forces of nature',
+};
+const mascotWord = (entry: string) => MASCOT_CLASS_WORDS[entry] ?? entry;
+const mascotKey = (entry: string) => entry.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
 type Value = string | number;
 interface ParamSpec {
   /** [value, menu label] for the chip's own menu. */
@@ -86,6 +95,22 @@ export const PARAMS: Record<ParamKind, ParamSpec> = {
     encode: String,
     decode: (s) => s || undefined,
     word: (_c, v) => `vs the ${v}`,
+  },
+  // an index into the payload's mascot table, its slug in the URL
+  mascot: {
+    options: () => (P.mascots ?? []).map((m, i) => [i, `vs ${mascotWord(m)}`] as [number, string]),
+    default: () => Math.max(0, (P.mascots ?? []).findIndex((m) => m === 'Bulldogs')),
+    encode: (v) => mascotKey(P.mascots?.[v as number] ?? ''),
+    decode: (s) => { const i = (P.mascots ?? []).findIndex((m) => mascotKey(m) === s); return i < 0 ? undefined : i; },
+    word: (_c, v) => `vs ${mascotWord(P.mascots?.[v as number] ?? '?')}`,
+  },
+  // an index into the payload's color table, the word in the URL
+  color: {
+    options: () => (P.colors ?? []).map((c, i) => [i, `vs ${c} schools`] as [number, string]),
+    default: () => Math.max(0, (P.colors ?? []).indexOf('red')),
+    encode: (v) => P.colors?.[v as number] ?? '',
+    decode: (s) => { const i = (P.colors ?? []).indexOf(s); return i < 0 ? undefined : i; },
+    word: (_c, v) => `vs ${P.colors?.[v as number] ?? '?'} schools`,
   },
   // an index into teams in memory, the team's id in the URL
   team: {

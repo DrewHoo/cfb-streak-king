@@ -1,0 +1,3439 @@
+{
+ "version": 1,
+ "updated": "2026-10-04",
+ "groupLabels": {
+  "aggies": "Aggies",
+  "bears": "Bears",
+  "bobcats": "Bobcats",
+  "broncos": "Broncos",
+  "bulldogs": "Bulldogs",
+  "bulls": "Bulls",
+  "cardinals": "Cardinals",
+  "cougars": "Cougars",
+  "cowboys": "Cowboys",
+  "devils": "Devils",
+  "eagles": "Eagles",
+  "falcons": "Falcons",
+  "gamecocks": "Gamecocks",
+  "hawks": "Hawks",
+  "hurricanes": "Hurricanes",
+  "huskies": "Huskies",
+  "knights": "Knights",
+  "mountaineers": "Mountaineers",
+  "owls": "Owls",
+  "panthers": "Panthers",
+  "raiders": "Raiders",
+  "rebels": "Rebels",
+  "spartans": "Spartans",
+  "tigers": "Tigers",
+  "wildcats": "Wildcats",
+  "wolfpack": "Wolfpack",
+  "wolves": "Wolves"
+ },
+ "teams": {
+  "wyoming": {
+   "m": "Cowboys",
+   "g": "cowboys",
+   "c": [
+    "people"
+   ],
+   "k": "gold"
+  },
+  "air-force": {
+   "m": "Falcons",
+   "g": "falcons",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "california": {
+   "m": "Golden Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "pacific": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ]
+  },
+  "georgia-tech": {
+   "m": "Yellow Jackets",
+   "g": "yellow-jackets",
+   "c": [
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "navy": {
+   "m": "Midshipmen",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "arizona-state": {
+   "m": "Sun Devils",
+   "g": "devils",
+   "c": [
+    "myth"
+   ],
+   "k": "gold"
+  },
+  "baylor": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "boston-college": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "army": {
+   "m": "Black Knights",
+   "g": "knights",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "vanderbilt": {
+   "m": "Commodores",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "notre-dame": {
+   "m": "Fighting Irish",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "iowa-state": {
+   "m": "Cyclones",
+   "c": [
+    "force"
+   ],
+   "k": "red"
+  },
+  "ucla": {
+   "m": "Bruins",
+   "g": "bruins",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "kent-state": {
+   "m": "Golden Flashes",
+   "c": [
+    "force"
+   ],
+   "k": "blue"
+  },
+  "colorado-state": {
+   "m": "Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "citadel": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "arkansas": {
+   "m": "Razorbacks",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "byu": {
+   "m": "Cougars",
+   "g": "cougars",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "tulane": {
+   "m": "Green Wave",
+   "c": [
+    "force"
+   ],
+   "k": "green"
+  },
+  "idaho": {
+   "m": "Vandals",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "oregon": {
+   "m": "Ducks",
+   "g": "ducks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "colorado": {
+   "m": "Buffaloes",
+   "g": "buffaloes",
+   "c": [
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "rutgers": {
+   "m": "Scarlet Knights",
+   "g": "knights",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "arizona": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "new-mexico": {
+   "m": "Lobos",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "penn-state": {
+   "m": "Nittany Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "davidson": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "pittsburgh": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "missouri": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "smu": {
+   "m": "Mustangs",
+   "g": "mustangs",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "tulsa": {
+   "m": "Golden Hurricane",
+   "g": "hurricanes",
+   "c": [
+    "force"
+   ],
+   "k": "blue"
+  },
+  "stanford": {
+   "m": "Cardinal",
+   "c": [],
+   "k": "red"
+  },
+  "tennessee": {
+   "m": "Volunteers",
+   "c": [
+    "people"
+   ],
+   "k": "orange"
+  },
+  "north-carolina": {
+   "m": "Tar Heels",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "utah-state": {
+   "m": "Aggies",
+   "g": "aggies",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "florida": {
+   "m": "Gators",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "oklahoma-state": {
+   "m": "Cowboys",
+   "g": "cowboys",
+   "c": [
+    "people"
+   ],
+   "k": "orange"
+  },
+  "washington": {
+   "m": "Huskies",
+   "g": "huskies",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "hawaii": {
+   "m": "Rainbow Warriors",
+   "g": "warriors",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "nebraska": {
+   "m": "Cornhuskers",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "michigan": {
+   "m": "Wolverines",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "maryland": {
+   "m": "Terrapins",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "miami-fl": {
+   "m": "Hurricanes",
+   "g": "hurricanes",
+   "c": [
+    "force"
+   ],
+   "k": "orange"
+  },
+  "kansas-state": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "cincinnati": {
+   "m": "Bearcats",
+   "g": "bearcats",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "george-washington": {
+   "m": "Colonials",
+   "g": "colonials",
+   "c": [
+    "people"
+   ]
+  },
+  "denver": {
+   "m": "Pioneers",
+   "g": "pioneers",
+   "c": [
+    "people"
+   ]
+  },
+  "detroit-mercy": {
+   "m": "Titans",
+   "c": [
+    "myth"
+   ]
+  },
+  "iowa": {
+   "m": "Hawkeyes",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "utah": {
+   "m": "Utes",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "tcu": {
+   "m": "Horned Frogs",
+   "g": "horned-frogs",
+   "c": [
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "x:occidental": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "akron": {
+   "m": "Zips",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "marshall": {
+   "m": "Thundering Herd",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "western-michigan": {
+   "m": "Broncos",
+   "g": "broncos",
+   "c": [
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "dayton": {
+   "m": "Flyers",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:centralstate": {
+   "m": "Marauders",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "delaware": {
+   "m": "Blue Hens",
+   "g": "hens",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:northernmichigan": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "temple": {
+   "m": "Owls",
+   "g": "owls",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:youngstownstate": {
+   "m": "Penguins",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "indiana-state": {
+   "m": "Sycamores",
+   "c": [],
+   "k": "blue"
+  },
+  "ball-state": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:moreheadstate": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "alabama": {
+   "m": "Crimson Tide",
+   "c": [
+    "force"
+   ],
+   "k": "red"
+  },
+  "ole-miss": {
+   "m": "Rebels",
+   "g": "rebels",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "georgia": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "usc": {
+   "m": "Trojans",
+   "g": "trojans",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "louisville": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "mississippi-state": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "lsu": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "auburn": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "ohio-state": {
+   "m": "Buckeyes",
+   "c": [],
+   "k": "red"
+  },
+  "southern-miss": {
+   "m": "Golden Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "clemson": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "florida-state": {
+   "m": "Seminoles",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "kentucky": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "virginia-tech": {
+   "m": "Hokies",
+   "c": [
+    "bird",
+    "myth",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "duke": {
+   "m": "Blue Devils",
+   "g": "devils",
+   "c": [
+    "myth"
+   ],
+   "k": "blue"
+  },
+  "texas": {
+   "m": "Longhorns",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "houston": {
+   "m": "Cougars",
+   "g": "cougars",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "oklahoma": {
+   "m": "Sooners",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "south-carolina": {
+   "m": "Gamecocks",
+   "g": "gamecocks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "texas-am": {
+   "m": "Aggies",
+   "g": "aggies",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "louisiana-tech": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "nc-state": {
+   "m": "Wolfpack",
+   "g": "wolfpack",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "richmond": {
+   "m": "Spiders",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "furman": {
+   "m": "Paladins",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "tampa": {
+   "m": "Spartans",
+   "g": "spartans",
+   "c": [
+    "people"
+   ]
+  },
+  "tennessee-chattanooga": {
+   "m": "Mocs",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "memphis": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "rice": {
+   "m": "Owls",
+   "g": "owls",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "syracuse": {
+   "m": "Orange",
+   "c": [],
+   "k": "orange"
+  },
+  "x:deltastate": {
+   "m": "Statesmen",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "villanova": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "duquesne": {
+   "m": "Dukes",
+   "g": "dukes",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "louisiana": {
+   "m": "Ragin' Cajuns",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "samford": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "millsaps": {
+   "m": "Majors",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "georgia-pre-flight": {
+   "m": "Skycrackers",
+   "c": []
+  },
+  "spring-hill": {
+   "m": "Badgers",
+   "g": "badgers",
+   "c": [
+    "animal"
+   ]
+  },
+  "mercer": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "fordham": {
+   "m": "Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "sewanee": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "alameda-coast-guard": {
+   "m": "Sea Lions",
+   "c": [
+    "animal"
+   ]
+  },
+  "nevada": {
+   "m": "Wolf Pack",
+   "g": "wolfpack",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "st-mary-s": {
+   "m": "Gaels",
+   "c": [
+    "people"
+   ]
+  },
+  "march-field": {
+   "m": "Flyers",
+   "c": [
+    "people"
+   ]
+  },
+  "del-monte-pre-flight": {
+   "m": "Navyators",
+   "c": [
+    "people"
+   ]
+  },
+  "san-francisco": {
+   "m": "Dons",
+   "c": [
+    "people"
+   ]
+  },
+  "central-michigan": {
+   "m": "Chippewas",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "alcorn-state": {
+   "m": "Braves",
+   "g": "braves",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "grambling-state": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:alabamastate": {
+   "m": "Hornets",
+   "g": "hornets",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "florida-am": {
+   "m": "Rattlers",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:southcarolinastate": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "texas-southern": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "southern": {
+   "m": "Jaguars",
+   "g": "jaguars",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "mississippi-valley-state": {
+   "m": "Delta Devils",
+   "g": "devils",
+   "c": [
+    "myth"
+   ],
+   "k": "green"
+  },
+  "prairie-view-a-and-m": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "jackson-state": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "amarillo-field": {
+   "m": "Sky Giants",
+   "c": []
+  },
+  "west-texas-a-and-m": {
+   "m": "Buffaloes",
+   "g": "buffaloes",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "randolph-field": {
+   "m": "Ramblers",
+   "c": [
+    "people"
+   ]
+  },
+  "appalachian-state": {
+   "m": "Mountaineers",
+   "g": "mountaineers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "east-tennessee-state": {
+   "m": "Buccaneers",
+   "g": "buccaneers",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:lenoirrhyne": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "east-carolina": {
+   "m": "Pirates",
+   "g": "pirates",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "western-carolina": {
+   "m": "Catamounts",
+   "g": "catamounts",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "virginia-military-institute": {
+   "m": "Keydets",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "wofford": {
+   "m": "Terriers",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "william-and-mary": {
+   "m": "Tribe",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "wake-forest": {
+   "m": "Demon Deacons",
+   "c": [
+    "myth"
+   ],
+   "k": "gold"
+  },
+  "x:tennesseetech": {
+   "m": "Golden Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "middle-tennessee": {
+   "m": "Blue Raiders",
+   "g": "raiders",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "western-kentucky": {
+   "m": "Hilltoppers",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:northalabama": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:easternkentucky": {
+   "m": "Colonels",
+   "g": "colonels",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "san-diego-state": {
+   "m": "Aztecs",
+   "g": "aztecs",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "texas-tech": {
+   "m": "Red Raiders",
+   "g": "raiders",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "utep": {
+   "m": "Miners",
+   "g": "miners",
+   "c": [
+    "people"
+   ],
+   "k": "orange"
+  },
+  "northwestern": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "indiana": {
+   "m": "Hoosiers",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "washington-state": {
+   "m": "Cougars",
+   "g": "cougars",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "oregon-state": {
+   "m": "Beavers",
+   "g": "beavers",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "san-jose-state": {
+   "m": "Spartans",
+   "g": "spartans",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "kansas": {
+   "m": "Jayhawks",
+   "c": [
+    "bird",
+    "myth",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "hardin-simmons": {
+   "m": "Cowboys",
+   "g": "cowboys",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "marquette": {
+   "m": "Golden Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ]
+  },
+  "montana": {
+   "m": "Grizzlies",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:southdakotastate": {
+   "m": "Jackrabbits",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "new-mexico-state": {
+   "m": "Aggies",
+   "g": "aggies",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "michigan-state": {
+   "m": "Spartans",
+   "g": "spartans",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "drake": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "santa-clara": {
+   "m": "Broncos",
+   "g": "broncos",
+   "c": [
+    "animal"
+   ]
+  },
+  "northern-arizona": {
+   "m": "Lumberjacks",
+   "g": "lumberjacks",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "loyola-marymount": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ]
+  },
+  "x:pomonapitzer": {
+   "m": "Sagehens",
+   "g": "hens",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "minnesota": {
+   "m": "Golden Gophers",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "wisconsin": {
+   "m": "Badgers",
+   "g": "badgers",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "wichita-state": {
+   "m": "Shockers",
+   "c": [
+    "people"
+   ]
+  },
+  "montana-state": {
+   "m": "Bobcats",
+   "g": "bobcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "north-texas": {
+   "m": "Mean Green",
+   "c": [],
+   "k": "green"
+  },
+  "miami-oh": {
+   "m": "RedHawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "xavier": {
+   "m": "Musketeers",
+   "c": [
+    "people"
+   ]
+  },
+  "x:abilenechristian": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "portland": {
+   "m": "Pilots",
+   "c": [
+    "people"
+   ]
+  },
+  "gonzaga": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ]
+  },
+  "x:texasaandmkingsville": {
+   "m": "Javelinas",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "northern-colorado": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "fresno-state": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:northdakota": {
+   "m": "Fighting Hawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:whittier": {
+   "m": "Poets",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "x:catholic": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "santa-barbara": {
+   "m": "Gauchos",
+   "c": [
+    "people"
+   ]
+  },
+  "northwestern-state": {
+   "m": "Demons",
+   "g": "devils",
+   "c": [
+    "myth"
+   ],
+   "k": "blue"
+  },
+  "x:arkansasmonticello": {
+   "m": "Boll Weevils",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:centraloklahoma": {
+   "m": "Bronchos",
+   "g": "broncos",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:pittsburgstate": {
+   "m": "Gorillas",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "arkansas-state": {
+   "m": "Red Wolves",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "southern-illinois": {
+   "m": "Salukis",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "lamar": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "mcneese-state": {
+   "m": "Cowboys",
+   "g": "cowboys",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "louisiana-monroe": {
+   "m": "Warhawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "texas-arlington": {
+   "m": "Mavericks",
+   "g": "mavericks",
+   "c": []
+  },
+  "eastern-michigan": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "illinois-state": {
+   "m": "Redbirds",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "bowling-green": {
+   "m": "Falcons",
+   "g": "falcons",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "umass": {
+   "m": "Minutemen",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "lafayette": {
+   "m": "Leopards",
+   "g": "leopards",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "holy-cross": {
+   "m": "Crusaders",
+   "g": "crusaders",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "colgate": {
+   "m": "Raiders",
+   "g": "raiders",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "lehigh": {
+   "m": "Mountain Hawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "virginia": {
+   "m": "Cavaliers",
+   "g": "cavaliers",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "boston-university": {
+   "m": "Terriers",
+   "c": [
+    "canine",
+    "animal"
+   ]
+  },
+  "west-virginia": {
+   "m": "Mountaineers",
+   "g": "mountaineers",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "buffalo": {
+   "m": "Bulls",
+   "g": "bulls",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "illinois": {
+   "m": "Fighting Illini",
+   "c": [
+    "people"
+   ],
+   "k": "orange"
+  },
+  "columbia": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "yale": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "pennsylvania": {
+   "m": "Quakers",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "dartmouth": {
+   "m": "Big Green",
+   "c": [],
+   "k": "green"
+  },
+  "harvard": {
+   "m": "Crimson",
+   "c": [],
+   "k": "red"
+  },
+  "cornell": {
+   "m": "Big Red",
+   "c": [],
+   "k": "red"
+  },
+  "washington-and-lee": {
+   "m": "Generals",
+   "g": "generals",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "brown": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "coast-guard": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "princeton": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "williams": {
+   "m": "Ephs",
+   "c": [],
+   "k": "purple"
+  },
+  "centre": {
+   "m": "Colonels",
+   "g": "colonels",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:ursinus": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "franklin-and-marshall": {
+   "m": "Diplomats",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "springfield": {
+   "m": "Pride",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:muhlenberg": {
+   "m": "Mules",
+   "g": "mules",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:hobart": {
+   "m": "Statesmen",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:stetson": {
+   "m": "Hatters",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "fort-benning": {
+   "m": "Doughboys",
+   "c": [
+    "people"
+   ]
+  },
+  "presbyterian": {
+   "m": "Blue Hose",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "georgetown": {
+   "m": "Hoyas",
+   "c": [],
+   "k": "blue"
+  },
+  "birmingham-southern": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "manhattan": {
+   "m": "Jaspers",
+   "c": [
+    "people"
+   ]
+  },
+  "toledo": {
+   "m": "Rockets",
+   "c": [],
+   "k": "blue"
+  },
+  "northern-illinois": {
+   "m": "Huskies",
+   "g": "huskies",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "ohio": {
+   "m": "Bobcats",
+   "g": "bobcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:stephenfaustin": {
+   "m": "Lumberjacks",
+   "g": "lumberjacks",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "maine": {
+   "m": "Black Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "quantico-marines": {
+   "m": "Devil Dogs",
+   "c": [
+    "people"
+   ]
+  },
+  "merchant-marine": {
+   "m": "Mariners",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "new-york-university": {
+   "m": "Violets",
+   "c": []
+  },
+  "north-carolina-pre-flight": {
+   "m": "Cloudbusters",
+   "c": []
+  },
+  "x:lebanonvalley": {
+   "m": "Flying Dutchmen",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:northeastern": {
+   "m": "Huskies",
+   "g": "huskies",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:mcdaniel": {
+   "m": "Green Terror",
+   "c": [
+    "myth"
+   ],
+   "k": "green"
+  },
+  "uconn": {
+   "m": "Huskies",
+   "g": "huskies",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:rhodeisland": {
+   "m": "Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "bucknell": {
+   "m": "Bison",
+   "g": "bison",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "purdue": {
+   "m": "Boilermakers",
+   "c": [
+    "people"
+   ],
+   "k": "gold"
+  },
+  "x:grandvalleystate": {
+   "m": "Lakers",
+   "c": [],
+   "k": "black"
+  },
+  "long-beach-state": {
+   "m": "49ers",
+   "g": "49ers",
+   "c": [
+    "people"
+   ]
+  },
+  "bradley": {
+   "m": "Braves",
+   "g": "braves",
+   "c": [
+    "people"
+   ]
+  },
+  "x:ripon": {
+   "m": "Red Hawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:adamsstate": {
+   "m": "Grizzlies",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "washington-and-jefferson": {
+   "m": "Presidents",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:weberstate": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "idaho-state": {
+   "m": "Bengals",
+   "g": "bengals",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "colorado-college": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "amherst": {
+   "m": "Mammoths",
+   "c": [
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "tufts": {
+   "m": "Jumbos",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "colby": {
+   "m": "White Mules",
+   "g": "mules",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:gettysburg": {
+   "m": "Bullets",
+   "c": [],
+   "k": "black"
+  },
+  "x:albright": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "camp-grant": {
+   "m": "Warriors",
+   "g": "warriors",
+   "c": [
+    "people"
+   ]
+  },
+  "fort-riley": {
+   "m": "Centaurs",
+   "c": [
+    "myth"
+   ]
+  },
+  "great-lakes-navy": {
+   "m": "Bluejackets",
+   "c": [
+    "people"
+   ]
+  },
+  "iowa-pre-flight": {
+   "m": "Seahawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ]
+  },
+  "carnegie-tech": {
+   "m": "Tartans",
+   "c": [],
+   "k": "black"
+  },
+  "x:geneva": {
+   "m": "Golden Tornadoes",
+   "c": [
+    "force"
+   ],
+   "k": "black"
+  },
+  "x:wittenberg": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "creighton": {
+   "m": "Bluejays",
+   "g": "jays",
+   "c": [
+    "bird",
+    "animal"
+   ]
+  },
+  "rhodes": {
+   "m": "Lynx",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:illinoiswesleyan": {
+   "m": "Titans",
+   "c": [
+    "myth"
+   ],
+   "k": "black"
+  },
+  "x:westernillinois": {
+   "m": "Leathernecks",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "chicago": {
+   "m": "Maroons",
+   "c": [],
+   "k": "black"
+  },
+  "beloit": {
+   "m": "Buccaneers",
+   "g": "buccaneers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "wabash": {
+   "m": "Little Giants",
+   "c": [
+    "myth"
+   ],
+   "k": "black"
+  },
+  "x:oberlin": {
+   "m": "Yeomen",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:depauw": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "lawrence": {
+   "m": "Vikings",
+   "g": "vikings",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "butler": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:southdakota": {
+   "m": "Coyotes",
+   "g": "coyotes",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "newberry": {
+   "m": "Wolves",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:elon": {
+   "m": "Phoenix",
+   "c": [
+    "bird",
+    "myth",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "erskine": {
+   "m": "Flying Fleet",
+   "c": [],
+   "k": "black"
+  },
+  "oglethorpe": {
+   "m": "Stormy Petrels",
+   "c": [
+    "bird",
+    "animal"
+   ]
+  },
+  "x:rensselaer": {
+   "m": "Engineers",
+   "g": "engineers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "bates": {
+   "m": "Bobcats",
+   "g": "bobcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "mississippi-college": {
+   "m": "Choctaws",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:stlawrence": {
+   "m": "Saints",
+   "g": "saints",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "fort-warren": {
+   "m": "Broncos",
+   "g": "broncos",
+   "c": [
+    "animal"
+   ]
+  },
+  "washburn": {
+   "m": "Ichabods",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "whitman": {
+   "m": "Missionaries",
+   "c": [
+    "people"
+   ]
+  },
+  "x:southdakotamines": {
+   "m": "Hardrockers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:emporiastate": {
+   "m": "Hornets",
+   "g": "hornets",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:alfred": {
+   "m": "Saxons",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:northerniowa": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:northdakotastate": {
+   "m": "Bison",
+   "g": "bison",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "grinnell": {
+   "m": "Pioneers",
+   "g": "pioneers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "new-hampshire": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:norwich": {
+   "m": "Cadets",
+   "g": "cadets",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "hampden-sydney": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "dickinson": {
+   "m": "Red Devils",
+   "g": "devils",
+   "c": [
+    "myth"
+   ],
+   "k": "red"
+  },
+  "vermont": {
+   "m": "Catamounts",
+   "g": "catamounts",
+   "c": [
+    "cat",
+    "animal"
+   ]
+  },
+  "x:guilford": {
+   "m": "Quakers",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:catawba": {
+   "m": "Indians",
+   "g": "indians",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:carsonnewman": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:hillsdale": {
+   "m": "Chargers",
+   "g": "chargers",
+   "c": [],
+   "k": "black"
+  },
+  "x:alma": {
+   "m": "Scots",
+   "g": "scots",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "tennessee-state": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:stambrose": {
+   "m": "Fighting Bees",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:gustavusadolphus": {
+   "m": "Golden Gusties",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:stolaf": {
+   "m": "Oles",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:monmouth": {
+   "m": "Hawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "coe": {
+   "m": "Kohawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "west-virginia-wesleyan": {
+   "m": "Bobcats",
+   "g": "bobcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:waynesburg": {
+   "m": "Yellow Jackets",
+   "g": "yellow-jackets",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:westchester": {
+   "m": "Golden Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:northcarolinaaandt": {
+   "m": "Aggies",
+   "g": "aggies",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:randolphmacon": {
+   "m": "Yellow Jackets",
+   "g": "yellow-jackets",
+   "c": [
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "boise-state": {
+   "m": "Broncos",
+   "g": "broncos",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "cal-state-fullerton": {
+   "m": "Titans",
+   "c": [
+    "myth"
+   ]
+  },
+  "x:sacramentostate": {
+   "m": "Hornets",
+   "g": "hornets",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:portlandstate": {
+   "m": "Vikings",
+   "g": "vikings",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "unlv": {
+   "m": "Rebels",
+   "g": "rebels",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:marshill": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:emoryandhenry": {
+   "m": "Wasps",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:shenandoah": {
+   "m": "Hornets",
+   "g": "hornets",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:murraystate": {
+   "m": "Racers",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:pacificlutheran": {
+   "m": "Lutes",
+   "c": [
+    "people"
+   ],
+   "k": "orange"
+  },
+  "x:easternwashington": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:willamette": {
+   "m": "Bearcats",
+   "g": "bearcats",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:pugetsound": {
+   "m": "Loggers",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:morganstate": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:langston": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ]
+  },
+  "x:norfolkstate": {
+   "m": "Spartans",
+   "g": "spartans",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "x:carleton": {
+   "m": "Knights",
+   "g": "knights",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:american": {
+   "k": "black"
+  },
+  "x:mcmurry": {
+   "m": "War Hawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:howardpayne": {
+   "m": "Yellow Jackets",
+   "g": "yellow-jackets",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:texaswesleyan": {
+   "m": "Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ]
+  },
+  "x:humboldtstate": {
+   "m": "Lumberjacks",
+   "g": "lumberjacks",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:linfield": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "purple"
+  },
+  "x:newmexicohighlands": {
+   "m": "Cowboys",
+   "g": "cowboys",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:easternillinois": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:nebraskaomaha": {
+   "m": "Mavericks",
+   "g": "mavericks",
+   "c": [],
+   "k": "red"
+  },
+  "x:dubuque": {
+   "m": "Spartans",
+   "g": "spartans",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:luther": {
+   "m": "Norse",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:arkansaspinebluff": {
+   "m": "Golden Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:bethunecookman": {
+   "m": "Wildcats",
+   "g": "wildcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:williamjewell": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:kansaswesleyan": {
+   "m": "Ks Wesleyan",
+   "c": [],
+   "k": "black"
+  },
+  "x:baldwinwallace": {
+   "m": "Yellow Jackets",
+   "g": "yellow-jackets",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:redlands": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:tarletonstate": {
+   "m": "Texans",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:kentuckystate": {
+   "m": "Thorobreds",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:findlay": {
+   "m": "Oilers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "georgia-southern": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:hofstra": {
+   "m": "Pride",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:wagner": {
+   "m": "Seahawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:ohiowesleyan": {
+   "m": "Battling Bishops",
+   "g": "bishops",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:southeastmissouristate": {
+   "m": "Redhawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:sandiego": {
+   "m": "Toreros",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:montanatech": {
+   "m": "Orediggers",
+   "c": [
+    "people"
+   ]
+  },
+  "x:universityofmexico": {
+   "m": "MEXICO U",
+   "c": []
+  },
+  "x:easternnewmexico": {
+   "m": "Greyhounds",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:westernnewmexico": {
+   "m": "Mustangs",
+   "g": "mustangs",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:sulrossstate": {
+   "m": "Lobos",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:nebraskawesleyan": {
+   "m": "Prairie Wolves",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ]
+  },
+  "x:southwesternoklahomastate": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:centralarkansas": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ]
+  },
+  "swarthmore": {
+   "m": "Garnet Tide",
+   "c": [
+    "force"
+   ]
+  },
+  "x:laverne": {
+   "m": "Leopards",
+   "g": "leopards",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:chadronstate": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "texas-state": {
+   "m": "Bobcats",
+   "g": "bobcats",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:texaslutheran": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "sam-houston": {
+   "m": "Bearkats",
+   "g": "bearkats",
+   "c": [
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:johnshopkins": {
+   "m": "Blue Jays",
+   "g": "jays",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:tuskegee": {
+   "m": "Golden Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:howard": {
+   "m": "Bison",
+   "g": "bison",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "troy": {
+   "m": "Vikings",
+   "g": "vikings",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:trumanstate": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:johncarroll": {
+   "m": "Blue Streaks",
+   "c": [
+    "force"
+   ],
+   "k": "black"
+  },
+  "jacksonville-state": {
+   "m": "Gamecocks",
+   "g": "gamecocks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:minnesotamorris": {
+   "m": "Cougars",
+   "g": "cougars",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:alabamaaandm": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:americaninternational": {
+   "m": "Yellow Jackets",
+   "g": "yellow-jackets",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:illinoiscollege": {
+   "m": "Blueboys",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:northwestmissouristate": {
+   "m": "Bearcats",
+   "g": "bearcats",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:mckendree": {
+   "m": "Bearcats",
+   "g": "bearcats",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:shepherd": {
+   "m": "Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:wooster": {
+   "m": "Fighting Scots",
+   "g": "scots",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:otterbein": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:northernstate": {
+   "m": "Wolves",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:ucdavis": {
+   "m": "Aggies",
+   "g": "aggies",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "james-madison": {
+   "m": "Dukes",
+   "g": "dukes",
+   "c": [
+    "people"
+   ],
+   "k": "purple"
+  },
+  "x:selouisiana": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:augustanasd": {
+   "m": "Vikings",
+   "g": "vikings",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:austinpeay": {
+   "m": "Governors",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "liberty": {
+   "m": "Flames",
+   "c": [
+    "force"
+   ],
+   "k": "blue"
+  },
+  "missouri-state": {
+   "m": "Bears",
+   "g": "bears",
+   "c": [
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:angelostate": {
+   "m": "Rams",
+   "g": "rams",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "ucf": {
+   "m": "Knights",
+   "g": "knights",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:stcloudstate": {
+   "m": "Huskies",
+   "g": "huskies",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:delawarestate": {
+   "m": "Hornets",
+   "g": "hornets",
+   "c": [
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "uab": {
+   "m": "Blazers",
+   "c": [
+    "myth"
+   ],
+   "k": "green"
+  },
+  "x:valdostastate": {
+   "m": "Blazers",
+   "c": [
+    "myth"
+   ],
+   "k": "red"
+  },
+  "x:southernutah": {
+   "m": "Thunderbirds",
+   "c": [
+    "bird",
+    "myth",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "south-florida": {
+   "m": "Bulls",
+   "g": "bulls",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "florida-atlantic": {
+   "m": "Owls",
+   "g": "owls",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:charlestonsouthern": {
+   "m": "Buccaneers",
+   "g": "buccaneers",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "florida-international": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:edwardwaters": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ]
+  },
+  "x:gardnerwebb": {
+   "m": "Runnin' Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "coastal-carolina": {
+   "m": "Chanticleers",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:towson": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:hampton": {
+   "m": "Pirates",
+   "g": "pirates",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:stonybrook": {
+   "m": "Seawolves",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "georgia-state": {
+   "m": "Panthers",
+   "g": "panthers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "south-alabama": {
+   "m": "Jaguars",
+   "g": "jaguars",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "utsa": {
+   "m": "Roadrunners",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:savannahstate": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "old-dominion": {
+   "m": "Monarchs",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:calpoly": {
+   "m": "Mustangs",
+   "g": "mustangs",
+   "c": [
+    "animal"
+   ],
+   "k": "green"
+  },
+  "x:utmartin": {
+   "m": "Skyhawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "x:nicholls": {
+   "m": "Colonels",
+   "g": "colonels",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:northcarolinacentral": {
+   "m": "Eagles",
+   "g": "eagles",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "red"
+  },
+  "x:campbell": {
+   "m": "Fighting Camels",
+   "c": [
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:grambling": {
+   "m": "Tigers",
+   "g": "tigers",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "orange"
+  },
+  "charlotte": {
+   "m": "Saints",
+   "g": "saints",
+   "c": [
+    "people"
+   ],
+   "k": "green"
+  },
+  "x:ualbany": {
+   "m": "Great Danes",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:incarnateword": {
+   "m": "Cardinals",
+   "g": "cardinals",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:houstonchristian": {
+   "m": "Huskies",
+   "g": "huskies",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:centralconnecticut": {
+   "m": "Blue Devils",
+   "g": "devils",
+   "c": [
+    "myth"
+   ],
+   "k": "blue"
+  },
+  "kennesaw-state": {
+   "m": "Owls",
+   "g": "owls",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "gold"
+  },
+  "x:robertmorris": {
+   "m": "Colonials",
+   "g": "colonials",
+   "c": [
+    "people"
+   ],
+   "k": "blue"
+  },
+  "x:longislanduniversity": {
+   "m": "Sharks",
+   "c": [
+    "animal"
+   ]
+  },
+  "x:bryant": {
+   "m": "Bulldogs",
+   "g": "bulldogs",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:utahtech": {
+   "m": "Trailblazers",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:valparaiso": {
+   "m": "Beacons",
+   "c": [],
+   "k": "orange"
+  },
+  "x:easttexasaandm": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:merrimack": {
+   "m": "Warriors",
+   "g": "warriors",
+   "c": [
+    "people"
+   ],
+   "k": "black"
+  },
+  "x:sacredheart": {
+   "m": "Pioneers",
+   "g": "pioneers",
+   "c": [
+    "people"
+   ],
+   "k": "red"
+  },
+  "x:lindenwood": {
+   "m": "Lions",
+   "g": "lions",
+   "c": [
+    "cat",
+    "animal"
+   ],
+   "k": "black"
+  },
+  "x:westgeorgia": {
+   "m": "Wolves",
+   "g": "wolves",
+   "c": [
+    "canine",
+    "animal"
+   ],
+   "k": "blue"
+  },
+  "x:utriograndevalley": {
+   "m": "Vaqueros",
+   "c": [
+    "people"
+   ]
+  },
+  "x:mercyhurst": {
+   "m": "Lakers",
+   "c": [],
+   "k": "black"
+  },
+  "x:stonehill": {
+   "m": "Skyhawks",
+   "g": "hawks",
+   "c": [
+    "bird",
+    "animal"
+   ],
+   "k": "black"
+  }
+ }
+}

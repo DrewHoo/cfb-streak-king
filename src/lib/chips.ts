@@ -20,7 +20,7 @@
 
 import type { Dir, GameContext, GameRow } from './types.ts';
 
-export type ParamKind = 'state' | 'conf' | 'team' | 'month' | 'hmargin';
+export type ParamKind = 'state' | 'conf' | 'team' | 'month' | 'hmargin' | 'mascot' | 'color';
 export type Param = string | number | undefined;
 
 interface ChipBase {
@@ -78,6 +78,10 @@ export const CHIPS: Chip[] = [
   pre({ key: 'nonconf', label: 'in non-conference games', group: 'conference', exclusive: true, test: (x) => !x.conf }),
   pre({ key: 'vsconf', label: 'vs the [conference]', group: 'conference', param: 'conf', test: (x, p) => x.oppConf === p }),
   pre({ key: 'vsteam', label: 'vs [team]', group: 'opponent', param: 'team', test: (x, p) => x.oppIdx === p }),
+  // mascot kinds and school colors come from data/ref rulings; a team the
+  // rulings don't know never qualifies
+  pre({ key: 'vsmascot', label: 'vs [mascots]', group: 'opponent', param: 'mascot', test: (x, p) => typeof p === 'number' && x.oppMascots.includes(p) }),
+  pre({ key: 'vscolor', label: 'vs [color] schools', group: 'opponent', param: 'color', test: (x, p) => typeof p === 'number' && x.oppColor === p }),
   pre({ key: 'rivalry', label: 'rivalry game', group: 'opponent', test: (x) => x.rv > 0 }),
   pre({ key: 'instate', label: 'in-state opponent', group: 'opponent', test: (x) => x.inState }),
   pre({ key: 'curcoach', label: 'under current head coach', group: 'coach', test: (x) => x.hcCur }),

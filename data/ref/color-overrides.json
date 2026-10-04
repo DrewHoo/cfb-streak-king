@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "updated": "2026-10-04",
+  "note": "Identity-color rulings that beat the hex-hue rule: a school counts under the one color a fan would name, or null for none. Auburn is an orange school whatever its navy primary hex says; the old-gold schools (Purdue, Wake, Mizzou) read orange by hue but are gold; West Virginia and UConn list gold or black hexes first but are blue schools; Coastal's teal goes to green; Charlotte and Troy have no hex in CFBD at all.",
+  "colors": {
+    "auburn": "orange",
+    "arizona-state": "gold",
+    "colorado": "gold",
+    "purdue": "gold",
+    "wake-forest": "gold",
+    "missouri": "gold",
+    "southern-miss": "gold",
+    "kennesaw-state": "gold",
+    "western-michigan": "gold",
+    "wyoming": "gold",
+    "west-virginia": "blue",
+    "uconn": "blue",
+    "cincinnati": "red",
+    "coastal-carolina": "green",
+    "charlotte": "green",
+    "troy": "red"
+  }
+}

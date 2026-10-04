@@ -365,6 +365,30 @@ fs.mkdirSync(path.join(ROOT, 'data', 'build'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'data', 'build', 'logo-wants.json'), JSON.stringify(wants));
 if (wants.length) console.log(`logos: ${wants.length} teams have an ESPN id but no committed mark (run scripts/gen-logos.mjs): ${wants.map((w) => w.id).join(', ')}`);
 
+// --- mascot and color traits (data/ref/team-traits.json, gen-team-traits.mjs) ---
+// Name-group labels first, then the fixed classes; a team's mg holds indices
+// into that table, kc its color's index. A team the ref doesn't know simply
+// never qualifies under the mascot and color chips.
+const traits = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ref', 'team-traits.json'), 'utf8'));
+const TRAIT_CLASSES = ['animal', 'people', 'bird', 'cat', 'canine', 'myth', 'force'];
+const COLOR_WORDS = ['red', 'orange', 'gold', 'green', 'blue', 'purple', 'black'];
+const groupKeys = Object.keys(traits.groupLabels).sort();
+const mascots = [...groupKeys.map((g) => traits.groupLabels[g]), ...TRAIT_CLASSES];
+const mascotIdx = new Map([...groupKeys.map((g, i) => [g, i]), ...TRAIT_CLASSES.map((c, i) => [c, groupKeys.length + i])]);
+let tagged = 0;
+for (const t of teams) {
+  const tr = traits.teams[t.id];
+  if (!tr) continue;
+  const mg = [];
+  if (tr.g != null && mascotIdx.has(tr.g)) mg.push(mascotIdx.get(tr.g));
+  for (const c of tr.c ?? []) if (mascotIdx.has(c)) mg.push(mascotIdx.get(c));
+  if (mg.length) t.mg = mg;
+  const k = COLOR_WORDS.indexOf(tr.k);
+  if (k >= 0) t.kc = k;
+  if (mg.length || k >= 0) tagged++;
+}
+console.log(`traits: ${tagged} teams carry mascot/color tags, ${mascots.length} mascot kinds, ${COLOR_WORDS.length} colors`);
+
 const out = {
   ...base,
   coachNames,
@@ -374,6 +398,8 @@ const out = {
   upcoming,
   games: cols,
   teams,
+  mascots,
+  colors: COLOR_WORDS,
 };
 const lined26 = cols.sp.filter((s, i) => cols.se[i] === SEASON && s !== NO_LINE).length;
 // Lines post before kickoff, so played games with none at all means the CFBD

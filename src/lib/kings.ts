@@ -28,6 +28,8 @@ const plainIdx = new Map(PLAIN_CHIPS.map((c, i) => [c.key, i]));
 // one pass over a team's games then builds the mask of every choice at once
 const FIELD: Partial<Record<ParamKind, (g: GameRow) => Param | null>> = {
   state: (g) => g.vst, conf: (g) => g.oppConf, team: (g) => g.oppIdx, month: (g) => g.month,
+  // a mascot has several kinds per game, so it takes the generic pass below
+  color: (g) => (g.oppColor >= 0 ? g.oppColor : null),
 };
 // a parameterized chip's masks, per team, built on first use
 const paramMasks = new WeakMap<TeamData, Map<string, Uint32Array>>();

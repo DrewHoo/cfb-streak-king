@@ -17,6 +17,10 @@ export interface Team {
   conf?: [number, number, number][];
   /** -1 as the coach index: an unresolved multi-coach season. */
   hc?: Stint[];
+  /** Mascot kinds (indices into Payload.mascots): the nickname's name-group and its classes. */
+  mg?: number[];
+  /** The school's identity color (index into Payload.colors). */
+  kc?: number;
 }
 
 /** Completed games as parallel arrays, ascending by ep. */
@@ -48,6 +52,10 @@ export interface Payload {
   games: GameCols;
   currentSeason: number;
   upcoming: UpcomingCols;
+  /** Mascot kinds: name-group labels ("Bulldogs"), then class keys ("animal"); absent in older payloads. */
+  mascots?: string[];
+  /** School color words; absent in older payloads. */
+  colors?: string[];
 }
 
 export type Result = 'W' | 'L' | 'T';
@@ -83,6 +91,10 @@ export interface GameContext {
   moon: boolean;
   /** The opponent's conference that season. */
   oppConf: string | null;
+  /** The opponent's mascot kinds (indices into Payload.mascots; empty when unknown). */
+  oppMascots: readonly number[];
+  /** The opponent's school color (index into Payload.colors; -1 unknown). */
+  oppColor: number;
   /** The opponent's campus is in our campus's state. */
   inState: boolean;
   hcCur: boolean;

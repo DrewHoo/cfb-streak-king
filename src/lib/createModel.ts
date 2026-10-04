@@ -88,6 +88,9 @@ export function createModel(P: Payload) {
   const lastStint = (ti: number) => teams[ti]?.hc?.at(-1) ?? null;
   const known = (s: Stint | null): s is Stint => !!s && s[0] >= 0;
 
+  // shared empty list: rows without traits all point at the same array
+  const NO_MASCOTS: readonly number[] = [];
+
   /** The fields of a game knowable before kickoff, from team ti's side. */
   function base(
     cols: { ep: number[]; fl: number[]; hr: number[]; ar: number[]; hh: number[]; rv: number[]; hi: number[]; ai: number[]; vs?: number[] },
@@ -112,6 +115,8 @@ export function createModel(P: Payload) {
       wday: ((cols.ep[i] % 7) + 11) % 7, // 1970-01-01 was a Thursday
       moon: underFullMoon(cols.ep[i]),
       oppConf: confOf(oppIdx, se),
+      oppMascots: teams[oppIdx]?.mg ?? NO_MASCOTS,
+      oppColor: teams[oppIdx]?.kc ?? -1,
       inState: sameState(teams[oppIdx]?.st, teams[ti]?.st),
     };
   }

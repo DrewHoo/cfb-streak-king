@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { Chip } from './chips.ts';
 import type { ChipRef } from './types.ts';
-import { teams, CHIPS, chipByKey } from './model.ts';
+import { P, teams, CHIPS, chipByKey } from './model.ts';
 import {
   DEFAULT_CHIPS, MAX_CHIPS, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS,
   encodeChips, decodeChips, chipsToParam, chipsFromParam, defaultParam, withChip, swapChip, withoutChip, withParam, chipWord, swapTargets,
@@ -14,6 +14,8 @@ const paramValues = (c: Chip): (string | number)[] => ({
   state: STATE_OPTIONS,
   conf: CONF_OPTIONS,
   team: [teams.findIndex((t) => t.id === 'alabama'), teams.findIndex((t) => t.id === 'x:tarletonstate')],
+  mascot: (P.mascots ?? []).map((_, i) => i),
+  color: (P.colors ?? []).map((_, i) => i),
 }[c.param!]);
 
 describe('URL round-trip', () => {
