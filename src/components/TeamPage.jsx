@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 import { P, teams, confOf, gamesOf, upcomingOf } from '../lib/model.ts';
-import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn } from '../lib/team.ts';
+import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn, h2hStreakOn } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
@@ -52,7 +52,12 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
   const r = seasonRecord(ti);
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
-  const streaks = useMemo(() => teamStreaks(ti, todayEp, crowns.active), [ti, todayEp, crowns.active]);
+  // the head-to-head run vs the next opponent joins the list when it's worth telling
+  const streaks = useMemo(() => {
+    const list = teamStreaks(ti, todayEp, crowns.active);
+    const h2h = next ? h2hStreakOn(ti, next) : null;
+    return h2h ? [...list, h2h].sort((a, b) => b.score - a.score || b.len - a.len) : list;
+  }, [ti, todayEp, crowns.active, next]);
   const played = gamesOf(ti).filter((g) => g.se === P.currentSeason);
   const ahead = upcomingOf(ti);
   const meta = [confOf(ti, P.currentSeason), coachLine(ti)].filter(Boolean).join(' · ');

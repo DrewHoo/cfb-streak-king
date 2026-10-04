@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { teams, builtEpochDay, upcomingOf, activeBoard, gamesOf, P } from './model.ts';
 import { PLAIN_CHIPS } from './chips.ts';
 import { nearUniversalChips } from './crowns.ts';
-import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, LEN_FLOOR, worthShowing } from './team.ts';
+import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, h2hStreakOn, h2hRate, LEN_FLOOR, worthShowing } from './team.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const today = builtEpochDay;
@@ -89,6 +89,39 @@ describe('team', () => {
     }
     expect(worthShowing({ len: 1, rank: 1, tied: 1 })).toBe(true);
     expect(worthShowing({ len: 3, rank: 1, tied: 2 })).toBe(false);
+  });
+
+  test('a head-to-head run re-derives from the meetings and names its opponent', () => {
+    let seen = 0;
+    for (const ti of teamList()) {
+      const next = nextGameOf(ti, today);
+      if (!next) continue;
+      const s = h2hStreakOn(ti, next);
+      const ms = gamesOf(ti).filter((g) => g.oppIdx === next.oppIdx);
+      let i = ms.length - 1;
+      const last = ms.at(-1);
+      if (last && last.r !== 'T') while (i >= 0 && ms[i].r === last.r) i--;
+      const run = last && last.r !== 'T' ? ms.length - 1 - i : 0;
+      if (!s) { expect(run).toBeLessThan(LEN_FLOOR); continue; }
+      seen++;
+      expect(s.chips).toEqual(['vsteam']);
+      expect(s.vs).toBe(next.oppIdx);
+      expect(s.dir).toBe(last!.r);
+      expect(s.len).toBe(run);
+      expect(s.next).toBe(next);
+      expect(s.since).toBe(ms[i + 1].se);
+    }
+    expect(seen).toBeGreaterThan(0); // some pair somewhere has a run going
+  });
+
+  test('the h2h rate mirrors the opponent and stays clamped', () => {
+    for (const ti of teamList().slice(0, 10)) {
+      for (const dir of ['W', 'L'] as const) {
+        const p = h2hRate(ti, dir);
+        expect(p).toBeGreaterThanOrEqual(0.05);
+        expect(p).toBeLessThanOrEqual(0.995);
+      }
+    }
   });
 
   test("a multi-condition crown joins the list with the team's own row", () => {

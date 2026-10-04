@@ -52,6 +52,14 @@ describe('view', () => {
     expect([v.active, v.dir, v.scope, v.team]).toEqual([[{ key: 'road' }, { key: 'ranked' }], 'L', 'active', 7]);
   });
 
+  test('a broken streak carries its chip choice and lands on its all-time run', () => {
+    const v = viewReducer(initialView(), { type: 'streak', chips: [{ key: 'vsteam', param: 12 }], dir: 'W', scope: 'all', team: 3, run: 18000 });
+    expect([v.active, v.scope, v.team, v.run]).toEqual([[{ key: 'vsteam', param: 12 }], 'all', 3, 18000]);
+    // an active streak never pins a run
+    const a = viewReducer(initialView(), { type: 'streak', chips: ['home'], dir: 'W', scope: 'active', team: 3, run: 18000 });
+    expect(a.run).toBeNull();
+  });
+
   test('a streak picked on a team page or a matchup lands on the board with that team open', () => {
     const v = viewReducer({ ...initialView(4), game: 4, vs: 9 }, { type: 'streak', chips: ['home'], dir: 'C', scope: 'active', team: 4 });
     expect([v.page, v.game, v.vs, v.team, v.dir]).toEqual([null, null, null, 4, 'C']);

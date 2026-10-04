@@ -26,7 +26,7 @@ export type ViewAction =
   | { type: 'scope'; scope: Scope }
   | { type: 'dir'; dir: Dir }
   | { type: 'week'; on: boolean }
-  | { type: 'streak'; chips: string[]; dir: Dir; scope: Scope; team?: number }
+  | { type: 'streak'; chips: (string | ChipRef)[]; dir: Dir; scope: Scope; team?: number; run?: number | null }
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
   | { type: 'page'; team: number }
@@ -66,9 +66,12 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
     case 'week':
       return { ...v, week: a.on };
     case 'streak':
-      // one streak's board; from a team page or a matchup it comes with that team's panel open
+      // one streak's board; from a team page or a matchup it comes with that
+      // team's panel open, and an ended run (a broken streak) with that run's
+      // all-time row. A chip may carry its choice ("vs [team]").
       return {
-        ...v, active: a.chips.map((key) => ({ key })), dir: a.dir, scope: a.scope, run: null, limit: DESKTOP_CAP,
+        ...v, active: a.chips.map((c) => (typeof c === 'string' ? { key: c } : c)), dir: a.dir, scope: a.scope,
+        run: (a.scope === 'all' ? a.run : null) ?? null, limit: DESKTOP_CAP,
         team: a.team ?? v.team, page: null, game: null, vs: null, games: false, week: a.scope === 'all' ? false : v.week,
       };
     case 'pick': {

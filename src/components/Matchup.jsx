@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { P, teams, fbsNow, upcomingOf } from '../lib/model.ts';
 import { chipByKey } from '../lib/chips.ts';
-import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, LEN_FLOOR } from '../lib/team.ts';
+import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, h2hStreakOn, LEN_FLOOR } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord, oddsText } from '../lib/format.ts';
 import { CloseIcon } from './Icons.jsx';
 import { useActiveCrowns } from '../hooks/useCrowns.ts';
@@ -15,7 +15,10 @@ import { ShareIcon, Chevron } from './Icons.jsx';
 
 const ON_LINE_CAP = { phone: 4, desk: 6 };
 const bad = (dir) => dir === 'L' || dir === 'N';
-export const streakWords = (chips) => (chips.length ? chips.map((k) => chipByKey.get(k).label).join(' · ') : 'all games');
+// `vs` is a head-to-head streak's opponent, the choice its "vsteam" chip carries
+export const streakWords = (chips, vs) => (chips.length
+  ? chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipByKey.get(k).label)).join(' · ')
+  : 'all games');
 
 /**
  * One streak with its place in the field, shaped like a crown in the King-of
@@ -28,9 +31,9 @@ export function StreakRow({ s, onClick, next, tag }) {
     <button className="srow" onClick={onClick}>
       <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}</span>
       <span className="srow-txt">
-        <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips)}</span>
+        <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips, s.vs)}</span>
         <small>
-          <b className={s.rank === 1 && s.tied === 1 ? 'k' : ''}>{rankText(s)} of {s.field}</b>
+          <b className={s.vs == null && s.rank === 1 && s.tied === 1 ? 'k' : ''}>{s.vs != null ? 'head-to-head' : `${rankText(s)} of ${s.field}`}</b>
           {s.since != null && ` · since ${s.since}`}
           {s.chance != null && ` · ${oddsText(s.chance)} by chance`}
           {tag ? ` · ${tag}` : ''}
@@ -65,7 +68,10 @@ const sameStreak = (a, b) => a.dir === b.dir && a.chips.length === b.chips.lengt
 function OnLine({ ti, game, crowns: seed, pin, todayEp, onStreak, cap }) {
   const [all, setAll] = useState(false);
   const crowns = useActiveCrowns(ti, seed);
-  const mine = streaksOn(teamStreaks(ti, todayEp, crowns), game);
+  // the game puts the head-to-head run in too, when there's one worth telling
+  const h2h = h2hStreakOn(ti, game);
+  const on = streaksOn(teamStreaks(ti, todayEp, crowns), game);
+  const mine = h2h ? [...on, h2h].sort((a, b) => b.score - a.score || b.len - a.len) : on;
   const list = pin ? [pin, ...mine.filter((s) => !sameStreak(s, pin))] : mine;
   return (
     <div className="mu-on">

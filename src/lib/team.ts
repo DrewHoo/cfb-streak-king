@@ -56,6 +56,8 @@ export const lastMeeting = (ti: number, opp: number): GameRow | null => gamesOf(
 /** One of a team's current streaks, with its place among every team's under the same definition. */
 export interface TeamStreak {
   chips: string[];
+  /** Set when the run is head-to-head: the opponent the chips' "vsteam" means. */
+  vs?: number;
   dir: Dir;
   len: number;
   atEdge: boolean;
@@ -80,7 +82,7 @@ export const worthShowing = (s: Pick<TeamStreak, 'len' | 'rank' | 'tied'>) => s.
 const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N'];
 
 // how many definitions have each chip count, the cost crownRank charges a definition
-const DEFS = (() => {
+export const DEFS = (() => {
   const M = [0, 0, 0, 0, 0];
   (function walk(start: number, chosen: number[]) {
     M[chosen.length]++;
@@ -208,6 +210,58 @@ export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null 
 /** The streaks a scheduled game puts on the line: the ones whose next qualifying game it is. */
 export const streaksOn = (list: TeamStreak[], game: UpcomingRow): TeamStreak[] => list.filter((s) => s.next?.i === game.i);
 
+// --- head-to-head: the team's run against one exact opponent ---
+
+let pooledRates: { W: number; L: number } | null = null;
+/**
+ * How often `dir` happens to a team playing `opp`: the opponent's own record
+ * mirrored (losing to them is what they do to everyone), or the pooled rate
+ * over every team's games when the opponent is below FBS. Clamped: a
+ * perfect record would make any run against it free or impossible.
+ */
+export function h2hRate(opp: number, dir: 'W' | 'L'): number {
+  const gs = gamesOf(opp);
+  let p: number;
+  if (gs.length) {
+    p = gs.filter((g) => g.r === (dir === 'W' ? 'L' : 'W')).length / gs.length;
+  } else {
+    if (!pooledRates) {
+      let n = 0, w = 0, l = 0;
+      for (const ti of fbsNow) for (const g of gamesOf(ti)) { n++; if (g.r === 'W') w++; else if (g.r === 'L') l++; }
+      pooledRates = { W: w / n, L: l / n };
+    }
+    p = pooledRates[dir];
+  }
+  return Math.min(0.995, Math.max(0.05, p));
+}
+
+/**
+ * The team's current head-to-head run against a scheduled game's opponent,
+ * when it's worth telling: LEN_FLOOR or more straight wins or losses across
+ * their meetings. Scored like any streak, with the meetings' span counted,
+ * so an 18-year reign over a rival outranks a 4-game run.
+ */
+export function h2hStreakOn(ti: number, game: UpcomingRow): TeamStreak | null {
+  const ms = gamesOf(ti).filter((g) => g.oppIdx === game.oppIdx);
+  const last = ms.at(-1);
+  if (!last || last.r === 'T') return null;
+  const dir = last.r;
+  let i = ms.length - 1;
+  while (i >= 0 && ms[i].r === dir) i--;
+  const len = ms.length - 1 - i;
+  if (len < LEN_FLOOR) return null;
+  const first = ms[i + 1];
+  const mined = {
+    chips: ['vsteam'], dir: dir as Dir, scope: 'active' as const, len, atEdge: i < 0, field: 2, live: true, also: 0,
+    startSe: first.se, endSe: last.se, p: h2hRate(game.oppIdx, dir), n: ms.length,
+  };
+  const ctx = { M: DEFS, teams: fbsNow.size };
+  return {
+    chips: ['vsteam'], vs: game.oppIdx, dir, len, atEdge: i < 0, rank: 1, tied: 1, field: 2,
+    next: game, since: first.se, chance: chanceOf(mined, ctx), score: crownScore(mined, ctx),
+  };
+}
+
 /** "T-3rd": the rank, marked when shared. */
 export const rankText = (s: Pick<TeamStreak, 'rank' | 'tied'>) => (s.tied > 1 ? 'T-' : '') + ordinal(s.rank);
 
@@ -268,6 +322,8 @@ export function topOnLine(g: ScheduledGame, todayEp: number): { ti: number; s: T
     for (const s of streaksOn(teamStreaks(ti, todayEp), row)) {
       if (!best || s.score > best.s.score) best = { ti, s };
     }
+    const h = h2hStreakOn(ti, row);
+    if (h && (!best || h.score > best.s.score)) best = { ti, s: h };
   }
   return best;
 }

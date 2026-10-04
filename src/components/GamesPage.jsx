@@ -7,6 +7,7 @@
 import { useMemo, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { scheduledGames, lineText, topOnLine, rankText } from '../lib/team.ts';
+import { brokenLastWeek } from '../lib/broken.ts';
 import { dayOf, monthDay, kickOf } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron } from './Icons.jsx';
@@ -35,6 +36,59 @@ function Side({ ti, rank }) {
 }
 
 const VERB = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' };
+const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' };
+
+// how the run ended, from the team's side: the game that broke it
+function enderWords(b) {
+  const g = b.ender;
+  const opp = teams[g.oppIdx]?.name ?? '?';
+  const when = `${dayOf(g.ep)} ${monthDay(g.ep)}`;
+  if (b.dir === 'C' || b.dir === 'N') {
+    const did = g.cover === 'P' ? 'pushed' : g.cover === 'W' ? 'covered' : 'didn’t cover';
+    return `${did} vs ${opp} ${when}`;
+  }
+  if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them} ${when}`;
+  return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them} ${when}` : `lost to ${opp} ${g.them}–${g.us} ${when}`;
+}
+
+// one broken run: the length, the claim in past tense, where it ranked as
+// the week began, and the game that ended it; opens the run's all-time board
+function BrokenRow({ b, onOpen }) {
+  const t = teams[b.ti];
+  return (
+    <button className="bk" onClick={() => onOpen(b)}>
+      <span className={'bk-len' + (b.dir === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
+      {t?.espn ? <TeamMark ti={b.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
+      <span className="bk-txt">
+        <span>{t?.name} {PAST[b.dir]} {b.len}{b.atEdge ? '+' : ''} straight{b.chips.length ? ` ${streakWords(b.chips, b.vs)}` : ''}</span>
+        <small>
+          {b.vs != null ? <b>head-to-head</b> : <b className={b.rank === 1 && b.tied === 1 ? 'k' : ''}>was {rankText(b)} of {b.field}</b>}
+          {' · since '}{b.since}{' · '}{enderWords(b)}
+        </small>
+      </span>
+      <Chevron />
+    </button>
+  );
+}
+
+// the digest of last week's broken runs, above the schedule
+function Broken({ onOpen }) {
+  const broken = useMemo(() => brokenLastWeek(), []);
+  if (!broken || !broken.list.length) return null;
+  return (
+    <section className="gwk">
+      <div className="gwk-h gbk-h">
+        <span>Streaks broken{broken.wk != null ? ` in Week ${broken.wk}` : ''}</span>
+        <small>{span(broken.lo, broken.hi)} · {broken.list.length} of note</small>
+      </div>
+      <div className="gbk-list">
+        {broken.list.map((b) => (
+          <BrokenRow key={`${b.ti}|${b.dir}|${b.chips.join()}|${b.vs ?? ''}`} b={b} onOpen={onOpen} />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 // the ledger's row: kickoff, away, home, the line; beneath it the most
 // interesting streak either side puts on the line, as a compressed claim
@@ -52,8 +106,8 @@ function Row({ g, todayEp, onGame }) {
       <span className="gm-line">{line}</span>
       {top && (
         <span className="gm-claim">
-          {teams[top.ti].name} {VERB[top.s.dir]} <b className={top.s.dir === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.atEdge ? '+' : ''}</b> straight{top.s.chips.length ? ` ${streakWords(top.s.chips)}` : ''}
-          <small> · {rankText(top.s)} of {top.s.field}</small>
+          {teams[top.ti].name} {VERB[top.s.dir]} <b className={top.s.dir === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.atEdge ? '+' : ''}</b> straight{top.s.chips.length ? ` ${streakWords(top.s.chips, top.s.vs)}` : ''}
+          <small> · {top.s.vs != null ? 'head-to-head' : `${rankText(top.s)} of ${top.s.field}`}</small>
         </span>
       )}
     </button>
@@ -90,6 +144,7 @@ export function GamesPage({ todayEp, copied, on }) {
       </div>
       <h1 className="gpg-h1">{P.currentSeason} games</h1>
       <p className="tpg-note">Every scheduled game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</p>
+      <Broken onOpen={on.streak} />
       {weeks.length === 0 && <p className="empty">No games are scheduled.</p>}
       {weeks.map(([wk, games], i) => {
         const shown = i === 0 || open.has(wk);
