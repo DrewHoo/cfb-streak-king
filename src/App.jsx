@@ -138,10 +138,13 @@ export default function App({ initial } = {}) {
     track('matchup', { team: teams[ti].id, opp: teams[g.oppIdx]?.id, from });
     dispatch({ type: 'game', team: ti, vs: g.oppIdx });
   }
-  // one streak, a crown or a row of a team's list: its board, with that team open
+  // one streak — a crown, a row of a team's list, or a broken run: its board,
+  // with that team open. A head-to-head streak's "vsteam" chip carries its
+  // opponent; a broken run names its all-time row.
   function openStreak(s, ti, from) {
     crowns.followDir(s.dir);
-    dispatch({ type: 'streak', chips: s.chips, dir: s.dir, scope: s.scope ?? 'active', team: ti });
+    const chips = s.chips.map((key) => (key === 'vsteam' && s.vs != null ? { key, param: s.vs } : { key }));
+    dispatch({ type: 'streak', chips, dir: s.dir, scope: s.scope ?? 'active', team: ti, run: s.run ?? null });
     track('lead apply', { chips: s.chips.join(',') || 'overall', dir: s.dir, scope: s.scope ?? 'active', len: s.len, from });
   }
   function applyStarred(f) {
@@ -199,7 +202,7 @@ export default function App({ initial } = {}) {
           }}
         />
       ) : games ? (
-        <GamesPage todayEp={todayEp} copied={copied} on={{ board: () => dispatch({ type: 'board' }), game: (ti, g) => openGame(ti, g, 'games'), share: shareGames }} />
+        <GamesPage todayEp={todayEp} copied={copied} on={{ board: () => dispatch({ type: 'board' }), game: (ti, g) => openGame(ti, g, 'games'), streak: (b) => openStreak(b, b.ti, 'broken'), share: shareGames }} />
       ) : (
         <>
           <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} onGames={openGames} isMobile={isMobile} />
