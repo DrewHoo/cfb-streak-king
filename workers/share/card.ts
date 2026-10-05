@@ -42,22 +42,25 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 export function renderCard(card: Card): Response {
   const rows = card.rows.map((r) => `
     <div style="display:flex; flex-direction:row; align-items:center; gap:16px; padding:7px 0; border-bottom:1px dashed ${LINE};">
-      <div style="display:flex; justify-content:flex-end; width:92px; font-family:'Graduate'; font-size:30px; color:${CREAM};">${esc(r.count)}</div>
+      <div style="display:flex; justify-content:flex-end; width:80px; font-family:'Graduate'; font-size:28px; color:${CREAM};">${esc(r.count)}</div>
       ${r.logo
         ? `<img src="${r.logo}" width="38" height="38" />`
         : `<div style="display:flex; justify-content:center; width:38px; font-family:'Graduate'; font-size:20px; color:${MUTED};">${esc(r.initial)}</div>`}
-      <div style="display:flex; flex-grow:1; font-family:'Source Serif 4'; font-size:27px; color:${INK};">${esc(r.name)}</div>
-      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:15px; letter-spacing:1px; color:${r.live ? RUST : FAINT};">${esc(r.span.toUpperCase())}</div>
+      <div style="display:flex; flex-grow:1; font-family:'Source Serif 4'; font-size:25px; color:${INK};">${esc(r.name)}</div>
+      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:1px; color:${r.live ? RUST : FAINT};">${esc(r.span.toUpperCase())}</div>
     </div>`).join('');
 
+  // every meaningful glyph stays inside the centered 720px column: Reddit's
+  // compact feed center-crops the 1.91:1 card to a near-square thumbnail,
+  // and a safe-zone layout survives any such crop
   const html = `
-  <div style="display:flex; flex-direction:column; width:1200px; height:630px; background-color:${BG}; padding:44px 64px 36px;
+  <div style="display:flex; flex-direction:column; align-items:center; width:1200px; height:630px; background-color:${BG}; padding:40px 0 32px;
               background-image: radial-gradient(circle at 600px -126px, rgba(243,226,188,0.13) 0%, rgba(243,226,188,0) 65%);">
-    <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:17px; letter-spacing:4px; color:${RUST};">DREWHOOVER.COM · STREAK KING</div>
-    <div style="display:flex; font-family:'Graduate'; font-size:40px; color:${CREAM}; margin-top:12px;">${esc(card.heading.toUpperCase())}</div>
-    <div style="display:flex; font-family:'Source Serif 4'; font-size:24px; color:${MUTED}; margin-top:2px;">${esc(card.words)}</div>
-    <div style="display:flex; flex-direction:column; margin-top:14px; flex-grow:1;">${rows}</div>
-    <div style="display:flex; font-family:'IBM Plex Mono'; font-size:15px; letter-spacing:2px; color:${FAINT}; margin-top:12px;">${esc(card.footer.toUpperCase())}</div>
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; letter-spacing:4px; color:${RUST};">DREWHOOVER.COM · STREAK KING</div>
+    <div style="display:flex; font-family:'Graduate'; font-size:34px; color:${CREAM}; margin-top:10px; max-width:720px;">${esc(card.heading.toUpperCase())}</div>
+    <div style="display:flex; font-family:'Source Serif 4'; font-size:22px; color:${MUTED}; margin-top:2px; max-width:720px;">${esc(card.words)}</div>
+    <div style="display:flex; flex-direction:column; margin-top:12px; flex-grow:1; width:720px;">${rows}</div>
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${FAINT}; margin-top:10px;">${esc(card.footer.toUpperCase())}</div>
   </div>`;
 
   return new ImageResponse(html, {

@@ -262,35 +262,41 @@ function enderWords(b) {
   if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`
   return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`
 }
+// Every meaningful glyph stays inside the centered square (x 240–960 on a
+// 1200 canvas): Reddit's compact feed center-crops the 1.91:1 card to a
+// near-square thumbnail, and a safe-zone layout survives any such crop.
 async function renderWeek(broken, W, H) {
+  const L = Math.round(W / 2 - 360) // the safe column: 720 wide, centered
+  const R = W - L
   const parts = []
-  parts.push(text('DREWHOOVER.COM · STREAK KING', { x: 64, y: 76, font: 'MonoBold', size: 17, spacing: 4, fill: RUST }))
-  parts.push(text(`STREAKS BROKEN · WEEK ${broken.wk}`, { x: 60, y: 148, font: 'Graduate', size: 46, fill: CREAM }))
+  parts.push(text('DREWHOOVER.COM · STREAK KING', { x: W / 2, y: 70, font: 'MonoBold', size: 16, spacing: 4, fill: RUST, anchor: 'middle' }))
+  parts.push(text(`STREAKS BROKEN · WEEK ${broken.wk}`, { x: W / 2, y: 134, font: 'Graduate', size: 38, fill: CREAM, anchor: 'middle' }))
   const spanTxt = broken.lo === broken.hi ? md(broken.lo) : `${md(broken.lo)} – ${md(broken.hi)}`
-  parts.push(text(`${spanTxt} · ${broken.list.length} OF NOTE`, { x: 64, y: 184, font: 'Mono', size: 15, spacing: 2, fill: FAINT }))
-  let y = 232
+  parts.push(text(`${spanTxt} · ${broken.list.length} OF NOTE`, { x: W / 2, y: 168, font: 'Mono', size: 14, spacing: 2, fill: FAINT, anchor: 'middle' }))
+  let y = 212
   const shown = broken.list.slice(0, 5)
   for (const b of shown) {
     const bad = b.dir === 'L' || b.dir === 'N'
     const count = `${b.len}${b.atEdge ? '+' : ''}`
-    parts.push(text(count, { x: 118, y: y + 30, font: 'Graduate', size: 30, fill: bad ? RUST : CREAM, anchor: 'end' }))
+    parts.push(text(count, { x: L + 52, y: y + 30, font: 'Graduate', size: 28, fill: bad ? RUST : CREAM, anchor: 'end' }))
     const t = teams[b.ti]
     const color = t?.espn && (await logoUri(t.espn, 'color'))
-    if (color) parts.push(`<image x="136" y="${y}" width="40" height="40" href="${color}"/>`)
+    if (color) parts.push(`<image x="${L + 68}" y="${y + 2}" width="38" height="38" href="${color}"/>`)
     const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[b.dir]
     const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : P.chipLabel?.[k] ?? k)).join(' ')
     const claim = `${t?.name} ${verb} ${count} straight${words ? ` ${words}` : ''}`
-    parts.push(text(fit(claim, 'Serif', 25, W - 192 - 64), { x: 192, y: y + 22, font: 'Serif', size: 25, fill: INK }))
+    const tx = L + 122
+    parts.push(text(fit(claim, 'Serif', 23, R - tx), { x: tx, y: y + 21, font: 'Serif', size: 23, fill: INK }))
     const tag = b.vs != null ? 'head-to-head' : `was ${b.tied > 1 ? 'T-' : ''}${b.rank} of ${b.field}`
     const sub = `${tag} · since ${b.since} · ${enderWords(b)}`
-    parts.push(text(fit(sub.toUpperCase(), 'Mono', 13, W - 192 - 64), { x: 192, y: y + 46, font: 'Mono', size: 13, spacing: 1, fill: FAINT }))
-    y += 68
-    if (b !== shown[shown.length - 1]) parts.push(`<line x1="64" y1="${y - 14}" x2="${W - 64}" y2="${y - 14}" stroke="${LINE}" stroke-dasharray="1 4"/>`)
+    parts.push(text(fit(sub.toUpperCase(), 'Mono', 12.5, R - tx), { x: tx, y: y + 44, font: 'Mono', size: 12.5, spacing: 1, fill: FAINT }))
+    y += 66
+    if (b !== shown[shown.length - 1]) parts.push(`<line x1="${L}" y1="${y - 14}" x2="${R}" y2="${y - 14}" stroke="${LINE}" stroke-dasharray="1 4"/>`)
   }
   if (broken.list.length > shown.length) {
-    parts.push(text(`+${broken.list.length - shown.length} MORE`, { x: 192, y: y + 4, font: 'Mono', size: 14, spacing: 2, fill: FAINT }))
+    parts.push(text(`+${broken.list.length - shown.length} MORE`, { x: L + 122, y: y + 4, font: 'Mono', size: 13, spacing: 2, fill: FAINT }))
   }
-  parts.push(text(`${firstSeason}–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 32, font: 'Mono', size: 15, spacing: 2, fill: FAINT }))
+  parts.push(text(`${firstSeason}–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: W / 2, y: H - 30, font: 'Mono', size: 14, spacing: 2, fill: FAINT, anchor: 'middle' }))
   return frame(W, H, parts.join('\n'))
 }
 
