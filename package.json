@@ -31,6 +31,7 @@
     "sharp": "^0.35.3",
     "typescript": "^7.0.2",
     "vite": "^8.2.0",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "workers-og": "^0.0.27"
   }
 }

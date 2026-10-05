@@ -1,0 +1,73 @@
+// The share card: a definition's board drawn as a 1200x630 PNG through
+// workers-og (satori + resvg wired for workerd, wasm included). The design
+// follows gen-og.mjs: the dark room, Graduate counts, serif names, mono
+// small print. Fonts ride in the bundle (OFL; the same four the site uses).
+
+import { ImageResponse } from 'workers-og';
+// wrangler's Data rule hands these over as ArrayBuffers
+import graduate from './fonts/Graduate-Regular.ttf';
+import mono from './fonts/IBMPlexMono-Regular.ttf';
+import monoBold from './fonts/IBMPlexMono-SemiBold.ttf';
+import serif from './fonts/SourceSerif4-Regular.ttf';
+
+const BG = '#282127';
+const INK = '#efe6d9';
+const MUTED = '#bfb2a6';
+const FAINT = '#857a75';
+const LINE = '#453a42';
+const CREAM = '#f3e2bc';
+const RUST = '#c36c36';
+
+export interface CardRow {
+  count: string;
+  name: string;
+  /** "’08–’21" or "since ’19 · live"; said in mono small print. */
+  span: string;
+  live: boolean;
+  /** The team's color mark as a data URI, when its PNG could be fetched. */
+  logo: string | null;
+  initial: string;
+}
+
+export interface Card {
+  heading: string;
+  words: string;
+  rows: CardRow[];
+  /** "1936–2026 · 63,855 games · drewhoover.com" */
+  footer: string;
+}
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+export function renderCard(card: Card): Response {
+  const rows = card.rows.map((r) => `
+    <div style="display:flex; flex-direction:row; align-items:center; gap:16px; padding:7px 0; border-bottom:1px dashed ${LINE};">
+      <div style="display:flex; justify-content:flex-end; width:92px; font-family:'Graduate'; font-size:30px; color:${CREAM};">${esc(r.count)}</div>
+      ${r.logo
+        ? `<img src="${r.logo}" width="38" height="38" />`
+        : `<div style="display:flex; justify-content:center; width:38px; font-family:'Graduate'; font-size:20px; color:${MUTED};">${esc(r.initial)}</div>`}
+      <div style="display:flex; flex-grow:1; font-family:'Source Serif 4'; font-size:27px; color:${INK};">${esc(r.name)}</div>
+      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:15px; letter-spacing:1px; color:${r.live ? RUST : FAINT};">${esc(r.span.toUpperCase())}</div>
+    </div>`).join('');
+
+  const html = `
+  <div style="display:flex; flex-direction:column; width:1200px; height:630px; background-color:${BG}; padding:44px 64px 36px;
+              background-image: radial-gradient(circle at 600px -126px, rgba(243,226,188,0.13) 0%, rgba(243,226,188,0) 65%);">
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:17px; letter-spacing:4px; color:${RUST};">DREWHOOVER.COM · STREAK KING</div>
+    <div style="display:flex; font-family:'Graduate'; font-size:40px; color:${CREAM}; margin-top:12px;">${esc(card.heading.toUpperCase())}</div>
+    <div style="display:flex; font-family:'Source Serif 4'; font-size:24px; color:${MUTED}; margin-top:2px;">${esc(card.words)}</div>
+    <div style="display:flex; flex-direction:column; margin-top:14px; flex-grow:1;">${rows}</div>
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-size:15px; letter-spacing:2px; color:${FAINT}; margin-top:12px;">${esc(card.footer.toUpperCase())}</div>
+  </div>`;
+
+  return new ImageResponse(html, {
+    width: 1200,
+    height: 630,
+    fonts: [
+      { name: 'Graduate', data: graduate as ArrayBuffer, weight: 400, style: 'normal' },
+      { name: 'IBM Plex Mono', data: mono as ArrayBuffer, weight: 400, style: 'normal' },
+      { name: 'IBM Plex Mono', data: monoBold as ArrayBuffer, weight: 600, style: 'normal' },
+      { name: 'Source Serif 4', data: serif as ArrayBuffer, weight: 400, style: 'normal' },
+    ],
+  });
+}

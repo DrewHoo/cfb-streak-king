@@ -198,7 +198,9 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
   }
   fs.mkdirSync(path.join(ROOT, 'dist', 'share'), { recursive: true })
   fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'meta.json'), JSON.stringify(meta))
-  console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds`)
+  // the worker's og.png route runs the site's own model; publish the payload it reads
+  fs.copyFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), path.join(ROOT, 'dist', 'share', 'payload.json'))
+  console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds; payload copied for the og worker`)
 }
 
 // --- one page per current FBS team ---

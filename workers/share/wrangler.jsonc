@@ -7,5 +7,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "drewhoover.com/cfb-streak-king/*", "zone_name": "drewhoover.com" }],
   "workers_dev": false,
-  "observability": { "enabled": true, "head_sampling_rate": 1 }
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  // the card's fonts ride in the bundle; resvg's wasm imports as a module
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": true }]
 }

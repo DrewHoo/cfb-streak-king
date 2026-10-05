@@ -65,6 +65,42 @@ export function defWords(c: string | null, meta: ShareMeta): string[] | null {
   return out;
 }
 
+/** The payload tables decodeRefs resolves choices against. */
+export interface RefTables {
+  /** teams[i].id, in payload order, so a team choice decodes to its index. */
+  teamIds: string[];
+  mascots: string[];
+  colors: string[];
+}
+
+/**
+ * The `c` param as ChipRefs the model can evaluate, mirroring
+ * definition.ts's decodeChips: parts it can't read drop out, four chips at
+ * most. Null when `c` is absent (the caller applies the URL's default).
+ */
+export function decodeRefs(c: string | null, t: RefTables): { key: string; param?: string | number }[] | null {
+  if (c == null) return null;
+  if (c === 'all') return [];
+  const out: { key: string; param?: string | number }[] = [];
+  for (const part of c.split(',')) {
+    const [key, ...rest] = part.split(':');
+    const chip = chipByKey.get(key);
+    if (!chip) continue;
+    if (!chip.param) { out.push({ key }); continue; }
+    const raw = rest.join(':');
+    let param: string | number | undefined;
+    switch (chip.param) {
+      case 'month': case 'hmargin': { const n = Number(raw); if (raw !== '' && Number.isFinite(n)) param = n; break; }
+      case 'state': case 'conf': if (raw) param = raw; break;
+      case 'team': { const i = t.teamIds.indexOf(raw); if (i >= 0) param = i; break; }
+      case 'mascot': { const i = t.mascots.findIndex((x) => mascotKey(x) === raw); if (i >= 0) param = i; break; }
+      case 'color': { const i = t.colors.indexOf(raw); if (i >= 0) param = i; break; }
+    }
+    if (param !== undefined) out.push({ key, param });
+  }
+  return out.slice(0, 4);
+}
+
 const SCOPE = (q: URLSearchParams) => (q.get('scope') === 'active' ? 'active' : 'all-time');
 const DIR = (q: URLSearchParams) => {
   const d = q.get('dir');
