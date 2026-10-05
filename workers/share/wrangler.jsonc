@@ -1,0 +1,11 @@
+{
+  // The share worker: per-definition <head> rewrites in front of GitHub
+  // Pages. Deploy with: npx wrangler deploy -c workers/share/wrangler.jsonc
+  "name": "streak-king-share",
+  "main": "index.ts",
+  "compatibility_date": "2026-10-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "drewhoover.com/cfb-streak-king/*", "zone_name": "drewhoover.com" }],
+  "workers_dev": false,
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}

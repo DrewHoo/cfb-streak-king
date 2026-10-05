@@ -33,7 +33,7 @@ const vite = await createServer({
   logLevel: 'warn',
 })
 const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
-const { teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { P, teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
@@ -186,6 +186,20 @@ for (const w of completedWeeks().filter((x) => x.wk != null)) {
   weekUrls.push(url)
 }
 console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
+
+// --- share metadata for the Cloudflare worker (workers/share): the words a
+// definition URL needs that the chip catalog alone can't supply ---
+{
+  const meta = {
+    site: config.title,
+    teams: Object.fromEntries(teams.filter((t) => t.major).map((t) => [t.id, t.name])),
+    mascots: P.mascots ?? [],
+    colors: P.colors ?? [],
+  }
+  fs.mkdirSync(path.join(ROOT, 'dist', 'share'), { recursive: true })
+  fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'meta.json'), JSON.stringify(meta))
+  console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds`)
+}
 
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
