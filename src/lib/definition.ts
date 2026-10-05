@@ -19,6 +19,7 @@ export const GROUPS = ['site', 'opp rank', 'own rank', 'betting', 'conference', 
 // data-coverage notes for the group headings in the + menu
 const RANK_NOTE = 'AP rank at kickoff. The AP ranked 20 teams through 1960, 10 in 1961–67, 20 through 1988 and 25 since. There was no preseason poll before 1950; games before a season’s first poll can’t qualify.';
 export const GROUP_NOTES: Record<string, string> = {
+  conference: 'Power conferences go by the sport’s own lines: the six BCS automatic-qualifying conferences from 1998 (the American inheriting the Big East’s place for 2013), the Power 5 from 2014 and the Power 4 from 2024. Notre Dame counts throughout, as the power conferences themselves count it. The term has no formal meaning earlier, so older games can’t qualify.',
   'opp rank': RANK_NOTE,
   'own rank': RANK_NOTE,
   betting: 'Closing lines cover 1978–2025 plus this season. Earlier games and games without a line can’t qualify.',

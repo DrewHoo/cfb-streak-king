@@ -72,6 +72,7 @@ export const SLOTS: Record<string, SlotRow> = {
   vsnewcoach: ['oppcoach', 'first-year head coach'],
   whileranked: ['self', 'while ranked'],
   whileunranked: ['self', 'while unranked'],
+  member: ['self', 'as a power-conference member'],
   fav: ['bet', 'as the favorite'],
   dog: ['bet', 'as an underdog'],
   dog7: ['bet', 'as a 7+ point underdog'],
@@ -79,6 +80,7 @@ export const SLOTS: Record<string, SlotRow> = {
   close: ['bet', 'with a spread of 3 or less'],
   confgame: ['adj', 'conference'],
   nonconf: ['adj', 'non-conference'],
+  power: ['adj', 'power-conference'],
   rivalry: ['kind', 'rivalry'],
   onescore: ['kind', 'one-score'],
   night: ['kind', 'night'],
@@ -105,7 +107,7 @@ export const SLOTS: Record<string, SlotRow> = {
 // adjectives read in this order: "one-score rivalry werewolf night games"
 const KIND_ORDER = ['onescore', 'overtime', 'rivalry', 'fullmoon', 'night'];
 // opponent adjectives read rank, then conference, then in-state
-const ADJ_ORDER = ['ranked', 'top10', 'top5', 'unranked', 'confgame', 'nonconf', 'instate'];
+const ADJ_ORDER = ['ranked', 'top10', 'top5', 'unranked', 'power', 'confgame', 'nonconf', 'instate'];
 
 const frag = (f: Frag, p: unknown) => (typeof f === 'function' ? f(p) : f);
 

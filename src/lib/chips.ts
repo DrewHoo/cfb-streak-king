@@ -77,6 +77,10 @@ export const CHIPS: Chip[] = [
   pre({ key: 'confgame', label: 'in conference games', group: 'conference', exclusive: true, test: (x) => x.conf }),
   pre({ key: 'nonconf', label: 'in non-conference games', group: 'conference', exclusive: true, test: (x) => !x.conf }),
   pre({ key: 'vsconf', label: 'vs the [conference]', group: 'conference', param: 'conf', test: (x, p) => x.oppConf === p }),
+  // era-aware (power.ts): BCS AQ 1998–2013, Power 5 2014–23, Power 4 since; Notre Dame counts throughout
+  pre({ key: 'power', label: 'vs power-conference opponents', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.oppPower, floor: { season: 1998, what: 'power-conference' } }),
+  // membership, not the opponent rule: Notre Dame counts only in 2020, its one ACC season
+  pre({ key: 'member', label: 'as a power-conference member', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.ownPower, floor: { season: 1998, what: 'power-conference' } }),
   pre({ key: 'vsteam', label: 'vs [team]', group: 'opponent', param: 'team', test: (x, p) => x.oppIdx === p }),
   // mascot kinds and school colors come from data/ref rulings; a team the
   // rulings don't know never qualifies

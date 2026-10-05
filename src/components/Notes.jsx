@@ -70,6 +70,13 @@ export function Notes() {
             halftime scores (2001 on) and time of possession (2004 on).
           </li>
           <li>
+            Power conferences go by the era's own lines: the six BCS automatic-qualifying conferences from 1998,
+            the Power 5 from 2014, the Power 4 from 2024. The American counts for 2013 only, when it inherited
+            the Big East's automatic berth. Notre Dame counts for the whole era, as the power conferences
+            themselves count it when a schedule requires a power opponent; Army, which only the Big Ten and SEC
+            count, doesn't. The term has no formal meaning before 1998, so older games can't qualify.
+          </li>
+          <li>
             Full moons are worked out to the minute with Jean Meeus’s lunar-phase method. A game is a werewolf
             game when the moon is full within a day of 8pm Eastern on game day.
           </li>
@@ -78,21 +85,19 @@ export function Notes() {
             Rock for Arkansas, and similar) counts as a home game.
           </li>
           <li>
-            Under an open streak, the King-of list is the streaks its team is king of that stand out: each definition under which that team alone holds
-            the longest active or all-time streak, at least 4 games long, among at least 10 teams with a streak
-            under it. The {PLAIN_CHIPS.length} plain words alone make {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible definitions,{' '}
-            {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting winning, losing, undefeated, covering and not covering separately; the words that take a choice
+            A team's panel lists the definitions it leads outright: the team alone holds the longest active or
+            all-time streak, at least 4 games, among at least 10 teams. The {PLAIN_CHIPS.length} plain words make{' '}
+            {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible definitions, {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting
+            winning, losing, undefeated, covering and not covering separately; the words that take a choice
             (a state, a conference, an opponent, a month) push that past 24 million.
           </li>
           <li>
-            With that many definitions, some team leads almost any of them by chance, so each crown gets a score:
-            how far its streak runs past where the field's leader would be expected to land, given how often teams
-            get that result in those games, less a cost for each word in the definition (more for words that
-            describe the game itself, like a one-score finish). A run across decades earns a little back. A crown
-            that's only a slice of a better one, or that chance would explain, isn't listed, and a word that keeps
-            nearly every game (on a weekend) never names one. Each crown shows the odds that luck alone produces a
-            streak that long under its definition: every team (or, all-time, every place a run could start) gets
-            that many tries at the field's rate.
+            With that many definitions, some team leads almost any of them by chance, so each one on the list gets
+            a score: how far the streak runs past where the field's leader would be expected to land, less a cost
+            for each word in the definition. A definition that chance would explain, or that's only a slice of a
+            better one, isn't listed, and a word that keeps nearly every game (on a weekend) never makes the list.
+            The odds shown are the chance that luck alone produces a streak that long: every team (or, all-time,
+            every place a run could start) gets that many tries at the field's rate.
           </li>
           <li>
             The rate under the sentence pools today's {fbsNow.size} FBS teams' games, each from that team's side. A

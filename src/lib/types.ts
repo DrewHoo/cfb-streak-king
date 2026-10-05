@@ -91,6 +91,10 @@ export interface GameContext {
   moon: boolean;
   /** The opponent's conference that season. */
   oppConf: string | null;
+  /** The opponent counted as power-conference that season (power.ts; always false before 1998). */
+  oppPower: boolean;
+  /** The team itself was a power-conference member that season (strict membership, so never Notre Dame while independent). */
+  ownPower: boolean;
   /** The opponent's mascot kinds (indices into Payload.mascots; empty when unknown). */
   oppMascots: readonly number[];
   /** The opponent's school color (index into Payload.colors; -1 unknown). */

@@ -8,6 +8,7 @@ import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
 import { activeRun, runsOf, decided, matches, againstSpread } from './streaks.ts';
 import { underFullMoon } from './moon.ts';
+import { isPowerConf, isPowerOpp } from './power.ts';
 
 const DAY_MS = 86400000;
 const monthOf = (ep: number) => {
@@ -97,6 +98,7 @@ export function createModel(P: Payload) {
     i: number, ti: number, home: boolean, se: number,
   ): Omit<GameContext, 'sp' | 'hcCur' | 'hcNew' | 'vsNew'> {
     const oppIdx = home ? cols.ai[i] : cols.hi[i];
+    const oppConf = confOf(oppIdx, se);
     return {
       i,
       ep: cols.ep[i],
@@ -114,7 +116,9 @@ export function createModel(P: Payload) {
       month: monthOf(cols.ep[i]),
       wday: ((cols.ep[i] % 7) + 11) % 7, // 1970-01-01 was a Thursday
       moon: underFullMoon(cols.ep[i]),
-      oppConf: confOf(oppIdx, se),
+      oppConf,
+      oppPower: isPowerOpp(teams[oppIdx]?.id, oppConf, se),
+      ownPower: isPowerConf(confOf(ti, se), se),
       oppMascots: teams[oppIdx]?.mg ?? NO_MASCOTS,
       oppColor: teams[oppIdx]?.kc ?? -1,
       inState: sameState(teams[oppIdx]?.st, teams[ti]?.st),
