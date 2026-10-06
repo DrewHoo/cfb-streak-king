@@ -1,5 +1,5 @@
 {
-  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, and non-contiguous tenures. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment. 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts: Utah 2004 credits the Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure. Boise State 1996: Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, died 12/30; Mason interim from the opener. Georgia State 2016: Miles fired 2016-11-12 after a 2-8 start (ESPN), Lappano interim from 11/19. Tulane 2011-2012: Toledo resigned 2011-10-18 at 2-5, Hutson 0-6 interim from 10/22 \u2014 CFBD misfiles that stint under 2012, where Johnson coached all 12. WKU 2018: CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12. Louisville 2018: Petrino fired 2018-11-11 after game 10, Ward interim from 11/17. The 2026-09-28 batch: CFBD dropped one coach from each of these two-coach seasons and left a single row covering part of it; ordinals follow that row's record against the result sequence (Paterno 8-1 = games 1-9 of 2011, Bradley the last four; Sarkisian 3-2 = USC's first five of 2015, Helton from game 6; Hope 6-6 = Purdue's twelve regular-season games of 2012, Higgins the Heart of Dallas Bowl; and so on).",
+  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, and non-contiguous tenures. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment. 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts: Utah 2004 credits the Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure. Boise State 1996: Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, died 12/30; Mason interim from the opener. Georgia State 2016: Miles fired 2016-11-12 after a 2-8 start (ESPN), Lappano interim from 11/19. Tulane 2011-2012: Toledo resigned 2011-10-18 at 2-5, Hutson 0-6 interim from 10/22 \u2014 CFBD misfiles that stint under 2012, where Johnson coached all 12. WKU 2018: CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12. Louisville 2018: Petrino fired 2018-11-11 after game 10, Ward interim from 11/17. The 2026-09-28 batch: CFBD dropped one coach from each of these two-coach seasons and left a single row covering part of it; ordinals follow that row's record against the result sequence (Paterno 8-1 = games 1-9 of 2011, Bradley the last four; Sarkisian 3-2 = USC's first five of 2015, Helton from game 6; Hope 6-6 = Purdue's twelve regular-season games of 2012, Higgins the Heart of Dallas Bowl; and so on). Washington State 2025: Rogers coached all 12 regular-season games and left for Iowa State; Bobbit (hired 2025-12-05, CFBD) was the bowl interim. His 1-0 row also fits the opener, which the resolver picked, making Rogers a mid-season taker whose first season would be 2026; pinned so 2025 counts as his first (reported by r/CFB's HurricaneRex).",
   "utah|2004": [
     {
       "coach": "Urban Meyer",
@@ -1243,6 +1243,17 @@
       "startOrd": 0,
       "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_A%26M_Aggies_football_team",
       "quote": "In their first year under head coach Maurice Moulder, the Aggies compiled a 4\u20130 record"
+    }
+  ],
+  "washington-state|2025": [
+    {
+      "coach": "Jimmy Rogers",
+      "startOrd": 0
+    },
+    {
+      "coach": "Jesse Bobbit",
+      "startOrd": 12,
+      "interim": true
     }
   ]
 }
