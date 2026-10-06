@@ -21,7 +21,7 @@ import { TeamPage } from './components/TeamPage.jsx';
 import { GamesPage } from './components/GamesPage.jsx';
 import { Matchup } from './components/Matchup.jsx';
 import { Starred } from './components/Starred.jsx';
-import { Notes } from './components/Notes.jsx';
+import { Notes, KOFI_URL } from './components/Notes.jsx';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -243,7 +243,8 @@ export default function App({ initial } = {}) {
 
       <footer>
         <a href="https://drewhoover.com/">drewhoover.com</a> · data rebuilt weekly in season ·{' '}
-        <a href="https://github.com/DrewHoo/cfb-streak-king">source & receipts</a>
+        <a href="https://github.com/DrewHoo/cfb-streak-king">source & receipts</a> ·{' '}
+        <a href={KOFI_URL} onClick={() => track('kofi', { from: 'footer' })}>buy me a coffee</a>
       </footer>
     </main>
   );

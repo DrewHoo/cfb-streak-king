@@ -321,6 +321,8 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .notes a:hover { color: var(--cream); }
 .notes ul { padding-left: 20px; }
 .notes li { margin-bottom: 6px; }
+.notes li ul { margin: 4px 0 0; padding-left: 18px; }
+.notes li li { margin-bottom: 3px; }
 
 footer { margin-top: 56px; color: var(--ink-faint); font-size: 13px; text-align: center; }
 footer a { color: var(--ink-muted); }

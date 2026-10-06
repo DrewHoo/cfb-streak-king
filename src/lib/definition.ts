@@ -125,6 +125,25 @@ export const PARAMS: Record<ParamKind, ParamSpec> = {
 
 export const defaultParam = (c: Chip) => (c.param ? PARAMS[c.param].default() : undefined);
 
+/**
+ * How many definitions of up to 4 chips there are once every chip that takes
+ * a choice is counted per choice: PLAIN_DEFINITIONS in chips.ts, with the
+ * parameter menus multiplied in. Same walk, same conflict rule.
+ */
+export const ALL_DEFINITIONS = (() => {
+  const choices = CHIPS.map((c) => (c.param ? PARAMS[c.param].options(c).length : 1));
+  let defs = 0;
+  (function walk(start: number, chosen: number[], mult: number) {
+    defs += mult;
+    if (chosen.length === MAX_CHIPS) return;
+    for (let i = start; i < CHIPS.length; i++) {
+      if (chosen.some((j) => conflicts(CHIPS[j], CHIPS[i]))) continue;
+      walk(i + 1, [...chosen, i], mult * choices[i]);
+    }
+  })(0, [], 1);
+  return defs;
+})();
+
 export function encodeChips(active: ChipRef[]): string {
   return active.map(({ key, param }) => {
     const kind = chipByKey.get(key)?.param;

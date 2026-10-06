@@ -5,7 +5,9 @@ import { P, teams, CHIPS, chipByKey } from './model.ts';
 import {
   DEFAULT_CHIPS, MAX_CHIPS, MONTHS, HMARGINS, STATE_OPTIONS, CONF_OPTIONS,
   encodeChips, decodeChips, chipsToParam, chipsFromParam, defaultParam, withChip, swapChip, withoutChip, withParam, chipWord, swapTargets,
+  PARAMS, ALL_DEFINITIONS,
 } from './definition.ts';
+import { PLAIN_DEFINITIONS } from './chips.ts';
 
 // every value a chip's parameter can take in the UI
 const paramValues = (c: Chip): (string | number)[] => ({
@@ -67,6 +69,13 @@ describe('editing a definition', () => {
     expect(withoutChip([{ key: 'home' }, { key: 'night' }], 'home')).toEqual([{ key: 'night' }]);
     expect(withParam([{ key: 'month', param: 11 }], 'month', 9)).toEqual([{ key: 'month', param: 9 }]);
   });
+});
+
+test('the full definition count expands the plain one by the parameter menus', () => {
+  expect(ALL_DEFINITIONS).toBeGreaterThan(PLAIN_DEFINITIONS);
+  // one chip with N choices contributes N single-chip definitions
+  const vsTeam = CHIPS.find((c) => c.key === 'vsteam')!;
+  expect(ALL_DEFINITIONS - PLAIN_DEFINITIONS).toBeGreaterThanOrEqual(PARAMS.team.options(vsTeam).length - 1);
 });
 
 test('every chip reads as a word', () => {
