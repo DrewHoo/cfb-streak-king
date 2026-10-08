@@ -15,10 +15,15 @@
 //   notWith   outcomes the chip can't define a streak of, because it nearly
 //             decides them: a one-score final, or a shootout's margin under
 //             10, mostly settles the cover.
+//   marginCap the widest margin a qualifying game can be decided by, for a
+//             chip that bounds it: no one-score game is won by 10+, so the
+//             chip can't define a "won by 10+" streak.
 //
-// Every test reads only the row, so the catalog has no dependencies.
+// Every test reads only the row, so the catalog depends on nothing but the
+// outcome's own reader.
 
 import type { Dir, GameContext, GameRow } from './types.ts';
+import { marginOf } from './outcome.ts';
 
 export type ParamKind = 'state' | 'conf' | 'team' | 'month' | 'hmargin' | 'mascot' | 'color';
 export type Param = string | number | undefined;
@@ -32,6 +37,7 @@ interface ChipBase {
   param?: ParamKind;
   floor?: { season: number; what: string };
   notWith?: Dir[];
+  marginCap?: number;
 }
 export interface PregameChip extends ChipBase {
   pregame: true;
@@ -103,11 +109,11 @@ export const CHIPS: Chip[] = [
   post({ key: 'trailhalf', label: 'trailing at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! <= -num(p), floor: HALF }),
   post({ key: 'wonpos', label: 'won the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! > 0.5, floor: CLOCK }),
   post({ key: 'lostpos', label: 'lost the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! < 0.5, floor: CLOCK }),
-  post({ key: 'onescore', label: 'one-score game', group: 'shape', exclusive: true, notWith: ['C', 'N'], test: (x) => x.margin <= 8 }),
+  post({ key: 'onescore', label: 'one-score game', group: 'shape', exclusive: true, notWith: ['C', 'N'], marginCap: 8, test: (x) => x.margin <= 8 }),
   // a shootout is high-scoring AND contested: 70+ combined (1σ above the
   // all-time mean of 51.0) decided by fewer than 10 — 4.9% of games. A 73-0
   // blowout is not a shootout. struggle keeps the 1σ low bound (~15% tail).
-  post({ key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', exclusive: true, notWith: ['C', 'N'], test: (x) => x.total >= 70 && x.margin < 10 }),
+  post({ key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', exclusive: true, notWith: ['C', 'N'], marginCap: 9, test: (x) => x.total >= 70 && x.margin < 10 }),
   post({ key: 'struggle', label: 'rock fight (≤ 33)', group: 'shape', exclusive: true, test: (x) => x.total <= 33 }),
   post({ key: 'overtime', label: 'overtime game', group: 'shape', known: (x) => x.ot >= 0, test: (x) => x.ot > 0, floor: { season: 2001, what: 'overtime' } }),
   // weekend and weekday by the game date; a full moon within a day of its evening (moon.ts)
@@ -128,8 +134,8 @@ export function qualifiesPregame(c: PregameChip, g: GameContext, p?: Param): boo
   return (c.known ? c.known(g) : true) && c.test(g, p);
 }
 
-/** Whether a chip can define a streak of outcome `dir`. */
-export const fitsDir = (c: Chip, dir: Dir) => !c.notWith?.includes(dir);
+/** Whether a chip can define a streak of outcome `dir`: not one it nearly decides, nor a margin it caps under. */
+export const fitsDir = (c: Chip, dir: Dir) => !c.notWith?.includes(dir) && !(c.marginCap != null && marginOf(dir) > c.marginCap);
 
 /** Two chips that can't both be in a definition. */
 export const conflicts = (a: Chip, b: Chip) => !!a.exclusive && !!b.exclusive && a.group === b.group;
@@ -142,7 +148,7 @@ export const PLAIN_CHIPS = CHIPS.filter((c) => !c.param);
  * can define.
  */
 export const [PLAIN_DEFINITIONS, PLAIN_STREAK_KINDS] = (() => {
-  const outcomes: Dir[] = ['W', 'L', 'U', 'C', 'N'];
+  const outcomes: Dir[] = ['W', 'L', 'U', 'C', 'N', 'W10', 'L10'];
   let defs = 0, kinds = 0;
   (function walk(start: number, chosen: number[]) {
     defs++;

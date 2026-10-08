@@ -3,6 +3,7 @@ import type { Crown, Dir, Scope } from '../lib/types.ts';
 import type { TeamCrowns } from '../lib/crownsFile.ts';
 import { loadCrowns } from '../lib/loadCrowns.ts';
 import { track } from '../lib/analytics.ts';
+import { minedDir } from '../lib/outcome.ts';
 
 /**
  * The open team's crowns (the panel's, or the team page's) and the two
@@ -33,8 +34,8 @@ export function useCrowns(team: number | null, initial?: { page?: number | null;
     // analytics event names predate "crowns"; kept so the history stays continuous
     onScope: (s: Scope) => { setScope(s); track('leads scope', { scope: s }); },
     onDir: (d: Dir) => { setDir(d); track('leads dir', { dir: d }); },
-    /** Follow the board's direction without an event (opening a team, loading a URL). */
-    followDir: setDir,
+    /** Follow the board's direction without an event (opening a team, loading a URL); a margin snaps to the mined one. */
+    followDir: (d: Dir) => setDir(minedDir(d)),
   };
 }
 

@@ -1,11 +1,18 @@
-import type { Streak } from './types.ts';
+import type { Dir, Streak } from './types.ts';
+import { baseDir, marginOf } from './outcome.ts';
 
 // Small formatters shared by the grid, the ledger and the sentence line.
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const DIR_WORDS: Record<string, string> = { W: 'winning', L: 'losing', U: 'undefeated', C: 'covering', N: 'not covering' };
-export const dirWord = (dir: string) => DIR_WORDS[dir] ?? 'winning';
+/** "winning", "not covering", "winning by 10+". */
+export const dirWord = (dir: string) => {
+  const by = marginOf(dir as Dir);
+  return (DIR_WORDS[baseDir(dir as Dir)] ?? 'winning') + (by ? ` by ${by}+` : '');
+};
+/** The margin clause a sentence hangs after its noun: " by 10+ points", or nothing. */
+export const marginWords = (dir: Dir) => { const by = marginOf(dir); return by ? ` by ${by}+ points` : ''; };
 
 // the Sports-Reference site grammar: @ road, N neutral, blank home
 interface Site { neutral: boolean; home: boolean }
@@ -26,7 +33,7 @@ export const kickOf = (u: { hh: number }) => (u.hh !== 31 ? `${u.hh % 12 || 12}$
 export const spreadText = (sp: number) => (sp === 0 ? 'PK' : sp > 0 ? `+${sp}` : `${sp}`);
 /** A streak's games, by outcome: "8 covers", "1 loss". */
 const GAMES: Record<string, [string, string]> = { W: ['win', 'wins'], L: ['loss', 'losses'], U: ['game undefeated', 'games undefeated'], C: ['cover', 'covers'], N: ['missed cover', 'missed covers'] };
-export const gamesWord = (dir: string, n: number) => (GAMES[dir] ?? GAMES.W)[n === 1 ? 0 : 1];
+export const gamesWord = (dir: string, n: number) => (GAMES[baseDir(dir as Dir)] ?? GAMES.W)[n === 1 ? 0 : 1] + (marginOf(dir as Dir) ? ` by ${marginOf(dir as Dir)}+` : '');
 export const count = (s: Pick<Streak, 'len' | 'atEdge'>) => `${s.len}${s.atEdge ? '+' : ''}`;
 
 const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';

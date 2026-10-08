@@ -66,6 +66,12 @@ describe('shareWords', () => {
     expect(g.title).toContain('Michigan — Longest all-time winning streaks · vs Minnesota · on the road');
   });
 
+  test('a margin outcome words like the board does; an unreadable one is winning', () => {
+    expect(shareText(BASE, q('c=road&dir=W10'), meta)!.title).toMatch(/^Longest all-time winning by 10\+ streaks · on the road/);
+    expect(shareText(BASE, q('dir=L7&scope=active'), meta)!.description).toMatch(/active losing by 7\+ streak/);
+    expect(shareText(BASE, q('dir=W0'), meta)!.title).toMatch(/all-time winning streaks/);
+  });
+
   test('a matchup names both sides; the next game stands in for an unknown one', () => {
     expect(shareText(BASE + 'team/alabama/', q('vs=mississippi-state'), meta)!.title)
       .toBe('Alabama vs Mississippi State · College Football Streak King');

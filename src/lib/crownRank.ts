@@ -15,15 +15,18 @@
 // (createModel's baseRate). Then a team's list drops a crown when:
 //   - a crown with a subset of its chips, same outcome and overlapping
 //     seasons, scores as well (a slice of the same run)
-//   - it's an undefeated run identical to a winning one
+//   - it's an undefeated run identical to a winning one, or a winning or
+//     losing run identical to one told by its margin ("won 12 straight by
+//     10+" says "won 12 straight" and more)
 //   - (all-time) it retells a better crown's era: same outcome, one
 //     definition inside the other, most of the seasons shared
 //   - it scores under the cutoff, unless it has no chips
 // and shows its top `fallback` when nothing is left. The weights were set by
 // eye with the crown tuner (scripts/tuner/), which reads them from here.
 
-import type { Crown, Dir } from './types.ts';
+import type { Crown } from './types.ts';
 import { chipByKey } from './chips.ts';
+import { baseDir, isMargin } from './outcome.ts';
 
 export const RANK = {
   chanceW: 1,
@@ -91,6 +94,7 @@ export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crow
   let kept = list.filter((c) => (
     !list.some((o) => o.dir === c.dir && subsetOf(o, c) && overlap(o, c) && score.get(o)! >= score.get(c)!)
     && !(c.dir === 'U' && list.some((o) => o.dir === 'W' && sameRun(o, c)))
+    && !((c.dir === 'W' || c.dir === 'L') && list.some((o) => isMargin(o.dir) && baseDir(o.dir) === c.dir && sameRun(o, c)))
   ));
   kept.sort((a, b) => score.get(b)! - score.get(a)!);
   if (kept[0]?.scope === 'all') {

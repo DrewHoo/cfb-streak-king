@@ -153,7 +153,7 @@ export default function App({ initial } = {}) {
     track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
   }
   function shareView(sentence) {
-    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active)}`;
+    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active, dir)}`;
     track('share', { chips: encodeChips(active) || 'overall', dir, team: team != null ? teams[team].id : null });
     share(text, window.location.href);
   }

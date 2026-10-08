@@ -20,6 +20,7 @@ import type { ShareMeta } from '../../src/lib/shareWords.ts';
 import { createModel } from '../../src/lib/createModel.ts';
 import type { Payload, BoardRow, Dir } from '../../src/lib/types.ts';
 import { dirWord, yy } from '../../src/lib/format.ts';
+import { parseDir } from '../../src/lib/outcome.ts';
 import { renderCard } from './card.ts';
 import type { CardRow } from './card.ts';
 
@@ -75,8 +76,7 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
   const m = await loadModel();
   const tables = { teamIds: m.teams.map((t) => t.id), mascots: m.P.mascots ?? [], colors: m.P.colors ?? [] };
   const refs = decodeRefs(q.get('c'), tables) ?? decodeRefs(DEFAULT_C, tables)!;
-  const d = q.get('dir');
-  const dir: Dir = d === 'L' || d === 'U' || d === 'C' || d === 'N' ? d : 'W';
+  const dir: Dir = parseDir(q.get('dir')) ?? 'W';
   const scope = q.get('scope') === 'active' ? 'active' : 'all';
   const todayEp = Math.floor(Date.now() / 86400000);
   const rows = (scope === 'all' ? m.allTimeBoard(refs, dir, todayEp) : m.activeBoard(refs, dir, todayEp)).slice(0, 6);
@@ -116,8 +116,8 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
 function ogImageUrl(q: URLSearchParams): string {
   const out = new URLSearchParams();
   if (q.get('c') != null) out.set('c', q.get('c')!);
-  const d = q.get('dir');
-  if (d === 'L' || d === 'U' || d === 'C' || d === 'N') out.set('dir', d);
+  const d = parseDir(q.get('dir'));
+  if (d && d !== 'W') out.set('dir', d);
   if (q.get('scope') === 'active') out.set('scope', 'active');
   const s = out.toString();
   return `${ORIGIN}${BASE}/share/og.png${s ? `?${s}` : ''}`;

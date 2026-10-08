@@ -11,6 +11,7 @@
 import { chipByKey } from './chips.ts';
 import type { Chip } from './chips.ts';
 import { dirWord, stateName } from './format.ts';
+import { parseDir } from './outcome.ts';
 
 /** dist/share/meta.json, as the prerender writes it. */
 export interface ShareMeta {
@@ -102,10 +103,7 @@ export function decodeRefs(c: string | null, t: RefTables): { key: string; param
 }
 
 const SCOPE = (q: URLSearchParams) => (q.get('scope') === 'active' ? 'active' : 'all-time');
-const DIR = (q: URLSearchParams) => {
-  const d = q.get('dir');
-  return dirWord(d === 'L' || d === 'U' || d === 'C' || d === 'N' ? d : 'W');
-};
+const DIR = (q: URLSearchParams) => dirWord(parseDir(q.get('dir')) ?? 'W');
 
 /**
  * Title and description for a shared URL, or null for a page whose

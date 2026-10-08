@@ -10,7 +10,8 @@
 //   ?t=<id>         the board: the team whose streak is open in the panel
 //   ?c=             chips (definition.ts: absent = default, "all" = none)
 //   ?dir=L|U|C|N    losing, undefeated, covering or not covering; winning is
-//                   the default
+//                   the default. W10 / L7: won or lost by that many or more
+//                   (outcome.ts), every game of the run
 //   ?scope=active   all-time is the default
 //   ?week=1         only streaks that could be broken this week
 //   ?run=<ep>       all-time: the open run, by its first game's epoch day
@@ -19,6 +20,7 @@
 import type { ChipRef, Crown, Dir, Scope } from './types.ts';
 import { teams, fbsNow } from './model.ts';
 import { DEFAULT_CHIPS, DEFAULT_SCOPE, chipsFromParam, chipsToParam } from './definition.ts';
+import { parseDir } from './outcome.ts';
 
 export interface View {
   active: ChipRef[];
@@ -58,7 +60,6 @@ export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) 
 
 export function parseUrl(pathname: string, search: string): View {
   const q = new URLSearchParams(search);
-  const d = q.get('dir');
   const r = q.get('run');
   const inPath = teamFromPath(pathname);
   const bwk = weekFromPath(pathname);
@@ -68,7 +69,7 @@ export function parseUrl(pathname: string, search: string): View {
   const oldPanel = inPath != null && !matchup && ['c', 'dir', 'scope', 'run', 'week'].some((k) => q.has(k));
   return {
     active: chipsFromParam(q.get('c')),
-    dir: d === 'L' || d === 'U' || d === 'C' || d === 'N' ? d : 'W',
+    dir: parseDir(q.get('dir')) ?? 'W',
     scope: q.get('scope') === 'active' ? 'active' : 'all',
     week: q.get('week') === '1',
     // ?team= is from older links still

@@ -16,11 +16,13 @@ import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { FLAG } from './schema.ts';
 import { PLAIN_CHIPS, chipByKey, fitsDir } from './chips.ts';
 import { matches } from './streaks.ts';
+import { MINED_MARGIN, baseDir, isMargin, marginDir } from './outcome.ts';
 import { teamData, nearUniversalChips } from './crowns.ts';
 import { crownScore, chanceOf } from './crownRank.ts';
 import type { MinedCrown } from './crownRank.ts';
 import { DEFS, LEN_FLOOR, fitsSite, h2hRate } from './team.ts';
 import type { H2hSite } from './team.ts';
+import { marginWords } from './format.ts';
 
 /** One run a result last week ended. */
 export interface BrokenStreak {
@@ -95,7 +97,8 @@ export function completedWeeks(): CompletedWeek[] {
   return (weekList = out);
 }
 
-const DIRS: Dir[] = ['W', 'L', 'C', 'N'];
+// the outcomes the digest reads: the team page's, margin runs included
+const DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 const bit = (m: Uint32Array, i: number) => (m[i >> 5] & (1 << (i & 31))) !== 0;
 
 // Every run under the empty definition or one plain chip that a week-`w`
@@ -113,7 +116,7 @@ function minePlain(w: number): BrokenStreak[] {
     const chips = chip ? [chip.key] : [];
     const dirs = DIRS.filter((d) => !chip || fitsDir(chip, d));
     // the definition's qualifying games per team and its pooled outcome rates
-    const pooled = [0, 0, 0, 0, 0, 0]; // [games, won, lost, lined, covered, missed]
+    const pooled = [0, 0, 0, 0, 0, 0, 0, 0]; // [games, won, lost, lined, covered, missed, won by the margin, lost by it]
     const perTeam = data.map((td) => {
       const mask = ci == null ? null : td.masks[ci];
       const all: number[] = [];
@@ -124,14 +127,15 @@ function minePlain(w: number): BrokenStreak[] {
         all.push(i);
         pooled[0]++;
         if (g.r === 'W') pooled[1]++; else if (g.r === 'L') pooled[2]++;
+        if (g.margin >= MINED_MARGIN) { if (g.r === 'W') pooled[6]++; else if (g.r === 'L') pooled[7]++; }
         if (g.cover != null) { lined.push(i); pooled[3]++; if (g.cover === 'W') pooled[4]++; else if (g.cover === 'L') pooled[5]++; }
       }
       return { td, all, lined };
     });
-    const [g, won, lost, ln, cov, miss] = pooled;
+    const [g, won, lost, ln, cov, miss, wonM, lostM] = pooled;
     for (const dir of dirs) {
       const spread = dir === 'C' || dir === 'N';
-      const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'C' ? [cov, ln] : [miss, ln];
+      const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'C' ? [cov, ln] : dir === 'N' ? [miss, ln] : baseDir(dir) === 'W' ? [wonM, g] : [lostM, g];
       // each team's trailing run as the week began; their lengths are the field
       const entries = perTeam.map(({ td, all, lined }) => {
         const q = spread ? lined : all;
@@ -227,11 +231,21 @@ function mineH2H(w: number): BrokenStreak[] {
 
 const cache = new Map<number, BrokenWeek>();
 
+// a plain run a margin run retells: same team, chips, start and ender ("had
+// won 12 straight by 10+" says "had won 12 straight" and more)
+const marginRetold = (list: BrokenStreak[]) => (b: BrokenStreak) => (
+  !isMargin(b.dir) && (b.dir === 'W' || b.dir === 'L') && list.some((m) => isMargin(m.dir) && baseDir(m.dir) === b.dir
+    && m.ti === b.ti && m.ender.i === b.ender.i && m.len === b.len && m.chips.length === b.chips.length && m.chips.every((k) => b.chips.includes(k)))
+);
+
 function digest(win: CompletedWeek): BrokenWeek {
   const got = cache.get(win.w);
   if (got) return got;
   const best = new Map<string, BrokenStreak>();
-  for (const b of minePlain(win.w)) {
+  const mined = minePlain(win.w);
+  const retold = marginRetold(mined);
+  for (const b of mined) {
+    if (retold(b)) continue;
     const k = `${b.ti}|${b.dir}|${b.ender.i}`;
     const cur = best.get(k);
     if (!cur || b.score > cur.score) best.set(k, b);
@@ -266,7 +280,7 @@ export function brokenLastWeek(): BrokenWeek | null {
 
 /** The claim a broken run makes, in plain words: "Michigan had won 18 straight on the road vs Minnesota". */
 export function brokenClaim(b: BrokenStreak): string {
-  const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[b.dir as 'W' | 'L' | 'C' | 'N'];
+  const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[baseDir(b.dir) as 'W' | 'L' | 'C' | 'N'];
   const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : chipByKey.get(k)?.label ?? k)).join(' ');
-  return `${teams[b.ti]?.name} ${verb} ${b.len}${b.atEdge ? '+' : ''} straight${words ? ` ${words}` : ''}`;
+  return `${teams[b.ti]?.name} ${verb} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`;
 }

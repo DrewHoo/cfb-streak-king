@@ -3,12 +3,13 @@
 // one per constraint, and a constraint's own menu one per choice, for the
 // definition picking it would make.
 
-import type { ChipRef, Dir, GameRow, Scope } from './types.ts';
+import type { ChipRef, Dir, GameRow, Result, Scope } from './types.ts';
 import { PLAIN_CHIPS, chipByKey, fitsDir, qualifies } from './chips.ts';
 import type { Param, ParamKind } from './chips.ts';
 import { PARAMS, swapChip, swapTargets, withChip, withParam } from './definition.ts';
-import { teamData, walkActive, walkLongest, spreadWalk } from './crowns.ts';
+import { teamData, walkActive, walkLongest, spreadWalk, resultsBy } from './crowns.ts';
 import type { Run, TeamData } from './crowns.ts';
+import { baseDir, marginOf } from './outcome.ts';
 
 export interface King {
   tis: number[];
@@ -64,9 +65,20 @@ function maskOf(td: TeamData, a: ChipRef): Uint32Array {
   return m;
 }
 
+// a team's results by each margin the menu offers, built on first use
+const marginResults = new WeakMap<TeamData, Map<number, Result[]>>();
+function resultsFor(td: TeamData, by: number): Result[] {
+  if (!by) return td.r;
+  let byMargin = marginResults.get(td);
+  if (!byMargin) marginResults.set(td, (byMargin = new Map()));
+  let r = byMargin.get(by);
+  if (!r) byMargin.set(by, (r = resultsBy(td.gs, by)));
+  return r;
+}
+
 function runOf(td: TeamData, q: Uint32Array, dir: Dir, scope: Scope): Run | undefined {
   if (dir === 'C' || dir === 'N') return spreadWalk(td, q, dir === 'C' ? td.covered : td.missed, scope) ?? undefined;
-  return (scope === 'all' ? walkLongest : walkActive)(td, q)[dir];
+  return (scope === 'all' ? walkLongest : walkActive)(td, q, resultsFor(td, marginOf(dir)))[baseDir(dir)];
 }
 
 function best(active: ChipRef[], dir: Dir, scope: Scope) {

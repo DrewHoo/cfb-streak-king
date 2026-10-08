@@ -35,7 +35,8 @@
 import type { BoardRow, ChipRef, Crown, Dir } from './types.ts';
 import { P, teams } from './model.ts';
 import { chipByKey } from './chips.ts';
-import { dirWord, stateName } from './format.ts';
+import { dirWord, marginWords, stateName } from './format.ts';
+import { baseDir } from './outcome.ts';
 
 type Frag = string | ((p: any) => string);
 type SlotRow = [slot: string, frag: Frag, demoted?: string];
@@ -111,8 +112,12 @@ const ADJ_ORDER = ['ranked', 'top10', 'top5', 'unranked', 'power', 'confgame', '
 
 const frag = (f: Frag, p: unknown) => (typeof f === 'function' ? f(p) : f);
 
-/** The constraint tail: "one-score games against ranked opponents on the road". */
-export function definitionPhrase(active: ChipRef[]): string {
+/**
+ * The constraint tail: "one-score games against ranked opponents on the
+ * road". A margin outcome hangs its clause on the noun: "games by 10+ points
+ * against ranked opponents".
+ */
+export function definitionPhrase(active: ChipRef[], dir: Dir = 'W'): string {
   const by = new Map<string, string[]>(); // slot -> fragments
   const push = (slot: string, text: string) => by.set(slot, [...(by.get(slot) ?? []), text]);
   let noun: Frag | null = null;
@@ -133,7 +138,7 @@ export function definitionPhrase(active: ChipRef[]): string {
 
   // the noun phrase: "[one-score conference] games"
   const kindWords = active.filter((a) => SLOTS[a.key]?.[0] === 'kind').sort((x, y) => KIND_ORDER.indexOf(x.key) - KIND_ORDER.indexOf(y.key)).map((a) => SLOTS[a.key][1]);
-  const head = [...kindWords, (noun as string | null) ?? 'games'].join(' ');
+  const head = [...kindWords, (noun as string | null) ?? 'games'].join(' ') + marginWords(dir);
 
   // one "against" clause
   const adjs = active.filter((a) => SLOTS[a.key]?.[0] === 'adj').sort((x, y) => ADJ_ORDER.indexOf(x.key) - ADJ_ORDER.indexOf(y.key)).map((a) => SLOTS[a.key][1]);
@@ -174,8 +179,8 @@ const year = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
 const SINGULAR: Record<string, string> = { games: 'game', shootouts: 'shootout', 'rock fights': 'rock fight', 'season openers': 'season opener', 'regular-season finales': 'regular-season finale', 'bowl and playoff games': 'bowl or playoff game' };
 const singular = (phrase: string) => phrase.replace(/^(bowl and playoff games|regular-season finales|season openers|rock fights|shootouts|games)/, (m) => SINGULAR[m]);
 
-// "has won" / "won", by outcome and tense
-const VERBS: Record<Dir, [live: string, ended: string]> = {
+// "has won" / "won", by outcome and tense; a margin outcome takes its base's
+const VERBS: Record<string, [live: string, ended: string]> = {
   W: ['has won', 'won'],
   L: ['has lost', 'lost'],
   U: ['is undefeated in', 'went undefeated in'],
@@ -186,16 +191,16 @@ const span = (y0: number, y1: number) => (y0 === y1 ? ` in ${y0}` : `, ${y0}–$
 
 export function claim(row: BoardRow, active: ChipRef[], dir: Dir): string {
   const t = teams[row.ti];
-  const phrase = definitionPhrase(active);
+  const phrase = definitionPhrase(active, dir);
   const n = `${row.s.len}${row.s.atEdge ? '+' : ''} straight ${row.s.len === 1 && !row.s.atEdge ? singular(phrase) : phrase}`;
   const live = row.live ?? true;
   if (!live) {
     // "in 2012" for a run inside one year, "2007–2021" across years
-    return `${t.name} ${VERBS[dir][1]} ${n}${span(year(row.s.start!.ep), year(row.s.end!.ep))}.`;
+    return `${t.name} ${VERBS[baseDir(dir)][1]} ${n}${span(year(row.s.start!.ep), year(row.s.end!.ep))}.`;
   }
   const first = row.qual[row.qual.length - row.s.len];
   const since = row.s.atEdge ? '' : `, since ${monYear(first.ep)}`;
-  return `${t.name} ${VERBS[dir][0]} ${n}${since}.`;
+  return `${t.name} ${VERBS[baseDir(dir)][0]} ${n}${since}.`;
 }
 
 /** A team with no streak under the definition. */
@@ -208,7 +213,7 @@ export function crownClaim(ti: number, cr: Crown): string {
   const live = cr.scope === 'active' || cr.live;
   const when = !live && cr.startSe != null && cr.endSe != null ? span(cr.startSe, cr.endSe) : '';
   const chips = cr.chips.map((key) => ({ key }));
-  return `${teams[ti].name} ${VERBS[cr.dir][live ? 0 : 1]} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips)}${when}.`;
+  return `${teams[ti].name} ${VERBS[baseDir(cr.dir)][live ? 0 : 1]} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips, cr.dir)}${when}.`;
 }
 
 export const ordinal = (n: number) => {

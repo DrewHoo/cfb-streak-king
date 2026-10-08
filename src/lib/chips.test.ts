@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { GameContext, GameRow } from './types.ts';
-import { CHIPS, qualifies } from './chips.ts';
+import { CHIPS, chipByKey, fitsDir, qualifies } from './chips.ts';
 import { fbsNow, gamesOf } from './model.ts';
 import { GROUP_NOTES, GROUPS, defaultParam } from './definition.ts';
 
@@ -42,6 +42,23 @@ describe('pregame chips read only what’s known before kickoff', () => {
         expect(withoutResult).toBe(withResult);
       }
     });
+  }
+});
+
+test('a chip that bounds the margin can’t define a streak by more than it', () => {
+  const onescore = chipByKey.get('onescore')!;
+  const shootout = chipByKey.get('shootout')!;
+  expect(fitsDir(onescore, 'W3')).toBe(true);
+  expect(fitsDir(onescore, 'W10')).toBe(false);
+  expect(fitsDir(onescore, 'L10')).toBe(false);
+  expect(fitsDir(shootout, 'W7')).toBe(true);
+  expect(fitsDir(shootout, 'W10')).toBe(false);
+  expect(fitsDir(onescore, 'C')).toBe(false);
+  expect(fitsDir(chipByKey.get('home')!, 'W28')).toBe(true);
+  // the cap is honest: no qualifying game is decided by more
+  for (const c of CHIPS.filter((x) => x.marginCap != null)) {
+    expect(all.filter((g) => qualifies(c, g)).every((g) => g.margin <= c.marginCap!), c.key).toBe(true);
+    expect(all.some((g) => qualifies(c, g) && g.margin === c.marginCap), c.key).toBe(true);
   }
 });
 

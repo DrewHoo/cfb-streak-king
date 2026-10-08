@@ -12,8 +12,9 @@ import type { Crown, Dir, GameRow, UpcomingRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
 import { PLAIN_CHIPS, conflicts, fitsDir, qualifiesPregame } from './chips.ts';
 import type { PregameChip } from './chips.ts';
-import { teamData, walkActive, spreadWalk, nearUniversalChips } from './crowns.ts';
+import { teamData, walkActive, spreadWalk, nearUniversalChips, asMarginRuns } from './crowns.ts';
 import type { Run } from './crowns.ts';
+import { MINED_MARGIN, baseDir, isMargin, marginDir } from './outcome.ts';
 import { crownScore, chanceOf } from './crownRank.ts';
 import { ordinal } from './sentence.ts';
 import { spreadText } from './format.ts';
@@ -78,8 +79,9 @@ export interface TeamStreak {
 export const LEN_FLOOR = 4;
 export const worthShowing = (s: Pick<TeamStreak, 'len' | 'rank' | 'tied'>) => s.len >= LEN_FLOOR || (s.rank === 1 && s.tied === 1);
 
-// the outcomes a team's sheet reads: every team is on one side of each pair
-const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N'];
+// the outcomes a team's sheet reads: every team is on one side of each pair,
+// and the margin runs the miner walks
+const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 
 // how many definitions have each chip count, the cost crownRank charges a definition
 export const DEFS = (() => {
@@ -115,8 +117,8 @@ function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[
   const pre = cs.every((c) => c.pregame) ? (u: UpcomingRow) => cs.every((c) => qualifiesPregame(c as PregameChip, u)) : null;
   const data = teamData();
   const runs: Partial<Record<Dir, Run>>[] = [];
-  // the definition's outcome rates over every team's games: [qualifying, won, lost, lined, covered, missed]
-  const pooled = [0, 0, 0, 0, 0, 0];
+  // the definition's outcome rates over every team's games: [qualifying, won, lost, lined, covered, missed, won by the margin, lost by it]
+  const pooled = [0, 0, 0, 0, 0, 0, 0, 0];
   for (const td of data) {
     const q = new Uint32Array(td.words);
     // past the last game the bits stay clear, so a count is a count of games
@@ -127,6 +129,7 @@ function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[
     if (c) r.C = c;
     const n = spreadWalk(td, q, td.missed, 'active');
     if (n) r.N = n;
+    Object.assign(r, asMarginRuns(walkActive(td, q, td.rM), MINED_MARGIN));
     runs.push(r);
     for (let w = 0; w < td.words; w++) pooled[0] += popcount(q[w]);
     pooled[1] += countAnd(q, td.won);
@@ -134,12 +137,14 @@ function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[
     pooled[3] += countAnd(q, td.lined);
     pooled[4] += countAnd(q, td.covered);
     pooled[5] += countAnd(q, td.missed);
+    pooled[6] += countAnd(q, td.wonM);
+    pooled[7] += countAnd(q, td.lostM);
   }
-  const [g, won, lost, lined, cov, miss] = pooled;
+  const [g, won, lost, lined, cov, miss, wonM, lostM] = pooled;
   const ctx = { M: DEFS, teams: fbsNow.size };
   const out = new Map<number, TeamStreak[]>();
   for (const dir of dirs) {
-    const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'C' ? [cov, lined] : [miss, lined];
+    const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'C' ? [cov, lined] : dir === 'N' ? [miss, lined] : baseDir(dir) === 'W' ? [wonM, g] : [lostM, g];
     const lens = runs.map((r) => r[dir]?.len ?? 0);
     const field = lens.filter(Boolean).length;
     data.forEach((td, t) => {
@@ -189,6 +194,12 @@ const byInterest = (a: TeamStreak, b: TeamStreak) => b.score - a.score || b.len 
 // the same run told with more words: a slice of it under fewer conditions is already on the list
 const sliceOf = (c: TeamStreak, s: TeamStreak) => s.dir === c.dir && s.len === c.len && s.since === c.since
   && s.chips.length < c.chips.length && s.chips.every((k) => c.chips.includes(k));
+// the same run told by its margin: "won 12 straight by 10+" says "won 12 straight" and more
+const sameRun = (a: TeamStreak, b: TeamStreak) => a.len === b.len && a.since === b.since
+  && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
+const marginRetells = (list: TeamStreak[]) => (s: TeamStreak) => (
+  !isMargin(s.dir) && (s.dir === 'W' || s.dir === 'L') && list.some((m) => isMargin(m.dir) && baseDir(m.dir) === s.dir && sameRun(m, s))
+);
 
 /**
  * A team's current streaks worth reading, best first: its single-condition
@@ -197,7 +208,9 @@ const sliceOf = (c: TeamStreak, s: TeamStreak) => s.dir === c.dir && s.len === c
  * while they load) that aren't a single-condition run retold.
  */
 export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null = null): TeamStreak[] {
-  const singles = (singleStreaks(todayEp).get(ti) ?? []).filter(worthShowing);
+  const all = singleStreaks(todayEp).get(ti) ?? [];
+  const retold = marginRetells(all);
+  const singles = all.filter((s) => worthShowing(s) && !retold(s));
   const list = [...singles];
   for (const cr of crowns ?? []) {
     if (cr.scope !== 'active' || cr.chips.length < 2 || !SHEET_DIRS.includes(cr.dir)) continue;

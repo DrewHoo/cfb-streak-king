@@ -37,6 +37,9 @@ describe('team', () => {
       const s = list.find((x) => x.dir === dir && x.chips.join() === chips.join());
       const level = row ? rows.filter((r) => r.s.len === row.s.len).length : 0;
       if (!row || !worthShowing({ len: row.s.len, rank: rows.findIndex((r) => r.s.len === row.s.len) + 1, tied: level })) { expect(s).toBeUndefined(); continue; }
+      // a winning run every game of which was won by 10+ is told once, by its margin
+      const retold = dir === 'W' && list.some((x) => x.dir === 'W10' && x.chips.join() === chips.join() && x.len === row.s.len);
+      if (retold) { expect(s).toBeUndefined(); continue; }
       expect(s).toMatchObject({ len: row.s.len, field: rows.length, rank: rows.findIndex((r) => r.s.len === row.s.len) + 1, tied: level });
       expect(s!.since).toBe(row.qual[row.qual.length - row.s.len].se);
       expect(s!.chance).toBeGreaterThan(0);

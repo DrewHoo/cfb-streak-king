@@ -9,6 +9,7 @@ import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
 import { siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText, oddsText } from '../lib/format.ts';
+import { MINED_MARGIN, baseDir } from '../lib/outcome.ts';
 import { seasonRecord, recordText } from '../lib/team.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, CloseIcon, Chevron } from './Icons.jsx';
@@ -111,7 +112,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
     <div className="leads">
       <p className="leads-lead">
         {name} is the King of{' '}
-        <b className={crownsDir === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
+        <b className={baseDir(crownsDir) === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
         <select className="leads-sel" value={crownsScope} onChange={(e) => onCrownsScope(e.target.value)} aria-label="Active or all-time">
           <option value="active">Active</option>
           <option value="all">All-time</option>
@@ -122,6 +123,8 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
           <option value="U">Undefeated</option>
           <option value="C">Covering</option>
           <option value="N">Not covering</option>
+          <option value={`W${MINED_MARGIN}`}>Winning by {MINED_MARGIN}+</option>
+          <option value={`L${MINED_MARGIN}`}>Losing by {MINED_MARGIN}+</option>
         </select>{' '}
         Streaks
       </p>
@@ -137,7 +140,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
         return (
           <div className={'lead' + (here ? ' here' : '')} key={cr.dir + cr.chips.join()}>
             <button className="lead-apply" onClick={() => onApply(cr)}>
-              <span className={'lead-len' + (cr.dir === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
+              <span className={'lead-len' + (baseDir(cr.dir) === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
               <span className="lead-txt">{cr.chips.length ? cr.chips.map((k) => chipByKey.get(k).label).join(' · ') : 'all games'}</span>
               <span className="lead-meta">longest of {cr.field}{span ? ` · ${span}` : ''} · {oddsText(cr.chance)} by chance{here ? ' · shown above' : ''}</span>
             </button>

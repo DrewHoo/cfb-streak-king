@@ -155,6 +155,17 @@ describe('claim', () => {
       .toBe('Alabama lost 4 straight games against ranked opponents on the road in 2001.');
   });
 
+  test('a margin outcome hangs its clause on the noun', () => {
+    const r = activeBoard(chips('unranked'), 'W10', today)[0];
+    expect(claim(r, chips('unranked'), 'W10')).toMatch(new RegExp(`^${teams[r.ti].name} has won ${r.s.len}\\+? straight games by 10\\+ points against unranked opponents(, since [A-Z][a-z]{2} \\d{4})?\\.$`));
+    const one = allTimeBoard(chips('opener'), 'L21', today).find((x) => !x.live && x.s.len === 1 && x.s.start!.se === x.s.end!.se)!;
+    expect(claim(one, chips('opener'), 'L21')).toMatch(/ lost 1 straight season opener by 21\+ points in \d{4}\.$/);
+    const base = { chips: ['road'], scope: 'all' as const, atEdge: false, field: 40, also: 0, chance: 0 };
+    expect(crownClaim(idx('alabama'), { ...base, dir: 'W10', len: 9, live: false, startSe: 2008, endSe: 2009 }))
+      .toBe('Alabama won 9 straight games by 10+ points on the road, 2008–2009.');
+    expect(noClaim(idx('alabama'), [], 'L7')).toBe('Alabama has no active losing by 7+ streak in games.');
+  });
+
   test('no streak', () => {
     expect(noClaim(idx('alabama'), chips('road'), 'L')).toBe('Alabama has no active losing streak in games on the road.');
   });

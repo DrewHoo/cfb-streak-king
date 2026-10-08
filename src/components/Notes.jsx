@@ -58,6 +58,11 @@ export function Notes() {
               </li>
               <li>Ties (pre-1996) end winning and losing streaks; an undefeated streak counts wins and ties.</li>
               <li>
+                A winning or losing streak can ask for a margin: “winning by 10+” counts games won by 10 or more, and any
+                other result — a loss or a closer win alike — ends it. The margin is on the outcome, not a condition, because a
+                condition only decides which games count, never what breaks the run.
+              </li>
+              <li>
                 A covering streak counts games where the team beat the closing spread, and a not-covering streak counts
                 games where it didn't: a push ends either, and a game without a line (every game before 1978, and a few
                 after) doesn't count at all.
@@ -65,7 +70,7 @@ export function Notes() {
               
           <li>The {PLAIN_CHIPS.length} conditions make{' '}
             {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible streak definitions, {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting
-            winning, losing, undefeated, covering and not covering separately; the conditions that take a parameter
+            winning, losing, undefeated, covering, not covering, and winning or losing by 10+ separately; the conditions that take a parameter
             (a state, conference, opponent, month, team color, or mascot) push that past {Math.floor(ALL_DEFINITIONS / 1e6)} million.
           </li>
           <li>The odds shown are the chance that luck alone produces a streak that long: every team (or, all-time,

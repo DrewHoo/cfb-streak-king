@@ -59,8 +59,12 @@ export interface Payload {
 }
 
 export type Result = 'W' | 'L' | 'T';
-/** The outcome a streak counts: won, lost, undefeated (won or tied), covered the spread, or failed to. */
-export type Dir = 'W' | 'L' | 'U' | 'C' | 'N';
+/**
+ * The outcome a streak counts: won, lost, undefeated (won or tied), covered
+ * the spread, or failed to. A winning or losing outcome can carry the margin
+ * it demands, "W10": won by 10 or more (outcome.ts reads it).
+ */
+export type Dir = 'W' | 'L' | 'U' | 'C' | 'N' | `W${number}` | `L${number}`;
 /** Against the closing spread: covered, didn't, or pushed. */
 export type Cover = 'W' | 'L' | 'P';
 export type Scope = 'active' | 'all';

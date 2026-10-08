@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { BoardRow, ChipRef, Dir, Result } from './types.ts';
 import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
-import { activeRun, runsOf, matches, decided, OUTCOMES } from './streaks.ts';
+import { activeRun, runsOf, matches, decided, OUTCOMES, MINED_OUTCOMES } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard, baseRate } from './model.ts';
 import { mineRawCrowns, nearUniversalChips, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
 import { PLAIN_CHIPS } from './chips.ts';
@@ -78,6 +78,40 @@ describe('covering', () => {
   });
 });
 
+describe('by a margin', () => {
+  const g = (r: string, margin: number) => ({ r: r as Result, margin });
+  test('a win by less than the margin ends the run like a loss does', () => {
+    const games = [g('W', 3), g('W', 14), g('W', 10), g('W', 21)];
+    expect(activeRun(games, 'W10')).toMatchObject({ len: 3, atEdge: false });
+    expect(activeRun(games, 'W10')!.ender).toBe(games[0]);
+    expect(activeRun(games, 'W3')).toMatchObject({ len: 4, atEdge: true });
+    expect(activeRun(games, 'W14')).toMatchObject({ len: 1 });
+    expect(activeRun([g('W', 14), g('L', 3), g('W', 28)], 'W10')).toMatchObject({ len: 1, atEdge: false });
+    expect(activeRun([g('W', 14), g('W', 7)], 'W10')).toBeNull();
+  });
+  test('a losing margin counts losses by that much; a tie ends it', () => {
+    expect(activeRun([g('L', 3), g('L', 17), g('L', 10)], 'L10')).toMatchObject({ len: 2 });
+    expect(activeRun([g('L', 17), g('T', 0), g('L', 10)], 'L10')).toMatchObject({ len: 1 });
+    expect(activeRun([g('W', 17), g('L', 9)], 'L10')).toBeNull();
+    expect(runsOf([g('L', 17), g('L', 3), g('L', 10), g('L', 10)], 'L10')).toEqual([[0, 0], [2, 3]]);
+  });
+  test('every game in a margin run on the real boards was decided by at least the margin', () => {
+    for (const dir of ['W10', 'L10', 'W21'] as const) {
+      const rows = activeBoard([], dir, today);
+      expect(rows.length).toBeGreaterThan(10);
+      for (const row of rows.slice(0, 20)) {
+        const run = row.qual.slice(-row.s.len);
+        expect(run.every((x) => x.r === dir[0] && x.margin >= Number(dir.slice(1)))).toBe(true);
+        if (row.s.ender) expect(row.s.ender.r === dir[0] && row.s.ender.margin >= Number(dir.slice(1))).toBe(false);
+      }
+    }
+  });
+  test('the board under a margin never outruns the plain one', () => {
+    const plain = new Map(activeBoard([], 'W', today).map((r) => [r.ti, r.s.len]));
+    for (const r of activeBoard([], 'W10', today)) expect(r.s.len).toBeLessThanOrEqual(plain.get(r.ti)!);
+  });
+});
+
 describe('runsOf', () => {
   test('maximal runs, in order', () => {
     expect(runsOf(seq('WWLWTWL'), 'W')).toEqual([[0, 1], [3, 3], [5, 5]]);
@@ -146,6 +180,12 @@ describe('boards', () => {
 // other: every crown's definition must put that team alone on top of the board,
 // and its pooled rate must match baseRate's count over the game lists.
 describe('crowns agree with the boards', () => {
+  test('every mined outcome names a crown somewhere, the margin ones included', async () => {
+    const cache = await mineRawCrowns('all');
+    const dirs = new Set([...cache.values()].flat().map((c) => c.dir));
+    for (const d of MINED_OUTCOMES) expect(dirs, d).toContain(d);
+    expect(dirs.size).toBe(MINED_OUTCOMES.length);
+  }, 60000);
   for (const scope of ['active', 'all'] as const) {
     test(`${scope} crowns`, async () => {
       const cache = await mineRawCrowns(scope);

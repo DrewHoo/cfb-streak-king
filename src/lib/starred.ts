@@ -2,10 +2,12 @@
 // (specs/accounts.spec.md). The key predates the "starred" name; keep it so
 // existing stars survive.
 
+import type { Dir } from './types.ts';
+
 export interface StarredDef {
   /** encodeChips() of the definition. */
   c: string;
-  dir: 'W' | 'L' | 'U' | 'C' | 'N';
+  dir: Dir;
   name: string;
 }
 

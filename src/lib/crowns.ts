@@ -1,6 +1,7 @@
 // Mine "streaks this team is king of": every ≤4-chip subset of the
-// parameterless catalog (exclusivity honored) × the five outcomes, evaluated
-// over packed per-chip bitmasks. The whole space is 64,687 definitions (the
+// parameterless catalog (exclusivity honored) × the seven mined outcomes
+// (the plain five, and won or lost by 10+), evaluated over packed per-chip
+// bitmasks. The whole space is 64,687 definitions (the
 // empty one included) and mines in a second or two, lazily in the client.
 //
 // Two scopes. 'active': the definition-direction whose sole longest active
@@ -17,9 +18,16 @@ import { PLAIN_CHIPS, conflicts, fitsDir, qualifies } from './chips.ts';
 import { rankCrowns } from './crownRank.ts';
 import type { MinedCrown } from './crownRank.ts';
 import { fbsNow, gamesOf } from './model.ts';
-import { OUTCOMES } from './streaks.ts';
+import { MINED_OUTCOMES } from './streaks.ts';
+import { MINED_MARGIN, marginDir } from './outcome.ts';
 
-export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array }
+/**
+ * One team's games for the walks: per-chip masks, the result of each game
+ * (`r`), and the result by the mined margin (`rM`: W won by 10+, L lost by
+ * 10+, T neither, so the same walks find margin runs), with the masks the
+ * pooled rates count.
+ */
+export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; rM: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array; wonM: Uint32Array; lostM: Uint32Array }
 // live: no later qualifying game broke the run
 export interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
 export type Runs = Partial<Record<Dir, Run>>;
@@ -68,20 +76,37 @@ function buildData(): TeamData[] {
     const missed = new Uint32Array(words);
     const won = new Uint32Array(words);
     const lost = new Uint32Array(words);
+    const wonM = new Uint32Array(words);
+    const lostM = new Uint32Array(words);
+    const rM = resultsBy(gs, MINED_MARGIN);
     for (let i = 0; i < n; i++) {
       if (gs[i].r === 'W') won[i >> 5] |= 1 << (i & 31);
       if (gs[i].r === 'L') lost[i >> 5] |= 1 << (i & 31);
+      if (rM[i] === 'W') wonM[i >> 5] |= 1 << (i & 31);
+      if (rM[i] === 'L') lostM[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover != null) lined[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover === 'W') covered[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover === 'L') missed[i >> 5] |= 1 << (i & 31);
     }
-    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), won, lost, lined, covered, missed };
+    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), rM, won, lost, lined, covered, missed, wonM, lostM };
   });
+}
+
+/** Each game's result by a margin: W won by `by` or more, L lost by that much, T neither. */
+export const resultsBy = (gs: GameRow[], by: number): Result[] => gs.map((g) => (g.margin >= by ? g.r : 'T'));
+
+/** The margin runs of a walk's output, named by their outcomes ("W10"); the undefeated run means nothing by a margin. */
+export function asMarginRuns(runs: Runs, by: number): Runs {
+  const out: Runs = {};
+  if (runs.W) out[marginDir('W', by)] = runs.W;
+  if (runs.L) out[marginDir('L', by)] = runs.L;
+  return out;
 }
 
 // The trailing runs of the masked sequence: the run of the latest result
 // (W or L) and the undefeated run, each set when it has at least one game.
-export function walkActive(td: TeamData, q: Uint32Array): Runs {
+// `r` is the result per game: the team's, or its results by a margin.
+export function walkActive(td: TeamData, q: Uint32Array, results: Result[] = td.r): Runs {
   let r0: Result | null = null;
   let lastIdx = -1;
   let same = 0, sameStart = -1, sameOpen = true;
@@ -92,7 +117,7 @@ export function walkActive(td: TeamData, q: Uint32Array): Runs {
       if (!(q[w] & (1 << b))) continue;
       const i = (w << 5) | b;
       if (i >= td.n) continue;
-      const r = td.r[i];
+      const r = results[i];
       if (r0 === null) { r0 = r; lastIdx = i; sameOpen = r !== 'T'; }
       if (sameOpen) { if (r === r0) { same++; sameStart = i; } else sameOpen = false; }
       if (unbOpen) { if (r !== 'L') { unb++; unbStart = i; } else unbOpen = false; }
@@ -108,7 +133,7 @@ export function walkActive(td: TeamData, q: Uint32Array): Runs {
 
 // the longest run of each outcome anywhere in the masked sequence; on a tie
 // the later run wins, as it sorts first on the all-time board
-export function walkLongest(td: TeamData, q: Uint32Array): Runs {
+export function walkLongest(td: TeamData, q: Uint32Array, results: Result[] = td.r): Runs {
   const best: Runs = {};
   const keep = (o: Dir, len: number, startIdx: number, lastIdx: number) => {
     const b = best[o];
@@ -126,7 +151,7 @@ export function walkLongest(td: TeamData, q: Uint32Array): Runs {
       const i = (w << 5) | b;
       if (i >= td.n) continue;
       if (firstIdx < 0) firstIdx = i;
-      const r = td.r[i];
+      const r = results[i];
       if (r === dir) len++;
       else {
         if (dir === 'W' || dir === 'L') keep(dir, len, startIdx, prev);
@@ -141,6 +166,7 @@ export function walkLongest(td: TeamData, q: Uint32Array): Runs {
   keep('U', unb, unbStart, prev);
   // a run that starts at the first qualifying game may run past the window
   for (const run of Object.values(best)) {
+    if (!run) continue;
     run.atEdge = run.startIdx === firstIdx;
     run.live = run.lastIdx === prev;
   }
@@ -230,13 +256,14 @@ async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: 
       if (c) res[t].C = c;
       const nc = spreadWalk(td, qb, td.missed, scope);
       if (nc) res[t].N = nc;
+      Object.assign(res[t], asMarginRuns(walk(td, qb, td.rM), MINED_MARGIN));
     }
     // the definition's outcome rates over every team's games, counted once
-    // and only when it names a king: [qualifying, won, lost, lined, covered, missed]
+    // and only when it names a king: [qualifying, won, lost, lined, covered, missed, won by the margin, lost by it]
     let pooled: number[] | null = null;
     const rateOf = (dir: Dir) => {
       if (!pooled) {
-        pooled = [0, 0, 0, 0, 0, 0];
+        pooled = [0, 0, 0, 0, 0, 0, 0, 0];
         for (let t = 0; t < T.length; t++) {
           const td = data[t], qb = q[t];
           // the empty definition fills every bit, past the last game too
@@ -249,13 +276,15 @@ async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: 
           pooled[3] += countAnd(qb, td.lined);
           pooled[4] += countAnd(qb, td.covered);
           pooled[5] += countAnd(qb, td.missed);
+          pooled[6] += countAnd(qb, td.wonM);
+          pooled[7] += countAnd(qb, td.lostM);
         }
       }
-      const [g, won, lost, lined, cov, miss] = pooled;
-      const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'U' ? [g - lost, g] : dir === 'C' ? [cov, lined] : [miss, lined];
+      const [g, won, lost, lined, cov, miss, wonM, lostM] = pooled;
+      const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'U' ? [g - lost, g] : dir === 'C' ? [cov, lined] : dir === 'N' ? [miss, lined] : dir === `W${MINED_MARGIN}` ? [wonM, g] : [lostM, g];
       return { p: n ? hit / n : 1, n };
     };
-    for (const dir of OUTCOMES) {
+    for (const dir of MINED_OUTCOMES) {
       if (def.some((i) => !fitsDir(NP[i], dir))) continue;
       let best = 0;
       let leader = -1;

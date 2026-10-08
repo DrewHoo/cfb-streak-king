@@ -19,12 +19,22 @@ describe('url', () => {
       { ...DEFAULT_VIEW, active: [{ key: 'road' }, { key: 'month', param: 11 }], dir: 'L', scope: 'active', week: true },
       { ...DEFAULT_VIEW, active: [], dir: 'U', team: idx('alabama'), run: 7933 },
       { ...DEFAULT_VIEW, active: [{ key: 'road' }], dir: 'N' },
+      { ...DEFAULT_VIEW, active: [{ key: 'home' }], dir: 'W10', scope: 'active' },
+      { ...DEFAULT_VIEW, active: [], dir: 'L7' },
       { ...DEFAULT_VIEW, active: [{ key: 'vsteam', param: idx('auburn') }], team: idx('kansas'), run: -4000 },
       { ...DEFAULT_VIEW, page: idx('byu') },
       { ...DEFAULT_VIEW, page: idx('byu'), game: idx('byu'), vs: idx('tcu') },
       { ...DEFAULT_VIEW, games: true },
     ];
     for (const v of views) expect(roundTrip(v)).toEqual(v);
+  });
+
+  test('a margin outcome is dir=W10; anything unreadable is winning', () => {
+    expect(toUrl({ ...DEFAULT_VIEW, dir: 'W10' }).params.dir).toBe('W10');
+    expect(parseUrl('/cfb-streak-king/', 'dir=W10').dir).toBe('W10');
+    expect(parseUrl('/cfb-streak-king/', 'dir=L14').dir).toBe('L14');
+    expect(parseUrl('/cfb-streak-king/', 'dir=W0').dir).toBe('W');
+    expect(parseUrl('/cfb-streak-king/', 'dir=U10').dir).toBe('W');
   });
 
   test('a run only belongs to the all-time view', () => {

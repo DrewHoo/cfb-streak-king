@@ -11,6 +11,7 @@ import { Drawer } from 'vaul';
 import { CHIPS, chipByKey, conflicts, fitsDir } from '../lib/chips.ts';
 import { GROUPS, GROUP_NOTES, PARAMS, chipWord, MAX_CHIPS, swapTargets } from '../lib/definition.ts';
 import { dirWord, yearOf, yy } from '../lib/format.ts';
+import { MARGINS, marginDir } from '../lib/outcome.ts';
 import { teams } from '../lib/model.ts';
 import { useAddKings, useChipKings } from '../hooks/useAddKings.ts';
 import { Caret } from './Icons.jsx';
@@ -260,6 +261,21 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, isMobil
         {dirItem('U', 'undefeated')}
         {dirItem('C', 'covering')}
         {dirItem('N', 'not covering')}
+        {/* by a margin: every game of the run won (or lost) by at least that many */}
+        {['W', 'L'].map((base) => (
+          <DM.Group className="menu-grp wrap" key={base}>
+            <DM.Label className="menu-h">{base === 'W' ? 'winning by' : 'losing by'}</DM.Label>
+            {MARGINS.map((by) => {
+              const d = marginDir(base, by);
+              const b = blocker(d);
+              return (
+                <DM.Item key={d} className={'mi pill' + (dir === d ? ' on' : '')} disabled={!!b} title={b ? `not with ${b.label}` : `every game ${base === 'W' ? 'won' : 'lost'} by ${by} or more`} onSelect={() => on.dir(d)}>
+                  <span className="pk-l">{by}+</span>
+                </DM.Item>
+              );
+            })}
+          </DM.Group>
+        ))}
       </Word>
       <span>streaks</span>
       {active.map((a) => <ChipWord key={a.key} a={a} active={active} dir={dir} scope={scope} on={on} />)}

@@ -226,9 +226,9 @@ async function renderTeam(ti, W, H) {
   // undefeated crown often repeats a winning one
   y += 40
   for (const cr of held.filter((c) => c.dir !== 'U').slice(0, 3)) {
-    const words = cr.chips.length ? cr.chips.map((k) => P.chipLabel?.[k] ?? k).join(' · ') : 'all games'
+    const words = [marginWords(cr.dir).trim(), ...cr.chips.map((k) => P.chipLabel?.[k] ?? k)].filter(Boolean).join(' · ') || 'all games'
     parts.push(line([
-      { str: `${cr.len}${cr.atEdge ? '+' : ''}`, font: 'Graduate', size: 19, fill: cr.dir === 'L' ? RUST : CREAM },
+      { str: `${cr.len}${cr.atEdge ? '+' : ''}`, font: 'Graduate', size: 19, fill: baseDir(cr.dir) === 'L' ? RUST : CREAM },
       { str: `  ${words}`, font: 'Mono', size: 15, fill: FAINT },
     ], { x: 64, y }))
     y += 30
@@ -276,15 +276,15 @@ async function renderWeek(broken, W, H) {
   let y = 212
   const shown = broken.list.slice(0, 5)
   for (const b of shown) {
-    const bad = b.dir === 'L' || b.dir === 'N'
+    const bad = baseDir(b.dir) === 'L' || b.dir === 'N'
     const count = `${b.len}${b.atEdge ? '+' : ''}`
     parts.push(text(count, { x: L + 52, y: y + 30, font: 'Graduate', size: 28, fill: bad ? RUST : CREAM, anchor: 'end' }))
     const t = teams[b.ti]
     const color = t?.espn && (await logoUri(t.espn, 'color'))
     if (color) parts.push(`<image x="${L + 68}" y="${y + 2}" width="38" height="38" href="${color}"/>`)
-    const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[b.dir]
+    const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[baseDir(b.dir)]
     const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : P.chipLabel?.[k] ?? k)).join(' ')
-    const claim = `${t?.name} ${verb} ${count} straight${words ? ` ${words}` : ''}`
+    const claim = `${t?.name} ${verb} ${count} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`
     const tx = L + 122
     parts.push(text(fit(claim, 'Serif', 23, R - tx), { x: tx, y: y + 21, font: 'Serif', size: 23, fill: INK }))
     const tag = b.vs != null ? 'head-to-head' : `was ${b.tied > 1 ? 'T-' : ''}${b.rank} of ${b.field}`
@@ -303,6 +303,8 @@ async function renderWeek(broken, W, H) {
 // crown rows name chips by key; the label lives in the chip catalog
 const { CHIPS } = await vite.ssrLoadModule('/src/lib/chips.ts')
 P.chipLabel = Object.fromEntries(CHIPS.map((c) => [c.key, c.label]))
+const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
+const { marginWords } = await vite.ssrLoadModule('/src/lib/format.ts')
 
 const outDir = resolve(ROOT, 'public')
 mkdirSync(resolve(outDir, 'og', 'team'), { recursive: true })

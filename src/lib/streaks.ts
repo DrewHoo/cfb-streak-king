@@ -4,21 +4,28 @@
 // the closing spread) or N (failed to cover). Non-qualifying games are
 // invisible. A tie ends winning and losing runs and extends an undefeated one.
 // A game without a line is invisible to a covering or non-covering streak; a
-// push ends either.
+// push ends either. A winning or losing outcome can demand a margin ("W10",
+// outcome.ts): a game that misses it, a loss or a closer win alike, ends the
+// run.
 
 import type { BoardRow, Cover, Dir, GameRow, Result } from './types.ts';
+import { MINED_MARGIN, baseDir, marginOf } from './outcome.ts';
 
-interface Played { r: Result; cover?: Cover | null }
+interface Played { r: Result; cover?: Cover | null; margin?: number }
 
 export const OUTCOMES: Dir[] = ['W', 'L', 'U', 'C', 'N'];
+/** The outcomes the miners walk: the plain five plus won and lost by the mined margin. */
+export const MINED_OUTCOMES: Dir[] = [...OUTCOMES, `W${MINED_MARGIN}`, `L${MINED_MARGIN}`];
 
 /** The outcomes counted against the spread. */
 export const againstSpread = (o: Dir) => o === 'C' || o === 'N';
 
 /** Whether a game counts toward a streak of outcome `o`. */
-export const matches = (o: Dir, g: Played) => (
-  o === 'C' ? g.cover === 'W' : o === 'N' ? g.cover === 'L' : o === 'U' ? g.r !== 'L' : g.r === o
-);
+export const matches = (o: Dir, g: Played) => {
+  const by = marginOf(o);
+  if (by) return g.r === baseDir(o) && (g.margin ?? 0) >= by;
+  return o === 'C' ? g.cover === 'W' : o === 'N' ? g.cover === 'L' : o === 'U' ? g.r !== 'L' : g.r === o;
+};
 /** Whether a game can take part in a streak of outcome `o` at all: a spread streak needs a line. */
 export const decided = (o: Dir, g: Played) => !againstSpread(o) || g.cover != null;
 

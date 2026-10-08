@@ -7,15 +7,18 @@
 import { useMemo } from 'react';
 import { baseRate } from '../lib/model.ts';
 import { definitionPhrase } from '../lib/sentence.ts';
+import { baseDir, marginOf } from '../lib/outcome.ts';
 
 const VERBS = { W: 'have won', L: 'have lost', U: 'have won or tied', C: 'have covered in', N: 'have failed to cover in' };
+// "have won by 10+ in": the margin outcome's rate is over every qualifying game
+const verb = (dir) => (marginOf(dir) ? `${VERBS[baseDir(dir)]} by ${marginOf(dir)}+ in` : VERBS[dir]);
 
 export function BaseRate({ active, dir }) {
   const r = useMemo(() => baseRate(active, dir), [active, dir]);
   if (!r || r.n < 10) return null;
   return (
     <p className="baserate">
-      Since {r.from}, FBS teams {VERBS[dir]} <b>{Math.round((100 * r.hit) / r.n)}%</b> of their {r.n.toLocaleString('en-US')} {definitionPhrase(active)}.
+      Since {r.from}, FBS teams {verb(dir)} <b>{Math.round((100 * r.hit) / r.n)}%</b> of their {r.n.toLocaleString('en-US')} {definitionPhrase(active)}.
     </p>
   );
 }

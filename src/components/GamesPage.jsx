@@ -8,7 +8,8 @@ import { useMemo, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { scheduledGames, lineText, topOnLine, rankText } from '../lib/team.ts';
 import { brokenLastWeek, brokenWeek, completedWeeks } from '../lib/broken.ts';
-import { dayOf, monthDay, kickOf } from '../lib/format.ts';
+import { dayOf, monthDay, kickOf, marginWords } from '../lib/format.ts';
+import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron, Caret } from './Icons.jsx';
 import { streakWords } from './Matchup.jsx';
@@ -35,8 +36,10 @@ function Side({ ti, rank }) {
   );
 }
 
-const VERB = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' };
-const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' };
+const VERBS = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' };
+const PASTS = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' };
+const VERB = (dir) => VERBS[baseDir(dir)];
+const PAST = (dir) => PASTS[baseDir(dir)];
 
 // how the run ended, from the team's side: the game that broke it
 function enderWords(b) {
@@ -57,10 +60,10 @@ function BrokenRow({ b, onOpen }) {
   const t = teams[b.ti];
   return (
     <button className="bk" onClick={() => onOpen(b)}>
-      <span className={'bk-len' + (b.dir === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
+      <span className={'bk-len' + (baseDir(b.dir) === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
       {t?.espn ? <TeamMark ti={b.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
       <span className="bk-txt">
-        <span>{t?.name} {PAST[b.dir]} {b.len}{b.atEdge ? '+' : ''} straight{b.chips.length ? ` ${streakWords(b.chips, b.vs)}` : ''}</span>
+        <span>{t?.name} {PAST(b.dir)} {b.len}{b.atEdge ? '+' : ''} straight{marginWords(b.dir)}{b.chips.length ? ` ${streakWords(b.chips, b.vs)}` : ''}</span>
         <small>
           {b.vs != null ? <b>head-to-head</b> : <b className={b.rank === 1 && b.tied === 1 ? 'k' : ''}>was {rankText(b)} of {b.field}</b>}
           {' · since '}{b.since}{' · '}{enderWords(b)}
@@ -128,7 +131,7 @@ function Row({ g, todayEp, onGame }) {
       <span className="gm-line">{line}</span>
       {top && (
         <span className="gm-claim">
-          {teams[top.ti].name} {VERB[top.s.dir]} <b className={top.s.dir === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.atEdge ? '+' : ''}</b> straight{top.s.chips.length ? ` ${streakWords(top.s.chips, top.s.vs)}` : ''}
+          {teams[top.ti].name} {VERB(top.s.dir)} <b className={baseDir(top.s.dir) === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.atEdge ? '+' : ''}</b> straight{marginWords(top.s.dir)}{top.s.chips.length ? ` ${streakWords(top.s.chips, top.s.vs)}` : ''}
           <small> · {top.s.vs != null ? 'head-to-head' : `${rankText(top.s)} of ${top.s.field}`}</small>
         </span>
       )}
