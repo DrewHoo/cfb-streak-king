@@ -7,11 +7,6 @@
   --line: #453a42;
   --cream: #f3e2bc;
   --rust: #c36c36;
-  /* external links: a gold between the cream and the rust, so a link reads
-     as one without borrowing the rust's loss meaning; visited settles toward
-     the muted ink */
-  --link: #d9a861;
-  --link-visited: #a8927a;
 }
 
 * { box-sizing: border-box; }
@@ -322,8 +317,7 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .empty { color: var(--ink-faint); font-style: italic; padding: 14px 2px; }
 
 .notes { max-width: 700px; margin: 0 auto; color: var(--ink-muted); font-size: 14.5px; }
-.notes a, .log-note a { color: var(--link); text-decoration: underline dotted; text-underline-offset: 3px; }
-.notes a:visited, .log-note a:visited { color: var(--link-visited); }
+.notes a, .log-note a { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
 .notes a:hover, .log-note a:hover { color: var(--cream); }
 .notes ul { padding-left: 20px; }
 .notes li { margin-bottom: 6px; }
