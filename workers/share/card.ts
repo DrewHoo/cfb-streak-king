@@ -21,12 +21,14 @@ const RUST = '#c36c36';
 export interface CardRow {
   count: string;
   name: string;
-  /** "’08–’21" or "since ’19 · live"; said in mono small print. */
+  /** "’08–’21" or "since ’19"; said in mono small print. */
   span: string;
   live: boolean;
   /** The team's color mark as a data URI, when its PNG could be fetched. */
   logo: string | null;
   initial: string;
+  /** A live run's next qualifying game: "next vs <mark> 10/14". */
+  next?: { word: string; logo: string | null; initial: string; date: string } | null;
 }
 
 export interface Card {
@@ -47,7 +49,12 @@ export function renderCard(card: Card): Response {
         ? `<img src="${r.logo}" width="38" height="38" />`
         : `<div style="display:flex; justify-content:center; width:38px; font-family:'Graduate'; font-size:20px; color:${MUTED};">${esc(r.initial)}</div>`}
       <div style="display:flex; flex-grow:1; font-family:'Source Serif 4'; font-size:25px; color:${INK};">${esc(r.name)}</div>
-      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:1px; color:${r.live ? RUST : FAINT};">${esc(r.span.toUpperCase())}</div>
+      <div style="display:flex; flex-direction:row; align-items:center; gap:6px; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:1px; color:${r.live ? RUST : FAINT};">
+        <span>${esc(r.span.toUpperCase())}</span>
+        ${r.next ? `<span>· NEXT ${esc(r.next.word.toUpperCase())}</span>${r.next.logo
+          ? `<img src="${r.next.logo}" width="20" height="20" />`
+          : `<span style="font-family:'Graduate'; font-size:13px; color:${MUTED};">${esc(r.next.initial)}</span>`}<span>${esc(r.next.date)}</span>` : ''}
+      </div>
     </div>`).join('');
 
   // every meaningful glyph stays inside the centered 720px column: Reddit's

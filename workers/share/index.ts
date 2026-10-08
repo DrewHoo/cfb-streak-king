@@ -19,7 +19,7 @@ import { shareText, defWords, decodeRefs } from '../../src/lib/shareWords.ts';
 import type { ShareMeta } from '../../src/lib/shareWords.ts';
 import { createModel } from '../../src/lib/createModel.ts';
 import type { Payload, BoardRow, Dir } from '../../src/lib/types.ts';
-import { dirWord, yy } from '../../src/lib/format.ts';
+import { dirWord, yy, siteWord, monthDay } from '../../src/lib/format.ts';
 import { parseDir } from '../../src/lib/outcome.ts';
 import { renderCard } from './card.ts';
 import type { CardRow } from './card.ts';
@@ -95,7 +95,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-08';
+const CARD_VERSION = '2026-10-08b';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -154,13 +154,16 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
     const live = scope === 'active' || !!r.live;
     const startEp = r.s.start?.ep ?? r.qual[r.qual.length - r.s.len].ep;
     const endEp = r.s.end?.ep ?? r.s.last.ep;
+    // a live run's next qualifying game, when one is scheduled
+    const nx = live && r.next ? r.next : null;
     cardRows.push({
       count: `${r.s.len}${r.s.atEdge ? '+' : ''}`,
       name: m.teams[r.ti].name,
-      span: live ? `since ${yy(startEp)} · live` : `${yy(startEp)}–${yy(endEp)}`,
+      span: live ? `since ${yy(startEp)}` : `${yy(startEp)}–${yy(endEp)}`,
       live,
       logo: await logoUri(m.teams[r.ti].espn),
       initial: m.teams[r.ti].name[0] ?? '?',
+      next: nx ? { word: siteWord(nx), logo: await logoUri(m.teams[nx.oppIdx]?.espn), initial: m.teams[nx.oppIdx]?.name[0] ?? '?', date: monthDay(nx.ep) } : null,
     });
   }
   const res = renderCard({
