@@ -1,0 +1,2914 @@
+{
+  "version": 1,
+  "updated": "2026-10-08",
+  "note": "Seasons a team with a strong record played no postseason game, and why. Two classes. The team's own call: it declined a bid ('declined'), its school had a standing no-bowl policy ('school-policy'), or it imposed its own postseason ban ('self-ban'). A rule it was under: a conference barred bowls or allowed only the Rose Bowl ('conference-rule'), a conference no-repeat rule barred a return trip ('no-repeat'), or the NCAA banned it ('ncaa-ban'). The rest: the game was canceled ('canceled'), no bid came ('not-invited'), the team was ineligible ('ineligible'), or our data missed a bowl it played ('played', a flag bug recorded here). A streak lives through a game not played, so src/lib/unplayed.ts joins the first two classes to the winning runs that crossed them; the notes list each class on its own, because the anti-competitive criticism of a declined bowl doesn't reach a team that followed a conference rule. Rows were researched 2026-10-08 from the team-seasons with a strong record and no postseason game inside a long winning, undefeated or won-by-10+ run; each row carries receipts (url + verbatim quote), checked by scripts/data/check-receipts.mjs.",
+  "rows": [
+    {
+      "team": "alabama",
+      "season": 1936,
+      "kind": "not-invited",
+      "summary": "Unbeaten Alabama (8–0–1) drew no bowl bid; the Rose Bowl took Pittsburgh.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1936_Alabama_Crimson_Tide_football_team",
+          "quote": "Although they finished undefeated and ranked No. 4 in the final AP Poll, Alabama did not receive an invitation to participate in a postseason bowl game.",
+          "note": "Season article lead: explicitly no bowl invitation.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "duke",
+      "season": 1936,
+      "kind": "not-invited",
+      "summary": "Southern Conference champion Duke (9–1) got no bowl bid in an era of only a handful of bowls.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1936_Duke_Blue_Devils_football_team",
+          "quote": "In its sixth season under head coach Wallace Wade, the team compiled a 9–1 record (7–0 against conference opponents), won the conference championship, and outscored opponents by a total of 208 to 28.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "utah-state",
+      "season": 1936,
+      "kind": "not-invited",
+      "summary": "Rocky Mountain champion Utah State (7–0–1) had no bowl to go to; the few bowls of 1936 did not invite it.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1936_Utah_State_Aggies_football_team",
+          "quote": "In their 18th season under head coach Dick Romney, the Aggies compiled a 7–0–1 record (6–0–1 against RMC opponents), won the RMC championship, and outscored opponents by a total of 99 to 13.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "pittsburgh",
+      "season": 1937,
+      "kind": "declined",
+      "summary": "National champion Pitt’s players voted down the Rose, Sugar and Cotton Bowl invitations, still sore over the previous year’s Rose Bowl trip.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1937_Pittsburgh_Panthers_football_team",
+          "quote": "An invitation to the Rose Bowl on New Year's Day was declined.",
+          "note": "Season article, season-summary section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1937_Pittsburgh_Panthers_football_team",
+          "quote": "The players voted no to any Bowl participation in a closed door, player-only meeting arranged by Hagan and business manager John Weber.",
+          "note": "Season article, postseason section: the Sugar, Cotton and Rose Bowl bids were put to the players, who voted them down.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "michigan",
+      "season": 1938,
+      "kind": "conference-rule",
+      "summary": "The Big Ten barred its members from bowl games until 1946, so 6–1–1 Michigan stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1938_Michigan_Wolverines_football_team",
+          "quote": "In the first year of the Crisler era, the Wolverines compiled a 6–1–1 record and outscored opponents 131 to 40, allowing an average of only five points per game.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "mississippi-state",
+      "season": 1939,
+      "kind": "not-invited",
+      "summary": "Mississippi State (8–2), fourth in the SEC, received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1939_Mississippi_State_Maroons_football_team",
+          "quote": "In their first year under head coach Allyn McKeen, the Maroons compiled an overall record of 8–2, with a conference record of 3–2, and finished fourth in the SEC.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "duke",
+      "season": 1940,
+      "kind": "not-invited",
+      "summary": "Duke (7–2), second in the Southern Conference, received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1940_Duke_Blue_Devils_football_team",
+          "quote": "In its tenth season under head coach Wallace Wade, the team compiled a 7–2 record (4–1 against conference opponents), finished second in the conference, was ranked No. 18 in the final AP Poll, and outscored opponents by a total of 203 to 52.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "minnesota",
+      "season": 1940,
+      "kind": "conference-rule",
+      "summary": "The Big Ten’s bowl ban, in force until 1946, kept national champion Minnesota (8–0) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1940_Minnesota_Golden_Gophers_football_team",
+          "quote": "The team did not play in a bowl game.",
+          "note": "Season article, second paragraph.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1940,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the 7–2 Irish home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1940_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "In their seventh and final year under head coach Elmer Layden, the Irish compiled a 7–2 record and outscored opponents by a total of 168 to 67.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "texas",
+      "season": 1940,
+      "kind": "not-invited",
+      "summary": "Texas (8–2), tied for third in the Southwest Conference, received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1940_Texas_Longhorns_football_team",
+          "quote": "In their fourth year under head coach Dana X. Bible, the Longhorns compiled an overall record of 8–2, with a mark of 4–2 in conference play, and finished tied for third in the SWC.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "utah",
+      "season": 1940,
+      "kind": "not-invited",
+      "summary": "Mountain States champion Utah (7–2) received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1940_Utah_Redskins_football_team",
+          "quote": "In their 16th season under head coach Ike Armstrong, the Redskins compiled an overall record of 7–2 record with mark of 5–1 in conference play, won the MSC title, and outscored all opponents by a total of 169 to 87.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "minnesota",
+      "season": 1941,
+      "kind": "conference-rule",
+      "summary": "The Big Ten’s bowl ban, in force until 1946, kept repeat national champion Minnesota (8–0) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Minnesota_Golden_Gophers_football_team",
+          "quote": "In their tenth year under head coach Bernie Bierman, the Golden Gophers compiled an undefeated 8–0 record and outscored their opponents by a combined total of 186 to 38.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1941,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the unbeaten 8–0–1 Irish home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "In its first season under head coach Frank Leahy, Notre Dame compiled an 8–0–1 record, outscored opponents by a total of 189 to 64, and was ranked No. 3 in the final AP poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "ohio-state",
+      "season": 1941,
+      "kind": "conference-rule",
+      "summary": "The Big Ten barred its members from bowl games until 1946, so 6–1–1 Ohio State stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Ohio_State_Buckeyes_football_team",
+          "quote": "The Buckeyes compiled a 6–1–1 record and outscored opponents 167–110.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "penn-state",
+      "season": 1941,
+      "kind": "not-invited",
+      "summary": "Independent Penn State (7–2) received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Penn_State_Nittany_Lions_football_team",
+          "quote": "In its 12th season under head coach Bob Higgins, the team compiled a 7–2 record and outscored opponents by a total of 200 to 78.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "tennessee",
+      "season": 1941,
+      "kind": "not-invited",
+      "summary": "Tennessee (8–2), second in the SEC, played no bowl game; no source found for a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Tennessee_Volunteers_football_team",
+          "quote": "In their first season under head coach John Barnhill, the Volunteers compiled an 8–2 record (3–1 against SEC opponents), finished second in the SEC, and outscored opponents by a total of 182 to 73.",
+          "note": "Season article lead: record, no bowl listed. Searched for a declined bid and found none.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "utah",
+      "season": 1941,
+      "kind": "not-invited",
+      "summary": "Mountain States champion Utah (6–0–2) received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Utah_Redskins_football_team",
+          "quote": "In their 17th season under head coach Ike Armstrong, the Utes compiled an overall record of 6–0–2 with a mark of 4–0–2 against conference opponents, won the MSC championship, and all outscored opponents by a total of 209 to 65.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "virginia",
+      "season": 1941,
+      "kind": "not-invited",
+      "summary": "Bill Dudley’s Virginia (8–1) received no bowl bid that we could find.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1941_Virginia_Cavaliers_football_team",
+          "quote": "In their fifth year under head coach Frank Murray, the Cavaliers compiled an 8–1 record and outscored opponents by a total of 279 to 42.",
+          "note": "Season article lead: record, no bowl listed. Searched for a declined bid and found none.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "purdue",
+      "season": 1943,
+      "kind": "conference-rule",
+      "summary": "The Big Ten’s bowl ban, in force until 1946, kept unbeaten Big Ten champion Purdue (9–0) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1943_Purdue_Boilermakers_football_team",
+          "quote": "In their second year under head coach Elmer Burnham, the Boilermakers compiled an undefeated 9–0 record (6–0 in conference games), won the Big Ten championship, outscored their opponents by a total of 214 to 55, and were ranked No. 5 in the final AP poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "vanderbilt",
+      "season": 1943,
+      "kind": "not-invited",
+      "summary": "Vanderbilt played a five-game wartime schedule (5–0) with no SEC games and drew no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1943_Vanderbilt_Commodores_football_team",
+          "quote": "In their first year under head coach Ernest Alley, the Commodores compiled an overall record of 5–0, with a conference record of 0–0, and finished fifth in the SEC.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "army",
+      "season": 1944,
+      "kind": "school-policy",
+      "summary": "National champion Army (9–0) did not take bowl bids in this era; wartime West Point played no postseason games.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Army_vs._Notre_Dame_football_game",
+          "quote": "Neither school accepted bowl bids in that era, and so neither put itself at risk of a loss that would have tarnished their national championship bids.",
+          "note": "1946 Army vs. Notre Dame game article, aftermath section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1944_Army_Cadets_football_team",
+          "quote": "In their fourth season under head coach Earl Blaik, the Cadets compiled a perfect 9–0 record and outscored opponents by a total of 504 to 35.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1944,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the 8–2 Irish home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1944_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "In their only season under McKeever, the Irish compiled an 8–2 record, outscored opponents by a total of 340 to 69, and were ranked No. 9 in the final AP poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "ohio-state",
+      "season": 1944,
+      "kind": "conference-rule",
+      "summary": "Unbeaten Ohio State (9–0) was offered the Rose Bowl but had to refuse under the Big Ten’s bowl ban; Tennessee went instead.",
+      "receipts": [
+        {
+          "url": "https://newspapers.digitalnc.org/lccn/2014236854/1944-12-02/ed-1/seq-4/ocr.txt",
+          "quote": "Tennessee received the bid when Ohio State, linked with Army and Navy as the “Big Three” among the colleges, was forced to refuse because of policy.",
+          "note": "The Cloudbuster (Chapel Hill), Dec. 2, 1944, p. 4, OCR text: the Rose Bowl bid went to Tennessee after Ohio State had to refuse it.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1944_Ohio_State_Buckeyes_football_team",
+          "quote": "The Buckeyes compiled a 9–0 record.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "vanderbilt",
+      "season": 1944,
+      "kind": "not-invited",
+      "summary": "Vanderbilt played a four-game wartime schedule (3–0–1) with no SEC games and drew no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1944_Vanderbilt_Commodores_football_team",
+          "quote": "In their first year under head coach Doby Bartling, the Commodores compiled an overall record of 3–0–1, with a conference record of 0–0, and finished 12th in the SEC.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "army",
+      "season": 1945,
+      "kind": "school-policy",
+      "summary": "National champion Army (9–0) did not take bowl bids in this era; West Point stayed out of postseason games.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Army_vs._Notre_Dame_football_game",
+          "quote": "Neither school accepted bowl bids in that era, and so neither put itself at risk of a loss that would have tarnished their national championship bids.",
+          "note": "1946 Army vs. Notre Dame game article, aftermath section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1945_Army_Cadets_football_team",
+          "quote": "In their fifth season under head coach Earl Blaik, the Cadets compiled a 9–0 record, shut out five of nine opponents (including a 48–0 victory over No. 2 Notre Dame and a 61–0 victory over No. 6 Penn), and outscored all opponents by a total of 412 to 46.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "indiana",
+      "season": 1945,
+      "kind": "conference-rule",
+      "summary": "The Big Ten’s bowl ban, lifted only in 1946, kept unbeaten champion Indiana (9–0–1) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "After that, the Big Ten only allowed one other team to participate in the Rose Bowl (the 1920 Ohio State Buckeyes football team), until the agreement struck with the Pacific Coast Conference for the 1947 Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl section: the conference barred bowl play apart from two Rose Bowl exceptions until the 1946 pact.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Big_Nine_Conference_football_season",
+          "quote": "In 1946, the Big Nine dropped its long-standing ban on participation in bowl games.",
+          "note": "1946 Big Nine season article, bowl section: the ban was in force until 1946.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1945_Indiana_Hoosiers_football_team",
+          "quote": "In their 12th year under head coach Bo McMillin, the Hoosiers compiled a 9–0–1 record (5–0–1 Big Ten), outscored their opponents by a combined total of 279 to 56, and finished the season ranked #4 in the final AP Poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "tennessee",
+      "season": 1945,
+      "kind": "not-invited",
+      "summary": "Tennessee (8–1), second in the SEC, played no bowl game; no source found for a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1945_Tennessee_Volunteers_football_team",
+          "quote": "They finished the season with a record of eight wins and one loss (8–1 overall, 3–1 in the SEC).",
+          "note": "Season article lead: record, no bowl listed. Searched for a declined bid and found none.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "army",
+      "season": 1946,
+      "kind": "declined",
+      "summary": "Army (9–0–1) would have taken the Rose Bowl, but the new Big Nine–PCC pact shut it out, and it passed on the other major bowls that had been inviting it.",
+      "receipts": [
+        {
+          "url": "https://oregonnews.uoregon.edu/lccn/2004260239/1946-11-21/ed-1/seq-5/ocr.txt",
+          "quote": "The agreement signed eliminates all possibilities of the undefeated Army eleven appearing in this season’s Rose Bowl.",
+          "note": "Oregon Daily Emerald, Nov. 21, 1946, p. 5, OCR text: the PCC–Big Nine pact closed the Rose Bowl to Army.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://digital.lib.ku.edu/islandora/object/ku-udk%3A151704/datastream/OCR/download",
+          "quote": "Three of the top bowls, excluding the Rose bowl, had invited Army \"several times\" during the past couple of years and also this season.",
+          "note": "Same UP story: Army had been invited by three major bowls in the preceding seasons and in 1948.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Army_vs._Notre_Dame_football_game",
+          "quote": "Neither school accepted bowl bids in that era, and so neither put itself at risk of a loss that would have tarnished their national championship bids.",
+          "note": "1946 Army vs. Notre Dame game article, aftermath section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Army_Cadets_football_team",
+          "quote": "In their sixth season under head coach Earl Blaik, the Cadets compiled a 9–0–1 record and outscored opponents by a total of 263 to 80.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1946,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the national champion Irish (8–0–1) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Army_vs._Notre_Dame_football_game",
+          "quote": "Neither school accepted bowl bids in that era, and so neither put itself at risk of a loss that would have tarnished their national championship bids.",
+          "note": "1946 Army vs. Notre Dame game article, aftermath section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "In their fourth year under head coach Frank Leahy, the Irish compiled an 8–0–1 and were ranked No. 1 in the final AP Poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "texas",
+      "season": 1946,
+      "kind": "not-invited",
+      "summary": "Texas (8–2) received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Texas_Longhorns_football_team",
+          "quote": "In their tenth and final year under head coach Dana X. Bible, the Longhorns compiled an 8–2 record (4–2 against SWC opponenets) and outscored all opponents by a total of 290 to 68.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "california",
+      "season": 1947,
+      "kind": "conference-rule",
+      "summary": "PCC members could play only in the Rose Bowl, and its lone berth went to champion USC, which had beaten 9–1 Cal.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Both conferences also had \"exclusive agreements\" with the Rose Bowl game, in the sense that member schools were not allowed to play in any other bowl game.",
+          "note": "Rose Bowl Game article, history section: Big Ten and PCC members could play only in the Rose Bowl.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1947_college_football_season",
+          "quote": "No. 1 Michigan closed its season at 9–0–0 with a 21–0 win over Ohio State, and accepted an invitation to meet No. 4 USC (which beat No. 18 UCLA 6–0) in the Rose Bowl.",
+          "note": "1947 college football season article, Nov. 22 entry: USC took the PCC's Rose Bowl berth.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1947_California_Golden_Bears_football_team",
+          "quote": "Led by new head coach Pappy Waldorf, the Golden Bears compiled an overall record of 9–1 (5–1 in PCC, second}.",
+          "note": "Season article lead (the stray brace is in the source).",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "north-carolina",
+      "season": 1947,
+      "kind": "declined",
+      "summary": "Passed over by the Orange Bowl, North Carolina (8–2) turned down several smaller bowls, including the Legion Bowl in Los Angeles; the faculty athletic committee said the season had been long enough.",
+      "receipts": [
+        {
+          "url": "https://blogs.lib.unc.edu/hill/?p=1023",
+          "quote": "Following the Virginia win, Carolina got several minor bowl invitations, including one from the Legion Bowl that was to be played in Los Angeles, but the University turned down the invitations.",
+          "note": "UNC Libraries 'History on the Hill' blog, 'Home for the Holidays . . . 1947' (Dec. 27, 2013).",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://blogs.lib.unc.edu/hill/?p=1023",
+          "quote": "The University appreciates the many invitations but feels compelled to decline them due to the fact the team has just completed a difficult schedule",
+          "note": "Same post: faculty athletic committee chairman A.W. Hobbs's Nov. 30, 1947 statement.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1947_North_Carolina_Tar_Heels_football_team",
+          "quote": "In its fifth year under head coach Carl Snavely, the team compiled an 8–2 record (4–1 against conference opponents), finished in second place in the conference, was ranked No. 9 in the final AP Poll, and outscored opponents by a total of 210 to 93.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1947,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the national champion Irish (9–0) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1947_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "Notre Dame supporters argued that the post-season AP poll was final and should not be revisited. They contended that Michigan had run up the score on USC, noted that Notre Dame had not had an opportunity to play in a bowl game, and asserted that Michigan and other Big Nine schools were unwilling to schedule Notre Dame in the regular season.",
+          "note": "Season article, national-championship debate section.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "army",
+      "season": 1948,
+      "kind": "declined",
+      "summary": "Army (8–0–1) had three bowl invitations, but West Point’s superintendent announced the academy was not interested in postseason games.",
+      "receipts": [
+        {
+          "url": "https://digital.lib.ku.edu/islandora/object/ku-udk%3A151704/datastream/OCR/download",
+          "quote": "\"On Nov. 9, Gen. Maxwell D. Taylar announced that we were not interested in post-season games,\" Blaik said.",
+          "note": "University Daily Kansan, Dec. 3, 1948, p. 7 (UP wire story), OCR text; 'Taylar' is the OCR's spelling of Taylor, the West Point superintendent.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://digital.lib.ku.edu/islandora/object/ku-udk%3A151704/datastream/OCR/download",
+          "quote": "Three of the top bowls, excluding the Rose bowl, had invited Army \"several times\" during the past couple of years and also this season.",
+          "note": "Same UP story: Army had been invited by three major bowls in the preceding seasons and in 1948.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1948_Army_Cadets_football_team",
+          "quote": "At season’s end, Army was ranked sixth in the nation.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "michigan",
+      "season": 1948,
+      "kind": "no-repeat",
+      "summary": "Unbeaten Big Nine champion Michigan (9–0) was barred from returning to the Rose Bowl by the conference’s no-repeat rule, and could play in no other bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1948_Michigan_Wolverines_football_team",
+          "quote": "Despite winning the Big Nine championship, Michigan was ineligible to represent the conference in the 1949 Rose Bowl. A Big Nine rule prohibited any team from making more than one Rose Bowl appearance in three years.",
+          "note": "Season article, postseason section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "It was not until the 1975 season that the Big Ten allowed teams to play in bowl games other than the Rose Bowl.",
+          "note": "Big Ten Conference article: Rose-Bowl-only rule through 1974.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1948,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the unbeaten Irish (9–0–1) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1948_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "In their sixth year under head coach Frank Leahy, the Irish compiled a 9–0–1 record, outscored opponents by a total of 320 to 93, and were ranked No. 2 in the final AP poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "tulane",
+      "season": 1948,
+      "kind": "not-invited",
+      "summary": "Tulane (9–1), third in the SEC, received no bowl bid that we could find.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1948_Tulane_Green_Wave_football_team",
+          "quote": "In its third year under head coach Henry Frnka, Tulane compiled a 9–1 record (5–1 in conference games), finished third in the SEC, outscored opponents by a total of 207 to 60, and was ranked No. 13 in the final AP poll.",
+          "note": "Season article lead: record, no bowl listed. Searched for a declined bid and found none.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "utah",
+      "season": 1948,
+      "kind": "not-invited",
+      "summary": "Skyline Six champion Utah (8–1–1) received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1948_Utah_Redskins_football_team",
+          "quote": "In their 24th season under head coach Ike Armstrong, the Utes compiled an overall record of 8–1–1 with a mark of 5–0 against conference opponents, winning the Skyline Six title.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "vanderbilt",
+      "season": 1948,
+      "kind": "not-invited",
+      "summary": "Vanderbilt (8–2–1), ninth in the SEC despite eight straight wins to close, received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1948_Vanderbilt_Commodores_football_team",
+          "quote": "In their sixth year under head coach Red Sanders, the Commodores compiled an overall record of 8–2–1, with a conference record of 4–2–1, and finished ninth in the SEC.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "army",
+      "season": 1949,
+      "kind": "school-policy",
+      "summary": "Unbeaten Army (9–0) stayed home under West Point’s stance against postseason games, announced in 1948.",
+      "receipts": [
+        {
+          "url": "https://digital.lib.ku.edu/islandora/object/ku-udk%3A151704/datastream/OCR/download",
+          "quote": "\"On Nov. 9, Gen. Maxwell D. Taylar announced that we were not interested in post-season games,\" Blaik said.",
+          "note": "University Daily Kansan, Dec. 3, 1948, p. 7 (UP wire story), OCR text; 'Taylar' is the OCR's spelling of Taylor, the West Point superintendent.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1946_Army_vs._Notre_Dame_football_game",
+          "quote": "Neither school accepted bowl bids in that era, and so neither put itself at risk of a loss that would have tarnished their national championship bids.",
+          "note": "1946 Army vs. Notre Dame game article, aftermath section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1949_Army_Cadets_football_team",
+          "quote": "The Cadets won the Lambert-Meadowlands Trophy as the best college team in the East.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "colorado-state",
+      "season": 1949,
+      "kind": "not-invited",
+      "summary": "Colorado A&M (9–1), second in the Skyline Six, received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1949_Colorado_A&M_Aggies_football_team",
+          "quote": "In their third season under head coach Bob Davis, the Aggies compiled a 9–1 record (4–1 against Skyline opponents), finished second in the Skyline Conference, and outscored all opponents by a total of 206 to 86.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1949,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the national champion Irish (10–0) home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968), including after many of the team's most successful seasons from the Rockne era in the 1920s and the Leahy era in the 1940s.",
+          "note": "Notre Dame Fighting Irish football article, bowl games section: the self-imposed no-bowl hiatus 1925–1968.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1949_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "The Irish, coached by Frank Leahy, ended the season with 10 wins and no losses, winning the national championship.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "wyoming",
+      "season": 1949,
+      "kind": "not-invited",
+      "summary": "Skyline Six champion Wyoming (9–1) received no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1949_Wyoming_Cowboys_football_team",
+          "quote": "In their third season under head coach Bowden Wyatt, the Cowboys compiled a 9–1 record (5–0 against Skyline Six opponents), won the Skyline Six championship, shut out six of ten opponents while averaging 38 points per game, and outscored all opponents by a total of 381 to 65.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "michigan-state",
+      "season": 1950,
+      "kind": "ineligible",
+      "summary": "Admitted to the Big Ten but not yet playing its schedule, Michigan State (8–1) was barred from bowls by the terms of its membership until 1953.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1952_college_football_season",
+          "quote": "No. 1 Michigan State had joined the Big Ten conference in 1950 for football, but as part of the terms of membership, was ineligible to play in a bowl game until the 1953 season.",
+          "note": "1952 college football season article, bowl games section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1950_Michigan_State_Spartans_football_team",
+          "quote": "In their fourth season under head coach Biggie Munn, the Spartans compiled an 8–1 record, outscored opponents by a total of 243 to 107, and were ranked No. 8 in the final AP poll.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "tulsa",
+      "season": 1950,
+      "kind": "not-invited",
+      "summary": "Missouri Valley champion Tulsa (9–1–1) received no bowl bid that we could find.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1950_Tulsa_Golden_Hurricane_football_team",
+          "quote": "In their fifth year under head coach Buddy Brothers, the Golden Hurricane compiled a 9–1–1 record (3–0–1 against Missouri Valley Conference opponents) and was ranked No. 19 in the final AP Poll.",
+          "note": "Season article lead: record, no bowl listed. Searched for a declined bid and found none.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "kansas",
+      "season": 1951,
+      "kind": "conference-rule",
+      "summary": "The Big Seven banned its members from bowl games in 1951 and 1952, so 8–2 Kansas stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Eight_Conference_football",
+          "quote": "In 1951 and 1952 the conference had a brief ban on its members attending bowl games.",
+          "note": "Big Eight Conference football article (the Big Seven was its 1948–1959 name): conference-wide bowl ban in 1951 and 1952.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1951_Kansas_Jayhawks_football_team",
+          "quote": "In their fourth season under head coach Jules V. Sikes, the Jayhawks compiled an 8–2 record (4–2 against conference opponents), finished third in the Big Seven Conference, and outscored all opponents by a combined total of 316 to 208.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "michigan-state",
+      "season": 1951,
+      "kind": "ineligible",
+      "summary": "Unbeaten Michigan State (9–0) was barred from bowls by the terms of its Big Ten membership until 1953.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1952_college_football_season",
+          "quote": "No. 1 Michigan State had joined the Big Ten conference in 1950 for football, but as part of the terms of membership, was ineligible to play in a bowl game until the 1953 season.",
+          "note": "1952 college football season article, bowl games section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1951_Michigan_State_Spartans_football_team",
+          "quote": "In their fifth season under head coach Biggie Munn, the Spartans compiled a perfect 9–0 record and outscored opponents by a total of 270 to 114.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "oklahoma",
+      "season": 1951,
+      "kind": "conference-rule",
+      "summary": "The Big Seven banned its members from bowl games in 1951 and 1952, so conference champion Oklahoma (8–2) stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Eight_Conference_football",
+          "quote": "In 1951 and 1952 the conference had a brief ban on its members attending bowl games.",
+          "note": "Big Eight Conference football article (the Big Seven was its 1948–1959 name): conference-wide bowl ban in 1951 and 1952.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1951_Oklahoma_Sooners_football_team",
+          "quote": "They played their home games at Oklahoma Memorial Stadium and competed as members of the Big Seven Conference.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "virginia",
+      "season": 1951,
+      "kind": "declined",
+      "summary": "Virginia (8–1) was invited to the Orange Bowl, but university president Colgate Darden turned it down.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1951_Virginia_Cavaliers_football_team",
+          "quote": "They finished with 8 wins for the second consecutive year, and were invited to play in the Orange Bowl, but University President Colgate Darden declined the invitation.",
+          "note": "Season article lead.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "wisconsin",
+      "season": 1951,
+      "kind": "conference-rule",
+      "summary": "Big Ten teams could play only in the Rose Bowl, and its berth went to champion Illinois, so third-place Wisconsin (7–1–1) stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "It was not until the 1975 season that the Big Ten allowed teams to play in bowl games other than the Rose Bowl.",
+          "note": "Big Ten Conference article: Rose-Bowl-only rule through 1974.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Both conferences also had \"exclusive agreements\" with the Rose Bowl game, in the sense that member schools were not allowed to play in any other bowl game.",
+          "note": "Rose Bowl Game article, history section: Big Ten and PCC members could play only in the Rose Bowl.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1951_Wisconsin_Badgers_football_team",
+          "quote": "Led by third-year head coach Ivy Williamson, the Badgers compiled an overall record of 7–1–1 with a mark of 5–1–1 in conference play, placing third in the Big Ten.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "michigan-state",
+      "season": 1952,
+      "kind": "ineligible",
+      "summary": "National champion Michigan State (9–0) was barred from bowls by the terms of its Big Ten membership until 1953.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1952_college_football_season",
+          "quote": "No. 1 Michigan State had joined the Big Ten conference in 1950 for football, but as part of the terms of membership, was ineligible to play in a bowl game until the 1953 season.",
+          "note": "1952 college football season article, bowl games section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1952_Michigan_State_Spartans_football_team",
+          "quote": "In their sixth year under head coach Biggie Munn, the Spartans recorded a perfect 9–0 record, outscored opponents by a total of 312 to 84, and were recognized as the 1952 national champion.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "west-virginia",
+      "season": 1952,
+      "kind": "conference-rule",
+      "summary": "The Southern Conference banned bowl games from 1951, so 7–2 West Virginia stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Atlantic_Coast_Conference",
+          "quote": "They left partially due to the Southern Conference's ban on post-season football play, initiated in 1951.",
+          "note": "Atlantic Coast Conference article, history section: the Southern Conference banned bowl games from 1951.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1952_West_Virginia_Mountaineers_football_team",
+          "quote": "In its third season under head coach Art Lewis, the team compiled a 7–2 record (5–1 against SoCon opponents), finished second in the conference, and outscored opponents by a total of 234 to 116.",
+          "note": "Season article lead: the season's record, no bowl game listed.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1953,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force from 1925 through the 1968 season, kept the 9–0–1 Irish home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "It was under Parseghian as well that Notre Dame lifted its 40-plus year-old \"no bowl games\" policy,",
+          "note": "Notre Dame Fighting Irish football article, Parseghian era: the no-bowl policy ran until the 1969 season.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968)",
+          "note": "Notre Dame Fighting Irish football article, bowl games section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1953_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "the Irish compiled a 9–0–1 record and outscored opponents by a total of 317 to 139.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1954,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force through the 1968 season, kept the 9–1 Irish home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "It was under Parseghian as well that Notre Dame lifted its 40-plus year-old \"no bowl games\" policy,",
+          "note": "Notre Dame Fighting Irish football article, Parseghian era: the no-bowl policy ran until the 1969 season.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968)",
+          "note": "Notre Dame Fighting Irish football article, bowl games section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1954_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "the Fighting Irish compiled a 9–1 record, outscored opponents by a total of 261 to 115",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "oklahoma",
+      "season": 1954,
+      "kind": "no-repeat",
+      "summary": "The Big Seven’s no-repeat rule kept 10–0 Oklahoma out of the Orange Bowl a year after it played there.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1954_Oklahoma_Sooners_football_team",
+          "quote": "Because of a conference \"no-repeat\" rule, Oklahoma did not play in a bowl game.",
+          "note": "1954 Oklahoma season page, season summary; Nebraska went to the Orange Bowl instead.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Orange_Bowl",
+          "quote": "The champion (or runner-up in years in which the \"no-repeat\" rule was invoked) was invited to the bowl game in most years during this time;",
+          "note": "Orange Bowl article, Big Seven/Big Eight tie-in history.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "ucla",
+      "season": 1954,
+      "kind": "no-repeat",
+      "summary": "The Pacific Coast Conference’s no-repeat rule barred 9–0 UCLA from the Rose Bowl, and PCC teams could play in no other bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1954_UCLA_Bruins_football_team",
+          "quote": "Since UCLA had played in the 1954 Rose Bowl, they were excluded from the 1955 event.",
+          "note": "1954 UCLA season page, season summary.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1955_Rose_Bowl",
+          "quote": "However, #2 UCLA was locked out of the game because of the PCC's \"no-repeat\" rule,",
+          "note": "1955 Rose Bowl article, teams section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Both conferences also had \"exclusive agreements\" with the Rose Bowl game, in the sense that member schools were not allowed to play in any other bowl game.",
+          "note": "Rose Bowl Game article, history section: Big Ten and Pac-8 members could play no other bowl.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "virginia-tech",
+      "season": 1954,
+      "kind": "not-invited",
+      "summary": "Unbeaten VPI drew interest from bowl scouts but no bid in a year with only seven bowl games.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1954_VPI_Gobblers_football_team",
+          "quote": "Tech did not earn a berth in a postseason game. There were only seven bowl games",
+          "note": "1954 VPI season page, season summary.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "west-virginia",
+      "season": 1954,
+      "kind": "not-invited",
+      "summary": "Southern Conference champion West Virginia (8–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1954_West_Virginia_Mountaineers_football_team",
+          "quote": "the Mountaineers compiled an overall record of 8–1 with a mark of 3–0 in conference play, winning the SoCon title for the second consecutive season.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1955,
+      "kind": "not-invited",
+      "summary": "Border Conference Arizona State (8–2–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1955_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils compiled an 8–2–1 record (4–1 against Border opponents) and outscored their opponents by a combined total of 343 to 107.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1956,
+      "kind": "not-invited",
+      "summary": "Border Conference Arizona State (9–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils compiled a 9–1 record (3–1 against Border opponents) and outscored their opponents by a combined total of 306 to 83.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "oklahoma",
+      "season": 1956,
+      "kind": "no-repeat",
+      "summary": "The Big Seven’s no-repeat rule kept 10–0, top-ranked Oklahoma out of the Orange Bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Oklahoma_Sooners_football_team",
+          "quote": "but they did not play in a bowl game due to the Big Seven's",
+          "note": "1956 Oklahoma season page, season summary (the sentence ends \"no-repeat rule\"; the rendered page has a broken citation template in the middle of it, so the quote stops before it).",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Oklahoma_Sooners_football_team",
+          "quote": "runner-up Colorado was invited to and won the Orange Bowl.",
+          "note": "Same sentence, after the citation.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Orange_Bowl",
+          "quote": "The champion (or runner-up in years in which the \"no-repeat\" rule was invoked) was invited to the bowl game in most years during this time;",
+          "note": "Orange Bowl article, Big Seven/Big Eight tie-in history.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "texas-am",
+      "season": 1956,
+      "kind": "ncaa-ban",
+      "summary": "Southwest Conference champion Texas A&M was on probation and barred from a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Texas_A&M_Aggies_football_team",
+          "quote": "However, the Aggies were on probation and not allowed to play in a bowl game.",
+          "note": "1956 Texas A&M season page, season summary.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Texas_A&M_Aggies_football_team",
+          "quote": "The team won the Southwest Conference and compiled an overall record of 9–0–1, including a 6–0 record in conference play.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "wyoming",
+      "season": 1956,
+      "kind": "declined",
+      "summary": "Wyoming turned down the Sun Bowl hoping for a better bid, and none came.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Wyoming_Cowboys_football_team",
+          "quote": "Believing that they would get a better bowl appearance, the team declined a Sun Bowl invitation.",
+          "note": "1956 Wyoming season page, season summary.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1956_Wyoming_Cowboys_football_team",
+          "quote": "No other invitations came.",
+          "note": "Same paragraph, next sentence.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1957,
+      "kind": "not-invited",
+      "summary": "Unbeaten Arizona State had no bowl to go to: the West’s big conference was locked into the Rose Bowl and the Sun Bowl took Louisville and Drake.",
+      "receipts": [
+        {
+          "url": "https://pressbreak.substack.com/p/dead-conferences-part-2-chapter-2",
+          "quote": "But with the West’s preeminent conference locked into the Rose Bowl Game, a burgeoning competitor like Arizona State had nowhere to go.",
+          "note": "Press Break (Substack) history of the Border Conference, 1957 Arizona State section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1957_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils compiled a 10–0 record (4–0 in conference, first), were ranked twelfth in both final polls, and outscored their opponents 397 to 66.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "auburn",
+      "season": 1957,
+      "kind": "ncaa-ban",
+      "summary": "AP national champion Auburn was on NCAA probation for paying recruits and could not play in a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1957_Auburn_Tigers_football_team",
+          "quote": "The team was ineligible for a bowl game after one of Jordan's assistants was caught paying two prospective recruits $500 each.",
+          "note": "1957 Auburn season page, lead.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Auburn_Tigers_football",
+          "quote": "Auburn was recognized as national champions by the AP Poll even though they were on probation and did not participate in a bowl game.",
+          "note": "Auburn Tigers football article, 1957 season section.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "army",
+      "season": 1958,
+      "kind": "declined",
+      "summary": "Unbeaten Army declined a Cotton Bowl invitation; the academy did not play its first bowl until 1984.",
+      "receipts": [
+        {
+          "url": "https://kirkusreviews.com/book-reviews/mark-beech/when-saturday-mattered-most/print",
+          "quote": "Sports Illustrated editor and writer Beech debuts with an account of Army football’s last great season, 1958, when the team finished 8-0-1 and declined a Cotton Bowl invitation.",
+          "note": "Kirkus review of Mark Beech, When Saturday Mattered Most, first paragraph.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1984_Cherry_Bowl",
+          "quote": "This was Army's first ever bowl game and Michigan State's first bowl game since 1966.",
+          "note": "1984 Cherry Bowl article: Army had never played a bowl before 1984.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "auburn",
+      "season": 1958,
+      "kind": "ncaa-ban",
+      "summary": "Auburn’s NCAA bowl ban was extended in 1958 over the Don Fuell recruiting case.",
+      "receipts": [
+        {
+          "url": "https://digital.lib.ku.edu/islandora/object/ku-udk%3A198373/datastream/OCR/download",
+          "quote": "More trouble may descend on Auburn in addition to the NCAA bowl ban extension over the Don Fuell recruiting case.",
+          "note": "University Daily Kansan, April 23, 1958 (UP wire story \"Auburn Woes On Increase\"), OCR text.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://digital.lib.ku.edu/islandora/object/ku-udk%3A198373/datastream/OCR/download",
+          "quote": "that a Pinkerton detective was \"in any sense\" connected with the NCAA investigation that resulted in Auburn's new 3-year suspension for illegal recruiting.",
+          "note": "Same page, UP story \"NCAA Didn't Use Detectives, Byers Says\".",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1958_Auburn_Tigers_football_team",
+          "quote": "They finished with a record of nine wins, zero losses and one tie (9–0–1 overall, 6–0–1 in the SEC).",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1959,
+      "kind": "not-invited",
+      "summary": "Border Conference champion Arizona State (10–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1959_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils compiled a 10–1 record (5–0 against Border opponents)",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "wyoming",
+      "season": 1959,
+      "kind": "ineligible",
+      "summary": "Skyline champion Wyoming (9–1) was not bowl-eligible, by a Nebraska athletics account that gives no reason.",
+      "receipts": [
+        {
+          "url": "https://huskers.com/news/2011/09/22/fate-took-devaney-to-wyoming-instead-of-missouri",
+          "quote": "including a 1958 Sun Bowl win and a 9-1 record in 1959 (a team that was not bowl eligible).",
+          "note": "Huskers.com feature on Bob Devaney (2011), Wyoming years paragraph.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1959_Wyoming_Cowboys_football_team",
+          "quote": "the Cowboys compiled a 9–1 record (7–0 against Skyline opponents), won the Skyline Conference championship, and outscored opponents by a total of 287 to 62.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "memphis",
+      "season": 1960,
+      "kind": "not-invited",
+      "summary": "Independent Memphis State (8–2) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1960_Memphis_State_Tigers_football_team",
+          "quote": "the team compiled an 8–2 record and outscored opponents by a total of 303 to 85.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "ohio-state",
+      "season": 1960,
+      "kind": "conference-rule",
+      "summary": "The Big Ten allowed its teams no bowl but the Rose Bowl, and 7–2 Ohio State finished third in the conference.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "It was not until the 1975 season that the Big Ten allowed teams to play in bowl games other than the Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl history: the Rose-Bowl-only rule.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Both conferences also had \"exclusive agreements\" with the Rose Bowl game, in the sense that member schools were not allowed to play in any other bowl game.",
+          "note": "Rose Bowl Game article, history section: Big Ten and Pac-8 members could play no other bowl.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1960_Ohio_State_Buckeyes_football_team",
+          "quote": "the Buckeyes compiled a 7–2 record (5–2 in conference games), finished in third place in the Big Ten, and outscored opponents by a total of 209 to 90.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "rutgers",
+      "season": 1960,
+      "kind": "school-policy",
+      "summary": "Rutgers then turned down all bowl bids as a matter of university policy (stated the next season); 8–1 Rutgers played no bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1961_Rutgers_Scarlet_Knights_football_team",
+          "quote": "The Scarlet Knights were considered a contender for the 1962 Rose Bowl, but Rutgers officials stated that it was the university's policy to turn down any and all bowl bids.",
+          "note": "1961 Rutgers season page; the policy is stated for 1961, not 1960.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1960_Rutgers_Scarlet_Knights_football_team",
+          "quote": "the Scarlet Knights compiled an 8–1 record, won the Middle Three Conference championship, and outscored their opponents by a total of 225 to 69.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "wyoming",
+      "season": 1960,
+      "kind": "not-invited",
+      "summary": "Skyline co-champion Wyoming (8–2) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1960_Wyoming_Cowboys_football_team",
+          "quote": "the Cowboys compiled an 8-2 record (6-1 against Skyline opponents) and finished as co-champions of the Skyline Conference.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "ohio-state",
+      "season": 1961,
+      "kind": "declined",
+      "summary": "Ohio State’s faculty council voted 28–25 to turn down the Rose Bowl, and Minnesota went instead.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1961_Ohio_State_Buckeyes_football_team",
+          "quote": "Days after the conclusion of the regular season, and with growing concern over Ohio State's reputation as a \"football school\", Ohio State's faculty council voted to reject an invitation to play in the Rose Bowl.",
+          "note": "1961 Ohio State season page, season summary.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://elevenwarriors.com/ohio-state-football/remember-when/2020/05/114254/remember-when-ohio-state-declines-an-invitation-to-the-rose-bowl-after-a-faculty-decision",
+          "quote": "The faculty voted 28-25 against the Buckeyes participating, and the Rose Bowl bid ultimately went to Minnesota.",
+          "note": "Eleven Warriors \"Remember When\" (May 2020), body.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Second-ranked Ohio State did not participate because its faculty council voted it down,",
+          "note": "Rose Bowl Game article, history.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "rutgers",
+      "season": 1961,
+      "kind": "school-policy",
+      "summary": "Rutgers officials said university policy was to turn down every bowl bid, so 9–0 Rutgers stayed home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1961_Rutgers_Scarlet_Knights_football_team",
+          "quote": "The Scarlet Knights were considered a contender for the 1962 Rose Bowl, but Rutgers officials stated that it was the university's policy to turn down any and all bowl bids.",
+          "note": "1961 Rutgers season page, season summary.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "memphis",
+      "season": 1962,
+      "kind": "not-invited",
+      "summary": "Independent Memphis State (8–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1962_Memphis_State_Tigers_football_team",
+          "quote": "the team compiled an 8–1 record and outscored opponents by a total of 261 to 67.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1963,
+      "kind": "not-invited",
+      "summary": "WAC member Arizona State (8–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1963_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils compiled an 8–1 record (3–0 against WAC opponents), and outscored their opponents by a combined total of 249 to 122.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "bowling-green",
+      "season": 1963,
+      "kind": "not-invited",
+      "summary": "Bowling Green (8–2, third in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1963_Bowling_Green_Falcons_football_team",
+          "quote": "the Falcons compiled an 8–2 record (4–2 against MAC opponents), finished in third place in the MAC, and outscored opponents by a combined total of 201 to 116.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "memphis",
+      "season": 1963,
+      "kind": "declined",
+      "summary": "Unbeaten Memphis State voted to turn down the Sun Bowl, expecting a Gator Bowl bid that never came.",
+      "receipts": [
+        {
+          "url": "https://www.memphis.edu/uofmmagazine/current_issue/undefeated.php",
+          "quote": "Anticipating an invitation from the more prestigious Gator Bowl, the team voted to turn down the invitation in hand from the Sun Bowl.",
+          "note": "University of Memphis Magazine feature on the 1963 team (\"undefeated\").",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://www.memphis.edu/uofmmagazine/current_issue/undefeated.php",
+          "quote": "The Gator Bowl bid never came.",
+          "note": "Same paragraph.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "michigan-state",
+      "season": 1966,
+      "kind": "no-repeat",
+      "summary": "The Big Ten’s no-repeat rule barred 9–0–1 Michigan State from the Rose Bowl, and its members could play no other bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1966_Michigan_State_Spartans_football_team",
+          "quote": "Big Ten rules barred the same team from representing the conference in the Rose Bowl in consecutive seasons and barred teams from appearing in any bowl game other than the Rose Bowl.",
+          "note": "1966 Michigan State season page, season summary.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1966_Michigan_State_Spartans_football_team",
+          "quote": "Accordingly, Michigan State was ineligible to play in the Rose Bowl or any other bowl game.",
+          "note": "Same paragraph.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1966,
+      "kind": "school-policy",
+      "summary": "Notre Dame’s no-bowl policy, in force through the 1968 season, kept the national champions home.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "It was under Parseghian as well that Notre Dame lifted its 40-plus year-old \"no bowl games\" policy,",
+          "note": "Notre Dame Fighting Irish football article, Parseghian era: the no-bowl policy ran until the 1969 season.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Notre_Dame_Fighting_Irish_football",
+          "quote": "Following its appearance in the 1925 Rose Bowl, Notre Dame did not play in a post-season game for 44 consecutive years (1925–1968)",
+          "note": "Notre Dame Fighting Irish football article, bowl games section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1966_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "the Irish compiled a 9–0–1 record, shut out six of ten opponents, outscored all opponents by a total of 362 to 38",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "ucla",
+      "season": 1966,
+      "kind": "conference-rule",
+      "summary": "Conference athletic directors voted USC into the Rose Bowl over 9–1 UCLA, and AAWU teams could play no other bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1966_UCLA_Bruins_football_team",
+          "quote": "However, a vote the next Monday among the AAWU conference athletic directors awarded USC the Rose Bowl berth.",
+          "note": "1966 UCLA season page, Rose Bowl vote.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Both conferences also had \"exclusive agreements\" with the Rose Bowl game, in the sense that member schools were not allowed to play in any other bowl game.",
+          "note": "Rose Bowl Game article, history section: Big Ten and Pac-8 members could play no other bowl.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Pac-12_Conference",
+          "quote": "The Pac-8 did not allow a second bowl team from the conference until the 1975 season;",
+          "note": "Pac-12 Conference article, history: one bowl team (the Rose Bowl) until 1975.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "toledo",
+      "season": 1967,
+      "kind": "not-invited",
+      "summary": "MAC co-champion Toledo (9–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1967_Toledo_Rockets_football_team",
+          "quote": "the Rockets compiled a 9–1 record (5–1 against MAC opponents), tied with Ohio for the MAC championship",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1969,
+      "kind": "not-invited",
+      "summary": "WAC champion Arizona State got no bowl bid, one of the snubs that led to the Fiesta Bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Fiesta_Bowl",
+          "quote": "In 1968 and 1969 respectively, champions Wyoming and Arizona State failed to secure any bowl selection.",
+          "note": "Fiesta Bowl article, history: the WAC champion got no bowl bid in 1969.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1969_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils compiled an 8–2 record (6–1 against WAC opponents), won the WAC championship",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "penn-state",
+      "season": 1970,
+      "kind": "declined",
+      "summary": "Penn State turned down the Peach Bowl, which took Arizona State instead.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1970_Peach_Bowl",
+          "quote": "Arizona State was invited after Penn State declined.",
+          "note": "1970 Peach Bowl article, teams section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1970_Penn_State_Nittany_Lions_football_team",
+          "quote": "the Nittany Lions compiled a record of 7–3.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "usc",
+      "season": 1971,
+      "kind": "conference-rule",
+      "summary": "Pac-8 teams could play only in the Rose Bowl until 1975, and 6–4–1 USC finished second.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/Rose_Bowl_Game",
+          "quote": "Both conferences also had \"exclusive agreements\" with the Rose Bowl game, in the sense that member schools were not allowed to play in any other bowl game.",
+          "note": "Rose Bowl Game article, history section: Big Ten and Pac-8 members could play no other bowl.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Pac-12_Conference",
+          "quote": "The Pac-8 did not allow a second bowl team from the conference until the 1975 season;",
+          "note": "Pac-12 Conference article, history: one bowl team (the Rose Bowl) until 1975.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1971_USC_Trojans_football_team",
+          "quote": "the Trojans compiled a 6–4–1 record (3–2–1 against conference opponents), finished in second place in the Pacific-8 Conference (Pac-8)",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "houston",
+      "season": 1972,
+      "kind": "not-invited",
+      "summary": "Independent Houston (6–4–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1972_Houston_Cougars_football_team",
+          "quote": "the Cougars compiled a record of 6–4–1.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "miami-oh",
+      "season": 1972,
+      "kind": "not-invited",
+      "summary": "Miami (7–3, tied for fourth in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1972_Miami_Redskins_football_team",
+          "quote": "Miami compiled a 7–3 record (2–3 against MAC opponents), finished in a tie for fourth place in the MAC",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "michigan",
+      "season": 1973,
+      "kind": "conference-rule",
+      "summary": "After the 10–10 tie with Ohio State, Big Ten athletic directors voted Ohio State to the Rose Bowl, and the conference allowed no other bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1973_Michigan_Wolverines_football_team",
+          "quote": "When the game ended in a tie, the Big Ten Conference athletic directors voted to send Ohio State to the Rose Bowl.",
+          "note": "1973 Michigan season page, lead.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_Rose_Bowl",
+          "quote": "perhaps influenced by the injury, the athletic directors voted 6–4 to send Ohio State to the Rose Bowl.",
+          "note": "1974 Rose Bowl article, teams section.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Big_Ten_Conference",
+          "quote": "It was not until the 1975 season that the Big Ten allowed teams to play in bowl games other than the Rose Bowl.",
+          "note": "Big Ten Conference article, football/bowl history: the Rose-Bowl-only rule.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "oklahoma",
+      "season": 1973,
+      "kind": "conference-rule",
+      "summary": "Oklahoma was on Big Eight Conference probation with a two-year bowl ban for recruiting violations.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1973_Oklahoma_Sooners_football_team",
+          "quote": "Prior to the season in August, the Sooners were put on probation by the Big Eight Conference, which included a two-year ban on bowl appearances, and a two-year ban on television appearances (1974, 1975).",
+          "note": "1973 Oklahoma season page, lead. The ban was imposed by the conference, not the NCAA.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "temple",
+      "season": 1973,
+      "kind": "not-invited",
+      "summary": "Independent Temple (9–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1973_Temple_Owls_football_team",
+          "quote": "the team compiled a 9–1 record and outscored opponents by a total of 353 to 167.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "arizona",
+      "season": 1974,
+      "kind": "conference-rule",
+      "summary": "Under WAC rules only the conference champion took a bowl bid, and 9–2 Arizona finished second to BYU.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_Arizona_Wildcats_football_team",
+          "quote": "Despite a 9–2 record, the Wildcats were not invited to a bowl game due to not winning the WAC (BYU defeated Arizona in their head-to-head matchup to win the WAC) and at the time, under WAC rules, only the conference winner would earn a bowl bid, in which case, the Fiesta Bowl.",
+          "note": "1974 Arizona season page: the WAC rule that only its champion took a bowl bid.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1974,
+      "kind": "conference-rule",
+      "summary": "Under WAC rules only the conference champion took a bowl bid, and 7–5 Arizona State did not win the WAC.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_Arizona_Wildcats_football_team",
+          "quote": "Despite a 9–2 record, the Wildcats were not invited to a bowl game due to not winning the WAC (BYU defeated Arizona in their head-to-head matchup to win the WAC) and at the time, under WAC rules, only the conference winner would earn a bowl bid, in which case, the Fiesta Bowl.",
+          "note": "1974 Arizona season page: the WAC rule that only its champion took a bowl bid.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_Arizona_State_Sun_Devils_football_team",
+          "quote": "the Sun Devils finished with a 7–5 record.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "bowling-green",
+      "season": 1974,
+      "kind": "not-invited",
+      "summary": "Bowling Green (6–4–1, fifth in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_Bowling_Green_Falcons_football_team",
+          "quote": "the Falcons compiled a 6–4–1 record (2–3 against MAC opponents), finished in fifth place in the MAC",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "oklahoma",
+      "season": 1974,
+      "kind": "ncaa-ban",
+      "summary": "Oklahoma was on NCAA probation for recruiting violations and barred from a bowl, yet won the AP title.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_Oklahoma_Sooners_football_team",
+          "quote": "Because Oklahoma was on NCAA probation for recruiting violations, it was ineligible for ranking in the Coaches Poll and could not appear on network television or appear in a postseason bowl game.",
+          "note": "1974 Oklahoma season page, season summary.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "san-diego-state",
+      "season": 1974,
+      "kind": "not-invited",
+      "summary": "PCAA champion San Diego State (8–2–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1974_San_Diego_State_Aztecs_football_team",
+          "quote": "with a record of eight wins, two losses and one tie (8–2–1, 4–0 PCAA).",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "ball-state",
+      "season": 1975,
+      "kind": "not-invited",
+      "summary": "Ball State (9–2, third in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1975_Ball_State_Cardinals_football_team",
+          "quote": "the team compiled a 9–2 record (4–2 against MAC opponents) and finished third in the conference.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "east-carolina",
+      "season": 1975,
+      "kind": "not-invited",
+      "summary": "East Carolina (8–3) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1975_East_Carolina_Pirates_football_team",
+          "quote": "the team compiled a 8–3 record.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "rutgers",
+      "season": 1975,
+      "kind": "not-invited",
+      "summary": "Independent Rutgers (9–2) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1975_Rutgers_Scarlet_Knights_football_team",
+          "quote": "the Scarlet Knights compiled a 9–2 record while competing as an independent and outscored their opponents 347 to 91.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "rutgers",
+      "season": 1976,
+      "kind": "declined",
+      "summary": "Unbeaten Rutgers turned down the first Independence Bowl, feeling snubbed by the bigger bowls.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1976_Rutgers_Scarlet_Knights_football_team",
+          "quote": "The Rutgers players decided to decline playing in the inaugural Independence Bowl against McNeese State in Shreveport, Louisiana.",
+          "note": "1976 Rutgers season page, lead.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1976_Independence_Bowl",
+          "quote": "Rutgers declined the invitation, feeling snubbed by more prestigious bowls.",
+          "note": "1976 Independence Bowl article, team selection.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "san-diego-state",
+      "season": 1976,
+      "kind": "not-invited",
+      "summary": "San Diego State (10–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1976_San_Diego_State_Aztecs_football_team",
+          "quote": "They finished the season with a record of ten wins and one loss (10–1).",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "ball-state",
+      "season": 1977,
+      "kind": "not-invited",
+      "summary": "Ball State (9–2, third in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1977_Ball_State_Cardinals_football_team",
+          "quote": "the team compiled a 9–2 record (5–1 against conference opponents) and finished third in the MAC.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "kentucky",
+      "season": 1977,
+      "kind": "ncaa-ban",
+      "summary": "Kentucky went unbeaten in the SEC but was on NCAA probation and barred from postseason play.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1977_Kentucky_Wildcats_football_team",
+          "quote": "The Wildcats finished conference play undefeated but due to NCAA probation were not eligible for a share of the SEC championship or for postseason play.",
+          "note": "1977 Kentucky season page, lead.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "maryland",
+      "season": 1977,
+      "kind": "played",
+      "summary": "Maryland played and won the 1977 Hall of Fame Classic; our data is missing the bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1977_Maryland_Terrapins_football_team",
+          "quote": "The team ended its season with a 17–7 victory over Minnesota in the Hall of Fame Classic.",
+          "note": "1977 Maryland season page, lead. Its 8–4 record includes the bowl win.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1977_Hall_of_Fame_Classic",
+          "quote": "The 1977 Hall of Fame Classic was a college football postseason bowl game between the Minnesota Golden Gophers and the Maryland Terrapins.",
+          "note": "1977 Hall of Fame Classic article, lead.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "miami-oh",
+      "season": 1977,
+      "kind": "not-invited",
+      "summary": "MAC co-champion Miami (10–1) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1977_Miami_Redskins_football_team",
+          "quote": "the Redskins tied for the Mid-American Conference (MAC) championship, compiled a 10–1 record (5–0 against MAC opponents)",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "central-michigan",
+      "season": 1978,
+      "kind": "not-invited",
+      "summary": "Central Michigan (9–2, second in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1978_Central_Michigan_Chippewas_football_team",
+          "quote": "the Chippewas compiled a 9–2 record (8–1 against MAC opponents), finished in second place in the MAC standings",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "florida-state",
+      "season": 1978,
+      "kind": "not-invited",
+      "summary": "Independent Florida State (8–3) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1978_Florida_State_Seminoles_football_team",
+          "quote": "the Seminoles compiled a record of 8–3.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "miami-oh",
+      "season": 1978,
+      "kind": "not-invited",
+      "summary": "Miami (8–2–1, third in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1978_Miami_Redskins_football_team",
+          "quote": "the team compiled an 8–2–1 record (5–2 against MAC opponents), finished in third place in the MAC",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "michigan-state",
+      "season": 1978,
+      "kind": "ncaa-ban",
+      "summary": "Big Ten co-champion Michigan State was on probation and barred from a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1978_Michigan_State_Spartans_football_team",
+          "quote": "The Michigan State football program was placed on three years of probation in January 1976 and was therefore ineligible to be included in the 1978 UPI coaches poll or to play in a bowl game after the 1978 season.",
+          "note": "1978 Michigan State season page, lead.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "central-michigan",
+      "season": 1979,
+      "kind": "not-invited",
+      "summary": "MAC champion Central Michigan (10–0–1) played no bowl; the MAC had no bowl tie-in then and no source shows a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_Central_Michigan_Chippewas_football_team",
+          "quote": "the Chippewas compiled a 10–0–1 record, won the Mid-American Conference championship, and outscored all opponents by a combined total of 291 to 133.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "georgia",
+      "season": 1979,
+      "kind": "not-invited",
+      "summary": "Georgia (6–5) would have gone to the Sugar Bowl only if Auburn beat Alabama; Alabama won and Georgia got no bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_Georgia_Bulldogs_football_team",
+          "quote": "The Bulldogs would have earned the SEC's automatic berth in the Sugar Bowl had Auburn defeated Alabama in the Iron Bowl despite Georgia's 6-5 overall record.",
+          "note": "1979 Georgia season page, season summary.",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_Georgia_Bulldogs_football_team",
+          "quote": "Alabama defeated Auburn 25-18 to win the SEC outright, then toppled Arkansas 24-9 in the Sugar Bowl for the consensus national championship.",
+          "note": "Same paragraph.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "notre-dame",
+      "season": 1979,
+      "kind": "not-invited",
+      "summary": "Notre Dame (7–4, unranked) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "the Irish compiled a 7–4 record, outscored opponents by a total of 243 to 197",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "unlv",
+      "season": 1979,
+      "kind": "not-invited",
+      "summary": "Independent UNLV (9–1–2) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_UNLV_Rebels_football_team",
+          "quote": "the team compiled a 9–1–2 record.",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "western-michigan",
+      "season": 1979,
+      "kind": "not-invited",
+      "summary": "Western Michigan (6–5, third in the MAC) played no bowl; no source found on a bid.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_Western_Michigan_Broncos_football_team",
+          "quote": "the Broncos compiled a 6–5 record (5–4 against MAC opponents), finished in third place in the MAC",
+          "note": "Season page lead: the team's record; the page records no bowl game.",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "clemson",
+      "season": 1980,
+      "kind": "not-invited",
+      "summary": "Clemson went 6–5 in 1980 and drew no bowl bid; the run began with the last two wins and carried through the 11–0 title season and Orange Bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1980_Clemson_Tigers_football_team",
+          "quote": "In their third season under head coach Danny Ford, the Tigers compiled a 6–5 record (2–4 in conference games), tied for fourth place in the ACC, and was outscored by a total of 222 to 217.",
+          "note": "Lead; schedule table ends Nov. 22 at South Carolina with no bowl row. No-bid inferred from absence. [saved: wp_1980_Clemson_Tigers_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "hawaii",
+      "season": 1980,
+      "kind": "not-invited",
+      "summary": "Hawaii, 8–3 and third in the WAC, was not in a bowl in 1980.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1980_Hawaii_Rainbow_Warriors_football_team",
+          "quote": "In their fourth season under head coach Dick Tomey, the Rainbow Warriors compiled an 8–3 record (3–3 against WAC opponents), placed third in the WAC, and outscored opponents by a total of 260 to 212.",
+          "note": "Lead; schedule has no bowl. No-bid inferred from absence. [saved: wp_1980_Hawaii_Rainbow_Warriors_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "arizona-state",
+      "season": 1981,
+      "kind": "ncaa-ban",
+      "summary": "Arizona State, 9–2, was on NCAA probation in 1981 and ineligible for a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1981_Arizona_State_Sun_Devils_football_team",
+          "quote": "The team was on probation, making them ineligible for a bowl game.",
+          "note": "Body text below the lead [saved: wp_1981_Arizona_State_Sun_Devils_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1981_NCAA_Division_I-A_football_rankings",
+          "quote": "Arizona State, SMU, and Miami (FL) (after a November 3, 1981 ruling) were on probation by the NCAA during the 1981 season; they were therefore ineligible to receive votes in the Coaches Poll.",
+          "note": "Coaches Poll section note: the probation was the NCAA's [saved: wp_1981_NCAA_Division_I-A_football_rankings.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "smu",
+      "season": 1981,
+      "kind": "ncaa-ban",
+      "summary": "SMU won the 1981 Southwest Conference at 10–1 but was on NCAA probation and barred from the Cotton Bowl, so it called its finale at Arkansas the \"Polyester Bowl.\"",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1981_SMU_Mustangs_football_team",
+          "quote": "The Mustangs had been put on probation by the NCAA for recruiting violations and were banned from participating in any bowl game in 1981.",
+          "note": "Second paragraph of the lead [saved: wp_1981_SMU_Mustangs_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "clemson",
+      "season": 1982,
+      "kind": "ncaa-ban",
+      "summary": "Clemson, 9–1–1 ACC champion in 1982, was put on NCAA probation late in the season and made ineligible for a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1982_Clemson_Tigers_football_team",
+          "quote": "The team climbed back up the rankings by winning their next nine games, but the season was derailed when Clemson was placed on probation near the end of the season for recruiting violations, and was made ineligible for a bowl bid.",
+          "note": "Second paragraph of the lead (cites NYT 'Severe Sanctions Levied On Clemson', Nov. 23, 1982) [saved: wp_1982_Clemson_Tigers_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "toledo",
+      "season": 1982,
+      "kind": "not-invited",
+      "summary": "Toledo went 6–5 and tied for fifth in the MAC in 1982; the MAC's one bowl slot, the California Bowl, went to its champion.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1982_Toledo_Rockets_football_team",
+          "quote": "In their first season under head coach Dan Simrell, the Rockets compiled a 6–5 record (5–4 against MAC opponents), finished in a tie for fifth place in the MAC, and outscored all opponents by a combined total of 184 to 162.",
+          "note": "Lead; no bowl in schedule [saved: wp_1982_Toledo_Rockets_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The game featured the champions of the Big West Conference (known prior to 1988 as the Pacific Coast Athletic Association) and the Mid-American Conference.",
+          "note": "Lead: the California Bowl (1981-1991) took only the MAC champion [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "tulsa",
+      "season": 1982,
+      "kind": "not-invited",
+      "summary": "Tulsa went 10–1, won the Missouri Valley and was ranked in both polls, but got no bowl invitation in 1982.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1982_Tulsa_Golden_Hurricane_football_team",
+          "quote": "Despite a glowing 10-1 record and a top 20 ranking in both major polls at the end of the regular season, they were not invited to participate in a bowl game.",
+          "note": "Body text (cites Daily Oklahoman, 'In bowling, Tulsa apparently has struck out', Nov. 21, 1982) [saved: wp_1982_Tulsa_Golden_Hurricane_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "central-michigan",
+      "season": 1983,
+      "kind": "not-invited",
+      "summary": "Central Michigan, 8–3 and tied for second in the MAC, had no bowl in 1983; the MAC sent only its champion, to the California Bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1983_Central_Michigan_Chippewas_football_team",
+          "quote": "In their sixth season under head coach Herb Deromedi, the Chippewas compiled an 8–3 record (7–2 against MAC opponents), finished in a three-way tie for second place in the MAC standings, and outscored their opponents, 257 to 136.",
+          "note": "Lead; no bowl in schedule [saved: wp_1983_Central_Michigan_Chippewas_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The game featured the champions of the Big West Conference (known prior to 1988 as the Pacific Coast Athletic Association) and the Mid-American Conference.",
+          "note": "Lead: the California Bowl (1981-1991) took only the MAC champion [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "clemson",
+      "season": 1983,
+      "kind": "ncaa-ban",
+      "summary": "Clemson, 9–1–1 in 1983, was still on probation and ineligible for the ACC title and a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1983_Clemson_Tigers_football_team",
+          "quote": "Clemson was on probation for recruiting violations, and was ineligible for the ACC championship and a bowl bid.",
+          "note": "Second paragraph of the lead [saved: wp_1983_Clemson_Tigers_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "bowling-green",
+      "season": 1984,
+      "kind": "not-invited",
+      "summary": "Bowling Green went 8–3 and finished second in the MAC in 1984; champion Toledo took the conference's only bowl slot, the California Bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1984_Bowling_Green_Falcons_football_team",
+          "quote": "In their eighth season under head coach Denny Stolz, the Falcons compiled an 8–3 record (7–2 against MAC opponents), finished in second place in the MAC, and outscored their opponents by a combined total of 327 to 198.",
+          "note": "Lead; schedule has no bowl [saved: wp_1984_Bowling_Green_Falcons_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The game featured the champions of the Big West Conference (known prior to 1988 as the Pacific Coast Athletic Association) and the Mid-American Conference.",
+          "note": "Lead: the California Bowl (1981-1991) took only the MAC champion [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1984_Toledo_Rockets_football_team",
+          "quote": "California Bowl, W 13–30 (forfeit win) vs. UNLV",
+          "note": "Infobox: MAC champion Toledo played the 1984 California Bowl [saved: wp_1984_Toledo_Rockets_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "florida",
+      "season": 1984,
+      "kind": "ncaa-ban",
+      "summary": "Florida, 9–1–1 and first in the SEC in 1984, was under an NCAA postseason ban; LSU went to the Sugar Bowl in its place.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1984_Florida_Gators_football_team",
+          "quote": "However, due to NCAA sanctions, the Gators were not permitted to participate in a bowl game.",
+          "note": "Lead, end of second paragraph [saved: wp_1984_Florida_Gators_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1984_Florida_Gators_football_team",
+          "quote": "Despite winning the SEC title, the Gators were barred from going to the 1985 Sugar Bowl due to the violations committed under Pell; runner-up LSU went in their place.",
+          "note": "Postseason section [saved: wp_1984_Florida_Gators_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "miami-oh",
+      "season": 1985,
+      "kind": "not-invited",
+      "summary": "Miami (OH), 8–2–1 and second in the MAC in 1985, had no bowl; champion Bowling Green took the California Bowl slot.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1985_Miami_Redskins_football_team",
+          "quote": "In its third season under head coach Tim Rose, the team compiled an 8–2–1 record (7–1–1 against MAC opponents), finished in second place in the MAC, and outscored all opponents by a combined total of 266 to 211.",
+          "note": "Lead; no bowl in schedule [saved: wp_1985_Miami_Redskins_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The game featured the champions of the Big West Conference (known prior to 1988 as the Pacific Coast Athletic Association) and the Mid-American Conference.",
+          "note": "Lead: the California Bowl (1981-1991) took only the MAC champion [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1985_Bowling_Green_Falcons_football_team",
+          "quote": "won the MAC championship, lost to Fresno State by a 51–7 score in the 1985 California Bowl",
+          "note": "Lead: the MAC champion took the bowl slot [saved: wp_1985_Bowling_Green_Falcons_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "eastern-michigan",
+      "season": 1988,
+      "kind": "not-invited",
+      "summary": "Eastern Michigan, 6–3–1 and second in the MAC in 1988, had no bowl; champion Western Michigan went to the California Bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1988_Eastern_Michigan_Hurons_football_team",
+          "quote": "In their sixth season under head coach Jim Harkema, the Hurons compiled a 6–3–1 record (5–2–1 against conference opponents), finished in second place in the Mid-American Conference, and outscored their opponents, 200 to 173.",
+          "note": "Lead; no bowl in schedule [saved: wp_1988_Eastern_Michigan_Hurons_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The game featured the champions of the Big West Conference (known prior to 1988 as the Pacific Coast Athletic Association) and the Mid-American Conference.",
+          "note": "Lead: the California Bowl (1981-1991) took only the MAC champion [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1988_Western_Michigan_Broncos_football_team",
+          "quote": "won the Mid-American Conference (MAC) championship, and lost to Fresno State in the 1988 California Bowl.",
+          "note": "Lead: the MAC champion took the bowl slot [saved: wp_1988_Western_Michigan_Broncos_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "georgia-tech",
+      "season": 1989,
+      "kind": "not-invited",
+      "summary": "Georgia Tech won seven of its last eight in 1989 to finish 7–4 but was not invited to a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1989_Georgia_Tech_Yellow_Jackets_football_team",
+          "quote": "Despite winning seven of their last eight games and ending on a four-game winning streak, they were not invited to a bowl game.",
+          "note": "Lead [saved: wp_1989_Georgia_Tech_Yellow_Jackets_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "houston",
+      "season": 1989,
+      "kind": "ncaa-ban",
+      "summary": "Houston, 9–2 with Heisman winner Andre Ware, was on NCAA probation in 1989 and ineligible for a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1989_Houston_Cougars_football_team",
+          "quote": "Under probation by the NCAA from rules violated in prior seasons, Houston was ineligible for participation in a bowl game and could not be listed in the Coaches Poll.",
+          "note": "Lead, end of first paragraph [saved: wp_1989_Houston_Cougars_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "oklahoma",
+      "season": 1990,
+      "kind": "ncaa-ban",
+      "summary": "Oklahoma, 8–3 in 1990, was on NCAA probation and ineligible for a bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1990_Oklahoma_Sooners_football_team",
+          "quote": "They were ineligible to participate in a bowl game since they were on probation, but they were allowed to be on TV.",
+          "note": "Lead [saved: wp_1990_Oklahoma_Sooners_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "louisiana-tech",
+      "season": 1991,
+      "kind": "not-invited",
+      "summary": "Louisiana Tech, an 8–1–2 independent in 1991, played no bowl game.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1991_Louisiana_Tech_Bulldogs_football_team",
+          "quote": "In their fourth year under head coach Joe Raymond Peace, the team compiled an 8–1–2 record.",
+          "note": "Lead; schedule has no bowl. No-bid inferred from absence; no source found on why. [saved: wp_1991_Louisiana_Tech_Bulldogs_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "west-virginia",
+      "season": 1992,
+      "kind": "not-invited",
+      "summary": "West Virginia finished 5–4–2 in 1992 and played no bowl game.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1992_West_Virginia_Mountaineers_football_team",
+          "quote": "Led by 13th-year head coach Don Nehlen, the Mountaineers compiled an overall record of 5–4–2 with a mark of 2–3–1 in conference play.",
+          "note": "Lead; schedule has no bowl. Five wins; no-bid inferred from absence. [saved: wp_1992_West_Virginia_Mountaineers_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "auburn",
+      "season": 1993,
+      "kind": "ncaa-ban",
+      "summary": "Auburn went 11–0 in 1993 under an NCAA probation that barred it from TV, the SEC title game and any bowl.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1993_Auburn_Tigers_football_team",
+          "quote": "Due to NCAA probation, Auburn was banned from TV and post-season play, and suffered reduced scholarships.",
+          "note": "Lead [saved: wp_1993_Auburn_Tigers_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1993_Auburn_Tigers_football_team",
+          "quote": "The post-season ban prevented Auburn from playing the SEC Championship and a bowl game.",
+          "note": "Lead [saved: wp_1993_Auburn_Tigers_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://auburntigers.com/news/2020/05/1/auburns-perfect-1993-season",
+          "quote": "Not much was expected of the 1993 Auburn Tigers. On probation, off TV, and a new coach making a jump to the big time.",
+          "note": "Auburn athletics retrospective (2020) [saved: auburn1993_auburntigers.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "western-michigan",
+      "season": 1993,
+      "kind": "not-invited",
+      "summary": "Western Michigan, 7–3–1 and second in the MAC in 1993, had no bowl; champion Ball State took the MAC's Las Vegas Bowl slot.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1993_Western_Michigan_Broncos_football_team",
+          "quote": "In their seventh season under head coach Al Molde, the Broncos compiled a 7–3–1 record (6–1–1 against MAC opponents), finished in second place in the MAC, and outscored their opponents, 237 to 187.",
+          "note": "Lead; no bowl in schedule [saved: wp_1993_Western_Michigan_Broncos_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The MAC and Big West then moved their tie-ins to Las Vegas, Nevada and created the Las Vegas Bowl.",
+          "note": "History section: from 1992 the MAC's one tie-in was the Las Vegas Bowl (champion) [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1993_Ball_State_Cardinals_football_team",
+          "quote": "won the MAC championship, and lost to Utah State in the 1993 Las Vegas Bowl.",
+          "note": "Lead: the MAC champion took the bowl slot [saved: wp_1993_Ball_State_Cardinals_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "texas-am",
+      "season": 1994,
+      "kind": "ncaa-ban",
+      "summary": "Texas A&M went 10–0–1 in 1994 under NCAA sanctions that made it ineligible for the SWC title and postseason play.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1994_Texas_A&M_Aggies_football_team",
+          "quote": "Texas A&M has the best conference record of any team in the SWC, but due to National Collegiate Athletic Association (NCAA) sanctions, the Aggies were ineligible for the conference title, postseason play, and the Coaches Poll.",
+          "note": "Lead [saved: wp_1994_Texas_A&M_Aggies_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "miami-fl",
+      "season": 1995,
+      "kind": "ncaa-ban",
+      "summary": "Miami, 8–3 Big East co-champion in 1995, served a one-year NCAA bowl ban handed down at season's end.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1995_Miami_Hurricanes_football_team",
+          "quote": "They served a one-year bowl ban due to NCAA sanctions that were levied at the end of the season.",
+          "note": "Lead [saved: wp_1995_Miami_Hurricanes_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "wyoming",
+      "season": 1995,
+      "kind": "not-invited",
+      "summary": "Wyoming went 6–5 and sixth in the WAC in 1995 and played no bowl game.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1995_Wyoming_Cowboys_football_team",
+          "quote": "Led by fifth-year head coach Joe Tiller, the Cowboys compiled an overall record of 6–5 with a mark of 4–4 in conference play, placing sixth in the WAC.",
+          "note": "Lead; schedule has no bowl. No-bid inferred from absence. [saved: wp_1995_Wyoming_Cowboys_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "low"
+    },
+    {
+      "team": "toledo",
+      "season": 1996,
+      "kind": "not-invited",
+      "summary": "Toledo, 7–4 and tied for second in the MAC in 1996, had no bowl; champion Ball State took the MAC's Las Vegas Bowl slot.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1996_Toledo_Rockets_football_team",
+          "quote": "In their sixth season under head coach Gary Pinkel, the Rockets compiled a 7–4 record (6–2 against MAC opponents), finished in a tie for second place in the MAC, and were outscored by all opponents by a combined total of 259 to 210.",
+          "note": "Lead; no bowl in schedule [saved: wp_1996_Toledo_Rockets_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/California_Bowl",
+          "quote": "The MAC and Big West then moved their tie-ins to Las Vegas, Nevada and created the Las Vegas Bowl.",
+          "note": "History section: from 1992 the MAC's one tie-in was the Las Vegas Bowl (champion) [saved: wp_California_Bowl.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1996_Ball_State_Cardinals_football_team",
+          "quote": "won the MAC championship, and lost to Nevada in the 1996 Las Vegas Bowl.",
+          "note": "Lead: the MAC champion took the bowl slot [saved: wp_1996_Ball_State_Cardinals_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "tulane",
+      "season": 1997,
+      "kind": "not-invited",
+      "summary": "Tulane went 7–4 and second in Conference USA in 1997 and was left out of the bowls, a miss that fueled its 12–0 season the next year.",
+      "receipts": [
+        {
+          "url": "https://news.tulane.edu/news/remembering-sweet-victory",
+          "quote": "When the Tulane football team went from a dismal 2-9 record in 1996 to an impressive 7-4 record under first-year coach Tommy Bowden the following year, offensive tackle Bernard Robertson III was certain the team would be headed to a bowl game.",
+          "note": "Tulane news retrospective on the 1998 team; next line reads 'He was wrong.' [saved: tulane1997_news.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://news.tulane.edu/news/remembering-sweet-victory",
+          "quote": "He looks forward to the reminiscences about the passion of the team galvanized by missing out on a bowl game the year before.",
+          "note": "Same article [saved: tulane1997_news.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "toledo",
+      "season": 2000,
+      "kind": "not-invited",
+      "summary": "Toledo went 10–1 and was ranked No. 25 in 2000 but was left out when the bowl lineup was set.",
+      "receipts": [
+        {
+          "url": "https://utrockets.com/news/2000/12/3/Football_Rockets_Left_Out_of_Bowl_Lineup",
+          "quote": "The final lineup of bowl games was announced today, and No. 25 Toledo learned it will be staying home.",
+          "note": "Toledo athletics release, Dec. 3, 2000 [saved: toledo2000_ut.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "bowling-green",
+      "season": 2001,
+      "kind": "not-invited",
+      "summary": "Bowling Green went 8–3 in Urban Meyer's first season, 2001, and was not invited to a bowl.",
+      "receipts": [
+        {
+          "url": "https://www.elevenwarriors.com/ohio-state-football/2015/12/64814/exploring-ohio-state-coach-urban-meyers-career-in-bowl-games",
+          "quote": "He went 8-3 in that first year, but the Falcons were not invited to a bowl game.",
+          "note": "Eleven Warriors, Bowling Green section [saved: bgsu2001_11w.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "south-florida",
+      "season": 2001,
+      "kind": "not-invited",
+      "summary": "South Florida went 8–3 in its first Division I-A season, 2001, as an independent and got no bowl bid.",
+      "receipts": [
+        {
+          "url": "https://www.usforacle.com/?p=9247",
+          "quote": "However, both years the Bulls were not afforded bowl bids, losing out on postseason play to teams they defeated during the season.",
+          "note": "USF Oracle; the preceding line says the first two I-A seasons were 8-3 and 9-2 [saved: usf_oracle_9247.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://gousfbulls.com/sports/2016/6/22/211017406.aspx",
+          "quote": "For the first time (and not the last) we wondered what bowl game we might have gone to if we had just been in a conference.",
+          "note": "USF athletics retrospective of 2001 [saved: usf2001_gousfbulls.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "team": "florida",
+      "season": 2006,
+      "kind": "played",
+      "summary": "Florida did play a postseason game in 2006: it beat Ohio State 41–14 in the BCS National Championship Game on Jan. 8, 2007. This is a data bug on our side.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2006_Florida_Gators_football_team",
+          "quote": "then defeated the Ohio State Buckeyes 41–14 in the BCS National Championship Game on January 8, 2007",
+          "note": "Lead, second paragraph [saved: wp_2006_Florida_Gators_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "miami-fl",
+      "season": 2012,
+      "kind": "self-ban",
+      "summary": "Miami, 7–5 and tied for first in the ACC Coastal in 2012, imposed its own bowl ban for a second straight year during the NCAA's Nevin Shapiro investigation.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2012_Miami_Hurricanes_football_team",
+          "quote": "The Hurricanes served a self-imposed bowl ban due to an ongoing NCAA investigation.",
+          "note": "Lead [saved: wp_2012_Miami_Hurricanes_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://fbschedules.com/miami-hurricanes-self-impose-postseason-ban/amp",
+          "quote": "For the second straight season, the Miami Hurricanes have self-imposed a postseason ban.",
+          "note": "FBSchedules, Nov. 2012 [saved: miami2012_fbschedules.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://themiamihurricane.com/2012/11/29/golden-reflects-on-strong-leadership-postseason-bowl-ban/",
+          "quote": "The Hurricanes (7-5, 5-3 ACC) finished the regular season tied for first place atop the ACC Coastal Division with North Carolina, but Miami isn’t eligible for the championship game or a postseason bowl due to a self-imposed ban by the university.",
+          "note": "The Miami Hurricane (student paper), Nov. 29, 2012 [saved: miami2012_hurricane.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "ohio-state",
+      "season": 2012,
+      "kind": "ncaa-ban",
+      "summary": "Ohio State went 12–0 in 2012 under an NCAA bowl ban, so it stayed home; the streak reached 24 the next fall.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2012_Ohio_State_Buckeyes_football_team",
+          "quote": "Due to findings of an investigation conducted by the NCAA during the previous season, Ohio State was ineligible for both the Big Ten Championship Game and an appearance in a bowl game for the 2012 season.",
+          "note": "Lead [saved: wp_2012_Ohio_State_Buckeyes_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://www.bangordailynews.com/2011/12/20/sports/ohio-state-gets-bowl-ban-other-penalties/",
+          "quote": "The NCAA hit Ohio State with a one-year bowl ban and other penalties on Tuesday for a scandal that involved eight players taking a total of $14,000 in cash and tattoos in exchange for jerseys, rings and other Buckeyes memorabilia.",
+          "note": "AP via Bangor Daily News, Dec. 20, 2011 [saved: osu2012_bangor.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "iowa",
+      "season": 2020,
+      "kind": "canceled",
+      "summary": "Iowa, 6–2 in the COVID-shortened 2020 season, was set to play Missouri in the Music City Bowl, but the game was canceled when COVID-19 cases left Missouri unable to play.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2020_Iowa_Hawkeyes_football_team",
+          "quote": "The team was set to face Missouri in the Music City Bowl, but the game was canceled after Missouri had to withdraw due to COVID-19 issues.",
+          "note": "Lead [saved: wp_2020_Iowa_Hawkeyes_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://www.click2houston.com/sports/2020/12/27/music-city-bowl-between-iowa-and-missouri-canceled/",
+          "quote": "The Music City Bowl between Missouri and Iowa was canceled Sunday because COVID-19 issues left the Tigers unable to play.",
+          "note": "AP, Dec. 27, 2020 [saved: iowa2020_ap_click2houston.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://hawkeyesports.com/news/2020/12/27/music-city-bowl-canceled",
+          "quote": "That has resulted in the cancellation of the 2020 game, which was slated to take place on Wednesday, Dec. 30 at Nissan Stadium with Missouri (5-5) set to face Iowa (6-2).",
+          "note": "Iowa athletics release, Dec. 27, 2020 [saved: iowa2020_hawkeyesports.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "ucla",
+      "season": 2021,
+      "kind": "canceled",
+      "summary": "UCLA, 8–4, accepted a Holiday Bowl bid in 2021 but withdrew hours before kickoff over COVID-19 protocols, and the game was canceled.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2021_UCLA_Bruins_football_team",
+          "quote": "However, just hours before game time, the Bruins withdrew from the bowl due to COVID-19 protocols in their program, and the bowl was canceled.",
+          "note": "Lead [saved: wp_2021_UCLA_Bruins_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://abc7.com/post/holiday-bowl-unable-to-find-replacement-college-football-team-canc/11402515/",
+          "quote": "The San Diego County Credit Union Holiday Bowl was officially canceled Wednesday morning -- one day after UCLA pulled out of the game due to COVID-19 concerns, leaving NC State frustrated about the way the entire situation was handled.",
+          "note": "ESPN story syndicated on ABC7, Dec. 29, 2021 [saved: ucla2021_abc7.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "james-madison",
+      "season": 2022,
+      "kind": "ineligible",
+      "summary": "James Madison, 8–3 in its first FBS season, 2022, was barred from a bowl by the NCAA's FCS-to-FBS transition rules.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2022_James_Madison_Dukes_football_team",
+          "quote": "They were not eligible for a bowl game due to the transition period.",
+          "note": "Lead, second paragraph [saved: wp_2022_James_Madison_Dukes_football_team.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/2022_James_Madison_Dukes_football_team",
+          "quote": "On April 27, 2023, the NCAA denied the waiver.",
+          "note": "Lead: the waiver request to count 2022 as year two failed [saved: wp_2022_James_Madison_Dukes_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "team": "notre-dame",
+      "season": 2025,
+      "kind": "declined",
+      "summary": "Notre Dame, 10–2 and the first team left out of the 2025 Playoff, withdrew from bowl consideration and turned down the Pop-Tarts Bowl.",
+      "receipts": [
+        {
+          "url": "https://www.cbssports.com/college-football/news/notre-dame-bowl-game-opt-out-college-football-playoff/",
+          "quote": "\"As a team, we've decided to withdraw our name from consideration for a bowl game following the 2025 season,\" Notre Dame wrote in a statement.",
+          "note": "CBS Sports, Dec. 7, 2025, quoting the school's statement [saved: nd2025_cbs.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://web.archive.org/web/20251213133948/https://www.cbssports.com/college-football/news/notre-dame-bowl-game-opt-out-college-football-playoff/",
+          "quote": "\"As a team, we've decided to withdraw our name from consideration for a bowl game following the 2025 season,\" Notre Dame wrote in a statement.",
+          "note": "Wayback snapshot of the same CBS story, 2025-12-13 [saved: nd2025_cbs_wayback.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://www.click2houston.com/sports/2025/12/07/notre-dame-left-out-of-playoff-while-alabama-and-miami-get-in-opts-out-of-bowl-consideration/",
+          "quote": "The ninth-ranked Fighting Irish responded to getting dropped in the CFP rankings for the second consecutive week by turning down an invitation to play in the Pop-Tarts Bowl in Orlando, Florida.",
+          "note": "AP, Dec. 7, 2025 [saved: nd2025_click2houston.txt]",
+          "retrieved": "2026-10-08"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/2025_Notre_Dame_Fighting_Irish_football_team",
+          "quote": "They did not receive an invitation to the 2025–26 College Football Playoff and withdrew from consideration for other bowl games.",
+          "note": "Lead [saved: wp_2025_Notre_Dame_Fighting_Irish_football_team.txt]",
+          "retrieved": "2026-10-08"
+        }
+      ],
+      "confidence": "high"
+    }
+  ]
+}

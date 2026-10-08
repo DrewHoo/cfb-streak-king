@@ -1,11 +1,53 @@
 // What to read next, and the Method notes: the page's static copy.
 
-import { P, firstSeason, fbsNow } from '../lib/model.ts';
+import { P, firstSeason, fbsNow, teams } from '../lib/model.ts';
 import { PLAIN_CHIPS, PLAIN_DEFINITIONS, PLAIN_STREAK_KINDS } from '../lib/chips.ts';
 import { ALL_DEFINITIONS } from '../lib/definition.ts';
+import { DEFAULT_VIEW, toUrl } from '../lib/url.ts';
+import { preservedStreaks, KIND_WORDS } from '../lib/unplayed.ts';
 import { track } from '../lib/analytics.ts';
 
 export const KOFI_URL = 'https://ko-fi.com/drewhooverdotcom';
+const BASE = import.meta.env.BASE_URL;
+// a relative link from URL parts, usable in the prerender (no window)
+const href = ({ path, params }) => {
+  const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== ''));
+  const s = q.toString();
+  return `${BASE}${path}${s ? `?${s}` : ''}`;
+};
+const PRESERVED_CAP = 12;
+/** A run shorter than this isn't worth a line in the notes; the panel still notes it. */
+const PRESERVED_MIN = 8;
+
+/**
+ * Winning streaks that lived through a postseason the team didn't play
+ * (unplayed.ts), one class at a time: the run, then each such season's
+ * ruling with its receipt as the link.
+ */
+function Preserved({ cls }) {
+  const list = preservedStreaks(cls, 'W').filter((s) => s.len >= PRESERVED_MIN).slice(0, PRESERVED_CAP);
+  if (!list.length) return null;
+  return (
+    <ul>
+      {list.map((s) => {
+        const t = teams[s.ti];
+        const span = s.startSe === s.endSe ? String(s.startSe) : `${s.startSe}–${s.live ? 'now' : s.endSe}`;
+        const url = href(toUrl({ ...DEFAULT_VIEW, active: [], dir: 'W', scope: 'all', team: s.ti, run: s.run }));
+        return (
+          <li key={`${t.id}:${s.run}`}>
+            <a href={url}>{t.name}, {s.len}{s.atEdge ? '+' : ''} straight ({span})</a>:{' '}
+            {s.seasons.map((r, i) => (
+              <span key={r.season}>
+                {i > 0 ? ' ' : ''}{r.season}, {r.summary}{' '}
+                <a href={r.receipts[0].url} title={r.receipts[0].quote} rel="noopener">[{KIND_WORDS[r.kind]}{r.confidence === 'low' ? ', thinly sourced' : ''}]</a>
+              </span>
+            ))}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 export function Notes() {
   return (
@@ -57,6 +99,18 @@ export function Notes() {
                 break a streak — “hasn't lost to Auburn since 1998” stays alive through seasons they don't play.
               </li>
               <li>Ties (pre-1996) end winning and losing streaks; an undefeated streak counts wins and ties.</li>
+              <li>
+                A game a team doesn’t play neither extends nor breaks a run, the same as a game that doesn’t qualify, which
+                is how the record book has always counted it. Two kinds of postseason go unplayed, and they deserve different
+                treatment. When the team itself turned a game down — a declined bid, a school’s standing no-bowl policy, a
+                self-imposed ban — the streak carried on without being put at risk, and a reader can decide what that is worth.
+                The longest winning streaks that lived through a bowl the team chose not to play, each with its source:
+                <Preserved cls="chose" />
+                When a rule the team was under kept it home — a conference that barred bowls or allowed only the Rose Bowl, a
+                no-repeat rule, an NCAA ban — the team had no game to turn down, and deserves no criticism for following it. The
+                longest winning streaks that lived through a postseason a rule kept the team out of:
+                <Preserved cls="ruled" />
+              </li>
               <li>
                 A winning or losing streak can ask for a margin: “winning by 10+” counts games won by 10 or more, and any
                 other result — a loss or a closer win alike — ends it. The margin is on the outcome, not a condition, because a

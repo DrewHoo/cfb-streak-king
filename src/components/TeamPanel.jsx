@@ -11,6 +11,7 @@ import { encodeChips } from '../lib/definition.ts';
 import { siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText, oddsText } from '../lib/format.ts';
 import { MINED_MARGIN, baseDir } from '../lib/outcome.ts';
 import { seasonRecord, recordText } from '../lib/team.ts';
+import { unplayedInRun, classOf, KIND_WORDS } from '../lib/unplayed.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, CloseIcon, Chevron } from './Icons.jsx';
 
@@ -68,6 +69,33 @@ export function NextRow({ ti, g, onGame }) {
   );
 }
 
+/**
+ * The postseasons this run lived through without playing (unplayed.ts), said
+ * by whose call it was: a bowl the team turned down, or a rule that kept it
+ * home. A run can hold both kinds.
+ */
+function Unplayed({ row, games }) {
+  const list = unplayedInRun(row.ti, games, row.live === false ? row.ended.se : null);
+  if (!list.length) return null;
+  const chose = list.filter((r) => classOf(r.kind) === 'chose').length;
+  const lead = chose === list.length
+    ? (list.length === 1 ? 'this streak lived through a bowl the team chose not to play' : `this streak lived through ${list.length} postseasons the team chose not to play`)
+    : chose === 0
+      ? (list.length === 1 ? 'this streak lived through a postseason a rule kept the team out of' : `this streak lived through ${list.length} postseasons rules kept the team out of`)
+      : `this streak lived through ${list.length} postseasons not played, by the team’s call and under a rule`;
+  return (
+    <div className="log-note">
+      {lead}:{' '}
+      {list.map((r, i) => (
+        <span key={r.season}>
+          {i > 0 ? '; ' : ''}{r.season}, {r.summary}{' '}
+          <a href={r.receipts[0].url} title={r.receipts[0].quote} rel="noopener">[{KIND_WORDS[r.kind]}{r.confidence === 'low' ? ', thinly sourced' : ''}]</a>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Ledger({ row, edge, cover, onGame }) {
   const [all, setAll] = useState(false);
   const games = streakGames(row);
@@ -82,6 +110,7 @@ function Ledger({ row, edge, cover, onGame }) {
       {games.length > LEDGER_CAP && (
         <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${games.length - LEDGER_CAP} more`}</button>
       )}
+      <Unplayed row={row} games={games} />
       {row.s.atEdge
         ? (
           <div className="log-note">

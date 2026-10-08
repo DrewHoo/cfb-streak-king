@@ -274,6 +274,12 @@ const rivalByPair = new Map(rivalries.map((r, i) => [[r.a, r.b].sort().join('|')
 let joined0213 = 0;
 let total0213 = 0;
 
+// Howell's game note names the bowl: "Rose Bowl", "Hall of Fame Classic"
+// (Birmingham, 1977-85), "BCS Championship", "College Football Playoff
+// Championship". Conference title games and the preseason Kickoff / Pigskin
+// Classics are not postseason.
+const isPostseasonNote = (note) => /\bbowl\b|championship game|bcs championship|playoff|hall of fame classic/i.test(note ?? '') && !/conference|kickoff|pigskin/i.test(note ?? '');
+
 function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutral, postseason, confGame, homeSpread, startHour, info }) {
   const ep = epochDay(dateIso);
   cols.se.push(season);
@@ -282,6 +288,9 @@ function pushGame({ season, dateIso, home, away, homeRaw, awayRaw, hs, as, neutr
   cols.ai.push(teamIdx(away, awayRaw));
   cols.hs.push(hs);
   cols.as.push(as);
+  // every January game in the window is a bowl or a title game, whatever the
+  // source called it (the 2006 BCS title game came through unflagged)
+  if (dateIso.slice(5, 7) === '01') postseason = true;
   cols.fl.push((neutral ? FLAG.neutral : 0) | (confGame ? FLAG.conf : 0) | (postseason ? FLAG.post : 0));
   cols.sp.push(homeSpread == null ? NO_LINE : Math.round(homeSpread * 2));
   cols.hr.push(rankOf(home, season, ep));
@@ -364,7 +373,7 @@ const early = { games: 0, oneSided: 0, homeSplits: [], dateSplits: [], scoreSpli
     pushGame({
       season: a.se, dateIso, home, away,
       homeRaw: home === a.team ? a.teamName : a.oppName, awayRaw: home === a.team ? a.oppName : a.teamName,
-      hs, as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(note) && !/conference|kickoff/i.test(note),
+      hs, as, neutral, postseason: isPostseasonNote(note),
       confGame: jhConfGame(a.se, a.date, home, away) || (b ? jhConfGame(b.se, b.date, home, away) : false),
       homeSpread: null, startHour: NO_HOUR, info: city || null,
     });
@@ -437,7 +446,7 @@ for (const r of jhGames) {
   filled.push({ season: r.se, date: r.date, visitor: awayName, home: homeName, score: `${hw.as}-${hw.hs}`, neutral, site: r.city || null, note: r.note || null });
   pushGame({
     season: r.se, dateIso: r.date, home: hw.home, away: hw.away, homeRaw: homeName, awayRaw: awayName,
-    hs: hw.hs, as: hw.as, neutral, postseason: /\bbowl\b|championship game|playoff/i.test(r.note) && !/conference|kickoff/i.test(r.note),
+    hs: hw.hs, as: hw.as, neutral, postseason: isPostseasonNote(r.note),
     confGame: jhConfGame(r.se, r.date, hw.home, hw.away), homeSpread: null, startHour: NO_HOUR, info: r.city || null,
   });
 }
