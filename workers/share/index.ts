@@ -31,6 +31,9 @@ const RAW_PAYLOAD = 'https://raw.githubusercontent.com/DrewHoo/cfb-streak-king/m
 const FALLBACK_META: ShareMeta = { site: 'College Football Streak King', teams: {}, mascots: [], colors: [] };
 const DEFAULT_C = 'unranked'; // definition.ts DEFAULT_CHIPS, as the c param spells it
 
+/** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
+const CARD_VERSION = '2026-10-08';
+
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
 // 404 cached before a Pages deploy must not outlive the day it happened on
@@ -131,13 +134,16 @@ export default {
   async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // the dynamic card, cached at the edge
+    // the dynamic card, cached at the edge under this deploy's version, so a
+    // card an older worker drew for the same URL (one that didn't know a new
+    // outcome, say) can't outlive the deploy that taught it
     if (url.pathname === `${BASE}/share/og.png`) {
       try {
-        const cached = await caches.default.match(request);
+        const key = new Request(`${url.origin}${url.pathname}?v=${CARD_VERSION}&${url.searchParams}`, { method: 'GET' });
+        const cached = await caches.default.match(key);
         if (cached) return cached;
         const res = await ogCard(url.searchParams);
-        ctx.waitUntil(caches.default.put(request, res.clone()));
+        ctx.waitUntil(caches.default.put(key, res.clone()));
         return res;
       } catch (e) {
         console.log(JSON.stringify({ event: 'og_render_failed', url: url.search, error: String((e as Error)?.stack ?? e) }));
