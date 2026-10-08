@@ -31,6 +31,69 @@ const RAW_PAYLOAD = 'https://raw.githubusercontent.com/DrewHoo/cfb-streak-king/m
 const FALLBACK_META: ShareMeta = { site: 'College Football Streak King', teams: {}, mascots: [], colors: [] };
 const DEFAULT_C = 'unranked'; // definition.ts DEFAULT_CHIPS, as the c param spells it
 
+// Analytics: one Mixpanel event per link preview, sent server-side to the
+// index site's project (the public token its embed carries; a project token
+// only writes). The client embed never sees an unfurl, because the bot that
+// fetches a shared link runs no script, so this is the only place a share
+// can be counted. Nothing personal goes: the crawler's name (never the raw
+// user agent, never an IP: ip=0 tells Mixpanel not to geolocate), the
+// country Cloudflare saw, and the URL's own words. A browser's visit is the
+// embed's to count, so the head rewrite reports crawlers only; the card is
+// reported whoever asked for it.
+const MIXPANEL_TOKEN = '1c6a0f45b8a5768185a8d9a2f4d65452';
+const AGENTS: [RegExp, string][] = [
+  [/Slackbot|Slack-ImgProxy/i, 'slack'],
+  [/Discordbot/i, 'discord'],
+  [/TelegramBot/i, 'telegram'],
+  [/WhatsApp/i, 'whatsapp'],
+  [/LinkedInBot/i, 'linkedin'],
+  [/redditbot/i, 'reddit'],
+  [/Bluesky/i, 'bluesky'],
+  [/Mastodon/i, 'mastodon'],
+  [/Facebot.*Twitterbot|Twitterbot.*Facebot/i, 'imessage'],
+  [/Twitterbot/i, 'twitter'],
+  [/facebookexternalhit|Facebot/i, 'facebook'],
+  [/Googlebot/i, 'google'],
+  [/bingbot/i, 'bing'],
+  [/Applebot/i, 'apple'],
+  [/bot|crawler|spider|preview|fetch|embed|scraper/i, 'other-bot'],
+];
+const agentOf = (ua: string | null): string => AGENTS.find(([re]) => re.test(ua ?? ''))?.[1] ?? 'browser';
+
+function report(ctx: ExecutionContext, request: Request, event: string, props: Record<string, unknown>) {
+  try {
+    const agent = agentOf(request.headers.get('user-agent'));
+    const body = [{
+      event,
+      properties: {
+        token: MIXPANEL_TOKEN,
+        distinct_id: `unfurl:${agent}`,
+        $insert_id: crypto.randomUUID(),
+        time: Math.floor(Date.now() / 1000),
+        site: 'cfb-streak-king',
+        agent,
+        country: (request as Request & { cf?: { country?: string } }).cf?.country ?? null,
+        ...props,
+      },
+    }];
+    ctx.waitUntil(fetch('https://api.mixpanel.com/track?ip=0', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'text/plain' },
+      body: JSON.stringify(body),
+    }).then((r) => r.body?.cancel()).catch(() => {}));
+  } catch {}
+}
+/** The URL's own words, for an event: the definition, the outcome, the scope, the teams. */
+const urlProps = (url: URL) => {
+  const q = url.searchParams;
+  const team = /\/team\/([a-z0-9-]+)\/?$/.exec(url.pathname)?.[1] ?? null;
+  return {
+    path: url.pathname.replace(BASE, '') || '/',
+    chips: q.get('c'), dir: q.get('dir') ?? 'W', scope: q.get('scope') ?? 'all',
+    team: q.get('t') ?? team, vs: q.get('vs'),
+  };
+};
+
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
 const CARD_VERSION = '2026-10-08';
 
@@ -141,6 +204,7 @@ export default {
       try {
         const key = new Request(`${url.origin}${url.pathname}?v=${CARD_VERSION}&${url.searchParams}`, { method: 'GET' });
         const cached = await caches.default.match(key);
+        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached });
         if (cached) return cached;
         const res = await ogCard(url.searchParams);
         ctx.waitUntil(caches.default.put(key, res.clone()));
@@ -161,6 +225,7 @@ export default {
       if (!(res.headers.get('content-type') ?? '').includes('text/html')) return res;
       const text = shareText(url.pathname, url.searchParams, await loadMeta());
       if (!text) return res;
+      if (agentOf(request.headers.get('user-agent')) !== 'browser') report(ctx, request, 'share unfurl', urlProps(url));
       const board = !/\/team\//.test(url.pathname);
       let out = new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(text.title); } })

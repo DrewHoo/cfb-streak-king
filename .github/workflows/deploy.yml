@@ -52,3 +52,24 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # The share worker (workers/share) bundles src/lib, so it ships with the
+  # site. Needs a CLOUDFLARE_API_TOKEN repo secret: a token made from the
+  # "Edit Cloudflare Workers" template. The weekly data refresh changes no
+  # worker code, so it skips this.
+  worker:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+      - run: npm ci
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          wranglerVersion: '4.147.0'
+          command: deploy -c workers/share/wrangler.jsonc
