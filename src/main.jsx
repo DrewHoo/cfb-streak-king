@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath, gamesFromPath, weekFromPath } from './lib/url.ts'
+import { teamFromPath, gamesFromPath, weekFromPath, riskFromPath } from './lib/url.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
 import './styles.css'
 
@@ -19,6 +19,7 @@ const initial = {
   page,
   games: page == null && gamesFromPath(window.location.pathname),
   bwk: page == null ? weekFromPath(window.location.pathname) : null,
+  risk: page == null && riskFromPath(window.location.pathname),
   crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
 }
 

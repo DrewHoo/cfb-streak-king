@@ -21,6 +21,10 @@ const RUST = '#c36c36';
 export interface CardRow {
   count: string;
   name: string;
+  /** A dense row's small print under the name. */
+  sub?: string;
+  /** The count in rust: a losing or not-covering run. */
+  bad?: boolean;
   /** "’08–’21" or "since ’19"; said in mono small print. */
   span: string;
   live: boolean;
@@ -37,12 +41,26 @@ export interface Card {
   rows: CardRow[];
   /** "1936–2026 · 63,855 games · drewhoover.com" */
   footer: string;
+  /** Rows that are a claim with small print under it (a week's broken or at-risk streaks), not a name and a span. */
+  dense?: boolean;
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 export function renderCard(card: Card): Response {
-  const rows = card.rows.map((r) => `
+  const rows = card.dense
+    ? card.rows.map((r) => `
+    <div style="display:flex; flex-direction:row; align-items:center; gap:14px; padding:6px 0; border-bottom:1px dashed ${LINE};">
+      <div style="display:flex; justify-content:flex-end; width:64px; font-family:'Graduate'; font-size:24px; color:${r.bad ? RUST : CREAM};">${esc(r.count)}</div>
+      ${r.logo
+        ? `<img src="${r.logo}" width="32" height="32" />`
+        : `<div style="display:flex; justify-content:center; width:32px; font-family:'Graduate'; font-size:18px; color:${MUTED};">${esc(r.initial)}</div>`}
+      <div style="display:flex; flex-direction:column; flex-grow:1; width:590px;">
+        <div style="display:flex; font-family:'Source Serif 4'; font-size:19px; color:${INK}; white-space:nowrap; overflow:hidden;">${esc(r.name)}</div>
+        <div style="display:flex; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:1px; color:${FAINT}; white-space:nowrap; overflow:hidden; margin-top:2px;">${esc((r.sub ?? '').toUpperCase())}</div>
+      </div>
+    </div>`).join('')
+    : card.rows.map((r) => `
     <div style="display:flex; flex-direction:row; align-items:center; gap:16px; padding:7px 0; border-bottom:1px dashed ${LINE};">
       <div style="display:flex; justify-content:flex-end; width:80px; font-family:'Graduate'; font-size:28px; color:${CREAM};">${esc(r.count)}</div>
       ${r.logo

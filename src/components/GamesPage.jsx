@@ -4,7 +4,7 @@
 // one with games still unrecorded) is open; later weeks open on a tap. A row
 // opens the game's matchup.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { scheduledGames, lineText, topOnLine, rankText } from '../lib/team.ts';
 import { brokenLastWeek, brokenWeek, completedWeeks } from '../lib/broken.ts';
@@ -12,8 +12,9 @@ import { atRiskWeek } from '../lib/atRisk.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
-import { ShareIcon, Chevron, Caret } from './Icons.jsx';
+import { ShareIcon, Chevron, LinkIcon } from './Icons.jsx';
 import { streakWords } from './Matchup.jsx';
+import { Picker } from './Picker.jsx';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const monthName = (ep) => MONTHS[new Date(ep * 86400000).getUTCMonth()];
@@ -78,7 +79,7 @@ function BrokenRow({ b, onOpen }) {
 // the digest of a completed week's broken runs, above the schedule; the
 // week is a picker, each choice its own address (/games/week/<n>/), and
 // the default (/games/) is the latest completed week
-function Broken({ bwk, onOpen, onWeek }) {
+function Broken({ bwk, onOpen, onWeek, onLink }) {
   const weeks = useMemo(() => completedWeeks().filter((w) => w.wk != null), []);
   const broken = useMemo(() => (bwk != null ? brokenWeek(bwk) : null) ?? brokenLastWeek(), [bwk]);
   // "more" opens per week, so flipping weeks folds it back up
@@ -93,14 +94,14 @@ function Broken({ bwk, onOpen, onWeek }) {
           Streaks broken{broken.wk != null && weeks.length > 0 ? ' in' : ''}
           {broken.wk != null && weeks.length > 0 && (
             <span className="gbk-wk">
-              <select value={broken.wk} onChange={(e) => onWeek(Number(e.target.value))} aria-label="Pick a week of broken streaks">
-                {weeks.map((w) => <option key={w.wk} value={w.wk}>Week {w.wk}</option>)}
-              </select>
-              <Caret />
+              <Picker value={broken.wk} options={weeks.map((w) => ({ value: w.wk, label: `Week ${w.wk}` }))} onChange={onWeek} ariaLabel="Pick a week of broken streaks" />
             </span>
           )}
         </span>
-        <small>{span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}</small>
+        <small>
+          {span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}
+          {broken.wk != null && <button className="lnk" onClick={() => onLink('broken', broken.wk)} aria-label={`Link to Week ${broken.wk}’s broken streaks`} title="link to this"><LinkIcon /></button>}
+        </small>
       </div>
       <div className="gbk-list">
         {rows.map((b) => (
@@ -141,16 +142,22 @@ function AtRiskRow({ r, onGame }) {
 
 // the week's streaks most at risk, above its games: what the games can take
 // away (atRisk.ts), the most first, the rest behind "more"
-function AtRisk({ wk, games, todayEp, onGame }) {
+function AtRisk({ wk, games, todayEp, onGame, onLink, focus }) {
   const risk = useMemo(() => atRiskWeek(games, todayEp), [games, todayEp]);
   const [all, setAll] = useState(false);
+  // its own address lands on it
+  const ref = useRef(null);
+  useEffect(() => { if (focus) ref.current?.scrollIntoView({ block: 'start' }); }, [focus]);
   if (!risk.list.length) return null;
   const rows = all ? [...risk.list, ...risk.more] : risk.list;
   return (
-    <section className="gwk">
+    <section className="gwk" ref={ref}>
       <div className="gwk-h gbk-h">
         <span className="gbk-ttl">Week {wk} at-risk streaks</span>
-        <small>{span(games[0].ep, games[games.length - 1].ep)} · by what the game can take away</small>
+        <small>
+          {span(games[0].ep, games[games.length - 1].ep)} · by what the game can take away
+          <button className="lnk" onClick={() => onLink('risk', wk)} aria-label="Link to this week’s at-risk streaks" title="link to this"><LinkIcon /></button>
+        </small>
       </div>
       <div className="gbk-list">
         {rows.map((r) => <AtRiskRow key={`${r.ti}|${r.s.dir}|${r.s.chips.join()}|${r.s.vs ?? ''}`} r={r} onGame={onGame} />)}
@@ -197,7 +204,7 @@ function Week({ games, todayEp, onGame }) {
   return <div className="gwk-list"><div className="gm gm-head" aria-hidden="true"><span>kick</span><span>away</span><span /><span>home</span><span className="gm-line">line</span></div>{out}</div>;
 }
 
-export function GamesPage({ todayEp, bwk, copied, on }) {
+export function GamesPage({ todayEp, bwk, risk, copied, on }) {
   const weeks = useMemo(() => {
     const byWk = new Map();
     for (const g of scheduledGames()) (byWk.get(g.wk) ?? byWk.set(g.wk, []).get(g.wk)).push(g);
@@ -216,8 +223,8 @@ export function GamesPage({ todayEp, bwk, copied, on }) {
       </div>
       <h1 className="gpg-h1">{P.currentSeason} games</h1>
       <p className="tpg-note">Every scheduled game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</p>
-      <Broken bwk={bwk} onOpen={on.streak} onWeek={on.week} />
-      {weeks.length > 0 && <AtRisk wk={weeks[0][0]} games={weeks[0][1]} todayEp={todayEp} onGame={on.game} />}
+      <Broken bwk={bwk} onOpen={on.streak} onWeek={on.week} onLink={on.link} />
+      {weeks.length > 0 && <AtRisk wk={weeks[0][0]} games={weeks[0][1]} todayEp={todayEp} onGame={on.game} onLink={on.link} focus={risk} />}
       {weeks.length === 0 && <p className="empty">No games are scheduled.</p>}
       {weeks.map(([wk, games], i) => {
         const shown = i === 0 || open.has(wk);

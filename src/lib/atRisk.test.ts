@@ -36,12 +36,16 @@ describe('atRiskWeek', () => {
   const games = scheduledGames();
   const wk = games[0]?.wk;
   const week = games.filter((g) => g.wk === wk);
-  test('ranks every lined streak on the line by score × chance, once each, with the cap and floor', () => {
+  test('ranks every lined streak on the line by score × chance, once each, a team once in the list, with the cap and floor', () => {
     if (!week.length) return;
     const { list, more } = atRiskWeek(week, today);
     const all = [...list, ...more];
     expect(list.length).toBeLessThanOrEqual(AT_RISK_CAP);
-    for (let i = 1; i < all.length; i++) expect(all[i - 1].stake).toBeGreaterThanOrEqual(all[i].stake);
+    expect(new Set(list.map((r) => r.ti)).size).toBe(list.length);
+    for (let i = 1; i < list.length; i++) expect(list[i - 1].stake).toBeGreaterThanOrEqual(list[i].stake);
+    for (let i = 1; i < more.length; i++) expect(more[i - 1].stake).toBeGreaterThanOrEqual(more[i].stake);
+    const listed = new Set(list.map((r) => r.ti));
+    for (const r of more) expect(list.length === AT_RISK_CAP || listed.has(r.ti)).toBe(true);
     for (const r of all) {
       expect(r.stake).toBeCloseTo(r.s.score * r.p, 9);
       expect(r.stake).toBeGreaterThanOrEqual(AT_RISK_FLOOR);

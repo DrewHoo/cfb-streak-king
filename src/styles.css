@@ -11,6 +11,9 @@
 
 * { box-sizing: border-box; }
 
+/* text highlight: a shade of the stadium light that glows at the top of the page */
+::selection { background: rgba(243, 226, 188, 0.3); color: var(--cream); }
+
 html, body {
   margin: 0; padding: 0;
   background: var(--bg); color: var(--ink);
@@ -581,6 +584,7 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .gwk-h:hover, .gwk-h:focus-visible { outline: none; }
 .gwk-h:hover small { color: var(--ink-muted); }
 .gwk-list { display: flex; flex-direction: column; }
+.leads-lead .pick { font-weight: 400; font-size: 15px; border-bottom-style: dotted; }
 /* streaks broken in a completed week: a digest above the weeks, the week a picker */
 .gbk-h { cursor: default; flex-wrap: wrap; }
 .gbk-ttl { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
@@ -594,6 +598,13 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 /* unwind .gwk-h's chevron styling for the picker's own caret */
 .gbk-h .gbk-wk svg { align-self: center; margin-left: 0; transform: none; color: var(--ink-faint); pointer-events: none; }
 .gbk-wk select option { background: var(--bg, #282127); color: var(--ink, #efe6d9); font-family: inherit; }
+/* the week picker in the heading's own face */
+.gbk-h .pick { font-family: 'Graduate', serif; font-size: 16px; font-weight: 400; letter-spacing: 0.04em; border-bottom-style: dotted; }
+.gbk-h .pick svg { align-self: center; margin-left: 0; transform: none; }
+/* the section's own address: a small link after the flavor text */
+.gbk-h .lnk { display: inline-flex; align-items: center; margin-left: 2px; color: var(--ink-faint); background: none; border: none; padding: 2px; cursor: pointer; border-radius: 3px; }
+.gbk-h .lnk:hover, .gbk-h .lnk:focus-visible { color: var(--cream); outline: none; }
+.gbk-h .lnk svg { margin: 0; transform: none; color: inherit; }
 .gbk-list { display: flex; flex-direction: column; }
 .bk {
   display: grid; grid-template-columns: 34px 18px minmax(0, 1fr) auto; gap: 0 8px; align-items: center; width: 100%;

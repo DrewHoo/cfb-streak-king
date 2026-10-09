@@ -25,9 +25,10 @@ describe('brokenLastWeek', () => {
     }
   });
 
-  test('the digest is capped, cut off, and sorted best first', () => {
+  test('the digest is capped, cut off, sorted best first, and names a team once', () => {
     if (!broken) return;
     expect(broken.list.length).toBeLessThanOrEqual(BROKEN_CAP);
+    expect(new Set(broken.list.map((b) => b.ti)).size).toBe(broken.list.length);
     for (let i = 1; i < broken.list.length; i++) {
       expect(broken.list[i - 1].score).toBeGreaterThanOrEqual(broken.list[i].score);
     }
@@ -38,15 +39,17 @@ describe('brokenLastWeek', () => {
     }
   });
 
-  test('"more" continues the digest: below the cut or past the cap, down to the floor, still in order', () => {
+  test('"more" holds the rest in order: below the cut, past the cap, or a team’s further run, down to the floor', () => {
     if (!broken) return;
-    const all = [...broken.list, ...broken.more];
-    for (let i = 1; i < all.length; i++) expect(all[i - 1].score).toBeGreaterThanOrEqual(all[i].score);
+    for (let i = 1; i < broken.more.length; i++) expect(broken.more[i - 1].score).toBeGreaterThanOrEqual(broken.more[i].score);
+    const listed = new Set(broken.list.map((b) => b.ti));
     for (const b of broken.more) {
       expect(b.score).toBeGreaterThanOrEqual(BROKEN_FLOOR);
-      expect(b.score < BROKEN_CUTOFF || broken.list.length === BROKEN_CAP).toBe(true);
+      expect(b.score < BROKEN_CUTOFF || broken.list.length === BROKEN_CAP || listed.has(b.ti)).toBe(true);
       expect(b.len).toBeGreaterThanOrEqual(LEN_FLOOR);
     }
+    // a run in "more" never outscores a later-listed row of a team not yet listed: the digest took the best of note
+    for (const b of broken.more) if (!listed.has(b.ti) && b.score >= BROKEN_CUTOFF) expect(broken.list.length).toBe(BROKEN_CAP);
   });
 
   test('each plain run re-derives from the team’s games: len straight, then the ender', () => {

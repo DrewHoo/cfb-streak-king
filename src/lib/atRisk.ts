@@ -14,9 +14,10 @@ import type { Dir, UpcomingRow } from './types.ts';
 import { baseDir, marginOf } from './outcome.ts';
 import { teamStreaks, streaksOn, h2hStreaksOn } from './team.ts';
 import type { ScheduledGame, TeamStreak } from './team.ts';
+import { digestOf } from './broken.ts';
 
 export const SPREAD_SIGMA = 13.5;
-export const AT_RISK_CAP = 8;
+export const AT_RISK_CAP = 6;
 /** Below this many expected bits a streak isn't news when it falls. */
 export const AT_RISK_FLOOR = 0.25;
 
@@ -68,8 +69,9 @@ export interface AtRiskWeek {
 /**
  * The streaks on the line in these games, the most at stake first: one row
  * per streak (a team's run appears once, with its game), the top AT_RISK_CAP
- * in `list` and the rest above AT_RISK_FLOOR in `more`. Streaks are the team
- * page's (single conditions and head-to-head; a team's crowns when given).
+ * in `list`, one per team, and the rest above AT_RISK_FLOOR in `more`.
+ * Streaks are the team page's (single conditions and head-to-head; a team's
+ * crowns when given).
  */
 export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf?: (ti: number) => Parameters<typeof teamStreaks>[2]): AtRiskWeek {
   const rows: AtRisk[] = [];
@@ -91,5 +93,5 @@ export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf?: (
     seen.add(k);
     return r.stake >= AT_RISK_FLOOR;
   });
-  return { list: kept.slice(0, AT_RISK_CAP), more: kept.slice(AT_RISK_CAP) };
+  return digestOf(kept, () => true, AT_RISK_CAP);
 }

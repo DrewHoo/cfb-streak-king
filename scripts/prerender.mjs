@@ -39,6 +39,11 @@ const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
 const { completedWeeks, brokenWeek, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
+const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
+const { chipByKey } = await vite.ssrLoadModule('/src/lib/chips.ts')
+const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
+const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
@@ -155,26 +160,46 @@ console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under di
 
 // --- one page per completed week: its broken streaks, with its own preview ---
 // GitHub Pages ignores query strings, so a shareable week lives at its own
-// path, /games/week/<n>/. Its image is committed by `npm run gen:og -- --weeks`;
-// a week without one falls back to the board.
+// path, /games/week/<n>/. Its image is the share worker's, drawn from the
+// rows this build writes to dist/share/weekly.json (below), so a fresh week
+// has a card the moment the site deploys.
+const weekly = { builtAt: P.builtAt, broken: {}, atRisk: null }
+// a broken run or an at-risk one as a card row: the count, the team, the claim, the small print
+const wordsOf = (chips, vs) => chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipByKey.get(k)?.label ?? k)).join(' · ')
+const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
+const PRESENT = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' }
+const enderWords = (b) => {
+  const g = b.ender
+  const opp = teams[g.oppIdx]?.name ?? '?'
+  if (b.dir === 'C' || b.dir === 'N') return `${g.cover === 'P' ? 'pushed' : g.cover === 'W' ? 'covered' : 'didn’t cover'} vs ${opp}`
+  if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`
+  return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`
+}
 const weekUrls = []
 for (const w of completedWeeks().filter((x) => x.wk != null)) {
   const broken = brokenWeek(w.wk)
   if (!broken) continue
+  weekly.broken[w.wk] = {
+    wk: w.wk, lo: w.lo, hi: w.hi, ofNote: broken.list.length,
+    rows: broken.list.map((b) => ({
+      count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
+      claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips, b.vs)}` : ''}`,
+      sub: `${b.vs != null ? 'head-to-head' : `was ${rankText(b)} of ${b.field}`} · since ${b.since} · ${enderWords(b)}`,
+    })),
+  }
   const url = `${SITE}games/week/${w.wk}/`
   const title = `Week ${w.wk} streaks broken · ${config.title}`
   const top = broken.list.slice(0, 3).map((b) => brokenClaim(b))
   const description = top.length
     ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${w.wk}.` : ''}`
     : `No streak of note broke in Week ${w.wk}.`
-  const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'week', `${w.wk}.png`))
   const { html } = page({
     initial: { games: true, bwk: w.wk },
     url,
     title,
     description,
-    image: hasImage ? `${SITE}og/week/${w.wk}.png` : `${SITE}og.png`,
-    imageAlt: hasImage ? `The streaks broken in Week ${w.wk}, on a dark leaderboard.` : config.ogImageAlt,
+    image: `${SITE}share/og.png?broken=${w.wk}`,
+    imageAlt: `The streaks broken in Week ${w.wk}, on a dark leaderboard.`,
     jsonLd: {
       '@context': 'https://schema.org',
       '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${w.wk}`, url]])],
@@ -187,6 +212,43 @@ for (const w of completedWeeks().filter((x) => x.wk != null)) {
 }
 console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
 
+// --- the week's at-risk streaks, at their own address, with their own preview ---
+{
+  const games = scheduledGames()
+  const wk = games[0]?.wk
+  const week = games.filter((g) => g.wk === wk)
+  const risk = week.length ? atRiskWeek(week, todayEpochDay()) : { list: [], more: [] }
+  if (risk.list.length) {
+    const url = `${SITE}games/at-risk/`
+    const title = `Week ${wk} at-risk streaks · ${config.title}`
+    const rows = risk.list.map((r) => ({
+      count: `${r.s.len}${r.s.atEdge ? '+' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N',
+      claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips, r.s.vs)}` : ''}`,
+      sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)} · ${r.s.vs != null ? 'head-to-head' : `${rankText(r.s)} of ${r.s.field}`}`,
+    }))
+    weekly.atRisk = { wk, lo: week[0].ep, hi: week[week.length - 1].ep, rows }
+    const top = rows.slice(0, 3).map((r) => `${r.claim}, ${r.sub.split(' · ')[0]}`)
+    const description = `${top.join('. ')}. The streaks the week's games can take away, ranked by the odds.`
+    const { html } = page({
+      initial: { games: true, risk: true },
+      url,
+      title,
+      description,
+      image: `${SITE}share/og.png?risk=${wk}`,
+      imageAlt: `Week ${wk}'s streaks most at risk, on a dark leaderboard.`,
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], ['At risk', url]])],
+      },
+    })
+    const dir = path.join(ROOT, 'dist', 'games', 'at-risk')
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, 'index.html'), html)
+    weekUrls.push(url)
+    console.log(`prerendered the at-risk page: week ${wk}, ${rows.length} rows`)
+  }
+}
+
 // --- share metadata for the Cloudflare worker (workers/share): the words a
 // definition URL needs that the chip catalog alone can't supply ---
 {
@@ -198,6 +260,8 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
   }
   fs.mkdirSync(path.join(ROOT, 'dist', 'share'), { recursive: true })
   fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'meta.json'), JSON.stringify(meta))
+  // the week cards' rows (broken and at-risk), for the worker's og.png?broken= and ?risk=
+  fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'weekly.json'), JSON.stringify(weekly))
   // the worker's og.png route runs the site's own model; publish the payload it reads
   fs.copyFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), path.join(ROOT, 'dist', 'share', 'payload.json'))
   console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds; payload copied for the og worker`)

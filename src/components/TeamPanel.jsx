@@ -14,6 +14,7 @@ import { seasonRecord, recordText } from '../lib/team.ts';
 import { unplayedInRun, classOf, KIND_WORDS } from '../lib/unplayed.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, CloseIcon, Chevron } from './Icons.jsx';
+import { Picker } from './Picker.jsx';
 
 const LEDGER_CAP = 8;
 const CROWNS_CAP = 6;
@@ -142,19 +143,15 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
       <p className="leads-lead">
         {name} is the King of{' '}
         <b className={baseDir(crownsDir) === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
-        <select className="leads-sel" value={crownsScope} onChange={(e) => onCrownsScope(e.target.value)} aria-label="Active or all-time">
-          <option value="active">Active</option>
-          <option value="all">All-time</option>
-        </select>{' '}
-        <select className="leads-sel" value={crownsDir} onChange={(e) => onCrownsDir(e.target.value)} aria-label="Winning or losing">
-          <option value="W">Winning</option>
-          <option value="L">Losing</option>
-          <option value="U">Undefeated</option>
-          <option value="C">Covering</option>
-          <option value="N">Not covering</option>
-          <option value={`W${MINED_MARGIN}`}>Winning by {MINED_MARGIN}+</option>
-          <option value={`L${MINED_MARGIN}`}>Losing by {MINED_MARGIN}+</option>
-        </select>{' '}
+        <Picker value={crownsScope} onChange={onCrownsScope} ariaLabel="Active or all-time" options={[{ value: 'active', label: 'Active' }, { value: 'all', label: 'All-time' }]} />{' '}
+        <Picker
+          value={crownsDir} onChange={onCrownsDir} ariaLabel="Winning or losing"
+          options={[
+            { value: 'W', label: 'Winning' }, { value: 'L', label: 'Losing' }, { value: 'U', label: 'Undefeated' },
+            { value: 'C', label: 'Covering' }, { value: 'N', label: 'Not covering' },
+            { value: `W${MINED_MARGIN}`, label: `Winning by ${MINED_MARGIN}+` }, { value: `L${MINED_MARGIN}`, label: `Losing by ${MINED_MARGIN}+` },
+          ]}
+        />{' '}
         Streaks
       </p>
       {crowns === null && <p className="empty">finding every streak {name} is king of…</p>}

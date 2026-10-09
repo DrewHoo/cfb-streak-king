@@ -7,6 +7,7 @@
 //   /team/<id>/?vs= a matchup: the team's scheduled game against that team,
 //                   or its next game when there is none ("next" always is)
 //   /games/         every scheduled game, by week
+//   /games/at-risk/ the schedule, opened on the week's at-risk streaks
 //   ?t=<id>         the board: the team whose streak is open in the panel
 //   ?c=             chips (definition.ts: absent = default, "all" = none)
 //   ?dir=L|U|C|N    losing, undefeated, covering or not covering; winning is
@@ -39,9 +40,11 @@ export interface View {
   games: boolean;
   /** The schedule's broken-streaks week, /games/week/<n>/; null = the latest completed week. */
   bwk: number | null;
+  /** The schedule, opened on the week's at-risk streaks: /games/at-risk/. */
+  risk: boolean;
 }
 
-export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, run: null, page: null, game: null, vs: null, games: false, bwk: null };
+export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, run: null, page: null, game: null, vs: null, games: false, bwk: null, risk: false };
 
 const teamById = (id: string | null) => {
   const ti = id ? teams.findIndex((t) => t.id === id) : -1;
@@ -55,8 +58,10 @@ export const weekFromPath = (pathname: string) => {
   const m = /\/games\/week\/(\d{1,2})\/?$/.exec(pathname);
   return m ? Number(m[1]) : null;
 };
-/** Whether a path is the schedule, /cfb-streak-king/games/ or a week of it. */
-export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) || weekFromPath(pathname) != null;
+/** Whether a path is the schedule's at-risk streaks, /cfb-streak-king/games/at-risk/. */
+export const riskFromPath = (pathname: string) => /\/games\/at-risk\/?$/.test(pathname);
+/** Whether a path is the schedule, /cfb-streak-king/games/, a week of it, or its at-risk streaks. */
+export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) || weekFromPath(pathname) != null || riskFromPath(pathname);
 
 export function parseUrl(pathname: string, search: string): View {
   const q = new URLSearchParams(search);
@@ -80,6 +85,7 @@ export function parseUrl(pathname: string, search: string): View {
     vs: matchup ? teamById(q.get('vs')) : null,
     games: inPath == null && gamesFromPath(pathname),
     bwk: inPath == null ? bwk : null,
+    risk: inPath == null && riskFromPath(pathname),
   };
 }
 
@@ -90,7 +96,7 @@ export function toUrl(v: View): UrlParts {
   // a team page or a matchup is its own address; the board's definition stays in memory
   const board = v.page == null && v.game == null && !v.games;
   return {
-    path: v.game != null ? `team/${teams[v.game].id}/` : v.page != null ? `team/${teams[v.page].id}/` : v.games ? (v.bwk != null ? `games/week/${v.bwk}/` : 'games/') : '',
+    path: v.game != null ? `team/${teams[v.game].id}/` : v.page != null ? `team/${teams[v.page].id}/` : v.games ? (v.risk ? 'games/at-risk/' : v.bwk != null ? `games/week/${v.bwk}/` : 'games/') : '',
     params: {
       vs: v.game != null ? (v.vs != null ? teams[v.vs].id : 'next') : null,
       t: board && v.team != null ? teams[v.team].id : null,
@@ -111,8 +117,8 @@ export function crownUrl(ti: number, cr: Crown): UrlParts {
   return toUrl({ ...DEFAULT_VIEW, active: cr.chips.map((key) => ({ key })), dir: cr.dir, scope: cr.scope, team: ti });
 }
 
-/** The link to the schedule. */
-export const gamesUrl = (): UrlParts => toUrl({ ...DEFAULT_VIEW, games: true });
+/** The link to the schedule; with a week, to that week's broken streaks; `risk`, to the week's at-risk streaks. */
+export const gamesUrl = (bwk: number | null = null, risk = false): UrlParts => toUrl({ ...DEFAULT_VIEW, games: true, bwk, risk });
 
 /** The link to a team's page. */
 export function teamUrl(ti: number): UrlParts {

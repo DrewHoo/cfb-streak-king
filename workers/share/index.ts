@@ -95,7 +95,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-08b';
+const CARD_VERSION = '2026-10-08c';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -115,14 +115,66 @@ async function loadMeta(): Promise<ShareMeta> {
 }
 
 type Model = ReturnType<typeof createModel>;
-let modelCache: Promise<Model> | null = null;
+// the parsed model lives as long as the isolate does, but not past the day:
+// the site rebuilds weekly, and a long-lived isolate must not keep last week
+let modelCache: { day: string; model: Promise<Model> } | null = null;
 function loadModel(): Promise<Model> {
-  return (modelCache ??= (async () => {
-    let res = await fetch(`${ORIGIN}${BASE}/share/payload.json?d=${dayKey()}`, edge(3600));
-    if (!res.ok) { await res.body?.cancel(); res = await fetch(RAW_PAYLOAD, edge(3600)); }
-    if (!res.ok) throw new Error(`payload ${res.status}`);
-    return createModel((await res.json()) as Payload);
-  })().catch((e) => { modelCache = null; throw e; }));
+  const day = dayKey();
+  if (modelCache?.day !== day) {
+    const model = (async () => {
+      let res = await fetch(`${ORIGIN}${BASE}/share/payload.json?d=${day}`, edge(3600));
+      if (!res.ok) { await res.body?.cancel(); res = await fetch(RAW_PAYLOAD, edge(3600)); }
+      if (!res.ok) throw new Error(`payload ${res.status}`);
+      return createModel((await res.json()) as Payload);
+    })().catch((e) => { modelCache = null; throw e; });
+    modelCache = { day, model };
+  }
+  return modelCache.model;
+}
+
+/** dist/share/weekly.json: the week cards' rows, as the prerender writes them. */
+interface WeeklyRow { count: string; team: string; bad: boolean; claim: string; sub: string }
+interface WeeklyCard { wk: number; lo: number; hi: number; ofNote?: number; rows: WeeklyRow[] }
+interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null }
+let weeklyCache: { day: string; data: Promise<Weekly> } | null = null;
+function loadWeekly(): Promise<Weekly> {
+  const day = dayKey();
+  if (weeklyCache?.day !== day) {
+    const data = (async () => {
+      const res = await fetch(`${ORIGIN}${BASE}/share/weekly.json?d=${day}`, edge(3600));
+      if (!res.ok) { await res.body?.cancel(); throw new Error(`weekly ${res.status}`); }
+      return (await res.json()) as Weekly;
+    })().catch((e) => { weeklyCache = null; throw e; });
+    weeklyCache = { day, data };
+  }
+  return weeklyCache.data;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const md = (ep: number) => { const d = new Date(ep * 86400000); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const spanOf = (lo: number, hi: number) => (lo === hi ? md(lo) : `${md(lo)} – ${md(hi)}`);
+
+/** A week card: the broken streaks of a completed week, or the running week's streaks most at risk. */
+async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> {
+  const [weekly, m] = await Promise.all([loadWeekly(), loadModel()]);
+  const card = kind === 'risk' ? weekly.atRisk : weekly.broken[String(wk)];
+  if (!card || (kind === 'risk' && card.wk !== wk)) throw new Error(`no ${kind} card for week ${wk}`);
+  const byId = new Map(m.teams.map((t) => [t.id, t]));
+  const rows: CardRow[] = [];
+  for (const r of card.rows) {
+    const t = byId.get(r.team);
+    rows.push({ count: r.count, name: r.claim, sub: r.sub, bad: r.bad, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
+  }
+  const res = renderCard({
+    heading: kind === 'risk' ? `Week ${card.wk} at-risk streaks` : `Streaks broken · Week ${card.wk}`,
+    words: kind === 'risk' ? `${spanOf(card.lo, card.hi)} · by what the game can take away` : `${spanOf(card.lo, card.hi)} · ${card.ofNote ?? rows.length} of note`,
+    rows,
+    dense: true,
+    footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
+  });
+  const png = await res.arrayBuffer();
+  if (!png.byteLength) throw new Error('empty render');
+  return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
 }
 
 async function logoUri(espn: string | null | undefined): Promise<string | null> {
@@ -207,9 +259,12 @@ export default {
       try {
         const key = new Request(`${url.origin}${url.pathname}?v=${CARD_VERSION}&${url.searchParams}`, { method: 'GET' });
         const cached = await caches.default.match(key);
-        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached });
+        const week = url.searchParams.get('broken') ?? url.searchParams.get('risk');
+        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
-        const res = await ogCard(url.searchParams);
+        const res = week != null && /^\d{1,2}$/.test(week)
+          ? await weekCard(url.searchParams.has('risk') ? 'risk' : 'broken', Number(week))
+          : await ogCard(url.searchParams);
         ctx.waitUntil(caches.default.put(key, res.clone()));
         return res;
       } catch (e) {

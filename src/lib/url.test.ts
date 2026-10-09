@@ -25,6 +25,8 @@ describe('url', () => {
       { ...DEFAULT_VIEW, page: idx('byu') },
       { ...DEFAULT_VIEW, page: idx('byu'), game: idx('byu'), vs: idx('tcu') },
       { ...DEFAULT_VIEW, games: true },
+      { ...DEFAULT_VIEW, games: true, bwk: 5 },
+      { ...DEFAULT_VIEW, games: true, risk: true },
     ];
     for (const v of views) expect(roundTrip(v)).toEqual(v);
   });
@@ -35,6 +37,14 @@ describe('url', () => {
     expect(parseUrl('/cfb-streak-king/', 'dir=L14').dir).toBe('L14');
     expect(parseUrl('/cfb-streak-king/', 'dir=W0').dir).toBe('W');
     expect(parseUrl('/cfb-streak-king/', 'dir=U10').dir).toBe('W');
+  });
+
+  test('the schedule’s sections have their own addresses', () => {
+    expect(gamesUrl().path).toBe('games/');
+    expect(gamesUrl(5).path).toBe('games/week/5/');
+    expect(gamesUrl(null, true).path).toBe('games/at-risk/');
+    expect(parseUrl('/cfb-streak-king/games/at-risk/', '')).toMatchObject({ games: true, risk: true, bwk: null, page: null });
+    expect(parseUrl('/cfb-streak-king/games/week/5/', '')).toMatchObject({ games: true, risk: false, bwk: 5 });
   });
 
   test('a run only belongs to the all-time view', () => {

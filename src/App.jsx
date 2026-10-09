@@ -30,8 +30,8 @@ const BASE = import.meta.env.BASE_URL;
 // ({ active, all }) already loaded; /games/ starts on the schedule, and
 // /games/week/<n>/ on that week's broken streaks.
 export default function App({ initial } = {}) {
-  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null));
-  const { active, dir, scope, week, team, run, limit, page, game, vs, games, bwk } = view;
+  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk));
+  const { active, dir, scope, week, team, run, limit, page, game, vs, games, bwk, risk } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -72,13 +72,14 @@ export default function App({ initial } = {}) {
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && (was.page !== page || was.games !== games || was.bwk !== bwk);
+    const moved = !!was && (was.page !== page || was.games !== games || was.bwk !== bwk || was.risk !== risk);
     const opened = !!was && ((game != null && was.game == null) || (page == null && game == null && team != null && was.team == null && was.game == null));
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
-    if (pushed && moved) window.scrollTo(0, 0);
+    // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
+    if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
     if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, run, page, game, vs, games, bwk, hydrated]);
+  }, [active, dir, scope, week, team, run, page, game, vs, games, bwk, risk, hydrated]);
 
   // Closing a panel or a matchup: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -174,6 +175,12 @@ export default function App({ initial } = {}) {
     track('share', { games: true });
     share(`This week's college football games, with every streak on the line`, absoluteUrl(BASE, gamesUrl()));
   }
+  // a schedule section's own address: the URL moves to it, and the share sheet (or the clipboard) gets it
+  function linkSection(kind, wk) {
+    if (kind === 'risk') dispatch({ type: 'risk' }); else dispatch({ type: 'bweek', wk });
+    track('share', { games: true, section: kind, wk });
+    share(kind === 'risk' ? `Week ${wk}'s college football streaks most at risk` : `The college football streaks broken in Week ${wk}`, absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk, kind === 'risk')));
+  }
   function shareGame() {
     track('share', { team: teams[game].id, matchup: true });
     share(`${teams[game].name} ${siteWord(matchup)} ${teams[matchup.oppIdx]?.name}: every streak on the line`, absoluteUrl(BASE, toUrl({ ...view, vs: matchup.oppIdx })));
@@ -204,12 +211,13 @@ export default function App({ initial } = {}) {
         />
       ) : games ? (
         <GamesPage
-          todayEp={todayEp} bwk={bwk} copied={copied}
+          todayEp={todayEp} bwk={bwk} risk={risk} copied={copied}
           on={{
             board: () => dispatch({ type: 'board' }),
             game: (ti, g) => openGame(ti, g, 'games'),
             streak: (b) => openStreak(b, b.ti, 'broken'),
             week: (wk) => { dispatch({ type: 'bweek', wk }); track('broken week', { wk }); },
+            link: linkSection,
             share: shareGames,
           }}
         />

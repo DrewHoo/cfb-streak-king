@@ -91,6 +91,13 @@ describe('view', () => {
     expect(viewReducer(v, { type: 'streak', chips: [], dir: 'W', scope: 'active', team: 2 }).games).toBe(false);
     expect(viewReducer(v, { type: 'board' }).games).toBe(false);
     expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), games: true } }).games).toBe(true);
+    // the at-risk section is its own address; any other schedule move leaves it
+    const r = viewReducer(initialView(), { type: 'risk' });
+    expect([r.games, r.risk, r.bwk]).toEqual([true, true, null]);
+    expect(viewReducer(r, { type: 'bweek', wk: 3 }).risk).toBe(false);
+    expect(viewReducer(r, { type: 'games' }).risk).toBe(false);
+    expect(viewReducer(r, { type: 'board' }).risk).toBe(false);
+    expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), games: true, risk: true } }).risk).toBe(true);
   });
 
   test('a matchup opens over the board or a page and closes back to it; a page closes a matchup', () => {

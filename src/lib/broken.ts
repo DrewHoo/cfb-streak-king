@@ -56,11 +56,11 @@ export interface BrokenWeek {
   hi: number;
   /** The runs worth telling, the furthest past chance first. */
   list: BrokenStreak[];
-  /** The rest, behind "more": real broken runs that chance explains better, down to BROKEN_FLOOR. */
+  /** The rest, behind "more": a team's further runs, and real broken runs that chance explains better, down to BROKEN_FLOOR. */
   more: BrokenStreak[];
 }
 
-export const BROKEN_CAP = 12;
+export const BROKEN_CAP = 6;
 /** A broken run scoring under this isn't news on its own. */
 export const BROKEN_CUTOFF = -2.5;
 /** Under this (the crowns' own cutoff), it isn't worth a tap either. */
@@ -231,6 +231,21 @@ function mineH2H(w: number): BrokenStreak[] {
 
 const cache = new Map<number, BrokenWeek>();
 
+/**
+ * A digest from a ranked list: the first `cap` rows that are of note, one
+ * per team, so one team's week doesn't fill the whole list; everything else
+ * behind "more", in the same order.
+ */
+export function digestOf<T extends { ti: number }>(ranked: T[], ofNote: (x: T) => boolean, cap: number): { list: T[]; more: T[] } {
+  const list: T[] = [];
+  const more: T[] = [];
+  const seen = new Set<number>();
+  for (const x of ranked) {
+    if (list.length < cap && ofNote(x) && !seen.has(x.ti)) { list.push(x); seen.add(x.ti); } else more.push(x);
+  }
+  return { list, more };
+}
+
 // a plain run a margin run retells: same team, chips, start and ender ("had
 // won 12 straight by 10+" says "had won 12 straight" and more)
 const marginRetold = (list: BrokenStreak[]) => (b: BrokenStreak) => (
@@ -253,9 +268,8 @@ function digest(win: CompletedWeek): BrokenWeek {
   const all = [...best.values(), ...mineH2H(win.w)]
     .filter((b) => b.score >= BROKEN_FLOOR)
     .sort((a, b) => b.score - a.score || b.len - a.len);
-  // the digest is the of-note prefix; the rest sits behind "more"
-  const k = Math.min(BROKEN_CAP, all.filter((b) => b.score >= BROKEN_CUTOFF).length);
-  const out = { wk: win.wk, lo: win.lo, hi: win.hi, list: all.slice(0, k), more: all.slice(k) };
+  const { list, more } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
+  const out = { wk: win.wk, lo: win.lo, hi: win.hi, list, more };
   cache.set(win.w, out);
   return out;
 }

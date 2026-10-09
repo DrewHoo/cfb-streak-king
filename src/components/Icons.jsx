@@ -27,6 +27,12 @@ export const Chevron = ({ left }) => (
   <svg viewBox="0 0 6 10" width="6" height="10" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d={left ? 'M5 1L1 5l4 4' : 'M1 1l4 4-4 4'} /></svg>
 );
 
+export const LinkIcon = () => (
+  <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6.5 9.5a3 3 0 0 0 4.2 0l2.1-2.1a3 3 0 0 0-4.2-4.2L7.5 4.3" /><path d="M9.5 6.5a3 3 0 0 0-4.2 0L3.2 8.6a3 3 0 0 0 4.2 4.2l1.1-1.1" />
+  </svg>
+);
+
 export const CalendarIcon = () => (
   <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5" /><path d="M2 7h12M5.5 1.8v3M10.5 1.8v3" /></svg>
 );
