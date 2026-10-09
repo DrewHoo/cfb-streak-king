@@ -8,7 +8,8 @@ import { useMemo, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { scheduledGames, lineText, topOnLine, rankText } from '../lib/team.ts';
 import { brokenLastWeek, brokenWeek, completedWeeks } from '../lib/broken.ts';
-import { dayOf, monthDay, kickOf, marginWords } from '../lib/format.ts';
+import { atRiskWeek } from '../lib/atRisk.ts';
+import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron, Caret } from './Icons.jsx';
@@ -115,6 +116,52 @@ function Broken({ bwk, onOpen, onWeek }) {
   );
 }
 
+// one streak at risk: the length, the claim, then the chance the game ends
+// it, the game and the line, and where the run ranks; opens the matchup
+function AtRiskRow({ r, onGame }) {
+  const t = teams[r.ti];
+  const opp = teams[r.row.oppIdx];
+  const bad = baseDir(r.s.dir) === 'L' || r.s.dir === 'N';
+  return (
+    <button className="bk" onClick={() => onGame(r.ti, r.row)}>
+      <span className={'bk-len' + (bad ? ' l' : '')}>{r.s.len}{r.s.atEdge ? '+' : ''}</span>
+      {t?.espn ? <TeamMark ti={r.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
+      <span className="bk-txt">
+        <span>{t?.name} {VERB(r.s.dir)} {r.s.len}{r.s.atEdge ? '+' : ''} straight{marginWords(r.s.dir)}{r.s.chips.length ? ` ${streakWords(r.s.chips, r.s.vs)}` : ''}</span>
+        <small>
+          <b className="k">{Math.round(100 * r.p)}% to end</b>
+          {' · '}{dayOf(r.row.ep)} {monthDay(r.row.ep)} {siteWord(r.row)} {opp?.name} {spreadText(r.row.sp)}
+          {' · '}{r.s.vs != null ? 'head-to-head' : `${rankText(r.s)} of ${r.s.field}`}
+        </small>
+      </span>
+      <Chevron />
+    </button>
+  );
+}
+
+// the week's streaks most at risk, above its games: what the games can take
+// away (atRisk.ts), the most first, the rest behind "more"
+function AtRisk({ wk, games, todayEp, onGame }) {
+  const risk = useMemo(() => atRiskWeek(games, todayEp), [games, todayEp]);
+  const [all, setAll] = useState(false);
+  if (!risk.list.length) return null;
+  const rows = all ? [...risk.list, ...risk.more] : risk.list;
+  return (
+    <section className="gwk">
+      <div className="gwk-h gbk-h">
+        <span className="gbk-ttl">Week {wk} at-risk streaks</span>
+        <small>{span(games[0].ep, games[games.length - 1].ep)} · by what the game can take away</small>
+      </div>
+      <div className="gbk-list">
+        {rows.map((r) => <AtRiskRow key={`${r.ti}|${r.s.dir}|${r.s.chips.join()}|${r.s.vs ?? ''}`} r={r} onGame={onGame} />)}
+        {risk.more.length > 0 && (
+          <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${risk.more.length} more at risk`}</button>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // the ledger's row: kickoff, away, home, the line; beneath it the most
 // interesting streak either side puts on the line, as a compressed claim
 function Row({ g, todayEp, onGame }) {
@@ -170,6 +217,7 @@ export function GamesPage({ todayEp, bwk, copied, on }) {
       <h1 className="gpg-h1">{P.currentSeason} games</h1>
       <p className="tpg-note">Every scheduled game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</p>
       <Broken bwk={bwk} onOpen={on.streak} onWeek={on.week} />
+      {weeks.length > 0 && <AtRisk wk={weeks[0][0]} games={weeks[0][1]} todayEp={todayEp} onGame={on.game} />}
       {weeks.length === 0 && <p className="empty">No games are scheduled.</p>}
       {weeks.map(([wk, games], i) => {
         const shown = i === 0 || open.has(wk);
