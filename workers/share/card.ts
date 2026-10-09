@@ -45,7 +45,9 @@ export interface Card {
   dense?: boolean;
 }
 
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+// satori reads the text as-is, entities included, so only the characters
+// that would open a tag or close an attribute are escaped; "A&M" stays "A&M"
+const esc = (s: string) => s.replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 export function renderCard(card: Card): Response {
   const rows = card.dense
@@ -56,8 +58,8 @@ export function renderCard(card: Card): Response {
         ? `<img src="${r.logo}" width="32" height="32" />`
         : `<div style="display:flex; justify-content:center; width:32px; font-family:'Graduate'; font-size:18px; color:${MUTED};">${esc(r.initial)}</div>`}
       <div style="display:flex; flex-direction:column; flex-grow:1; width:590px;">
-        <div style="display:flex; font-family:'Source Serif 4'; font-size:19px; color:${INK}; white-space:nowrap; overflow:hidden;">${esc(r.name)}</div>
-        <div style="display:flex; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:1px; color:${FAINT}; white-space:nowrap; overflow:hidden; margin-top:2px;">${esc((r.sub ?? '').toUpperCase())}</div>
+        <div style="display:flex; font-family:'Source Serif 4'; font-size:18px; color:${INK}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(r.name)}</div>
+        <div style="display:flex; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:1px; color:${FAINT}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">${esc((r.sub ?? '').toUpperCase())}</div>
       </div>
     </div>`).join('')
     : card.rows.map((r) => `
