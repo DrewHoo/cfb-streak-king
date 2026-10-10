@@ -35,9 +35,10 @@ const DEFAULT_C = 'unranked'; // definition.ts DEFAULT_CHIPS, as the c param spe
 // index site's project (the public token its embed carries; a project token
 // only writes). The client embed never sees an unfurl, because the bot that
 // fetches a shared link runs no script, so this is the only place a share
-// can be counted. Nothing personal goes: the crawler's name (never the raw
-// user agent, never an IP: ip=0 tells Mixpanel not to geolocate), the
-// country Cloudflare saw, and the URL's own words. A browser's visit is the
+// can be counted. Nothing personal goes: the crawler's name, its user agent
+// only when it is a crawler (a person's browser string never goes, and
+// neither does an IP: ip=0 tells Mixpanel not to geolocate), the country
+// Cloudflare saw, the URL itself and its words. A browser's visit is the
 // embed's to count, so the head rewrite reports crawlers only; the card is
 // reported whoever asked for it.
 const MIXPANEL_TOKEN = '1c6a0f45b8a5768185a8d9a2f4d65452';
@@ -62,7 +63,8 @@ const agentOf = (ua: string | null): string => AGENTS.find(([re]) => re.test(ua 
 
 function report(ctx: ExecutionContext, request: Request, event: string, props: Record<string, unknown>) {
   try {
-    const agent = agentOf(request.headers.get('user-agent'));
+    const ua = request.headers.get('user-agent');
+    const agent = agentOf(ua);
     const body = [{
       event,
       properties: {
@@ -72,6 +74,9 @@ function report(ctx: ExecutionContext, request: Request, event: string, props: R
         time: Math.floor(Date.now() / 1000),
         site: 'cfb-streak-king',
         agent,
+        // the crawler's own string, so an unrecognized one ('other-bot') can
+        // be named and added to AGENTS; a browser's string stays private
+        crawler: agent === 'browser' ? null : (ua ?? '').slice(0, 200),
         country: (request as Request & { cf?: { country?: string } }).cf?.country ?? null,
         ...props,
       },
@@ -83,11 +88,15 @@ function report(ctx: ExecutionContext, request: Request, event: string, props: R
     }).then((r) => r.body?.cancel()).catch(() => {}));
   } catch {}
 }
-/** The URL's own words, for an event: the definition, the outcome, the scope, the teams. */
+/** The URL itself and its words, for an event: the definition, the outcome, the scope, the teams. */
 const urlProps = (url: URL) => {
   const q = url.searchParams;
   const team = /\/team\/([a-z0-9-]+)\/?$/.exec(url.pathname)?.[1] ?? null;
   return {
+    // the shared link as one string, and under Mixpanel's own name so its UI
+    // treats it as the event's URL
+    url: url.href,
+    $current_url: url.href,
     path: url.pathname.replace(BASE, '') || '/',
     chips: q.get('c'), dir: q.get('dir') ?? 'W', scope: q.get('scope') ?? 'all',
     team: q.get('t') ?? team, vs: q.get('vs'),
