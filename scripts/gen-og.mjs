@@ -205,7 +205,7 @@ async function renderTeam(ti, W, H) {
   const color = t.espn && (await logoUri(t.espn, 'color'))
   const lines = row ? wrap(claim(row, DEFAULT_CHIPS, 'W'), 44) : [`No winning streak vs unranked opponents on record.`]
   const parts = []
-  parts.push(text('DREWHOOVER.COM · STREAK KING', { x: 64, y: 84, font: 'MonoBold', size: 17, spacing: 4, fill: RUST }))
+  parts.push(text('COLLEGE FOOTBALL STREAK KING', { x: 64, y: 84, font: 'MonoBold', size: 17, spacing: 4, fill: RUST }))
   if (color) parts.push(`<image x="64" y="122" width="96" height="96" href="${color}"/>`)
   const nameSize = t.name.length > 16 ? 40 : 52
   parts.push(text(t.name.toUpperCase(), { x: color ? 184 : 64, y: 190, font: 'Graduate', size: nameSize, fill: CREAM }))
@@ -269,7 +269,7 @@ async function renderWeek(broken, W, H) {
   const L = Math.round(W / 2 - 360) // the safe column: 720 wide, centered
   const R = W - L
   const parts = []
-  parts.push(text('DREWHOOVER.COM · STREAK KING', { x: W / 2, y: 70, font: 'MonoBold', size: 16, spacing: 4, fill: RUST, anchor: 'middle' }))
+  parts.push(text('COLLEGE FOOTBALL STREAK KING', { x: W / 2, y: 70, font: 'MonoBold', size: 16, spacing: 4, fill: RUST, anchor: 'middle' }))
   parts.push(text(`STREAKS BROKEN · WEEK ${broken.wk}`, { x: W / 2, y: 134, font: 'Graduate', size: 38, fill: CREAM, anchor: 'middle' }))
   const spanTxt = broken.lo === broken.hi ? md(broken.lo) : `${md(broken.lo)} – ${md(broken.hi)}`
   parts.push(text(`${spanTxt} · ${broken.list.length} OF NOTE`, { x: W / 2, y: 168, font: 'Mono', size: 14, spacing: 2, fill: FAINT, anchor: 'middle' }))

@@ -83,7 +83,7 @@ export function renderCard(card: Card): Response {
   const html = `
   <div style="display:flex; flex-direction:column; align-items:center; width:1200px; height:630px; background-color:${BG}; padding:40px 0 32px;
               background-image: radial-gradient(circle at 600px -126px, rgba(243,226,188,0.13) 0%, rgba(243,226,188,0) 65%);">
-    <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; letter-spacing:4px; color:${RUST};">DREWHOOVER.COM · STREAK KING</div>
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; letter-spacing:4px; color:${RUST};">COLLEGE FOOTBALL STREAK KING</div>
     <div style="display:flex; font-family:'Graduate'; font-size:34px; color:${CREAM}; margin-top:10px; max-width:720px;">${esc(card.heading.toUpperCase())}</div>
     <div style="display:flex; font-family:'Source Serif 4'; font-size:22px; color:${MUTED}; margin-top:2px; max-width:720px;">${esc(card.words)}</div>
     <div style="display:flex; flex-direction:column; margin-top:12px; flex-grow:1; width:720px;">${rows}</div>
