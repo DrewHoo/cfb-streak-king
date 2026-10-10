@@ -11,7 +11,9 @@
     "gen:favicon": "node scripts/gen-favicon.mjs",
     "tuner": "node scripts/tuner/build-tuner.mjs",
     "test": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "check:receipts": "node scripts/data/check-receipts.mjs --offline data/ref",
+    "coverage": "node scripts/data/coverage-report.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.24",

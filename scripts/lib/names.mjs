@@ -42,9 +42,14 @@ export const lookup = (name) => (name ? aliasIndex.get(slug(name)) ?? null : nul
 
 export const display = (key) => aliasDoc.canonical[key] ?? key;
 
+// Prints the names no alias matched, and writes them to
+// data/build/unmatched-<label>.json for coverage-report.mjs.
 export function reportUnmatched(label) {
-  if (!unmatched.size) return;
   const rows = [...unmatched.entries()].sort((a, b) => b[1] - a[1]);
+  const dir = path.join(ROOT, 'data', 'build');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, `unmatched-${label}.json`), JSON.stringify(Object.fromEntries(rows), null, 1) + '\n');
+  if (!rows.length) return;
   console.error(`\n${label}: ${rows.length} unmatched name(s):`);
   for (const [k, n] of rows) console.error(`  ${nixWidth(n)}  ${k}`);
 }

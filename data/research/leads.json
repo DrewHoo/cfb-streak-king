@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updated": "2026-10-10",
+  "note": "Things a research pass raised outside its brief. Filed on merge so a lead is not lost with the session that found it; coverage-report.mjs lists the open ones. 'resolved' rows say what was found and what, if anything, changed.",
+  "rows": [
+    {
+      "claim": "New Mexico and Utah State played in 1944 and 1945; does Howell omit those seasons too, so that they need bridging like 1943?",
+      "raised": "2026-09-29, by the wartime-West research agent",
+      "status": "resolved",
+      "resolved": "2026-10-10",
+      "finding": "Howell lists 1944 and 1945 for both (data/raw/jhowell/teams/NewMexico.htm, UtahState.htm). Only 1943 was missing, and it is bridged. Nothing to add."
+    },
+    {
+      "claim": "Virginia Tech 1942: the co-head-coach ruling rests on secondary sources; the Virginia newspaper archive that would settle who coached which game was behind a bot check.",
+      "raised": "2026-09-29, by the coaches research agent",
+      "status": "open",
+      "next": "A reader with Virginia Chronicle access could confirm; the pair is one coaching entry until then (coach-overrides.json virginia-tech|1942)."
+    }
+  ]
+}

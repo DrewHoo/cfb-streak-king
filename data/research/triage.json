@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "updated": "2026-10-10",
+  "note": "Disputes between sources that the build does not resolve, and why. A row is 'open' while no ruling exists; it may stay open when the disagreement changes no output (a game every source scores as the same winner moves no streak). 'resolved' rows name the ruling and where it was applied (repole-errata.json, coach-overrides.json, extra-games.json). coverage-report.mjs lists the open ones.",
+  "rows": [
+    {
+      "claim": "UConn vs Colgate, 2000: the final score",
+      "status": "open",
+      "disagreement": "Three scores across four sources (34-7, 37-7 and 27-7 among Howell, Repole, cfbfastR and CFBD). UConn won in every source.",
+      "why_open": "No streak or record on the site reads the margin of a 2000 UConn game, so no output changes whichever score is right. Adjudicate against UConn's own record book before using margins for 2000 games.",
+      "recorded": "2026-09-29"
+    }
+  ]
+}

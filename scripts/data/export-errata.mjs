@@ -67,6 +67,10 @@ for (let s = 1978; s <= 2013; s++) {
 const missed = src.rows.filter((e) => !seen.has(`${e.date}|${e.visitor}|${e.home}`));
 if (missed.length) throw new Error(`${missed.length} errata rows matched no XML row: ${missed.map((e) => `${e.date} ${e.visitor}@${e.home}`).join(', ')}`);
 
+// the entry's receipt is a vote across named datasets; print it the way the
+// published CSV always has ("Howell + cfbfastR + CFBD")
+const SOURCE_NAMES = { howell: 'Howell', cfbfastr: 'cfbfastR', cfbd: 'CFBD' };
+const confirmedBy = (r) => (r.receipts ?? []).flatMap((x) => x.sources ?? []).map((s) => SOURCE_NAMES[s] ?? s).join(' + ');
 const q = (v) => (v == null ? '' : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
 const csv = (cols, rs) => [cols.join(','), ...rs.map((r) => cols.map((c) => q(r[c])).join(','))].join('\n') + '\n';
 const blank = (r) => r.published.score.startsWith('-') || r.published.score.endsWith('-');
@@ -81,7 +85,7 @@ const flat = rows.map((r) => ({
   file: r.file, date: r.date, visitor: r.visitor, home: r.home, fix: kind(r),
   published_score: blank(r) ? '' : r.published.score, corrected_score: r.score ?? '',
   published_home_line: r.published.homeLine, corrected_home_line: r.homeSpread ?? '',
-  swap_home: r.swapHome ? 'yes' : '', corrected_date: r.newDate ?? '', confirmed_by: r.source, note: r.note ?? '',
+  swap_home: r.swapHome ? 'yes' : '', corrected_date: r.newDate ?? '', confirmed_by: confirmedBy(r), note: r.note ?? '',
 }));
 fs.writeFileSync(path.join(OUT, 'repole-errata.csv'), csv(Object.keys(flat[0]), flat));
 fs.writeFileSync(path.join(OUT, 'repole-errata.json'), JSON.stringify({

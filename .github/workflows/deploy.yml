@@ -37,6 +37,8 @@ jobs:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
       # Test the payload that ships, whichever one the step above left.
       - run: npm run typecheck
+      # Every ruling-file receipt against its committed page (data/research/pages)
+      - run: npm run check:receipts
       - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3

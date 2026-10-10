@@ -544,8 +544,9 @@ for (let i = 0; i < cols.se.length; i++) {
 }
 // Researched rulings for seasons CFBD's rows can't resolve (double-credited
 // co-coached bowls, misattributed rows, non-contiguous tenures). Keyed
-// `${teamId}|${season}`; segments name the coach and the 0-based ordinal of
-// their first game that season. Names resolve against the CFBD coach pool.
+// `${teamId}|${season}` -> { segments, receipts, note? }; segments name the
+// coach and the 0-based ordinal of their first game that season. Names
+// resolve against the CFBD coach pool.
 const coachOverrides = loadRef('coach-overrides.json');
 const kByName = new Map(); // name -> Set of cfbd coach ids
 for (const byYear of Object.values(coachSeasonsByTeam)) {
@@ -590,10 +591,11 @@ for (const [id, byYear] of Object.entries(coachSeasonsByTeam)) {
   if (!seasons.size) continue;
   const resolved = new Map();
   const forcedInterim = [];
-  for (const [key, segs] of Object.entries(coachOverrides)) {
+  for (const [key, entry] of Object.entries(coachOverrides)) {
+    if (key.startsWith('_')) continue;
     const [oid, oy] = key.split('|');
     if (oid !== id) continue;
-    resolved.set(Number(oy), segs.map((s) => {
+    resolved.set(Number(oy), entry.segments.map((s) => {
       const k = overrideK(s.coach);
       nameByK.set(k, s.coach);
       // 'start' (the date of the coach's first game) beats a raw ordinal:
@@ -768,3 +770,18 @@ function gamesFor(teamId, filter) {
 // written last, so a failed check above leaves the committed file alone
 ensureDir(path.join(ROOT, 'data'));
 fs.writeFileSync(path.join(ROOT, 'data', 'payload-base.json'), payloadJson);
+// the numbers coverage-report.mjs asserts on
+ensureDir(path.join(ROOT, 'data', 'build'));
+fs.writeFileSync(path.join(ROOT, 'data', 'build', 'build-stats.json'), JSON.stringify({
+  builtAt: payload.builtAt,
+  games: n,
+  teams: teams.length,
+  mintedTeams: teams.filter((t) => t.id.startsWith('x:')).length,
+  lined,
+  join0213: { joined: joined0213, total: total0213 },
+  unresolvedCoachSeasons: unresolved,
+  extraGames: { added: extraGames.length - extraDupes, duplicates: extraDupes },
+  howellScoreSplits: early.scoreSplits.length,
+  unmappedConferenceNames: confMisses.size,
+  floors: payload.floors,
+}, null, 1) + '\n');

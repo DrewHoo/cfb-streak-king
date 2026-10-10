@@ -1,5 +1,7 @@
 # cfb-streak-king
 
+[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support%20the%20site-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/drewhooverdotcom)
+
 Design a streak definition out of up to four constraints (on the road, vs
 ranked, as an underdog, in November) and rank every current FBS team by its
 longest all-time or active winning, losing, undefeated, covering or not-covering
@@ -12,6 +14,13 @@ Each team also gets a page listing every streak it alone is king of. Live at
 
 The spec is [specs/cfb-streak-king.spec.md](specs/cfb-streak-king.spec.md);
 the research reports behind it are under [specs/research/](specs/research/).
+
+The data follows the [receipts-research](https://github.com/DrewHoo/receipts-research)
+method: every researched row under `data/ref/` carries a receipt (the page and
+its verbatim line), CI string-checks each quote against a committed copy of
+the page, code does all the counting, and the build fails on a famous streak
+it can't reproduce. If a number here looks wrong, the row behind it says
+where it came from.
 
 ## Data provenance
 
@@ -84,11 +93,20 @@ reported, never dropped.
   list, so Missouri State's streaks begin in 2025, not in its FCS years.
   Howell ends a span on any season he doesn't list, so seasons a team sat
   out (WWII 1943–45, UConn, ODU and NMSU 2020, SMU 1987–88, UAB 2015–16) are
-  bridged by `data/ref/fbs-span-bridges.json`, one source per row. So are the
+  bridged by `data/ref/fbs-span-bridges.json`. So are the
   wartime seasons a school counts but Howell doesn't list as major (BC,
   Miami, Washington, New Mexico, New Mexico A&M 1943; Vanderbilt 1943–44;
   Arizona 1945); their games, and NMSU's two spring 2021 games, come from
-  `data/ref/extra-games.json`, each with a source and quote.
+  `data/ref/extra-games.json`.
+- Every researched row carries `receipts`: `{ url, quote, note?, retrieved? }`
+  for a claim with a page behind it, or `{ sources: [...] }` for one that is a
+  vote across named datasets (the Repole errata). `npm run check:receipts`
+  requires each quote to appear, whitespace-collapsed, in the page text saved
+  under `data/research/pages/` (committed, so the check runs offline in CI
+  and survives the page changing). `npm run coverage` counts the rows that
+  still lack one and lists the open rows of `data/research/triage.json`
+  (disputes between sources) and `leads.json` (things a research pass raised
+  outside its brief).
 - A streak reaching 1978 displays as "N+"; one reaching a later FBS entry
   says so in the panel.
 
@@ -125,6 +143,8 @@ node scripts/data/fetch-cfbd-boxes.mjs # CFBD /games + /games/teams -> data/raw/
 node scripts/data/parse-boxes.mjs      # line scores, OT periods, possession -> data/build/boxes.json
 node scripts/data/parse-coaches.mjs    # CFBD /coaches -> data/build/coaches.json
 node scripts/data/build-payload.mjs    # join everything -> data/payload-base.json (committed)
+node scripts/data/coverage-report.mjs  # receipt coverage, unmatched names, the build's numbers vs their floors
+node scripts/data/check-receipts.mjs data/ref  # every receipt's quote against its page; saves pages to data/research/pages (CI: --offline)
 node scripts/data/build-current.mjs    # + in-progress season -> src/data/payload.json (CACHE=1 for offline)
 node scripts/data/export-errata.mjs <dir>  # -> the DrewHoo/repole-errata checkout
 node scripts/gen-logos.mjs             # one-color marks -> public/logos/<espnId>.png, color -> public/logos-color/ (then build-current again)

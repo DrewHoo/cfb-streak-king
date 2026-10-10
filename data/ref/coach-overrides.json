@@ -1,1259 +1,3095 @@
 {
-  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, and non-contiguous tenures. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment. 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts: Utah 2004 credits the Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure. Boise State 1996: Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, died 12/30; Mason interim from the opener. Georgia State 2016: Miles fired 2016-11-12 after a 2-8 start (ESPN), Lappano interim from 11/19. Tulane 2011-2012: Toledo resigned 2011-10-18 at 2-5, Hutson 0-6 interim from 10/22 \u2014 CFBD misfiles that stint under 2012, where Johnson coached all 12. WKU 2018: CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12. Louisville 2018: Petrino fired 2018-11-11 after game 10, Ward interim from 11/17. The 2026-09-28 batch: CFBD dropped one coach from each of these two-coach seasons and left a single row covering part of it; ordinals follow that row's record against the result sequence (Paterno 8-1 = games 1-9 of 2011, Bradley the last four; Sarkisian 3-2 = USC's first five of 2015, Helton from game 6; Hope 6-6 = Purdue's twelve regular-season games of 2012, Higgins the Heart of Dallas Bowl; and so on). Washington State 2025: Rogers coached all 12 regular-season games and left for Iowa State; Bobbit (hired 2025-12-05, CFBD) was the bowl interim. His 1-0 row also fits the opener, which the resolver picked, making Rogers a mid-season taker whose first season would be 2026; pinned so 2025 counts as his first (reported by r/CFB's HurricaneRex).",
-  "utah|2004": [
-    {
-      "coach": "Urban Meyer",
-      "startOrd": 0
-    }
-  ],
-  "boise-state|1996": [
-    {
-      "coach": "Tom Mason",
-      "startOrd": 0,
-      "interim": true
-    },
-    {
-      "coach": "Pokey Allen",
-      "start": "1996-11-16"
-    }
-  ],
-  "georgia-state|2016": [
-    {
-      "coach": "Trent Miles",
-      "startOrd": 0
-    },
-    {
-      "coach": "Tim Lappano",
-      "start": "2016-11-19"
-    }
-  ],
-  "tulane|2011": [
-    {
-      "coach": "Bob Toledo",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mark Hutson",
-      "start": "2011-10-22"
-    }
-  ],
-  "tulane|2012": [
-    {
-      "coach": "Curtis Johnson",
-      "startOrd": 0
-    }
-  ],
-  "western-kentucky|2018": [
-    {
-      "coach": "Mike Sanford Jr.",
-      "startOrd": 0
-    }
-  ],
-  "louisville|2018": [
-    {
-      "coach": "Bobby Petrino",
-      "startOrd": 0
-    },
-    {
-      "coach": "Lorenzo Ward",
-      "start": "2018-11-17"
-    }
-  ],
-  "toledo|2011": [
-    {
-      "coach": "Tim Beckman",
-      "startOrd": 0
-    },
-    {
-      "coach": "Matt Campbell",
-      "startOrd": 12,
-      "interim": true
-    }
-  ],
-  "texas-tech|1986": [
-    {
-      "coach": "David McWilliams",
-      "startOrd": 0
-    },
-    {
-      "coach": "Spike Dykes",
-      "startOrd": 11
-    }
-  ],
-  "southern-miss|1990": [
-    {
-      "coach": "Curley Hallman",
-      "startOrd": 0
-    },
-    {
-      "coach": "Jeff Bower",
-      "startOrd": 11
-    }
-  ],
-  "smu|2014": [
-    {
-      "coach": "June Jones",
-      "startOrd": 0
-    },
-    {
-      "coach": "Tom Mason",
-      "startOrd": 2,
-      "interim": true
-    }
-  ],
-  "florida|1984": [
-    {
-      "coach": "Charley Pell",
-      "startOrd": 0
-    },
-    {
-      "coach": "Galen Hall",
-      "startOrd": 3
-    }
-  ],
-  "georgia-tech|1994": [
-    {
-      "coach": "Bill Lewis",
-      "startOrd": 0
-    },
-    {
-      "coach": "George O'Leary",
-      "startOrd": 8
-    }
-  ],
-  "uconn|2013": [
-    {
-      "coach": "Paul Pasqualoni",
-      "startOrd": 0
-    },
-    {
-      "coach": "T.J. Weist",
-      "startOrd": 4,
-      "interim": true
-    }
-  ],
-  "kansas|2014": [
-    {
-      "coach": "Charlie Weis",
-      "startOrd": 0
-    },
-    {
-      "coach": "Clint Bowen",
-      "startOrd": 4,
-      "interim": true
-    }
-  ],
-  "florida-international|2016": [
-    {
-      "coach": "Ron Turner",
-      "startOrd": 0
-    },
-    {
-      "coach": "Ron Cooper",
-      "startOrd": 4,
-      "interim": true
-    }
-  ],
-  "arizona-state|1979": [
-    {
-      "coach": "Frank Kush",
-      "startOrd": 0
-    },
-    {
-      "coach": "Bob Owens",
-      "startOrd": 5,
-      "interim": true
-    }
-  ],
-  "arizona|2003": [
-    {
-      "coach": "John Mackovic",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mike Hankwitz",
-      "startOrd": 5,
-      "interim": true
-    }
-  ],
-  "north-texas|2015": [
-    {
-      "coach": "Dan McCarney",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mike Canales",
-      "startOrd": 5,
-      "interim": true
-    }
-  ],
-  "texas-am|1978": [
-    {
-      "coach": "Emory Bellard",
-      "startOrd": 0
-    },
-    {
-      "coach": "Tom Wilson",
-      "startOrd": 6
-    }
-  ],
-  "auburn|1998": [
-    {
-      "coach": "Terry Bowden",
-      "startOrd": 0
-    },
-    {
-      "coach": "Bill Oliver",
-      "startOrd": 6,
-      "interim": true
-    }
-  ],
-  "maryland|2015": [
-    {
-      "coach": "Randy Edsall",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mike Locksley",
-      "startOrd": 6,
-      "interim": true
-    }
-  ],
-  "miami-fl|2015": [
-    {
-      "coach": "Al Golden",
-      "startOrd": 0
-    },
-    {
-      "coach": "Larry Scott",
-      "startOrd": 7,
-      "interim": true
-    }
-  ],
-  "navy|2001": [
-    {
-      "coach": "Charlie Weatherbie",
-      "startOrd": 0
-    },
-    {
-      "coach": "Rick Lantz",
-      "startOrd": 7,
-      "interim": true
-    }
-  ],
-  "ucf|2015": [
-    {
-      "coach": "George O'Leary",
-      "startOrd": 0
-    },
-    {
-      "coach": "Danny Barrett",
-      "startOrd": 8,
-      "interim": true
-    }
-  ],
-  "colorado|2010": [
-    {
-      "coach": "Dan Hawkins",
-      "startOrd": 0
-    },
-    {
-      "coach": "Brian Cabral",
-      "startOrd": 9,
-      "interim": true
-    }
-  ],
-  "penn-state|2011": [
-    {
-      "coach": "Joe Paterno",
-      "startOrd": 0
-    },
-    {
-      "coach": "Tom Bradley",
-      "startOrd": 9,
-      "interim": true
-    }
-  ],
-  "usc|2015": [
-    {
-      "coach": "Steve Sarkisian",
-      "startOrd": 0
-    },
-    {
-      "coach": "Clay Helton",
-      "startOrd": 5
-    }
-  ],
-  "ucla|2011": [
-    {
-      "coach": "Rick Neuheisel",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mike Johnson",
-      "startOrd": 12,
-      "interim": true
-    }
-  ],
-  "purdue|2012": [
-    {
-      "coach": "Danny Hope",
-      "startOrd": 0
-    },
-    {
-      "coach": "Patrick Higgins",
-      "startOrd": 12,
-      "interim": true
-    }
-  ],
+  "_note": "Researched rulings that replace CFBD /coaches rows for seasons whose records don't reconcile with games played: double-credited co-coached bowls, rows misfiled under the wrong school or year, non-contiguous tenures, and seasons CFBD has no row for. Each ruled season is { segments, receipts, note? }. Segments run from 'start' (the date of the coach's first game, resolved to a game ordinal at build time so it survives spine gaps; a plain startOrd also works) until the next segment; 'interim: true' forces the flag when the started-mid-season heuristic can't see it. Receipts are the season's Wikipedia page naming the coach ('Head coach X' from the infobox, or the bare name), checked by scripts/data/check-receipts.mjs; a season with receipts: [] is on the coverage report's work list. The note carries the ruling's facts where the sources disagree with CFBD. The 2026-09-28 batch: CFBD dropped one coach from each of these two-coach seasons and left a single row covering part of it; ordinals follow that row's record against the result sequence (Paterno 8-1 = games 1-9 of 2011, Bradley the last four; Sarkisian 3-2 = USC's first five of 2015, Helton from game 6; Hope 6-6 = Purdue's twelve regular-season games of 2012, Higgins the Heart of Dallas Bowl; and so on).",
+  "utah|2004": {
+    "segments": [
+      {
+        "coach": "Urban Meyer",
+        "startOrd": 0
+      }
+    ],
+    "note": "Utah credits the 2005 Fiesta Bowl to both Meyer and Whittingham; one coach per game here, and it goes to Meyer, whose 12-0 is the standard figure.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2004_Utah_Utes_football_team",
+        "quote": "Head coach Urban Meyer",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "boise-state|1996": {
+    "segments": [
+      {
+        "coach": "Tom Mason",
+        "startOrd": 0,
+        "interim": true
+      },
+      {
+        "coach": "Pokey Allen",
+        "start": "1996-11-16"
+      }
+    ],
+    "note": "Allen missed games 1-10 after cancer surgery (Spokesman-Review 1996-11-17), returned 11/16 at New Mexico State and 11/23 vs Idaho, and died 12/30; Mason interim from the opener.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1996_Boise_State_Broncos_football_team",
+        "quote": "Tom Mason",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1996_Boise_State_Broncos_football_team",
+        "quote": "Head coach Pokey Allen",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "georgia-state|2016": {
+    "segments": [
+      {
+        "coach": "Trent Miles",
+        "startOrd": 0
+      },
+      {
+        "coach": "Tim Lappano",
+        "start": "2016-11-19"
+      }
+    ],
+    "note": "Miles fired 2016-11-12 after a 2-8 start (ESPN); Lappano interim from 11/19. CFBD lists Miles 1-8.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Georgia_State_Panthers_football_team",
+        "quote": "Head coach Trent Miles",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Georgia_State_Panthers_football_team",
+        "quote": "Tim Lappano",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "tulane|2011": {
+    "segments": [
+      {
+        "coach": "Bob Toledo",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mark Hutson",
+        "start": "2011-10-22"
+      }
+    ],
+    "note": "Toledo resigned 2011-10-18 at 2-5; Hutson 0-6 interim from 10/22. CFBD misfiles that stint under 2012.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Tulane_Green_Wave_football_team",
+        "quote": "Head coach Bob Toledo",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Tulane_Green_Wave_football_team",
+        "quote": "Mark Hutson",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "tulane|2012": {
+    "segments": [
+      {
+        "coach": "Curtis Johnson",
+        "startOrd": 0
+      }
+    ],
+    "note": "Johnson coached all 12; CFBD's Hutson row here is his 2011 interim stint misfiled.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Tulane_Green_Wave_football_team",
+        "quote": "Head coach Curtis Johnson",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "western-kentucky|2018": {
+    "segments": [
+      {
+        "coach": "Mike Sanford Jr.",
+        "startOrd": 0
+      }
+    ],
+    "note": "CFBD's Petrino 2-8 row is his Louisville season misfiled; Sanford coached all 12.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2018_Western_Kentucky_Hilltoppers_football_team",
+        "quote": "Head coach Mike Sanford Jr.",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "louisville|2018": {
+    "segments": [
+      {
+        "coach": "Bobby Petrino",
+        "startOrd": 0
+      },
+      {
+        "coach": "Lorenzo Ward",
+        "start": "2018-11-17"
+      }
+    ],
+    "note": "Petrino fired 2018-11-11 after game 10; Ward interim from 11/17.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2018_Louisville_Cardinals_football_team",
+        "quote": "Head coach Bobby Petrino",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2018_Louisville_Cardinals_football_team",
+        "quote": "Lorenzo Ward",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "toledo|2011": {
+    "segments": [
+      {
+        "coach": "Tim Beckman",
+        "startOrd": 0
+      },
+      {
+        "coach": "Matt Campbell",
+        "startOrd": 12,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Toledo_Rockets_football_team",
+        "quote": "Head coach Tim Beckman",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Toledo_Rockets_football_team",
+        "quote": "Matt Campbell",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|1986": {
+    "segments": [
+      {
+        "coach": "David McWilliams",
+        "startOrd": 0
+      },
+      {
+        "coach": "Spike Dykes",
+        "startOrd": 11
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1986_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach David McWilliams",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1986_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Spike Dykes",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "southern-miss|1990": {
+    "segments": [
+      {
+        "coach": "Curley Hallman",
+        "startOrd": 0
+      },
+      {
+        "coach": "Jeff Bower",
+        "startOrd": 11
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1990_Southern_Miss_Golden_Eagles_football_team",
+        "quote": "Head coach Curley Hallman",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1990_Southern_Miss_Golden_Eagles_football_team",
+        "quote": "Jeff Bower",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "smu|2014": {
+    "segments": [
+      {
+        "coach": "June Jones",
+        "startOrd": 0
+      },
+      {
+        "coach": "Tom Mason",
+        "startOrd": 2,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_SMU_Mustangs_football_team",
+        "quote": "Head coach June Jones",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_SMU_Mustangs_football_team",
+        "quote": "Tom Mason",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "florida|1984": {
+    "segments": [
+      {
+        "coach": "Charley Pell",
+        "startOrd": 0
+      },
+      {
+        "coach": "Galen Hall",
+        "startOrd": 3
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1984_Florida_Gators_football_team",
+        "quote": "Head coach Charley Pell",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1984_Florida_Gators_football_team",
+        "quote": "Galen Hall",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "georgia-tech|1994": {
+    "segments": [
+      {
+        "coach": "Bill Lewis",
+        "startOrd": 0
+      },
+      {
+        "coach": "George O'Leary",
+        "startOrd": 8
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1994_Georgia_Tech_Yellow_Jackets_football_team",
+        "quote": "Head coach Bill Lewis",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1994_Georgia_Tech_Yellow_Jackets_football_team",
+        "quote": "George O'Leary",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "uconn|2013": {
+    "segments": [
+      {
+        "coach": "Paul Pasqualoni",
+        "startOrd": 0
+      },
+      {
+        "coach": "T.J. Weist",
+        "startOrd": 4,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_UConn_Huskies_football_team",
+        "quote": "Head coach Paul Pasqualoni",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_UConn_Huskies_football_team",
+        "quote": "T. J. Weist",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "kansas|2014": {
+    "segments": [
+      {
+        "coach": "Charlie Weis",
+        "startOrd": 0
+      },
+      {
+        "coach": "Clint Bowen",
+        "startOrd": 4,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Kansas_Jayhawks_football_team",
+        "quote": "Head coach Charlie Weis",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Kansas_Jayhawks_football_team",
+        "quote": "Clint Bowen",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "florida-international|2016": {
+    "segments": [
+      {
+        "coach": "Ron Turner",
+        "startOrd": 0
+      },
+      {
+        "coach": "Ron Cooper",
+        "startOrd": 4,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Florida_International_Panthers_football_team",
+        "quote": "Head coach Ron Turner",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Florida_International_Panthers_football_team",
+        "quote": "Ron Cooper",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "arizona-state|1979": {
+    "segments": [
+      {
+        "coach": "Frank Kush",
+        "startOrd": 0
+      },
+      {
+        "coach": "Bob Owens",
+        "startOrd": 5,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1979_Arizona_State_Sun_Devils_football_team",
+        "quote": "Head coach Frank Kush",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1979_Arizona_State_Sun_Devils_football_team",
+        "quote": "Bob Owens",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "arizona|2003": {
+    "segments": [
+      {
+        "coach": "John Mackovic",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mike Hankwitz",
+        "startOrd": 5,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2003_Arizona_Wildcats_football_team",
+        "quote": "Head coach John Mackovic",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2003_Arizona_Wildcats_football_team",
+        "quote": "Mike Hankwitz",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "north-texas|2015": {
+    "segments": [
+      {
+        "coach": "Dan McCarney",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mike Canales",
+        "startOrd": 5,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_North_Texas_Mean_Green_football_team",
+        "quote": "Head coach Dan McCarney",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_North_Texas_Mean_Green_football_team",
+        "quote": "Mike Canales",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-am|1978": {
+    "segments": [
+      {
+        "coach": "Emory Bellard",
+        "startOrd": 0
+      },
+      {
+        "coach": "Tom Wilson",
+        "startOrd": 6
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1978_Texas_A&M_Aggies_football_team",
+        "quote": "Head coach Emory Bellard",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1978_Texas_A&M_Aggies_football_team",
+        "quote": "Tom Wilson",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "auburn|1998": {
+    "segments": [
+      {
+        "coach": "Terry Bowden",
+        "startOrd": 0
+      },
+      {
+        "coach": "Bill Oliver",
+        "startOrd": 6,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1998_Auburn_Tigers_football_team",
+        "quote": "Head coach Terry Bowden",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1998_Auburn_Tigers_football_team",
+        "quote": "Bill Oliver",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "maryland|2015": {
+    "segments": [
+      {
+        "coach": "Randy Edsall",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mike Locksley",
+        "startOrd": 6,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Maryland_Terrapins_football_team",
+        "quote": "Head coach Randy Edsall",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Maryland_Terrapins_football_team",
+        "quote": "Mike Locksley",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "miami-fl|2015": {
+    "segments": [
+      {
+        "coach": "Al Golden",
+        "startOrd": 0
+      },
+      {
+        "coach": "Larry Scott",
+        "startOrd": 7,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Miami_Hurricanes_football_team",
+        "quote": "Head coach Al Golden",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Miami_Hurricanes_football_team",
+        "quote": "Head coach Larry Scott",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "navy|2001": {
+    "segments": [
+      {
+        "coach": "Charlie Weatherbie",
+        "startOrd": 0
+      },
+      {
+        "coach": "Rick Lantz",
+        "startOrd": 7,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2001_Navy_Midshipmen_football_team",
+        "quote": "Head coach Charlie Weatherbie",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2001_Navy_Midshipmen_football_team",
+        "quote": "Head coach Rick Lantz",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "ucf|2015": {
+    "segments": [
+      {
+        "coach": "George O'Leary",
+        "startOrd": 0
+      },
+      {
+        "coach": "Danny Barrett",
+        "startOrd": 8,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_UCF_Knights_football_team",
+        "quote": "Head coach George O'Leary",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_UCF_Knights_football_team",
+        "quote": "Danny Barrett",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colorado|2010": {
+    "segments": [
+      {
+        "coach": "Dan Hawkins",
+        "startOrd": 0
+      },
+      {
+        "coach": "Brian Cabral",
+        "startOrd": 9,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Colorado_Buffaloes_football_team",
+        "quote": "Head coach Dan Hawkins",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Colorado_Buffaloes_football_team",
+        "quote": "Brian Cabral",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "penn-state|2011": {
+    "segments": [
+      {
+        "coach": "Joe Paterno",
+        "startOrd": 0
+      },
+      {
+        "coach": "Tom Bradley",
+        "startOrd": 9,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Penn_State_Nittany_Lions_football_team",
+        "quote": "Head coach Joe Paterno",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Penn_State_Nittany_Lions_football_team",
+        "quote": "Tom Bradley",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "usc|2015": {
+    "segments": [
+      {
+        "coach": "Steve Sarkisian",
+        "startOrd": 0
+      },
+      {
+        "coach": "Clay Helton",
+        "startOrd": 5
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_USC_Trojans_football_team",
+        "quote": "Head coach Steve Sarkisian",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_USC_Trojans_football_team",
+        "quote": "Clay Helton",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "ucla|2011": {
+    "segments": [
+      {
+        "coach": "Rick Neuheisel",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mike Johnson",
+        "startOrd": 12,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_UCLA_Bruins_football_team",
+        "quote": "Head coach Rick Neuheisel",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_UCLA_Bruins_football_team",
+        "quote": "Mike Johnson",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "purdue|2012": {
+    "segments": [
+      {
+        "coach": "Danny Hope",
+        "startOrd": 0
+      },
+      {
+        "coach": "Patrick Higgins",
+        "startOrd": 12,
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Purdue_Boilermakers_football_team",
+        "quote": "Head coach Danny Hope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Purdue_Boilermakers_football_team",
+        "quote": "Patrick Higgins",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
   "_note_interim_bowls": "Interim-coached final games, researched 2026-09-28 against each season's Wikipedia page (infobox head_coach2 and the bowl section) or the bowl game's own page. CFBD credits the departing coach with the whole season; the bowl goes to the coach who stood on the sideline. Where that coach was already the permanent successor (Gutekunst 1985, Hackett 1989, Tepper 1991, Torbush 1997, Scelfo 1998, B. Williams 1999, Stewart 2007, Levine 2011) no interim flag is set, since his stint runs on into the next season. Louisiana-Monroe 2015 is not a bowl: Berry was fired after the 10th game (Arkansas State) and John Mumford coached the final three.",
-  "minnesota|1985": [
-    {
-      "coach": "Lou Holtz",
-      "startOrd": 0
-    },
-    {
-      "coach": "John Gutekunst",
-      "start": "1985-12-21"
-    }
-  ],
-  "pittsburgh|1989": [
-    {
-      "coach": "Mike Gottfried",
-      "startOrd": 0
-    },
-    {
-      "coach": "Paul Hackett",
-      "start": "1989-12-30"
-    }
-  ],
-  "illinois|1991": [
-    {
-      "coach": "John Mackovic",
-      "startOrd": 0
-    },
-    {
-      "coach": "Lou Tepper",
-      "start": "1991-12-31"
-    }
-  ],
-  "north-carolina|1997": [
-    {
-      "coach": "Mack Brown",
-      "startOrd": 0
-    },
-    {
-      "coach": "Carl Torbush",
-      "start": "1998-01-01"
-    }
-  ],
-  "tulane|1998": [
-    {
-      "coach": "Tommy Bowden",
-      "startOrd": 0
-    },
-    {
-      "coach": "Chris Scelfo",
-      "start": "1998-12-31"
-    }
-  ],
-  "michigan-state|1999": [
-    {
-      "coach": "Nick Saban",
-      "startOrd": 0
-    },
-    {
-      "coach": "Bobby Williams",
-      "start": "2000-01-01"
-    }
-  ],
-  "georgia-tech|2001": [
-    {
-      "coach": "George O'Leary",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mac McWhorter",
-      "start": "2001-12-27",
-      "interim": true
-    }
-  ],
-  "ucla|2002": [
-    {
-      "coach": "Bob Toledo",
-      "startOrd": 0
-    },
-    {
-      "coach": "Ed Kezirian",
-      "start": "2002-12-25",
-      "interim": true
-    }
-  ],
-  "notre-dame|2004": [
-    {
-      "coach": "Tyrone Willingham",
-      "startOrd": 0
-    },
-    {
-      "coach": "Kent Baer",
-      "start": "2004-12-28",
-      "interim": true
-    }
-  ],
-  "colorado|2005": [
-    {
-      "coach": "Gary Barnett",
-      "startOrd": 0
-    },
-    {
-      "coach": "Mike Hankwitz",
-      "start": "2005-12-27",
-      "interim": true
-    }
-  ],
-  "boston-college|2006": [
-    {
-      "coach": "Tom O'Brien",
-      "startOrd": 0
-    },
-    {
-      "coach": "Frank Spaziani",
-      "start": "2006-12-30",
-      "interim": true
-    }
-  ],
-  "central-michigan|2006": [
-    {
-      "coach": "Brian Kelly",
-      "startOrd": 0
-    },
-    {
-      "coach": "Jeff Quinn",
-      "start": "2006-12-26",
-      "interim": true
-    }
-  ],
-  "arkansas|2007": [
-    {
-      "coach": "Houston Nutt",
-      "startOrd": 0
-    },
-    {
-      "coach": "Reggie Herring",
-      "start": "2008-01-01",
-      "interim": true
-    }
-  ],
-  "houston|2007": [
-    {
-      "coach": "Art Briles",
-      "startOrd": 0
-    },
-    {
-      "coach": "Chris Thurmond",
-      "start": "2007-12-28",
-      "interim": true
-    }
-  ],
-  "west-virginia|2007": [
-    {
-      "coach": "Rich Rodriguez",
-      "startOrd": 0
-    },
-    {
-      "coach": "Bill Stewart",
-      "start": "2008-01-02"
-    }
-  ],
-  "central-michigan|2009": [
-    {
-      "coach": "Butch Jones",
-      "startOrd": 0
-    },
-    {
-      "coach": "Steve Stripling",
-      "start": "2010-01-06",
-      "interim": true
-    }
-  ],
-  "cincinnati|2009": [
-    {
-      "coach": "Brian Kelly",
-      "startOrd": 0
-    },
-    {
-      "coach": "Jeff Quinn",
-      "start": "2010-01-01",
-      "interim": true
-    }
-  ],
-  "texas-tech|2009": [
-    {
-      "coach": "Mike Leach",
-      "startOrd": 0
-    },
-    {
-      "coach": "Ruffin McNeill",
-      "start": "2010-01-02",
-      "interim": true
-    }
-  ],
-  "miami-fl|2010": [
-    {
-      "coach": "Randy Shannon",
-      "startOrd": 0
-    },
-    {
-      "coach": "Jeff Stoutland",
-      "start": "2010-12-31",
-      "interim": true
-    }
-  ],
-  "northern-illinois|2010": [
-    {
-      "coach": "Jerry Kill",
-      "startOrd": 0
-    },
-    {
-      "coach": "Tom Matukewicz",
-      "start": "2010-12-18",
-      "interim": true
-    }
-  ],
-  "houston|2011": [
-    {
-      "coach": "Kevin Sumlin",
-      "startOrd": 0
-    },
-    {
-      "coach": "Tony Levine",
-      "start": "2012-01-02"
-    }
-  ],
-  "illinois|2011": [
-    {
-      "coach": "Ron Zook",
-      "startOrd": 0
-    },
-    {
-      "coach": "Vic Koenning",
-      "start": "2011-12-31",
-      "interim": true
-    }
-  ],
-  "pittsburgh|2011": [
-    {
-      "coach": "Todd Graham",
-      "startOrd": 0
-    },
-    {
-      "coach": "Keith Patterson",
-      "start": "2012-01-07",
-      "interim": true
-    }
-  ],
-  "arkansas-state|2012": [
-    {
-      "coach": "Gus Malzahn",
-      "startOrd": 0
-    },
-    {
-      "coach": "John Thompson",
-      "start": "2013-01-06",
-      "interim": true
-    }
-  ],
-  "cincinnati|2012": [
-    {
-      "coach": "Butch Jones",
-      "startOrd": 0
-    },
-    {
-      "coach": "Steve Stripling",
-      "start": "2012-12-27",
-      "interim": true
-    }
-  ],
-  "nc-state|2012": [
-    {
-      "coach": "Tom O'Brien",
-      "startOrd": 0
-    },
-    {
-      "coach": "Dana Bible",
-      "start": "2012-12-31",
-      "interim": true
-    }
-  ],
-  "san-jose-state|2012": [
-    {
-      "coach": "Mike MacIntyre",
-      "startOrd": 0
-    },
-    {
-      "coach": "Kent Baer",
-      "start": "2012-12-27",
-      "interim": true
-    }
-  ],
-  "texas-tech|2012": [
-    {
-      "coach": "Tommy Tuberville",
-      "startOrd": 0
-    },
-    {
-      "coach": "Chris Thomsen",
-      "start": "2012-12-28",
-      "interim": true
-    }
-  ],
-  "western-kentucky|2012": [
-    {
-      "coach": "Willie Taggart",
-      "startOrd": 0
-    },
-    {
-      "coach": "Lance Guidry",
-      "start": "2012-12-26",
-      "interim": true
-    }
-  ],
-  "arkansas-state|2013": [
-    {
-      "coach": "Bryan Harsin",
-      "startOrd": 0
-    },
-    {
-      "coach": "John Thompson",
-      "start": "2014-01-05",
-      "interim": true
-    }
-  ],
-  "boise-state|2013": [
-    {
-      "coach": "Chris Petersen",
-      "startOrd": 0
-    },
-    {
-      "coach": "Bob Gregory",
-      "start": "2013-12-24",
-      "interim": true
-    }
-  ],
-  "colorado-state|2014": [
-    {
-      "coach": "Jim McElwain",
-      "startOrd": 0
-    },
-    {
-      "coach": "Dave Baldwin",
-      "start": "2014-12-20",
-      "interim": true
-    }
-  ],
-  "nebraska|2014": [
-    {
-      "coach": "Bo Pelini",
-      "startOrd": 0
-    },
-    {
-      "coach": "Barney Cotton",
-      "start": "2014-12-27",
-      "interim": true
-    }
-  ],
-  "pittsburgh|2014": [
-    {
-      "coach": "Paul Chryst",
-      "startOrd": 0
-    },
-    {
-      "coach": "Joe Rudolph",
-      "start": "2015-01-02",
-      "interim": true
-    }
-  ],
-  "bowling-green|2015": [
-    {
-      "coach": "Dino Babers",
-      "startOrd": 0
-    },
-    {
-      "coach": "Brian Ward",
-      "start": "2015-12-23",
-      "interim": true
-    }
-  ],
-  "georgia|2015": [
-    {
-      "coach": "Mark Richt",
-      "startOrd": 0
-    },
-    {
-      "coach": "Bryan McClendon",
-      "start": "2016-01-02",
-      "interim": true
-    }
-  ],
-  "memphis|2015": [
-    {
-      "coach": "Justin Fuente",
-      "startOrd": 0
-    },
-    {
-      "coach": "Darrell Dickey",
-      "start": "2015-12-30",
-      "interim": true
-    }
-  ],
-  "south-florida|2016": [
-    {
-      "coach": "Willie Taggart",
-      "startOrd": 0
-    },
-    {
-      "coach": "T.J. Weist",
-      "start": "2016-12-29",
-      "interim": true
-    }
-  ],
-  "temple|2016": [
-    {
-      "coach": "Matt Rhule",
-      "startOrd": 0
-    },
-    {
-      "coach": "Ed Foley",
-      "start": "2016-12-27",
-      "interim": true
-    }
-  ],
-  "western-kentucky|2016": [
-    {
-      "coach": "Jeff Brohm",
-      "startOrd": 0
-    },
-    {
-      "coach": "Nick Holt",
-      "start": "2016-12-20",
-      "interim": true
-    }
-  ],
-  "boston-college|2019": [
-    {
-      "coach": "Steve Addazio",
-      "startOrd": 0
-    },
-    {
-      "coach": "Rich Gunnell",
-      "start": "2020-01-02",
-      "interim": true
-    }
-  ],
-  "louisiana-monroe|2015": [
-    {
-      "coach": "Todd Berry",
-      "startOrd": 0
-    },
-    {
-      "coach": "John Mumford",
-      "start": "2015-11-19",
-      "interim": true
-    }
-  ],
-  "old-dominion|2013": [
-    {
-      "coach": "Bobby Wilder",
-      "startOrd": 0
-    }
-  ],
-  "colgate|1978": [
-    {
-      "coach": "Fred Dunlap",
-      "startOrd": 0
-    }
-  ],
-  "colgate|1979": [
-    {
-      "coach": "Fred Dunlap",
-      "startOrd": 0
-    }
-  ],
-  "colgate|1980": [
-    {
-      "coach": "Fred Dunlap",
-      "startOrd": 0
-    }
-  ],
-  "colgate|1981": [
-    {
-      "coach": "Fred Dunlap",
-      "startOrd": 0
-    }
-  ],
-  "florida-am|2004": [
-    {
-      "coach": "Billy Joe",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2000": [
-    {
-      "coach": "Tom Cable",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2001": [
-    {
-      "coach": "Tom Cable",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2002": [
-    {
-      "coach": "Tom Cable",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2003": [
-    {
-      "coach": "Tom Cable",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2007": [
-    {
-      "coach": "Robb Akey",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2008": [
-    {
-      "coach": "Robb Akey",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2009": [
-    {
-      "coach": "Robb Akey",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2010": [
-    {
-      "coach": "Robb Akey",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2011": [
-    {
-      "coach": "Robb Akey",
-      "startOrd": 0
-    }
-  ],
-  "long-beach-state|1987": [
-    {
-      "coach": "Larry Reisbig",
-      "startOrd": 0
-    }
-  ],
-  "long-beach-state|1988": [
-    {
-      "coach": "Larry Reisbig",
-      "startOrd": 0
-    }
-  ],
-  "long-beach-state|1989": [
-    {
-      "coach": "Larry Reisbig",
-      "startOrd": 0
-    }
-  ],
-  "long-beach-state|1990": [
-    {
-      "coach": "George Allen",
-      "startOrd": 0
-    }
-  ],
-  "long-beach-state|1991": [
-    {
-      "coach": "Willie Brown",
-      "startOrd": 0
-    }
-  ],
-  "pacific|1983": [
-    {
-      "coach": "Bob Cope",
-      "startOrd": 0
-    }
-  ],
-  "pacific|1984": [
-    {
-      "coach": "Bob Cope",
-      "startOrd": 0
-    }
-  ],
-  "pacific|1985": [
-    {
-      "coach": "Bob Cope",
-      "startOrd": 0
-    }
-  ],
-  "pacific|1986": [
-    {
-      "coach": "Bob Cope",
-      "startOrd": 0
-    }
-  ],
-  "pacific|1987": [
-    {
-      "coach": "Bob Cope",
-      "startOrd": 0
-    }
-  ],
-  "pacific|1988": [
-    {
-      "coach": "Bob Cope",
-      "startOrd": 0
-    }
-  ],
-  "richmond|1978": [
-    {
-      "coach": "Jim Tait",
-      "startOrd": 0
-    }
-  ],
-  "richmond|1979": [
-    {
-      "coach": "Jim Tait",
-      "startOrd": 0
-    }
-  ],
-  "richmond|1980": [
-    {
-      "coach": "Dal Shealy",
-      "startOrd": 0
-    }
-  ],
-  "richmond|1981": [
-    {
-      "coach": "Dal Shealy",
-      "startOrd": 0
-    }
-  ],
-  "richmond|1982": [
-    {
-      "coach": "Dal Shealy",
-      "startOrd": 0
-    }
-  ],
-  "richmond|1983": [
-    {
-      "coach": "Dal Shealy",
-      "startOrd": 0
-    }
-  ],
-  "idaho|2012": [
-    {
-      "coach": "Robb Akey",
-      "startOrd": 0
-    },
-    {
-      "coach": "Jason Gesser",
-      "start": "2012-11-03",
-      "interim": true
-    }
-  ],
+  "minnesota|1985": {
+    "segments": [
+      {
+        "coach": "Lou Holtz",
+        "startOrd": 0
+      },
+      {
+        "coach": "John Gutekunst",
+        "start": "1985-12-21"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1985_Minnesota_Golden_Gophers_football_team",
+        "quote": "Head coach Lou Holtz",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1985_Minnesota_Golden_Gophers_football_team",
+        "quote": "John Gutekunst",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pittsburgh|1989": {
+    "segments": [
+      {
+        "coach": "Mike Gottfried",
+        "startOrd": 0
+      },
+      {
+        "coach": "Paul Hackett",
+        "start": "1989-12-30"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1989_Pittsburgh_Panthers_football_team",
+        "quote": "Head coach Mike Gottfried",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1989_Pittsburgh_Panthers_football_team",
+        "quote": "Paul Hackett",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "illinois|1991": {
+    "segments": [
+      {
+        "coach": "John Mackovic",
+        "startOrd": 0
+      },
+      {
+        "coach": "Lou Tepper",
+        "start": "1991-12-31"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1991_Illinois_Fighting_Illini_football_team",
+        "quote": "Head coach John Mackovic",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1991_Illinois_Fighting_Illini_football_team",
+        "quote": "Lou Tepper",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "north-carolina|1997": {
+    "segments": [
+      {
+        "coach": "Mack Brown",
+        "startOrd": 0
+      },
+      {
+        "coach": "Carl Torbush",
+        "start": "1998-01-01"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1997_North_Carolina_Tar_Heels_football_team",
+        "quote": "Head coach Mack Brown",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1997_North_Carolina_Tar_Heels_football_team",
+        "quote": "Carl Torbush",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "tulane|1998": {
+    "segments": [
+      {
+        "coach": "Tommy Bowden",
+        "startOrd": 0
+      },
+      {
+        "coach": "Chris Scelfo",
+        "start": "1998-12-31"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1998_Tulane_Green_Wave_football_team",
+        "quote": "Head coach Tommy Bowden",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1998_Tulane_Green_Wave_football_team",
+        "quote": "Chris Scelfo",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "michigan-state|1999": {
+    "segments": [
+      {
+        "coach": "Nick Saban",
+        "startOrd": 0
+      },
+      {
+        "coach": "Bobby Williams",
+        "start": "2000-01-01"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1999_Michigan_State_Spartans_football_team",
+        "quote": "Head coach Nick Saban",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1999_Michigan_State_Spartans_football_team",
+        "quote": "Bobby Williams",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "georgia-tech|2001": {
+    "segments": [
+      {
+        "coach": "George O'Leary",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mac McWhorter",
+        "start": "2001-12-27",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2001_Georgia_Tech_Yellow_Jackets_football_team",
+        "quote": "Head coach George O'Leary",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2001_Georgia_Tech_Yellow_Jackets_football_team",
+        "quote": "Mac McWhorter",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "ucla|2002": {
+    "segments": [
+      {
+        "coach": "Bob Toledo",
+        "startOrd": 0
+      },
+      {
+        "coach": "Ed Kezirian",
+        "start": "2002-12-25",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2002_UCLA_Bruins_football_team",
+        "quote": "Head coach Bob Toledo",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2002_UCLA_Bruins_football_team",
+        "quote": "Ed Kezirian",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "notre-dame|2004": {
+    "segments": [
+      {
+        "coach": "Tyrone Willingham",
+        "startOrd": 0
+      },
+      {
+        "coach": "Kent Baer",
+        "start": "2004-12-28",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2004_Notre_Dame_Fighting_Irish_football_team",
+        "quote": "Head coach Tyrone Willingham",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2004_Notre_Dame_Fighting_Irish_football_team",
+        "quote": "Kent Baer",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colorado|2005": {
+    "segments": [
+      {
+        "coach": "Gary Barnett",
+        "startOrd": 0
+      },
+      {
+        "coach": "Mike Hankwitz",
+        "start": "2005-12-27",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2005_Colorado_Buffaloes_football_team",
+        "quote": "Head coach Gary Barnett",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2005_Colorado_Buffaloes_football_team",
+        "quote": "Mike Hankwitz",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "boston-college|2006": {
+    "segments": [
+      {
+        "coach": "Tom O'Brien",
+        "startOrd": 0
+      },
+      {
+        "coach": "Frank Spaziani",
+        "start": "2006-12-30",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2006_Boston_College_Eagles_football_team",
+        "quote": "Head coach Tom O'Brien",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2006_Boston_College_Eagles_football_team",
+        "quote": "Frank Spaziani",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "central-michigan|2006": {
+    "segments": [
+      {
+        "coach": "Brian Kelly",
+        "startOrd": 0
+      },
+      {
+        "coach": "Jeff Quinn",
+        "start": "2006-12-26",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2006_Central_Michigan_Chippewas_football_team",
+        "quote": "Head coach Brian Kelly",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2006_Central_Michigan_Chippewas_football_team",
+        "quote": "Jeff Quinn",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "arkansas|2007": {
+    "segments": [
+      {
+        "coach": "Houston Nutt",
+        "startOrd": 0
+      },
+      {
+        "coach": "Reggie Herring",
+        "start": "2008-01-01",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_Arkansas_Razorbacks_football_team",
+        "quote": "Head coach Houston Nutt",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_Arkansas_Razorbacks_football_team",
+        "quote": "Reggie Herring",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "houston|2007": {
+    "segments": [
+      {
+        "coach": "Art Briles",
+        "startOrd": 0
+      },
+      {
+        "coach": "Chris Thurmond",
+        "start": "2007-12-28",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_Houston_Cougars_football_team",
+        "quote": "Head coach Art Briles",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_Houston_Cougars_football_team",
+        "quote": "Chris Thurmond",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "west-virginia|2007": {
+    "segments": [
+      {
+        "coach": "Rich Rodriguez",
+        "startOrd": 0
+      },
+      {
+        "coach": "Bill Stewart",
+        "start": "2008-01-02"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_West_Virginia_Mountaineers_football_team",
+        "quote": "Head coach Rich Rodriguez",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_West_Virginia_Mountaineers_football_team",
+        "quote": "Bill Stewart",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "central-michigan|2009": {
+    "segments": [
+      {
+        "coach": "Butch Jones",
+        "startOrd": 0
+      },
+      {
+        "coach": "Steve Stripling",
+        "start": "2010-01-06",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Central_Michigan_Chippewas_football_team",
+        "quote": "Head coach Butch Jones",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Central_Michigan_Chippewas_football_team",
+        "quote": "Steve Stripling",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "cincinnati|2009": {
+    "segments": [
+      {
+        "coach": "Brian Kelly",
+        "startOrd": 0
+      },
+      {
+        "coach": "Jeff Quinn",
+        "start": "2010-01-01",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Cincinnati_Bearcats_football_team",
+        "quote": "Head coach Brian Kelly",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Cincinnati_Bearcats_football_team",
+        "quote": "Jeff Quinn",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|2009": {
+    "segments": [
+      {
+        "coach": "Mike Leach",
+        "startOrd": 0
+      },
+      {
+        "coach": "Ruffin McNeill",
+        "start": "2010-01-02",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Mike Leach",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Ruffin McNeill",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "miami-fl|2010": {
+    "segments": [
+      {
+        "coach": "Randy Shannon",
+        "startOrd": 0
+      },
+      {
+        "coach": "Jeff Stoutland",
+        "start": "2010-12-31",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Miami_Hurricanes_football_team",
+        "quote": "Head coach Randy Shannon",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Miami_Hurricanes_football_team",
+        "quote": "Jeff Stoutland",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "northern-illinois|2010": {
+    "segments": [
+      {
+        "coach": "Jerry Kill",
+        "startOrd": 0
+      },
+      {
+        "coach": "Tom Matukewicz",
+        "start": "2010-12-18",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Northern_Illinois_Huskies_football_team",
+        "quote": "Head coach Jerry Kill",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Northern_Illinois_Huskies_football_team",
+        "quote": "Tom Matukewicz",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "houston|2011": {
+    "segments": [
+      {
+        "coach": "Kevin Sumlin",
+        "startOrd": 0
+      },
+      {
+        "coach": "Tony Levine",
+        "start": "2012-01-02"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Houston_Cougars_football_team",
+        "quote": "Head coach Kevin Sumlin",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Houston_Cougars_football_team",
+        "quote": "Tony Levine",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "illinois|2011": {
+    "segments": [
+      {
+        "coach": "Ron Zook",
+        "startOrd": 0
+      },
+      {
+        "coach": "Vic Koenning",
+        "start": "2011-12-31",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Illinois_Fighting_Illini_football_team",
+        "quote": "Head coach Ron Zook",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Illinois_Fighting_Illini_football_team",
+        "quote": "Vic Koenning",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pittsburgh|2011": {
+    "segments": [
+      {
+        "coach": "Todd Graham",
+        "startOrd": 0
+      },
+      {
+        "coach": "Keith Patterson",
+        "start": "2012-01-07",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Pittsburgh_Panthers_football_team",
+        "quote": "Head coach Todd Graham",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Pittsburgh_Panthers_football_team",
+        "quote": "Keith Patterson",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "arkansas-state|2012": {
+    "segments": [
+      {
+        "coach": "Gus Malzahn",
+        "startOrd": 0
+      },
+      {
+        "coach": "John Thompson",
+        "start": "2013-01-06",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Arkansas_State_Red_Wolves_football_team",
+        "quote": "Head coach Gus Malzahn",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Arkansas_State_Red_Wolves_football_team",
+        "quote": "John Thompson",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "cincinnati|2012": {
+    "segments": [
+      {
+        "coach": "Butch Jones",
+        "startOrd": 0
+      },
+      {
+        "coach": "Steve Stripling",
+        "start": "2012-12-27",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Cincinnati_Bearcats_football_team",
+        "quote": "Head coach Butch Jones",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Cincinnati_Bearcats_football_team",
+        "quote": "Steve Stripling",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|2012": {
+    "segments": [
+      {
+        "coach": "Tom O'Brien",
+        "startOrd": 0
+      },
+      {
+        "coach": "Dana Bible",
+        "start": "2012-12-31",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_NC_State_Wolfpack_football_team",
+        "quote": "Head coach Tom O'Brien",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_NC_State_Wolfpack_football_team",
+        "quote": "Dana Bible",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "san-jose-state|2012": {
+    "segments": [
+      {
+        "coach": "Mike MacIntyre",
+        "startOrd": 0
+      },
+      {
+        "coach": "Kent Baer",
+        "start": "2012-12-27",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_San_Jose_State_Spartans_football_team",
+        "quote": "Head coach Mike MacIntyre",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_San_Jose_State_Spartans_football_team",
+        "quote": "Kent Baer",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|2012": {
+    "segments": [
+      {
+        "coach": "Tommy Tuberville",
+        "startOrd": 0
+      },
+      {
+        "coach": "Chris Thomsen",
+        "start": "2012-12-28",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Tommy Tuberville",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Chris Thomsen",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "western-kentucky|2012": {
+    "segments": [
+      {
+        "coach": "Willie Taggart",
+        "startOrd": 0
+      },
+      {
+        "coach": "Lance Guidry",
+        "start": "2012-12-26",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Western_Kentucky_Hilltoppers_football_team",
+        "quote": "Head coach Willie Taggart",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Western_Kentucky_Hilltoppers_football_team",
+        "quote": "Lance Guidry",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "arkansas-state|2013": {
+    "segments": [
+      {
+        "coach": "Bryan Harsin",
+        "startOrd": 0
+      },
+      {
+        "coach": "John Thompson",
+        "start": "2014-01-05",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_Arkansas_State_Red_Wolves_football_team",
+        "quote": "Head coach Bryan Harsin",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_Arkansas_State_Red_Wolves_football_team",
+        "quote": "John Thompson",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "boise-state|2013": {
+    "segments": [
+      {
+        "coach": "Chris Petersen",
+        "startOrd": 0
+      },
+      {
+        "coach": "Bob Gregory",
+        "start": "2013-12-24",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_Boise_State_Broncos_football_team",
+        "quote": "Head coach Chris Petersen",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_Boise_State_Broncos_football_team",
+        "quote": "Bob Gregory",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colorado-state|2014": {
+    "segments": [
+      {
+        "coach": "Jim McElwain",
+        "startOrd": 0
+      },
+      {
+        "coach": "Dave Baldwin",
+        "start": "2014-12-20",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Colorado_State_Rams_football_team",
+        "quote": "Head coach Jim McElwain",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Colorado_State_Rams_football_team",
+        "quote": "Dave Baldwin",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nebraska|2014": {
+    "segments": [
+      {
+        "coach": "Bo Pelini",
+        "startOrd": 0
+      },
+      {
+        "coach": "Barney Cotton",
+        "start": "2014-12-27",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Nebraska_Cornhuskers_football_team",
+        "quote": "Head coach Bo Pelini",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Nebraska_Cornhuskers_football_team",
+        "quote": "Barney Cotton",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pittsburgh|2014": {
+    "segments": [
+      {
+        "coach": "Paul Chryst",
+        "startOrd": 0
+      },
+      {
+        "coach": "Joe Rudolph",
+        "start": "2015-01-02",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Pittsburgh_Panthers_football_team",
+        "quote": "Head coach Paul Chryst",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2014_Pittsburgh_Panthers_football_team",
+        "quote": "Joe Rudolph",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "bowling-green|2015": {
+    "segments": [
+      {
+        "coach": "Dino Babers",
+        "startOrd": 0
+      },
+      {
+        "coach": "Brian Ward",
+        "start": "2015-12-23",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Bowling_Green_Falcons_football_team",
+        "quote": "Head coach Dino Babers",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Bowling_Green_Falcons_football_team",
+        "quote": "Head coach Brian Ward",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "georgia|2015": {
+    "segments": [
+      {
+        "coach": "Mark Richt",
+        "startOrd": 0
+      },
+      {
+        "coach": "Bryan McClendon",
+        "start": "2016-01-02",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Georgia_Bulldogs_football_team",
+        "quote": "Head coach Mark Richt",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Georgia_Bulldogs_football_team",
+        "quote": "Bryan McClendon",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "memphis|2015": {
+    "segments": [
+      {
+        "coach": "Justin Fuente",
+        "startOrd": 0
+      },
+      {
+        "coach": "Darrell Dickey",
+        "start": "2015-12-30",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Memphis_Tigers_football_team",
+        "quote": "Head coach Justin Fuente",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Memphis_Tigers_football_team",
+        "quote": "Darrell Dickey",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "south-florida|2016": {
+    "segments": [
+      {
+        "coach": "Willie Taggart",
+        "startOrd": 0
+      },
+      {
+        "coach": "T.J. Weist",
+        "start": "2016-12-29",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_South_Florida_Bulls_football_team",
+        "quote": "Head coach Willie Taggart",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_South_Florida_Bulls_football_team",
+        "quote": "T. J. Weist",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "temple|2016": {
+    "segments": [
+      {
+        "coach": "Matt Rhule",
+        "startOrd": 0
+      },
+      {
+        "coach": "Ed Foley",
+        "start": "2016-12-27",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Temple_Owls_football_team",
+        "quote": "Head coach Matt Rhule",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Temple_Owls_football_team",
+        "quote": "Head coach Ed Foley",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "western-kentucky|2016": {
+    "segments": [
+      {
+        "coach": "Jeff Brohm",
+        "startOrd": 0
+      },
+      {
+        "coach": "Nick Holt",
+        "start": "2016-12-20",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Western_Kentucky_Hilltoppers_football_team",
+        "quote": "Head coach Jeff Brohm",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2016_Western_Kentucky_Hilltoppers_football_team",
+        "quote": "Nick Holt",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "boston-college|2019": {
+    "segments": [
+      {
+        "coach": "Steve Addazio",
+        "startOrd": 0
+      },
+      {
+        "coach": "Rich Gunnell",
+        "start": "2020-01-02",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2019_Boston_College_Eagles_football_team",
+        "quote": "Head coach Steve Addazio",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2019_Boston_College_Eagles_football_team",
+        "quote": "Rich Gunnell",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "louisiana-monroe|2015": {
+    "segments": [
+      {
+        "coach": "Todd Berry",
+        "startOrd": 0
+      },
+      {
+        "coach": "John Mumford",
+        "start": "2015-11-19",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Louisiana–Monroe_Warhawks_football_team",
+        "quote": "Head coach Todd Berry",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2015_Louisiana–Monroe_Warhawks_football_team",
+        "quote": "John Mumford",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "old-dominion|2013": {
+    "segments": [
+      {
+        "coach": "Bobby Wilder",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2013_Old_Dominion_Monarchs_football_team",
+        "quote": "Head coach Bobby Wilder",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colgate|1978": {
+    "segments": [
+      {
+        "coach": "Fred Dunlap",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1978_Colgate_Red_Raiders_football_team",
+        "quote": "Head coach Frederick Dunlap",
+        "note": "Season page infobox. Colgate were the Red Raiders until 2001; CFBD spells him Fred Dunlap.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colgate|1979": {
+    "segments": [
+      {
+        "coach": "Fred Dunlap",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1979_Colgate_Red_Raiders_football_team",
+        "quote": "Head coach Frederick Dunlap",
+        "note": "Season page infobox. Colgate were the Red Raiders until 2001; CFBD spells him Fred Dunlap.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colgate|1980": {
+    "segments": [
+      {
+        "coach": "Fred Dunlap",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1980_Colgate_Red_Raiders_football_team",
+        "quote": "Head coach Frederick Dunlap",
+        "note": "Season page infobox. Colgate were the Red Raiders until 2001; CFBD spells him Fred Dunlap.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "colgate|1981": {
+    "segments": [
+      {
+        "coach": "Fred Dunlap",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1981_Colgate_Red_Raiders_football_team",
+        "quote": "Head coach Frederick Dunlap",
+        "note": "Season page infobox. Colgate were the Red Raiders until 2001; CFBD spells him Fred Dunlap.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "florida-am|2004": {
+    "segments": [
+      {
+        "coach": "Billy Joe",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2004_Florida_A&M_Rattlers_football_team",
+        "quote": "Head coach Billy Joe",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2000": {
+    "segments": [
+      {
+        "coach": "Tom Cable",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2000_Idaho_Vandals_football_team",
+        "quote": "Head coach Tom Cable",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2001": {
+    "segments": [
+      {
+        "coach": "Tom Cable",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2001_Idaho_Vandals_football_team",
+        "quote": "Head coach Tom Cable",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2002": {
+    "segments": [
+      {
+        "coach": "Tom Cable",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2002_Idaho_Vandals_football_team",
+        "quote": "Head coach Tom Cable",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2003": {
+    "segments": [
+      {
+        "coach": "Tom Cable",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2003_Idaho_Vandals_football_team",
+        "quote": "Head coach Tom Cable",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2007": {
+    "segments": [
+      {
+        "coach": "Robb Akey",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2007_Idaho_Vandals_football_team",
+        "quote": "Head coach Robb Akey",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2008": {
+    "segments": [
+      {
+        "coach": "Robb Akey",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2008_Idaho_Vandals_football_team",
+        "quote": "Head coach Robb Akey",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2009": {
+    "segments": [
+      {
+        "coach": "Robb Akey",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2009_Idaho_Vandals_football_team",
+        "quote": "Head coach Robb Akey",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2010": {
+    "segments": [
+      {
+        "coach": "Robb Akey",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2010_Idaho_Vandals_football_team",
+        "quote": "Head coach Robb Akey",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2011": {
+    "segments": [
+      {
+        "coach": "Robb Akey",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2011_Idaho_Vandals_football_team",
+        "quote": "Head coach Robb Akey",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "long-beach-state|1987": {
+    "segments": [
+      {
+        "coach": "Larry Reisbig",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1987_Long_Beach_State_49ers_football_team",
+        "quote": "Head coach Larry Reisbig",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "long-beach-state|1988": {
+    "segments": [
+      {
+        "coach": "Larry Reisbig",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1988_Long_Beach_State_49ers_football_team",
+        "quote": "Head coach Larry Reisbig",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "long-beach-state|1989": {
+    "segments": [
+      {
+        "coach": "Larry Reisbig",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1989_Long_Beach_State_49ers_football_team",
+        "quote": "Head coach Larry Reisbig",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "long-beach-state|1990": {
+    "segments": [
+      {
+        "coach": "George Allen",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1990_Long_Beach_State_49ers_football_team",
+        "quote": "Head coach George Allen",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "long-beach-state|1991": {
+    "segments": [
+      {
+        "coach": "Willie Brown",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1991_Long_Beach_State_49ers_football_team",
+        "quote": "Head coach Willie Brown",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pacific|1983": {
+    "segments": [
+      {
+        "coach": "Bob Cope",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1983_Pacific_Tigers_football_team",
+        "quote": "Head coach Bob Cope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pacific|1984": {
+    "segments": [
+      {
+        "coach": "Bob Cope",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1984_Pacific_Tigers_football_team",
+        "quote": "Head coach Bob Cope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pacific|1985": {
+    "segments": [
+      {
+        "coach": "Bob Cope",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1985_Pacific_Tigers_football_team",
+        "quote": "Head coach Bob Cope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pacific|1986": {
+    "segments": [
+      {
+        "coach": "Bob Cope",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1986_Pacific_Tigers_football_team",
+        "quote": "Head coach Bob Cope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pacific|1987": {
+    "segments": [
+      {
+        "coach": "Bob Cope",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1987_Pacific_Tigers_football_team",
+        "quote": "Head coach Bob Cope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "pacific|1988": {
+    "segments": [
+      {
+        "coach": "Bob Cope",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1988_Pacific_Tigers_football_team",
+        "quote": "Head coach Bob Cope",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "richmond|1978": {
+    "segments": [
+      {
+        "coach": "Jim Tait",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1978_Richmond_Spiders_football_team",
+        "quote": "Head coach Jim Tait",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "richmond|1979": {
+    "segments": [
+      {
+        "coach": "Jim Tait",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1979_Richmond_Spiders_football_team",
+        "quote": "Head coach Jim Tait",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "richmond|1980": {
+    "segments": [
+      {
+        "coach": "Dal Shealy",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1980_Richmond_Spiders_football_team",
+        "quote": "Head coach Dal Shealy",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "richmond|1981": {
+    "segments": [
+      {
+        "coach": "Dal Shealy",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1981_Richmond_Spiders_football_team",
+        "quote": "Head coach Dal Shealy",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "richmond|1982": {
+    "segments": [
+      {
+        "coach": "Dal Shealy",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1982_Richmond_Spiders_football_team",
+        "quote": "Head coach Dal Shealy",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "richmond|1983": {
+    "segments": [
+      {
+        "coach": "Dal Shealy",
+        "startOrd": 0
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1983_Richmond_Spiders_football_team",
+        "quote": "Head coach Dal Shealy",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "idaho|2012": {
+    "segments": [
+      {
+        "coach": "Robb Akey",
+        "startOrd": 0
+      },
+      {
+        "coach": "Jason Gesser",
+        "start": "2012-11-03",
+        "interim": true
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Idaho_Vandals_football_team",
+        "quote": "Head coach Robb Akey",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2012_Idaho_Vandals_football_team",
+        "quote": "Jason Gesser",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
   "_note_norows": "Seasons CFBD has no coach row for at all (Idaho 2000-03 and 2007-12, Pacific 1983-88, Long Beach State 1987-91, Richmond 1978-83, Colgate 1978-81, Florida A&M 2004, Old Dominion 2013), from the teams' Wikipedia season and coach-list pages; Idaho 2012 is Akey fired 2012-10-21 at 1-7, Gesser interim from 11/3.",
-  "duke|1942": [
-    {
-      "coach": "Eddie Cameron",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1942_Duke_Blue_Devils_football_team",
-      "quote": "In its first season under head coach Eddie Cameron, the team compiled a 5\u20134\u20131 record (3\u20131\u20131 against conference opponents) and outscored opponents by a total of 211 to 98."
-    }
-  ],
-  "duke|1943": [
-    {
-      "coach": "Eddie Cameron",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_Duke_Blue_Devils_football_team",
-      "quote": "In its second season under head coach Eddie Cameron, the team compiled an 8\u20131 record (4\u20130 against conference opponents), won the conference championship, was ranked No. 7 in the final AP Poll, and outscored opponents by a total of 335 to 34."
-    }
-  ],
-  "duke|1944": [
-    {
-      "coach": "Eddie Cameron",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1944_Duke_Blue_Devils_football_team",
-      "quote": "In its third season under head coach Eddie Cameron, the team compiled a 6\u20134 record (4\u20130 against conference opponents), won the conference championship, was ranked No. 11 in the final AP Poll, and defeated Alabama in the 1945 Sugar Bowl on New Year"
-    }
-  ],
-  "duke|1945": [
-    {
-      "coach": "Eddie Cameron",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/Eddie_Cameron",
-      "quote": "Cameron was also the head football coach at Duke University from 1942 to 1945, tallying a mark of 25\u201311\u20131"
-    }
-  ],
-  "nc-state|1937": [
-    {
-      "coach": "Doc Newton",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1937_NC_State_Wolfpack_football_team",
-      "quote": "In its first season under head coach Williams Newton, the team compiled a 5\u20133\u20131 record (4\u20132\u20131 against SoCon opponents) and was outscored by a total of 92 to 91."
-    }
-  ],
-  "nc-state|1938": [
-    {
-      "coach": "Doc Newton",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1938_NC_State_Wolfpack_football_team",
-      "quote": "In its second season under head coach Williams Newton, the team compiled a 3\u20137\u20131 record (3\u20133\u20131 against SoCon opponents) and was outscored by a total of 100 to 59."
-    }
-  ],
-  "nc-state|1939": [
-    {
-      "coach": "Doc Newton",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1939_NC_State_Wolfpack_football_team",
-      "quote": "In its third season under head coach Williams Newton, the team compiled a 2\u20138 record (2\u20134 against SoCon opponents) and was outscored by a total of 191 to 49."
-    }
-  ],
-  "nc-state|1942": [
-    {
-      "coach": "Doc Newton",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1942_NC_State_Wolfpack_football_team",
-      "quote": "In its sixth season under head coach Williams Newton, the team compiled a 4\u20134\u20132 record (3\u20131\u20132 against SoCon opponents) and was outscored by a total of 142 to 70."
-    }
-  ],
-  "nc-state|1943": [
-    {
-      "coach": "Doc Newton",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_NC_State_Wolfpack_football_team",
-      "quote": "In its seventh and final season under head coach Williams Newton, the team compiled a 3\u20136 record (0\u20134 against SoCon opponents) and was outscored by a total of 229 to 78."
-    }
-  ],
-  "nc-state|1941": [
-    {
-      "coach": "Doc Newton",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1941_NC_State_Wolfpack_football_team",
-      "quote": "In its fifth season under head coach Williams Newton, the Wolfpack compiled a 4\u20135\u20132 record (3\u20134\u20132 against SoCon opponents), finished eight in the conference, and was outscored by a total of 143 to 122."
-    }
-  ],
-  "texas-tech|1941": [
-    {
-      "coach": "Dell Morgan",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1941_Texas_Tech_Red_Raiders_football_team",
-      "quote": "In their first season under head coach Dell Morgan, the Red Raiders compiled a 9\u20132 record (2\u20130 against conference opponents), lost to Tulsa in the 1942 Sun Bowl, and outscored opponents by a total of 226 to 36."
-    }
-  ],
-  "texas-tech|1942": [
-    {
-      "coach": "Dell Morgan",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1942_Texas_Tech_Red_Raiders_football_team",
-      "quote": "Led by second-year head coach Dell Morgan, the Red Raiders compiled an overall record of 4\u20135\u20131 with a mark of 3\u20130\u20131 in conference play, sharing the Border Conference title with Hardin\u2013Simmons."
-    }
-  ],
-  "texas-tech|1943": [
-    {
-      "coach": "Dell Morgan",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_Texas_Tech_Red_Raiders_football_team",
-      "quote": "Led third-year head coach Dell Morgan, the Red Raiders compiled a record of 4\u20136."
-    }
-  ],
-  "texas-tech|1944": [
-    {
-      "coach": "Dell Morgan",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1944_Texas_Tech_Red_Raiders_football_team",
-      "quote": "Led by fourth-year head coach Dell Morgan, the Red Raiders compiled an overall record of 4\u20137 with a mark of 2\u20130 in conference play."
-    }
-  ],
-  "texas-tech|1945": [
-    {
-      "coach": "Dell Morgan",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1945_Texas_Tech_Red_Raiders_football_team",
-      "quote": "Led by fifth-year head coach Dell Morgan, the Red Raiders compiled an overall record of 3\u20135\u20132 with a mark of 1\u20130\u20131 in conference play."
-    }
-  ],
-  "miami-fl|1944": [
-    {
-      "coach": "Eddie Dunn",
-      "startOrd": 0,
-      "interim": true,
-      "source": "https://miamihurricanes.com/history/football-history",
-      "quote": "He became interim head coach and athletic director when Jack Harding was called to serve in World War II in 1943 and 1944."
-    }
-  ],
-  "utah-state|1936": [
-    {
-      "coach": "E. Lowell Romney",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1936_Utah_State_Aggies_football_team",
-      "quote": "In their 18th season under head coach Dick Romney, the Aggies compiled a 7\u20130\u20131 record (6\u20130\u20131 against RMC opponents), won the RMC championship, and outscored opponents by a total of 99 to 13."
-    }
-  ],
-  "utah-state|1937": [
-    {
-      "coach": "E. Lowell Romney",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1937_Utah_State_Aggies_football_team",
-      "quote": "In their 19th season under head coach Dick Romney, the Aggies compiled a 2\u20134\u20132 record (2\u20134\u20131 against RMC opponents), tied for seventh in the RMC, and were outscored by a total of 152 to 47."
-    }
-  ],
-  "utep|1942": [
-    {
-      "coach": "Walter Milner",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1942_Texas_Mines_Miners_football_team",
-      "quote": "In its first and only season under head coach Walter Milner, the team compiled a 5\u20134 record (4\u20133 against Border Conference opponents), finished fifth in the conference, and outscored opponents by a total of 162 to 111."
-    }
-  ],
-  "northern-illinois|1968": [
-    {
-      "coach": "Howard Fletcher",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1968_Northern_Illinois_Huskies_football_team",
-      "quote": "Led by Howard Fletcher in his 13th and final season as head coach, the Huskies compiled a record of 2\u20138."
-    }
-  ],
-  "utep|1972": [
-    {
-      "coach": "Robert Dobbs",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1972_UTEP_Miners_football_team",
-      "quote": "After a 1\u20135 start to the season, eighth-year head coach Bobby Dobbs resigned and was replaced with offensive coordinator Tommy Hudspeth."
-    },
-    {
-      "coach": "Tommy Hudspeth",
-      "start": "1972-10-28",
-      "interim": true,
-      "source": "https://en.wikipedia.org/wiki/Tommy_Hudspeth",
-      "quote": "He became interim head coach on October 22, 1972, when head coach Bobby Dobbs resigned following a 56\u20137 loss."
-    }
-  ],
-  "virginia-tech|1942": [
-    {
-      "coach": "Henry McEver & S.D. Tilson",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1942_VPI_Gobblers_football_team",
-      "quote": "The athletic council chose assistant coaches Herbert McEver and Sumner D. Tilson to be co-coaches until Kitts returned."
-    }
-  ],
-  "ole-miss|1973": [
-    {
-      "coach": "Billy Kinard",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1973_Ole_Miss_Rebels_football_team",
-      "quote": "The team was led by head coach Billy Kinard, in his third year, for the first three games and then by Johnny Vaught, in his 25th year, for their last eight games."
-    },
-    {
-      "coach": "John Vaught",
-      "start": "1973-09-29",
-      "interim": true,
-      "source": "https://olemisssports.com/news/2018/7/2/Former_Ole_Miss_Head_Football_Coach_Billy_Kinard_84_Passes_Away",
-      "quote": "Following a 5-5 mark in 1972 and a 1-2 start in 1973, Vaught came out of retirement to replace Kinard for the remainder of the season and to also become the Ole Miss athletics director."
-    }
-  ],
-  "villanova|1974": [
-    {
-      "coach": "Jim Weaver",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1974_Villanova_Wildcats_football_team",
-      "quote": "Jim Weaver was the team's head coach for the first eight games of the season, before he was fired after the disclosure of his intentions to quit at the end of the season and take an administrative position at Clarion State College."
-    },
-    {
-      "coach": "Lou Ferry",
-      "start": "1974-11-09",
-      "interim": true,
-      "source": "https://villanova.com/honors/villanova-university-varsity-club-hall-of-fame/lou-ferry/70",
-      "quote": "He was the head coach from 1971-73 and the interim head coach for three games in 1974."
-    }
-  ],
-  "_note_1936": "Seasons before 1978, researched 2026-09-29 with a source and verbatim quote on each segment (quotes string-checked against the saved pages). No CFBD rows: Duke 1942-45 (Eddie Cameron while Wallace Wade served), NC State 1937-43 (Doc Newton), Texas Tech 1941-45 (Dell Morgan), Miami 1944 (Eddie Dunn, interim while Jack Harding served), Utah State 1936-37 (Dick Romney, CFBD's E. Lowell Romney), UTEP 1942 (Walter Milner), Northern Illinois 1968 (Howard Fletcher). Records that don't reconcile: UTEP 1972 (Dobbs resigned 10/22 at 1-5, Hudspeth interim from 10/28), Ole Miss 1973 (Kinard fired after game 3, Vaught from 9/29; Ole Miss counts it as Vaught's 25th season), Villanova 1974 (Weaver fired after game 8, Lou Ferry interim from 11/9). Virginia Tech 1942 had co-head coaches all season (Kitts left for the Navy; the athletic council named Herbert McEver and Sumner D. Tilson co-coaches); with one coach per game here, the pair is one coaching entry. Wartime seasons whose games come from extra-games.json (BC 1943 Moody Sarno, Miami 1943 Eddie Dunn interim, Vanderbilt 1943 Ernest Alley and 1944 Doby Bartling, New Mexico 1943 Willis Barnes, Washington 1943 Ralph Welch, Arizona 1945 Mike Casteel (CFBD's Miles Casteel), New Mexico A&M 1943 Maurice Moulder) from each season's Wikipedia infobox.",
-  "boston-college|1943": [
-    {
-      "coach": "Moody Sarno",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_Boston_College_Eagles_football_team",
-      "quote": "Head coach Moody Sarno (1st season)"
-    }
-  ],
-  "miami-fl|1943": [
-    {
-      "coach": "Eddie Dunn",
-      "startOrd": 0,
-      "interim": true,
-      "source": "https://en.wikipedia.org/wiki/1943_Miami_Hurricanes_football_team",
-      "quote": "The team was coached by Eddie Dunn , in his first year as interim head coach, while active head coach Jack Harding served in World War II ."
-    }
-  ],
-  "vanderbilt|1943": [
-    {
-      "coach": "Ernest Alley",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_Vanderbilt_Commodores_football_team",
-      "quote": "Head coach Ernest Alley (1st season)"
-    }
-  ],
-  "vanderbilt|1944": [
-    {
-      "coach": "Doby Bartling",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1944_Vanderbilt_Commodores_football_team",
-      "quote": "Head coach Doby Bartling (1st season)"
-    }
-  ],
-  "new-mexico|1943": [
-    {
-      "coach": "Willis Barnes",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_Lobos_football_team",
-      "quote": "Head coach Willis Barnes (2nd season)"
-    }
-  ],
-  "washington|1943": [
-    {
-      "coach": "Ralph Welch",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_Washington_Huskies_football_team",
-      "quote": "Head coach Ralph Welch (2nd season)"
-    }
-  ],
-  "arizona|1945": [
-    {
-      "coach": "Miles Casteel",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1945_Arizona_Wildcats_football_team",
-      "quote": "Head coach Mike Casteel (5th season)"
-    }
-  ],
-  "new-mexico-state|1943": [
-    {
-      "coach": "Maurice Moulder",
-      "startOrd": 0,
-      "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_A%26M_Aggies_football_team",
-      "quote": "In their first year under head coach Maurice Moulder, the Aggies compiled a 4\u20130 record"
-    }
-  ],
-  "washington-state|2025": [
-    {
-      "coach": "Jimmy Rogers",
-      "startOrd": 0
-    },
-    {
-      "coach": "Jesse Bobbit",
-      "startOrd": 12,
-      "interim": true
-    }
-  ]
+  "duke|1942": {
+    "segments": [
+      {
+        "coach": "Eddie Cameron",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1942_Duke_Blue_Devils_football_team",
+        "quote": "In its first season under head coach Eddie Cameron, the team compiled a 5–4–1 record (3–1–1 against conference opponents) and outscored opponents by a total of 211 to 98."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1942_Duke_Blue_Devils_football_team",
+        "quote": "Head coach Eddie Cameron",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "duke|1943": {
+    "segments": [
+      {
+        "coach": "Eddie Cameron",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_Duke_Blue_Devils_football_team",
+        "quote": "In its second season under head coach Eddie Cameron, the team compiled an 8–1 record (4–0 against conference opponents), won the conference championship, was ranked No. 7 in the final AP Poll, and outscored opponents by a total of 335 to 34."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_Duke_Blue_Devils_football_team",
+        "quote": "Head coach Eddie Cameron",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "duke|1944": {
+    "segments": [
+      {
+        "coach": "Eddie Cameron",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1944_Duke_Blue_Devils_football_team",
+        "quote": "In its third season under head coach Eddie Cameron, the team compiled a 6–4 record (4–0 against conference opponents), won the conference championship, was ranked No. 11 in the final AP Poll, and defeated Alabama in the 1945 Sugar Bowl on New Year"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1944_Duke_Blue_Devils_football_team",
+        "quote": "Head coach Eddie Cameron",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "duke|1945": {
+    "segments": [
+      {
+        "coach": "Eddie Cameron",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/Eddie_Cameron",
+        "quote": "Cameron was also the head football coach at Duke University from 1942 to 1945, tallying a mark of 25–11–1"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1945_Duke_Blue_Devils_football_team",
+        "quote": "Head coach Eddie Cameron",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|1937": {
+    "segments": [
+      {
+        "coach": "Doc Newton",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1937_NC_State_Wolfpack_football_team",
+        "quote": "In its first season under head coach Williams Newton, the team compiled a 5–3–1 record (4–2–1 against SoCon opponents) and was outscored by a total of 92 to 91."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1937_NC_State_Wolfpack_football_team",
+        "quote": "Newton",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|1938": {
+    "segments": [
+      {
+        "coach": "Doc Newton",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1938_NC_State_Wolfpack_football_team",
+        "quote": "In its second season under head coach Williams Newton, the team compiled a 3–7–1 record (3–3–1 against SoCon opponents) and was outscored by a total of 100 to 59."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1938_NC_State_Wolfpack_football_team",
+        "quote": "Newton",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|1939": {
+    "segments": [
+      {
+        "coach": "Doc Newton",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1939_NC_State_Wolfpack_football_team",
+        "quote": "In its third season under head coach Williams Newton, the team compiled a 2–8 record (2–4 against SoCon opponents) and was outscored by a total of 191 to 49."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1939_NC_State_Wolfpack_football_team",
+        "quote": "Newton",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|1942": {
+    "segments": [
+      {
+        "coach": "Doc Newton",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1942_NC_State_Wolfpack_football_team",
+        "quote": "In its sixth season under head coach Williams Newton, the team compiled a 4–4–2 record (3–1–2 against SoCon opponents) and was outscored by a total of 142 to 70."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1942_NC_State_Wolfpack_football_team",
+        "quote": "Newton",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|1943": {
+    "segments": [
+      {
+        "coach": "Doc Newton",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_NC_State_Wolfpack_football_team",
+        "quote": "In its seventh and final season under head coach Williams Newton, the team compiled a 3–6 record (0–4 against SoCon opponents) and was outscored by a total of 229 to 78."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_NC_State_Wolfpack_football_team",
+        "quote": "Newton",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "nc-state|1941": {
+    "segments": [
+      {
+        "coach": "Doc Newton",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1941_NC_State_Wolfpack_football_team",
+        "quote": "In its fifth season under head coach Williams Newton, the Wolfpack compiled a 4–5–2 record (3–4–2 against SoCon opponents), finished eight in the conference, and was outscored by a total of 143 to 122."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1941_NC_State_Wolfpack_football_team",
+        "quote": "Newton",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|1941": {
+    "segments": [
+      {
+        "coach": "Dell Morgan",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1941_Texas_Tech_Red_Raiders_football_team",
+        "quote": "In their first season under head coach Dell Morgan, the Red Raiders compiled a 9–2 record (2–0 against conference opponents), lost to Tulsa in the 1942 Sun Bowl, and outscored opponents by a total of 226 to 36."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1941_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Dell Morgan",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|1942": {
+    "segments": [
+      {
+        "coach": "Dell Morgan",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1942_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Led by second-year head coach Dell Morgan, the Red Raiders compiled an overall record of 4–5–1 with a mark of 3–0–1 in conference play, sharing the Border Conference title with Hardin–Simmons."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1942_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Dell Morgan",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|1943": {
+    "segments": [
+      {
+        "coach": "Dell Morgan",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Led third-year head coach Dell Morgan, the Red Raiders compiled a record of 4–6."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Dell Morgan",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|1944": {
+    "segments": [
+      {
+        "coach": "Dell Morgan",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1944_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Led by fourth-year head coach Dell Morgan, the Red Raiders compiled an overall record of 4–7 with a mark of 2–0 in conference play."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1944_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Dell Morgan",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "texas-tech|1945": {
+    "segments": [
+      {
+        "coach": "Dell Morgan",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1945_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Led by fifth-year head coach Dell Morgan, the Red Raiders compiled an overall record of 3–5–2 with a mark of 1–0–1 in conference play."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1945_Texas_Tech_Red_Raiders_football_team",
+        "quote": "Head coach Dell Morgan",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "miami-fl|1944": {
+    "segments": [
+      {
+        "coach": "Eddie Dunn",
+        "startOrd": 0,
+        "interim": true,
+        "source": "https://miamihurricanes.com/history/football-history",
+        "quote": "He became interim head coach and athletic director when Jack Harding was called to serve in World War II in 1943 and 1944."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1944_Miami_Hurricanes_football_team",
+        "quote": "Head coach Eddie Dunn",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "utah-state|1936": {
+    "segments": [
+      {
+        "coach": "E. Lowell Romney",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1936_Utah_State_Aggies_football_team",
+        "quote": "In their 18th season under head coach Dick Romney, the Aggies compiled a 7–0–1 record (6–0–1 against RMC opponents), won the RMC championship, and outscored opponents by a total of 99 to 13."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1936_Utah_State_Aggies_football_team",
+        "quote": "Romney",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "utah-state|1937": {
+    "segments": [
+      {
+        "coach": "E. Lowell Romney",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1937_Utah_State_Aggies_football_team",
+        "quote": "In their 19th season under head coach Dick Romney, the Aggies compiled a 2–4–2 record (2–4–1 against RMC opponents), tied for seventh in the RMC, and were outscored by a total of 152 to 47."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1937_Utah_State_Aggies_football_team",
+        "quote": "Romney",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "utep|1942": {
+    "segments": [
+      {
+        "coach": "Walter Milner",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1942_Texas_Mines_Miners_football_team",
+        "quote": "In its first and only season under head coach Walter Milner, the team compiled a 5–4 record (4–3 against Border Conference opponents), finished fifth in the conference, and outscored opponents by a total of 162 to 111."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1942_Texas_Mines_Miners_football_team",
+        "quote": "Head coach Walter Milner",
+        "note": "Season page infobox. UTEP was Texas Mines in 1942.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "northern-illinois|1968": {
+    "segments": [
+      {
+        "coach": "Howard Fletcher",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1968_Northern_Illinois_Huskies_football_team",
+        "quote": "Led by Howard Fletcher in his 13th and final season as head coach, the Huskies compiled a record of 2–8."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1968_Northern_Illinois_Huskies_football_team",
+        "quote": "Head coach Howard Fletcher",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "utep|1972": {
+    "segments": [
+      {
+        "coach": "Robert Dobbs",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1972_UTEP_Miners_football_team",
+        "quote": "After a 1–5 start to the season, eighth-year head coach Bobby Dobbs resigned and was replaced with offensive coordinator Tommy Hudspeth."
+      },
+      {
+        "coach": "Tommy Hudspeth",
+        "start": "1972-10-28",
+        "interim": true,
+        "source": "https://en.wikipedia.org/wiki/Tommy_Hudspeth",
+        "quote": "He became interim head coach on October 22, 1972, when head coach Bobby Dobbs resigned following a 56–7 loss."
+      }
+    ],
+    "note": "Dobbs resigned 10/22 at 1-5; Hudspeth interim from 10/28.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1972_UTEP_Miners_football_team",
+        "quote": "Dobbs",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1972_UTEP_Miners_football_team",
+        "quote": "Tommy Hudspeth",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "virginia-tech|1942": {
+    "segments": [
+      {
+        "coach": "Henry McEver & S.D. Tilson",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1942_VPI_Gobblers_football_team",
+        "quote": "The athletic council chose assistant coaches Herbert McEver and Sumner D. Tilson to be co-coaches until Kitts returned."
+      }
+    ],
+    "note": "Co-head coaches all season: Kitts left for the Navy and the athletic council named Herbert McEver and Sumner D. Tilson co-coaches. One coach per game here, so the pair is one coaching entry.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1942_Virginia_Tech_Hokies_football_team",
+        "quote": "Tilson",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "ole-miss|1973": {
+    "segments": [
+      {
+        "coach": "Billy Kinard",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1973_Ole_Miss_Rebels_football_team",
+        "quote": "The team was led by head coach Billy Kinard, in his third year, for the first three games and then by Johnny Vaught, in his 25th year, for their last eight games."
+      },
+      {
+        "coach": "John Vaught",
+        "start": "1973-09-29",
+        "interim": true,
+        "source": "https://olemisssports.com/news/2018/7/2/Former_Ole_Miss_Head_Football_Coach_Billy_Kinard_84_Passes_Away",
+        "quote": "Following a 5-5 mark in 1972 and a 1-2 start in 1973, Vaught came out of retirement to replace Kinard for the remainder of the season and to also become the Ole Miss athletics director."
+      }
+    ],
+    "note": "Kinard fired after game 3; Vaught from 9/29. Ole Miss counts it as Vaught's 25th season.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1973_Ole_Miss_Rebels_football_team",
+        "quote": "Head coach Billy Kinard",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1973_Ole_Miss_Rebels_football_team",
+        "quote": "Vaught",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "villanova|1974": {
+    "segments": [
+      {
+        "coach": "Jim Weaver",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1974_Villanova_Wildcats_football_team",
+        "quote": "Jim Weaver was the team's head coach for the first eight games of the season, before he was fired after the disclosure of his intentions to quit at the end of the season and take an administrative position at Clarion State College."
+      },
+      {
+        "coach": "Lou Ferry",
+        "start": "1974-11-09",
+        "interim": true,
+        "source": "https://villanova.com/honors/villanova-university-varsity-club-hall-of-fame/lou-ferry/70",
+        "quote": "He was the head coach from 1971-73 and the interim head coach for three games in 1974."
+      }
+    ],
+    "note": "Weaver fired after game 8; Lou Ferry interim from 11/9.",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1974_Villanova_Wildcats_football_team",
+        "quote": "Head coach Jim Weaver",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/1974_Villanova_Wildcats_football_team",
+        "quote": "Lou Ferry",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "_note_1936": "Seasons before 1978, researched 2026-09-29. No CFBD rows: Duke 1942-45 (Eddie Cameron while Wallace Wade served), NC State 1937-43 (Doc Newton), Texas Tech 1941-45 (Dell Morgan), Miami 1944 (Eddie Dunn, interim while Jack Harding served), Utah State 1936-37 (Dick Romney, CFBD's E. Lowell Romney), UTEP 1942 (Walter Milner), Northern Illinois 1968 (Howard Fletcher). Wartime seasons whose games come from extra-games.json (BC 1943 Moody Sarno, Miami 1943 Eddie Dunn interim, Vanderbilt 1943 Ernest Alley and 1944 Doby Bartling, New Mexico 1943 Willis Barnes, Washington 1943 Ralph Welch, Arizona 1945 Mike Casteel (CFBD's Miles Casteel), New Mexico A&M 1943 Maurice Moulder) from each season's Wikipedia infobox.",
+  "boston-college|1943": {
+    "segments": [
+      {
+        "coach": "Moody Sarno",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_Boston_College_Eagles_football_team",
+        "quote": "Head coach Moody Sarno (1st season)"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_Boston_College_Eagles_football_team",
+        "quote": "Head coach Moody Sarno",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "miami-fl|1943": {
+    "segments": [
+      {
+        "coach": "Eddie Dunn",
+        "startOrd": 0,
+        "interim": true,
+        "source": "https://en.wikipedia.org/wiki/1943_Miami_Hurricanes_football_team",
+        "quote": "The team was coached by Eddie Dunn , in his first year as interim head coach, while active head coach Jack Harding served in World War II ."
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_Miami_Hurricanes_football_team",
+        "quote": "Head coach Eddie Dunn",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "vanderbilt|1943": {
+    "segments": [
+      {
+        "coach": "Ernest Alley",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_Vanderbilt_Commodores_football_team",
+        "quote": "Head coach Ernest Alley (1st season)"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_Vanderbilt_Commodores_football_team",
+        "quote": "Head coach Ernest Alley",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "vanderbilt|1944": {
+    "segments": [
+      {
+        "coach": "Doby Bartling",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1944_Vanderbilt_Commodores_football_team",
+        "quote": "Head coach Doby Bartling (1st season)"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1944_Vanderbilt_Commodores_football_team",
+        "quote": "Head coach Doby Bartling",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "new-mexico|1943": {
+    "segments": [
+      {
+        "coach": "Willis Barnes",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_Lobos_football_team",
+        "quote": "Head coach Willis Barnes (2nd season)"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_New_Mexico_Lobos_football_team",
+        "quote": "Head coach Willis Barnes",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "washington|1943": {
+    "segments": [
+      {
+        "coach": "Ralph Welch",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_Washington_Huskies_football_team",
+        "quote": "Head coach Ralph Welch (2nd season)"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1943_Washington_Huskies_football_team",
+        "quote": "Head coach Ralph Welch",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "arizona|1945": {
+    "segments": [
+      {
+        "coach": "Miles Casteel",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1945_Arizona_Wildcats_football_team",
+        "quote": "Head coach Mike Casteel (5th season)"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/1945_Arizona_Wildcats_football_team",
+        "quote": "Casteel",
+        "note": "Season page, surname only: it spells the coach's name differently from CFBD.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "new-mexico-state|1943": {
+    "segments": [
+      {
+        "coach": "Maurice Moulder",
+        "startOrd": 0,
+        "source": "https://en.wikipedia.org/wiki/1943_New_Mexico_A%26M_Aggies_football_team",
+        "quote": "In their first year under head coach Maurice Moulder, the Aggies compiled a 4–0 record"
+      }
+    ],
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/New_Mexico_State_Aggies_football",
+        "quote": "Maurice Moulder",
+        "note": "Program page (no season article) names the coach; the dates are from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  },
+  "washington-state|2025": {
+    "segments": [
+      {
+        "coach": "Jimmy Rogers",
+        "startOrd": 0
+      },
+      {
+        "coach": "Jesse Bobbit",
+        "startOrd": 12,
+        "interim": true
+      }
+    ],
+    "note": "Rogers coached all 12 regular-season games and left for Iowa State; Bobbit (hired 2025-12-05, CFBD) was the bowl interim. His 1-0 row also fits the opener, which the resolver picked; pinned so 2025 counts as Rogers's first season (reported by r/CFB's HurricaneRex).",
+    "receipts": [
+      {
+        "url": "https://en.wikipedia.org/wiki/2025_Washington_State_Cougars_football_team",
+        "quote": "Head coach Jimmy Rogers",
+        "note": "Season page infobox.",
+        "retrieved": "2026-10-10"
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/2025_Washington_State_Cougars_football_team",
+        "quote": "Jesse Bobbit",
+        "note": "Season page names the coach; the split date is from the note.",
+        "retrieved": "2026-10-10"
+      }
+    ]
+  }
 }
