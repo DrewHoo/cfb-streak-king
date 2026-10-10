@@ -186,7 +186,7 @@ async function renderBoard(W, H) {
   for (let i = 0; i < nCols && i < rows.length; i++) cols.push(await column(rows[i], boardX + i * colGap, 96, chipN))
   const midY = H / 2
   return frame(W, H, `
-  ${text('DREWHOOVER.COM', { x: 64, y: midY - 128, font: 'MonoBold', size: 17, spacing: 4, fill: RUST })}
+  ${text('COLLEGE FOOTBALL', { x: 64, y: midY - 128, font: 'MonoBold', size: 17, spacing: 4, fill: RUST })}
   ${text('STREAK', { x: 60, y: midY - 44, font: 'Graduate', size: 76, fill: CREAM })}
   ${text('KING', { x: 60, y: midY + 40, font: 'Graduate', size: 76, fill: CREAM })}
   ${text('Longest all-time winning streaks', { x: 64, y: midY + 96, font: 'SerifItalic', size: 23, fill: MUTED })}
