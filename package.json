@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "gen:og": "node scripts/gen-og.mjs",
     "gen:favicon": "node scripts/gen-favicon.mjs",
-    "tuner": "node scripts/tuner/build-tuner.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p .",
     "check:receipts": "node scripts/data/check-receipts.mjs --offline data/ref",

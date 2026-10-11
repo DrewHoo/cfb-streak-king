@@ -10,9 +10,9 @@
 // college game. A covering or not-covering streak is a coin flip by
 // construction. A game without a line can't be ranked and stays out.
 
-import type { Dir, UpcomingRow } from './types.ts';
+import type { Crown, Dir, UpcomingRow } from './types.ts';
 import { baseDir, marginOf } from './outcome.ts';
-import { teamStreaks, streaksOn, h2hStreaksOn } from './team.ts';
+import { teamStreaks, streaksOn } from './team.ts';
 import type { ScheduledGame, TeamStreak } from './team.ts';
 import { digestOf } from './broken.ts';
 
@@ -70,15 +70,13 @@ export interface AtRiskWeek {
  * The streaks on the line in these games, the most at stake first: one row
  * per streak (a team's run appears once, with its game), the top AT_RISK_CAP
  * in `list`, one per team, and the rest above AT_RISK_FLOOR in `more`.
- * Streaks are the team page's (single conditions and head-to-head; a team's
- * crowns when given).
+ * Streaks are the team page's: `crownsOf` gives each team's active crowns.
  */
-export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf?: (ti: number) => Parameters<typeof teamStreaks>[2]): AtRiskWeek {
+export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf: (ti: number) => Crown[] | null): AtRiskWeek {
   const rows: AtRisk[] = [];
   for (const game of games) {
     for (const { ti, row } of game.sides) {
-      const list = [...streaksOn(teamStreaks(ti, todayEp, crownsOf?.(ti) ?? null), row), ...h2hStreaksOn(ti, row)];
-      for (const s of list) {
+      for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
         const p = pBreak(s.dir, row.sp);
         if (p == null) continue;
         rows.push({ ti, s, game, row, p, stake: s.score * p });
@@ -88,7 +86,7 @@ export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf?: (
   rows.sort((a, b) => b.stake - a.stake || b.s.len - a.s.len);
   const seen = new Set<string>();
   const kept = rows.filter((r) => {
-    const k = `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}|${r.s.vs ?? ''}`;
+    const k = `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}`;
     if (seen.has(k)) return false;
     seen.add(k);
     return r.stake >= AT_RISK_FLOOR;

@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import fs from 'node:fs'
+import path from 'node:path'
 import pkg from './package.json' with { type: 'json' }
 
 // GitHub Pages serves this repo at https://<domain>/<repo-name>/, so every
@@ -24,16 +26,35 @@ const trimRulings = {
   },
 }
 
+// The dev server has no build output, so a team page would mine every
+// crown in the page (minutes). When a build has run, serve its crowns and
+// digests from dist/ instead; the page falls back to mining only when they
+// are missing.
+const serveBuilt = {
+  name: 'serve-built-data',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const m = new RegExp(`^/${pkg.name}/(crowns/[\\w-]+\\.json|games/digests\\.json)$`).exec((req.url ?? '').split('?')[0])
+      const file = m && path.join(server.config.root, 'dist', m[1])
+      if (!file || !fs.existsSync(file)) return next()
+      res.setHeader('Content-Type', 'application/json')
+      fs.createReadStream(file).pipe(res)
+    })
+  },
+}
+
 export default defineConfig({
   base: `/${pkg.name}/`,
-  plugins: [trimRulings, react()],
+  plugins: [trimRulings, serveBuilt, react()],
   // a preview tool that hands out ports sets PORT; hold to it so the preview
   // opens where the server is. Plain `npm run dev` keeps 5173.
   server: process.env.PORT ? { port: Number(process.env.PORT), strictPort: true } : {},
   // the suite walks the real 63k-game payload; CI runners are a few times
   // slower than a laptop, so the 5s default is too tight
-  // the worktrees under .claude/ carry their own copies of the suite
-  test: { testTimeout: 30000, exclude: ['**/node_modules/**', '**/.claude/**', '**/dist/**'] },
+  // the worktrees under .claude/ carry their own copies of the suite. The
+  // files that mine share one worker and one module cache, so the four-minute
+  // mine runs once per suite, not once per file.
+  test: { testTimeout: 30000, exclude: ['**/node_modules/**', '**/.claude/**', '**/dist/**'], fileParallelism: false, isolate: false },
   // the data in its own chunk: a code-only deploy leaves the cached payload
   // alone, and the payload refresh leaves the cached code alone
   build: {

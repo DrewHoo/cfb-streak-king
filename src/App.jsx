@@ -11,6 +11,7 @@ import { track } from './lib/analytics.ts';
 import { writeUrl, absoluteUrl } from './urlState.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { useCrowns } from './hooks/useCrowns.ts';
+import { useDigests } from './hooks/useDigests.ts';
 import { useStarred } from './hooks/useStarred.ts';
 import { useShare } from './hooks/useShare.ts';
 import { Dateline } from './components/Dateline.jsx';
@@ -39,6 +40,8 @@ export default function App({ initial } = {}) {
   // one team's crowns at a time: the page's, else the open panel's
   const crownTeam = page ?? team;
   const crowns = useCrowns(crownTeam, initial);
+  // the schedule's digests: embedded on a games page, loaded when the schedule opens from the board
+  const digests = useDigests(games, initial);
   const star = useStarred(active, dir);
   const { copied, share } = useShare();
   const isMobile = useIsMobile();
@@ -142,12 +145,11 @@ export default function App({ initial } = {}) {
     dispatch({ type: 'game', team: ti, vs: g.oppIdx });
   }
   // one streak — a crown, a row of a team's list, or a broken run: its board,
-  // with that team open. A head-to-head streak's "vsteam" chip carries its
-  // opponent; a broken run names its all-time row.
+  // with that team open. A mined key decodes to its chip and choice; a
+  // broken run names its all-time row.
   function openStreak(s, ti, from) {
     crowns.followDir(s.dir);
-    // a digest's head-to-head run carries its opponent in `vs`; a mined key decodes to its chip and choice
-    const chips = s.chips.flatMap((key) => (key === 'vsteam' ? (s.vs != null ? [{ key, param: s.vs }] : []) : refsOf([key])));
+    const chips = refsOf(s.chips);
     dispatch({ type: 'streak', chips, dir: s.dir, scope: s.scope ?? 'active', team: ti, run: s.run ?? null });
     track('lead apply', { chips: s.chips.join(',') || 'overall', dir: s.dir, scope: s.scope ?? 'active', len: s.len, from });
   }
@@ -214,7 +216,7 @@ export default function App({ initial } = {}) {
         />
       ) : games ? (
         <GamesPage
-          todayEp={todayEp} bwk={bwk} risk={risk} copied={copied}
+          digests={digests} bwk={bwk} risk={risk} copied={copied}
           on={{
             board: () => dispatch({ type: 'board' }),
             game: (ti, g) => openGame(ti, g, 'games'),

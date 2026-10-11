@@ -172,17 +172,28 @@ export interface BoardRow {
   key?: string;
 }
 
+/**
+ * One of a team's streaks under a mined definition, with its place in the
+ * field: active, the team's current run; all-time, its longest ever.
+ */
 export interface Crown {
   chips: string[];
   dir: Dir;
   scope: Scope;
   len: number;
   atEdge: boolean;
+  /** Teams holding any run under the definition. */
   field: number;
+  /** 1 = the longest; teams level on length share a rank. */
+  rank: number;
+  tied: number;
+  /** The longest run any other team holds; the gap to it is part of the score. */
+  second: number;
   startSe?: number;
   endSe?: number;
   live: boolean;
   also: number;
   /** The chance some team's streak reaches this length under the definition by luck alone, 0–1. */
   chance: number;
+  score: number;
 }

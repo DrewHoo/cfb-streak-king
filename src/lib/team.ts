@@ -1,22 +1,19 @@
 // What a team page and a matchup show about one team: its season record, its
-// rank, its next game, and its current streaks under every single condition,
-// each with its place in the field.
+// rank, its next game, and its current streaks with their place in the field.
 //
-// The streaks are every team's at once (one pass per condition over the
-// crowns miner's bitmasks), kept per day, so a second team costs nothing. A
-// team's list adds the multi-condition streaks it is king of (its crowns) and
-// orders the whole list the way the King-of list is ordered: by crownRank's
-// score, how far the run sits past what chance would produce.
+// The streaks are the team's active crowns (crowns.ts mines every team's
+// run under every definition at build time; the page loads its file), each
+// with the next scheduled game that qualifies, so a matchup and the at-risk
+// digest know which runs a game puts on the line. The list is already in
+// the King-of order: by crownRank's score, how far the run sits past what
+// chance would produce.
 
 import type { Crown, Dir, GameRow, UpcomingRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
-import { fitsDir, qualifiesPregame } from './chips.ts';
-import { MINED_CHIPS, MINED_DEFS, minedIdx } from './minedChips.ts';
+import { chipByKey, qualifiesPregame } from './chips.ts';
 import type { PregameChip } from './chips.ts';
-import { teamData, walkActive, spreadWalk, nearUniversalChips, asMarginRuns } from './crowns.ts';
-import type { Run } from './crowns.ts';
-import { MINED_MARGIN, baseDir, isMargin, marginDir } from './outcome.ts';
-import { crownScore, chanceOf } from './crownRank.ts';
+import { refsOf } from './minedChips.ts';
+import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { ordinal } from './sentence.ts';
 import { spreadText } from './format.ts';
 
@@ -55,242 +52,49 @@ export function apRank(ti: number, todayEp: number): number | null {
 /** The last time the two met, from ti's side. */
 export const lastMeeting = (ti: number, opp: number): GameRow | null => gamesOf(ti).findLast((g) => g.oppIdx === opp) ?? null;
 
-/** One of a team's current streaks, with its place among every team's under the same definition. */
-export interface TeamStreak {
-  chips: string[];
-  /** Set when the run is head-to-head: the opponent the chips' "vsteam" means. */
-  vs?: number;
-  dir: Dir;
-  len: number;
-  atEdge: boolean;
-  /** 1 = the longest; teams level on length share a rank. */
-  rank: number;
-  tied: number;
-  field: number;
+/** One of a team's current streaks: its active crown, with the game that next puts it on the line. */
+export interface TeamStreak extends Crown {
   /** The next scheduled game that qualifies; null when none does, or when a condition can't be known before kickoff. */
   next: UpcomingRow | null;
   /** The season the run started in. */
   since: number;
-  /** The chance some team's streak reaches this length under the definition by luck alone, 0–1. */
-  chance: number;
-  score: number;
 }
 
-/** A run shorter than this stays off a team's list unless the team alone leads the field with it (the crowns' floor). */
+/** The miner's floor: a run shorter than this is never on a list. */
 export const LEN_FLOOR = 4;
-export const worthShowing = (s: Pick<TeamStreak, 'len' | 'rank' | 'tied'>) => s.len >= LEN_FLOOR || (s.rank === 1 && s.tied === 1);
 
 // the outcomes a team's sheet reads: every team is on one side of each pair,
 // and the margin runs the miner walks
-const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
-
-// how many definitions have each chip count, the cost crownRank charges a definition
-export const DEFS = MINED_DEFS;
-
-const popcount = (x: number) => {
-  x -= (x >>> 1) & 0x55555555;
-  x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
-  return (((x + (x >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
-};
-const countAnd = (a: Uint32Array, b: Uint32Array) => { let n = 0; for (let w = 0; w < a.length; w++) n += popcount(a[w] & b[w]); return n; };
+export const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 
 /**
- * Every team's current streaks under one definition of mined chips, one per
- * outcome the definition can define, scored. Walks the crowns miner's
- * bitmasks; the lengths and fields are activeBoard's (team.test.ts holds
- * them to it).
+ * The first scheduled game of `ti`'s on or after `todayEp` that every chip
+ * of the definition admits; null when a chip can't be known before kickoff.
  */
-function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[]> {
-  const cs = chips.map((k) => MINED_CHIPS[minedIdx.get(k)!]);
-  const dirs = SHEET_DIRS.filter((d) => cs.every((c) => fitsDir(c, d)));
-  const pre = cs.every((c) => c.pregame) ? (u: UpcomingRow) => cs.every((c) => qualifiesPregame(c as PregameChip, u)) : null;
-  const data = teamData();
-  const runs: Partial<Record<Dir, Run>>[] = [];
-  // the definition's outcome rates over every team's games: [qualifying, won, lost, lined, covered, missed, won by the margin, lost by it]
-  const pooled = [0, 0, 0, 0, 0, 0, 0, 0];
-  for (const td of data) {
-    const q = new Uint32Array(td.words);
-    // past the last game the bits stay clear, so a count is a count of games
-    for (let i = 0; i < td.n; i++) q[i >> 5] |= 1 << (i & 31);
-    for (const k of chips) { const m = td.masks[minedIdx.get(k)!]; for (let w = 0; w < td.words; w++) q[w] &= m[w]; }
-    const r: Partial<Record<Dir, Run>> = walkActive(td, q);
-    const c = spreadWalk(td, q, td.covered, 'active');
-    if (c) r.C = c;
-    const n = spreadWalk(td, q, td.missed, 'active');
-    if (n) r.N = n;
-    Object.assign(r, asMarginRuns(walkActive(td, q, td.rM), MINED_MARGIN));
-    runs.push(r);
-    for (let w = 0; w < td.words; w++) pooled[0] += popcount(q[w]);
-    pooled[1] += countAnd(q, td.won);
-    pooled[2] += countAnd(q, td.lost);
-    pooled[3] += countAnd(q, td.lined);
-    pooled[4] += countAnd(q, td.covered);
-    pooled[5] += countAnd(q, td.missed);
-    pooled[6] += countAnd(q, td.wonM);
-    pooled[7] += countAnd(q, td.lostM);
-  }
-  const [g, won, lost, lined, cov, miss, wonM, lostM] = pooled;
-  const ctx = { M: DEFS, teams: fbsNow.size };
-  const out = new Map<number, TeamStreak[]>();
-  for (const dir of dirs) {
-    const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'C' ? [cov, lined] : dir === 'N' ? [miss, lined] : baseDir(dir) === 'W' ? [wonM, g] : [lostM, g];
-    const lens = runs.map((r) => r[dir]?.len ?? 0);
-    const field = lens.filter(Boolean).length;
-    data.forEach((td, t) => {
-      const run = runs[t][dir];
-      if (!run) return;
-      const mined = {
-        chips, dir, scope: 'active' as const, len: run.len, atEdge: run.atEdge, field, live: true, also: 0,
-        startSe: td.gs[run.startIdx].se, endSe: td.gs[run.lastIdx].se, p: n ? hit / n : 1, n,
-      };
-      const s: TeamStreak = {
-        chips, dir, len: run.len, atEdge: run.atEdge, field,
-        rank: 1 + lens.filter((l) => l > run.len).length,
-        tied: lens.filter((l) => l === run.len).length,
-        next: pre ? upcomingOf(td.ti).find((u) => u.ep >= todayEp && pre(u)) ?? null : null,
-        since: mined.startSe,
-        chance: chanceOf(mined, ctx),
-        score: crownScore(mined, ctx),
-      };
-      const list = out.get(td.ti);
-      if (list) list.push(s); else out.set(td.ti, [s]);
-    });
-  }
-  return out;
+export function nextQualifying(ti: number, chips: readonly string[], todayEp: number): UpcomingRow | null {
+  const refs = refsOf(chips);
+  const cs = refs.map((r) => ({ c: chipByKey.get(r.key)!, p: r.param }));
+  if (cs.some(({ c }) => !c.pregame)) return null;
+  return upcomingOf(ti).find((u) => u.ep >= todayEp && cs.every(({ c, p }) => qualifiesPregame(c as PregameChip, u, p))) ?? null;
 }
 
-let cache: { todayEp: number; byTeam: Map<number, TeamStreak[]> } | null = null;
-
 /**
- * Every team's current streaks under no condition and under each single one.
- * A chip that keeps nearly every game ("on a weekend") barely filters, so it
- * never names a crown; it names no row here either.
+ * A team's current streaks worth reading, best first: its active crowns
+ * under the outcomes a sheet shows (crowns.ts kept and crownRank.ts ordered
+ * them), each with its next qualifying game. Empty while the crowns load.
  */
-function singleStreaks(todayEp: number): Map<number, TeamStreak[]> {
-  if (cache?.todayEp === todayEp) return cache.byTeam;
-  const byTeam = new Map<number, TeamStreak[]>([...fbsNow].map((ti) => [ti, []]));
-  const loose = nearUniversalChips();
-  for (const c of [null, ...MINED_CHIPS.filter((_, i) => !loose.has(i))]) {
-    for (const [ti, list] of streaksUnder(c ? [c.key] : [], todayEp)) byTeam.get(ti)!.push(...list);
-  }
-  cache = { todayEp, byTeam };
-  return byTeam;
-}
-
-/** The most surprising first: the King-of list's order. */
-const byInterest = (a: TeamStreak, b: TeamStreak) => b.score - a.score || b.len - a.len;
-
-// the same run told with more words: a slice of it under fewer conditions is already on the list
-const sliceOf = (c: TeamStreak, s: TeamStreak) => s.dir === c.dir && s.len === c.len && s.since === c.since
-  && s.chips.length < c.chips.length && s.chips.every((k) => c.chips.includes(k));
-// the same run told by its margin: "won 12 straight by 10+" says "won 12 straight" and more
-const sameRun = (a: TeamStreak, b: TeamStreak) => a.len === b.len && a.since === b.since
-  && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
-const marginRetells = (list: TeamStreak[]) => (s: TeamStreak) => (
-  !isMargin(s.dir) && (s.dir === 'W' || s.dir === 'L') && list.some((m) => isMargin(m.dir) && baseDir(m.dir) === s.dir && sameRun(m, s))
-);
-
-/**
- * A team's current streaks worth reading, best first: its single-condition
- * ones of LEN_FLOOR or more games, or that it alone leads, plus the
- * multi-condition ones it is king of (`crowns`, its active crowns; null
- * while they load) that aren't a single-condition run retold.
- */
-export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null = null): TeamStreak[] {
-  const all = singleStreaks(todayEp).get(ti) ?? [];
-  const retold = marginRetells(all);
-  const singles = all.filter((s) => worthShowing(s) && !retold(s));
-  const list = [...singles];
-  for (const cr of crowns ?? []) {
-    if (cr.scope !== 'active' || cr.chips.length < 2 || !SHEET_DIRS.includes(cr.dir)) continue;
-    const s = streaksUnder(cr.chips, todayEp).get(ti)?.find((x) => x.dir === cr.dir);
-    if (s && !singles.some((x) => sliceOf(s, x))) list.push(s);
-  }
-  return list.sort(byInterest);
+export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null): TeamStreak[] {
+  if (!crowns) return [];
+  return crowns
+    .filter((c) => c.scope === 'active' && SHEET_DIRS.includes(c.dir))
+    .map((c) => ({ ...c, next: nextQualifying(ti, c.chips, todayEp), since: c.startSe ?? P.currentSeason }));
 }
 
 /** The streaks a scheduled game puts on the line: the ones whose next qualifying game it is. */
 export const streaksOn = (list: TeamStreak[], game: UpcomingRow): TeamStreak[] => list.filter((s) => s.next?.i === game.i);
 
-// --- head-to-head: the team's run against one exact opponent, over every
-// meeting or only the meetings at one site ("18 straight at Minnesota") ---
-
-export type H2hSite = 'home' | 'road' | null;
-/** Whether a game sits on our side of the site: strictly home or strictly road, never neutral. */
-export const fitsSite = (site: H2hSite, g: { home: boolean; neutral: boolean }) => (
-  site == null || (site === 'home' ? g.home && !g.neutral : !g.home && !g.neutral)
-);
-
-let pooledRates: { W: number; L: number } | null = null;
-/**
- * How often `dir` happens to a team playing `opp` (at `site`, from our
- * side): the opponent's own record mirrored (losing at home to them is what
- * they do to everyone who visits), or the pooled rate over every team's
- * games when the opponent is below FBS. Clamped: a perfect record would
- * make any run against it free or impossible.
- */
-export function h2hRate(opp: number, dir: 'W' | 'L', site: H2hSite = null): number {
-  // our road game is the opponent's home game
-  const theirs: H2hSite = site == null ? null : site === 'road' ? 'home' : 'road';
-  const pool = gamesOf(opp).filter((g) => fitsSite(theirs, g));
-  let p: number;
-  if (pool.length) {
-    p = pool.filter((g) => g.r === (dir === 'W' ? 'L' : 'W')).length / pool.length;
-  } else {
-    if (!pooledRates) {
-      let n = 0, w = 0, l = 0;
-      for (const ti of fbsNow) for (const g of gamesOf(ti)) { n++; if (g.r === 'W') w++; else if (g.r === 'L') l++; }
-      pooledRates = { W: w / n, L: l / n };
-    }
-    p = pooledRates[dir];
-  }
-  return Math.min(0.995, Math.max(0.05, p));
-}
-
-/**
- * The team's current run across its meetings with `opp` at `site` (null =
- * every meeting), when it's worth telling: LEN_FLOOR or more straight wins
- * or losses. Scored like any streak, with the meetings' span counted, so an
- * 18-year reign over a rival outranks a 4-game run.
- */
-export function h2hStreak(ti: number, opp: number, site: H2hSite, next: UpcomingRow | null = null): TeamStreak | null {
-  const ms = gamesOf(ti).filter((g) => g.oppIdx === opp && fitsSite(site, g));
-  const last = ms.at(-1);
-  if (!last || last.r === 'T') return null;
-  const dir = last.r;
-  let i = ms.length - 1;
-  while (i >= 0 && ms[i].r === dir) i--;
-  const len = ms.length - 1 - i;
-  if (len < LEN_FLOOR) return null;
-  const first = ms[i + 1];
-  const chips = site ? [site, 'vsteam'] : ['vsteam'];
-  const mined = {
-    chips, dir: dir as Dir, scope: 'active' as const, len, atEdge: i < 0, field: 2, live: true, also: 0,
-    startSe: first.se, endSe: last.se, p: h2hRate(opp, dir, site), n: ms.length,
-  };
-  const ctx = { M: DEFS, teams: fbsNow.size };
-  return {
-    chips, vs: opp, dir, len, atEdge: i < 0, rank: 1, tied: 1, field: 2,
-    next, since: first.se, chance: chanceOf(mined, ctx), score: crownScore(mined, ctx),
-  };
-}
-
-/**
- * The head-to-head runs a scheduled game puts on the line: across every
- * meeting, and across the meetings at the game's site when that tells a
- * different run (Michigan's 5 straight over Minnesota and its 18 straight
- * in Minneapolis are different stories; the same run twice isn't).
- */
-export function h2hStreaksOn(ti: number, game: UpcomingRow): TeamStreak[] {
-  const all = h2hStreak(ti, game.oppIdx, null, game);
-  const site: H2hSite = game.neutral ? null : game.home ? 'home' : 'road';
-  const at = site ? h2hStreak(ti, game.oppIdx, site, game) : null;
-  const retold = all && at && at.len === all.len && at.since === all.since;
-  return [all, retold ? null : at].filter((s): s is TeamStreak => s != null);
-}
-
 /** "T-3rd": the rank, marked when shared. */
-export const rankText = (s: Pick<TeamStreak, 'rank' | 'tied'>) => (s.tied > 1 ? 'T-' : '') + ordinal(s.rank);
+export const rankText = (s: Pick<Crown, 'rank' | 'tied'>) => (s.tied > 1 ? 'T-' : '') + ordinal(s.rank);
 
 /** Current FBS teams, by name, for the team picker. */
 export const teamList = () => [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name));
@@ -342,15 +146,12 @@ export function lineText(g: Pick<ScheduledGame, 'home' | 'away' | 'sp'>): string
   return `${teams[g.sp < 0 ? g.home : g.away].name} ${spreadText(-Math.abs(g.sp))}`;
 }
 
-/** The streak either side puts most on the line in the game: the highest score among them, with its team. */
-export function topOnLine(g: ScheduledGame, todayEp: number): { ti: number; s: TeamStreak } | null {
+/** The streak either side puts most on the line in the game: the highest score among them, with its team. `crownsOf` is each team's active crowns. */
+export function topOnLine(g: ScheduledGame, todayEp: number, crownsOf: (ti: number) => Crown[] | null): { ti: number; s: TeamStreak } | null {
   let best: { ti: number; s: TeamStreak } | null = null;
   for (const { ti, row } of g.sides) {
-    for (const s of streaksOn(teamStreaks(ti, todayEp), row)) {
+    for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
       if (!best || s.score > best.s.score) best = { ti, s };
-    }
-    for (const h of h2hStreaksOn(ti, row)) {
-      if (!best || h.score > best.s.score) best = { ti, s: h };
     }
   }
   return best;

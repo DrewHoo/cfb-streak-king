@@ -36,11 +36,11 @@ const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
 const { P, teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
-const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
+const { mineCrowns, mineBroken } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
-const { completedWeeks, brokenWeek, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { completedWeeks, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
-const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
+const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
 const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
@@ -61,7 +61,7 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
  * One page: the app rendered with `initial`, and a head whose title,
  * description, canonical and image are the page's own.
  */
-function page({ initial, url, title, description, image, imageAlt, jsonLd, embed }) {
+function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests }) {
   const appHtml = renderToString(React.createElement(App, { initial }))
   const head = `
     <meta name="description" content="${esc(description)}" />
@@ -92,9 +92,9 @@ function page({ initial, url, title, description, image, imageAlt, jsonLd, embed
   let html = template
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
   html = html.replace('</head>', head)
-  // embedded data main.jsx reads before hydrating (a team page's crowns)
-  const data = embed ? `<script type="application/json" id="crowns-data">${JSON.stringify(embed).replace(/</g, '\\u003c')}</script>` : ''
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${data}`)
+  // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
+  const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}`)
   return { html, appHtml }
 }
 
@@ -126,7 +126,7 @@ console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root
 
 // --- crowns: mined here, one file per team ---
 const t0 = Date.now()
-const [crownsActive, crownsAll] = await Promise.all([mineCrowns('active'), mineCrowns('all')])
+const [crownsActive, crownsAll, minedBroken] = await Promise.all([mineCrowns('active'), mineCrowns('all'), mineBroken()])
 const crownsOf = (ti) => encodeCrowns({ active: crownsActive.get(ti) ?? [], all: crownsAll.get(ti) ?? [] })
 fs.mkdirSync(path.join(ROOT, 'dist', 'crowns'), { recursive: true })
 let crownBytes = 0
@@ -137,13 +137,24 @@ for (const ti of fbsNow) {
 }
 console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
 
+// --- the schedule's digests: every completed week's broken streaks, the
+// coming week's at-risk ones, the streak on the line in each game; one
+// file, embedded in the games pages and fetched when the schedule opens ---
+const digestsFile = encodeDigests(buildDigests(todayEpochDay(), minedBroken, (ti) => crownsActive.get(ti) ?? []))
+// rendered from the decoded file, so the hydrate matches
+const digests = decodeDigests(digestsFile)
+fs.mkdirSync(path.join(ROOT, 'dist', 'games'), { recursive: true })
+fs.writeFileSync(path.join(ROOT, 'dist', 'games', 'digests.json'), JSON.stringify(digestsFile))
+console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken streaks, ${digests.atRisk ? `week ${digests.atRisk.wk} at risk (${digests.atRisk.list.length} rows)` : 'nothing at risk'}, ${Object.keys(digests.onLine).length} games with a streak on the line`)
+
 // --- the schedule: every scheduled game, by week ---
 {
   const url = `${SITE}games/`
   const title = `This week's games · ${config.title}`
   const description = `Every scheduled FBS game, with the line and the streak most on the line in it.`
   const { html } = page({
-    initial: { games: true },
+    initial: { games: true, digests },
+    digests: digestsFile,
     url,
     title,
     description,
@@ -165,7 +176,7 @@ console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under di
 // has a card the moment the site deploys.
 const weekly = { builtAt: P.builtAt, broken: {}, atRisk: null }
 // a broken run or an at-risk one as a card row: the count, the team, the claim, the small print
-const wordsOf = (chips, vs) => chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipLabel(k))).join(' · ')
+const wordsOf = (chips) => chips.map(chipLabel).join(' · ')
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
 const PRESENT = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' }
 const enderWords = (b) => {
@@ -181,13 +192,13 @@ const weekUrls = []
 const weekNums = new Set(scheduledGames().map((g) => g.wk))
 for (const w of completedWeeks()) if (w.wk != null) weekNums.add(w.wk + 1)
 for (const n of [...weekNums].sort((a, b) => a - b)) {
-  const broken = brokenWeek(n - 1)
+  const broken = digests.broken[n - 1]
   if (broken) weekly.broken[n - 1] = {
     wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length,
     rows: broken.list.map((b) => ({
       count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
-      claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips, b.vs)}` : ''}`,
-      sub: `${b.vs != null ? 'head-to-head' : `was ${rankText(b)} of ${b.field}`} · since ${b.since} · ${enderWords(b)}`,
+      claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`,
+      sub: `was ${rankText(b)} of ${b.field} · since ${b.since} · ${enderWords(b)}`,
     })),
   }
   const url = `${SITE}games/week/${n}/`
@@ -197,7 +208,8 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
     ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${n - 1}.` : ''} Week ${n}'s games and the streaks they put at risk.`
     : `Week ${n}'s college football games and the streaks they put at risk.`
   const { html } = page({
-    initial: { games: true, bwk: n },
+    initial: { games: true, bwk: n, digests },
+    digests: digestsFile,
     url,
     title,
     description,
@@ -217,23 +229,22 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
 
 // --- the week's at-risk streaks, at their own address, with their own preview ---
 {
-  const games = scheduledGames()
-  const wk = games[0]?.wk
-  const week = games.filter((g) => g.wk === wk)
-  const risk = week.length ? atRiskWeek(week, todayEpochDay()) : { list: [], more: [] }
-  if (risk.list.length) {
+  const risk = digests.atRisk
+  if (risk) {
+    const { wk } = risk
     const url = `${SITE}games/at-risk/`
     const title = `Week ${wk} at-risk streaks · ${config.title}`
     const rows = risk.list.map((r) => ({
       count: `${r.s.len}${r.s.atEdge ? '+' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N',
-      claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips, r.s.vs)}` : ''}`,
-      sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)} · ${r.s.vs != null ? 'head-to-head' : `${rankText(r.s)} of ${r.s.field}`}`,
+      claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips)}` : ''}`,
+      sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)} · ${rankText(r.s)} of ${r.s.field}`,
     }))
-    weekly.atRisk = { wk, lo: week[0].ep, hi: week[week.length - 1].ep, rows }
+    weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows }
     const top = rows.slice(0, 3).map((r) => `${r.claim}, ${r.sub.split(' · ')[0]}`)
     const description = `${top.join('. ')}. The streaks the week's games can take away, ranked by the odds.`
     const { html } = page({
-      initial: { games: true, risk: true },
+      initial: { games: true, risk: true, digests },
+      digests: digestsFile,
       url,
       title,
       description,

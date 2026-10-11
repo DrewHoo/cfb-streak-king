@@ -1,25 +1,53 @@
 import { describe, expect, test } from 'vitest';
 import type { Dir, Scope } from './types.ts';
 import type { MinedCrown } from './crownRank.ts';
-import { RANK, chanceOf, crownScore, rankCrowns } from './crownRank.ts';
+import { RANK, chanceOf, crownScore, rankCrowns, tierOf, wordCost } from './crownRank.ts';
+import { choicesOf } from './minedChips.ts';
 
-const ctx = { M: [1, 35, 566, 5626, 38571], teams: 136 };
+const ctx = { teams: 136 };
 const crown = (o: Partial<MinedCrown> & { dir?: Dir; scope?: Scope } = {}): MinedCrown => ({
-  chips: [], dir: 'W', scope: 'active', len: 10, atEdge: false, field: 100, startSe: 2020, endSe: 2020, live: true, also: 0, p: 0.5, n: 1000, ...o,
+  chips: [], dir: 'W', scope: 'active', len: 10, atEdge: false, field: 100, rank: 1, tied: 1, second: 5, startSe: 2020, endSe: 2020, live: true, also: 0, p: 0.5, n: 1000, ...o,
 });
+const chance = Math.log2(136);
 
 describe('crownScore', () => {
-  test('bits past the expected leader, less the definition', () => {
-    // 10 coin flips against 136 teams, no chips, one season
-    expect(crownScore(crown(), ctx)).toBeCloseTo(10 - Math.log2(136), 10);
-    expect(crownScore(crown({ chips: ['home'] }), ctx)).toBeCloseTo(10 - Math.log2(136) - RANK.chipW * Math.log2(35), 10);
+  test('bits past the expected leader plus the lead over the field, less the words', () => {
+    // 10 coin flips against 136 teams, 5 clear of the next team, no chips, one season
+    expect(crownScore(crown(), ctx)).toBeCloseTo(10 + RANK.gapW * 5 - chance, 10);
+    expect(crownScore(crown({ chips: ['home'] }), ctx)).toBeCloseTo(10 + RANK.gapW * 5 - chance - RANK.tiers.brag, 10);
   });
 
-  test('only chips read from the game itself pay the postgame penalty', () => {
+  test('a chip costs by its tier', () => {
     const one = (k: string) => crownScore(crown({ chips: [k] }), ctx);
+    expect(tierOf('home')).toBe('brag');
+    expect(tierOf('unranked')).toBe('plain');
+    expect(tierOf('fullmoon')).toBe('trivia');
+    expect(tierOf('onescore')).toBe('ingame');
+    expect(one('home') - one('unranked')).toBeCloseTo(RANK.tiers.plain - RANK.tiers.brag, 10);
+    expect(one('home') - one('fullmoon')).toBeCloseTo(RANK.tiers.trivia - RANK.tiers.brag, 10);
+    expect(one('home') - one('onescore')).toBeCloseTo(RANK.tiers.ingame - RANK.tiers.brag, 10);
+    // the betting and previous-result chips are known before kickoff for scoring: not in-game
     expect(one('afterloss')).toBe(one('home'));
-    expect(one('fav')).toBe(one('home'));
-    expect(one('home') - one('onescore')).toBeCloseTo(RANK.postBits, 10);
+    expect(one('fav')).toBe(one('unranked'));
+  });
+
+  test('a chip with a choice pays for the choice: one of 288 opponents, one of the states', () => {
+    expect(tierOf('vsteam:alabama')).toBe('brag');
+    expect(tierOf('state:TX')).toBe('trivia');
+    expect(choicesOf('vsteam:alabama')).toBeGreaterThan(200);
+    expect(choicesOf('home')).toBe(1);
+    expect(wordCost(['vsteam:alabama'])).toBeCloseTo(RANK.tiers.brag + Math.log2(choicesOf('vsteam:alabama')), 10);
+    expect(wordCost(['state:TX', 'home'])).toBeCloseTo(RANK.tiers.trivia + Math.log2(choicesOf('state:TX')) + RANK.tiers.brag, 10);
+    // the half chips are mined at one margin, so they are plain and choose nothing
+    expect(wordCost(['leadhalf:1'])).toBe(RANK.tiers.plain);
+  });
+
+  test('a run that trails the field pays its whole gap, unless the floor is set', () => {
+    const trailing = crown({ rank: 3, second: 20 });
+    expect(crownScore(trailing, ctx)).toBeCloseTo(10 - RANK.gapW * 10 - chance, 10);
+    expect(crownScore(trailing, ctx, { ...RANK, gapFloor: 0 })).toBeCloseTo(10 - chance, 10);
+    // a sole leader scores its lead; a tie leads by nothing
+    expect(crownScore(crown({ second: 10, tied: 2 }), ctx)).toBeCloseTo(10 - chance, 10);
   });
 
   test('chance: every team gets len tries at the field\'s rate', () => {
@@ -32,7 +60,7 @@ describe('crownScore', () => {
   });
 
   test('all-time charges every place a run could start, and pays for span', () => {
-    const c = crown({ scope: 'all', n: 4096, startSe: 1990, endSe: 2005 });
+    const c = crown({ scope: 'all', n: 4096, startSe: 1990, endSe: 2005, second: 10 });
     expect(crownScore(c, ctx)).toBeCloseTo(10 - Math.log2(2048) + RANK.spanAll * 4, 10);
   });
 });
@@ -42,7 +70,7 @@ describe('rankCrowns', () => {
 
   test('A+B hides behind A unless it scores better', () => {
     const a = crown({ chips: ['home'], len: 20 });
-    const worse = crown({ chips: ['home', 'night'], len: 21 });
+    const worse = crown({ chips: ['home', 'night'], len: 20 });
     const better = crown({ chips: ['home', 'rivalry'], len: 40 });
     expect(keys(rankCrowns([a, worse, better], ctx))).toEqual(['W home+rivalry', 'W home']);
   });
@@ -75,19 +103,20 @@ describe('rankCrowns', () => {
   });
 
   test('the cutoff hides what chance would produce, but not a zero-chip crown', () => {
-    const chance = crown({ chips: ['home', 'night', 'rivalry'], len: 5 });
-    const plain = crown({ dir: 'L', len: 3 });
-    expect(keys(rankCrowns([chance, plain], ctx))).toEqual(['L ']);
+    const chancy = crown({ chips: ['home', 'fullmoon'], len: 5, second: 5 });
+    const plain = crown({ dir: 'L', len: 3, second: 3 });
+    expect(keys(rankCrowns([chancy, plain], ctx))).toEqual(['L ']);
   });
 
   test('a team with nothing past the cutoff shows its best few', () => {
-    const weak = ['home', 'road', 'neutral', 'night'].map((k, i) => crown({ chips: [k, 'rivalry', 'afterbye'], len: 5 + i }));
+    const weak = ['home', 'road', 'night', 'confgame'].map((k, i) => crown({ chips: [k, 'fullmoon', 'afterbye'], len: 5 + i, second: 5 + i }));
     expect(rankCrowns(weak, ctx).map((c) => c.len)).toEqual([8, 7, 6]);
   });
 
-  test('ranked crowns carry their chance and drop the rate fields', () => {
+  test('ranked crowns carry their chance and score and drop the rate fields', () => {
     const out = rankCrowns([crown()], ctx)[0];
     expect(Object.keys(out)).not.toContain('p');
     expect(out.chance).toBeCloseTo(chanceOf(crown(), ctx), 12);
+    expect(out.score).toBeCloseTo(crownScore(crown(), ctx), 12);
   });
 });

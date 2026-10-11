@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { P } from './model.ts';
-import { scheduledGames, streaksOn, teamStreaks, h2hStreaksOn } from './team.ts';
+import { mineCrowns } from './crowns.ts';
+import { scheduledGames, streaksOn, teamStreaks } from './team.ts';
 import { Phi, pBreak, atRiskWeek, AT_RISK_CAP, AT_RISK_FLOOR } from './atRisk.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
@@ -36,10 +37,13 @@ describe('atRiskWeek', () => {
   const games = scheduledGames();
   const wk = games[0]?.wk;
   const week = games.filter((g) => g.wk === wk);
-  test('ranks every lined streak on the line by score × chance, once each, a team once in the list, with the cap and floor', () => {
+  test('ranks every lined streak on the line by score × chance, once each, a team once in the list, with the cap and floor', async () => {
     if (!week.length) return;
-    const { list, more } = atRiskWeek(week, today);
+    const crowns = await mineCrowns('active');
+    const crownsOf = (ti: number) => crowns.get(ti) ?? [];
+    const { list, more } = atRiskWeek(week, today, crownsOf);
     const all = [...list, ...more];
+    expect(list.length).toBeGreaterThan(0);
     expect(list.length).toBeLessThanOrEqual(AT_RISK_CAP);
     expect(new Set(list.map((r) => r.ti)).size).toBe(list.length);
     for (let i = 1; i < list.length; i++) expect(list[i - 1].stake).toBeGreaterThanOrEqual(list[i].stake);
@@ -52,10 +56,10 @@ describe('atRiskWeek', () => {
       expect(r.row.sp).not.toBeNull();
       expect(r.game.sides.some((x) => x.ti === r.ti && x.row === r.row)).toBe(true);
       // the streak really is on the line in that game
-      const on = [...streaksOn(teamStreaks(r.ti, today), r.row), ...h2hStreaksOn(r.ti, r.row)];
+      const on = streaksOn(teamStreaks(r.ti, today, crownsOf(r.ti)), r.row);
       expect(on.some((s) => s.dir === r.s.dir && s.len === r.s.len && s.since === r.s.since)).toBe(true);
     }
-    const keys = all.map((r) => `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}|${r.s.vs ?? ''}`);
+    const keys = all.map((r) => `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}`);
     expect(new Set(keys).size).toBe(keys.length);
-  });
+  }, 600000);
 });

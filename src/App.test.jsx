@@ -41,7 +41,7 @@ describe('prerender + hydrate', () => {
   test('a team page hydrates without a mismatch, crowns included', async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
     // any crowns will do: this checks the render, crowns.test covers their contents
-    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, startSe: 2024, live: true, also: 0 });
+    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2024, live: true, also: 0, chance: 0.01, score: 5 });
     const crowns = { active: [crown(['road'], 'W', 9), crown(['ranked'], 'W', 5), crown(['night'], 'L', 4)], all: [] };
     const { html, errors, unmount } = await hydrate({ page: ti, crowns }, '/cfb-streak-king/team/alabama/');
     expect(html).toContain('Alabama');

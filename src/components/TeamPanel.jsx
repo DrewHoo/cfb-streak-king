@@ -1,10 +1,11 @@
 // The open streak: the claim in plain English, the ledger of the streak, and
-// every streak the team is king of. The team's name leads to its page, and
+// every streak the team is on, with its place in the field. The team's name leads to its page, and
 // the next-game row to the matchup.
 
 import { useState } from 'react';
 import { teams, firstSeason } from '../lib/model.ts';
 import { chipLabel } from '../lib/minedChips.ts';
+import { rankText } from '../lib/team.ts';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
@@ -128,9 +129,10 @@ function Ledger({ row, edge, cover, onGame }) {
 }
 
 /**
- * "{Team} is the King of N [active|all-time] [winning|losing] Streaks", the
- * two words being selects, then the list. `crowns` is null while that scope
- * is still mining.
+ * "{Team}’s N [active|all-time] [winning|losing] Streaks", the two words
+ * being selects, then the list: the team's runs under any mined definition
+ * with their place in the field (crowns.ts). `crowns` is null while that
+ * scope is still loading.
  */
 export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, dir, scope, active, onApply, onShare }) {
   const [all, setAll] = useState(false);
@@ -141,7 +143,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
   return (
     <div className="leads">
       <p className="leads-lead">
-        {name} is the King of{' '}
+        {name}’s{' '}
         <b className={baseDir(crownsDir) === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
         <Picker value={crownsScope} onChange={onCrownsScope} ariaLabel="Active or all-time" options={[{ value: 'active', label: 'Active' }, { value: 'all', label: 'All-time' }]} />{' '}
         <Picker
@@ -154,9 +156,9 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
         />{' '}
         Streaks
       </p>
-      {crowns === null && <p className="empty">finding every streak {name} is king of…</p>}
+      {crowns === null && <p className="empty">finding every streak {name} is on…</p>}
       {crowns !== null && list0.length === 0 && (
-        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak {name} alone holds stands out from chance.</p>
+        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of {name}’s stands out from chance.</p>
       )}
       {list.map((cr) => {
         const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;
@@ -168,7 +170,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
             <button className="lead-apply" onClick={() => onApply(cr)}>
               <span className={'lead-len' + (baseDir(cr.dir) === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
               <span className="lead-txt">{cr.chips.length ? cr.chips.map(chipLabel).join(' · ') : 'all games'}</span>
-              <span className="lead-meta">longest of {cr.field}{span ? ` · ${span}` : ''} · {oddsText(cr.chance)} by chance{here ? ' · shown above' : ''}</span>
+              <span className="lead-meta"><b className={cr.rank === 1 && cr.tied === 1 ? 'k' : ''}>{rankText(cr)} of {cr.field}</b>{span ? ` · ${span}` : ''} · {oddsText(cr.chance)} by chance{here ? ' · shown above' : ''}</span>
             </button>
             <button className="ico lead-share" onClick={() => onShare(cr)} aria-label="Share this streak"><ShareIcon /></button>
           </div>

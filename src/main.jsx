@@ -3,6 +3,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { teamFromPath, gamesFromPath, weekFromPath, riskFromPath } from './lib/url.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
+import { decodeDigests } from './lib/digests.ts'
 import './styles.css'
 
 // The markup is already in the HTML: scripts/prerender.mjs bakes it in at
@@ -13,14 +14,16 @@ import './styles.css'
 // same state the prerender did, so the team comes from the path here, not
 // from a post-mount effect
 const page = teamFromPath(window.location.pathname)
-// a team page embeds that team's crowns (scripts/prerender.mjs)
+// a team page embeds that team's crowns, a games page the schedule's digests (scripts/prerender.mjs)
 const embedded = document.getElementById('crowns-data')
+const digests = document.getElementById('digests-data')
 const initial = {
   page,
   games: page == null && gamesFromPath(window.location.pathname),
   bwk: page == null ? weekFromPath(window.location.pathname) : null,
   risk: page == null && riskFromPath(window.location.pathname),
   crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
+  digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
 }
 
 const root = document.getElementById('root')

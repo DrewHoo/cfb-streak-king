@@ -1,41 +1,53 @@
-// Which of a team's crowns to show, and in what order. Pure: crowns.ts mines
-// the crowns with each definition's pooled rate, this scores and filters them.
+// Which of a team's streaks to show, and in what order. Pure: crowns.ts
+// mines every team's run under every definition with the definition's
+// pooled rate and the run's place in the field, this scores and filters.
 //
-// The score is how far the king sits past where chance would put the pack's
-// leader, in bits, less the cost of the definition:
+// The score is how far the run sits past what chance would produce, in
+// bits, less the cost of the definition's words:
 //
 //   len·log2(1/p)          each game of the run, weighted by how rare it is
+//   + gapW·gap·log2(1/p)   gap = the run's lead over the longest any other
+//                          team holds; negative for a run that doesn't lead,
+//                          so a sole leader outranks a longer run that sits
+//                          2nd (fans want what their team is the best at).
+//                          `gapFloor` caps the term from below when set.
 //   − chance               log2 of the teams in the field (active), or of
 //                          every place a run could start (all-time)
-//   − chipW·log2(M[k])     M[k] = how many k-chip definitions the miner walks
-//   − postBits per chip read from the game's own play
-//   − identityBits per opponent color or mascot chip: 41 ways to slice the
-//     schedule that fans rarely say, so one costs more than a plain chip
+//   − Σ word cost          each chip costs by tier: what fans say unprompted
+//                          (at home, vs Georgia) is cheap, plain qualifiers
+//                          more, almanac trivia (vs orange schools, in
+//                          November) dear, and a chip read from the game's
+//                          own play dearest; plus log2 of the chip's choices,
+//                          since "vs Tennessee" is one of 288 opponents the
+//                          walk tried (vsteam 1 + 8.2 bits, state 9 + 5.6)
 //   + span·log2(seasons)   a run across decades is a story in itself
 //
 // p is the outcome's rate over every current FBS team's qualifying games
-// (createModel's baseRate). Then a team's list drops a crown when:
-//   - a crown with a subset of its chips, same outcome and overlapping
+// (createModel's baseRate). Then a team's list drops a run when:
+//   - a run with a subset of its chips, same outcome and overlapping
 //     seasons, scores as well (a slice of the same run)
 //   - it's an undefeated run identical to a winning one, or a winning or
 //     losing run identical to one told by its margin ("won 12 straight by
 //     10+" says "won 12 straight" and more)
-//   - (all-time) it retells a better crown's era: same outcome, one
+//   - (all-time) it retells a better run's era: same outcome, one
 //     definition inside the other, most of the seasons shared
 //   - it scores under the cutoff, unless it has no chips
-// and shows its top `fallback` when nothing is left. The weights were set by
-// eye with the crown tuner (scripts/tuner/), which reads them from here.
+// and shows its top `fallback` when nothing is left. The weights were set
+// by eye on the crown score review (claude.ai/artifact/XpW5iUtEUGnVJVWJPz3k2v).
 
 import type { Crown } from './types.ts';
-import { chipByKey } from './chips.ts';
 import { baseDir, isMargin } from './outcome.ts';
-import { isIdentityKey } from './minedChips.ts';
+import { baseKey, choicesOf } from './minedChips.ts';
+
+export type Tier = 'brag' | 'plain' | 'trivia' | 'ingame';
 
 export const RANK = {
   chanceW: 1,
-  chipW: 0.75,
-  postBits: 7,
-  identityBits: 5,
+  /** Bits a chip of each tier costs. */
+  tiers: { brag: 1, plain: 3, trivia: 9, ingame: 12 } as Record<Tier, number>,
+  gapW: 0.75,
+  /** The gap term's floor, in games; null lets a trailing run pay its full gap. */
+  gapFloor: null as number | null,
   spanA: 0.75,
   spanAll: 1.75,
   cutoff: -6.5,
@@ -44,26 +56,27 @@ export const RANK = {
   eraOv: 50,
 };
 
-/**
- * Chips read from the game's own play. The catalog's pregame flag is wider:
- * the previous-result and betting chips are post() there because a scheduled
- * game can't be decided by them, not because they describe how it went.
- */
-export const IN_GAME_GROUPS = new Set(['half', 'possession', 'shape']);
+// each catalog chip's tier; a derived chip ("vsteam:alabama") goes by its catalog key
+const TIERS: Record<Tier, string[]> = {
+  brag: ['home', 'road', 'confgame', 'ranked', 'top10', 'top5', 'rivalry', 'postseason', 'night', 'dog', 'dog7', 'dog14', 'afterloss', 'vsteam', 'vsconf'],
+  plain: ['unranked', 'whileranked', 'whileunranked', 'nonconf', 'power', 'member', 'instate', 'neutral', 'away', 'fav', 'close', 'curcoach', 'newcoach', 'opener', 'finale', 'leadhalf', 'trailhalf'],
+  trivia: ['fullmoon', 'weekday', 'weekend', 'vsnewcoach', 'afterbye', 'afterwin', 'vscolor', 'vsmascot', 'month', 'state'],
+  ingame: ['wonpos', 'lostpos', 'onescore', 'shootout', 'struggle', 'overtime'],
+};
+const tierByKey = new Map<string, Tier>();
+for (const [tier, keys] of Object.entries(TIERS) as [Tier, string[]][]) for (const k of keys) tierByKey.set(k, tier);
+/** A mined key's tier; a chip the table doesn't name costs as a plain one. */
+export const tierOf = (key: string): Tier => tierByKey.get(baseKey(key)) ?? 'plain';
 
-/** A mined crown with its definition's pooled rate and qualifying-game count, before its chance is worked out. */
-export type MinedCrown = Omit<Crown, 'chance'> & { p: number; n: number };
+/** A mined run with its definition's pooled rate and qualifying-game count, before its chance and score are worked out. */
+export type MinedCrown = Omit<Crown, 'chance' | 'score'> & { p: number; n: number };
 export interface RankContext {
-  /** Definitions with each chip count, 0–4. */
-  M: number[];
   /** Teams that can hold a streak. */
   teams: number;
 }
 
 const P_MAX = 0.995;
-const seasons = (c: Omit<Crown, 'chance'>) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
-const inGame = (c: Omit<Crown, 'chance'>) => c.chips.filter((k) => IN_GAME_GROUPS.has(chipByKey.get(k)?.group ?? '')).length;
-const identity = (c: Omit<Crown, 'chance'>) => c.chips.filter(isIdentityKey).length;
+const seasons = (c: Pick<Crown, 'startSe' | 'endSe'>) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
 
 /**
  * How likely chance alone makes a streak this long under the definition: each
@@ -76,33 +89,40 @@ export function chanceOf(c: MinedCrown, ctx: RankContext): number {
   return -Math.expm1(tries * Math.log1p(-(p ** c.len)));
 }
 
+/** The words' cost in bits: each chip by its tier, plus the choice it is among its kind. */
+export const wordCost = (chips: readonly string[], w = RANK) => chips.reduce((a, k) => a + w.tiers[tierOf(k)] + Math.log2(choicesOf(k)), 0);
+
 export function crownScore(c: MinedCrown, ctx: RankContext, w = RANK): number {
   const p = Math.min(c.p, P_MAX);
+  const b = Math.log2(1 / p);
   const chance = c.scope === 'active' ? Math.log2(ctx.teams) : Math.log2(Math.max(2, c.n * (1 - p)));
   const span = c.scope === 'active' ? w.spanA : w.spanAll;
-  return c.len * Math.log2(1 / p)
+  const gap = w.gapFloor == null ? c.len - c.second : Math.max(w.gapFloor, c.len - c.second);
+  return c.len * b
+    + w.gapW * gap * b
     - w.chanceW * chance
-    - w.chipW * Math.log2(ctx.M[c.chips.length])
-    - w.postBits * inGame(c)
-    - w.identityBits * identity(c)
+    - wordCost(c.chips, w)
     + span * Math.log2(seasons(c));
 }
 
-const finish = (c: MinedCrown, ctx: RankContext): Crown => { const { p: _p, n: _n, ...rest } = c; return { ...rest, chance: chanceOf(c, ctx) }; };
+const finish = (c: MinedCrown, ctx: RankContext, w: typeof RANK): Crown => {
+  const { p: _p, n: _n, ...rest } = c;
+  return { ...rest, chance: chanceOf(c, ctx), score: crownScore(c, ctx, w) };
+};
 
-/** One team's crowns in one scope: the ones worth showing, best first. */
+/** One team's runs in one scope: the ones worth showing, best first. */
 export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crown[] {
   const score = new Map(list.map((c) => [c, crownScore(c, ctx, w)]));
-  const subsetOf = (a: Omit<Crown, 'chance'>, b: Omit<Crown, 'chance'>) => a.chips.length < b.chips.length && a.chips.every((k) => b.chips.includes(k));
-  const overlap = (a: Omit<Crown, 'chance'>, b: Omit<Crown, 'chance'>) => !(a.endSe! < b.startSe! || b.endSe! < a.startSe!);
-  const sameRun = (a: Omit<Crown, 'chance'>, b: Omit<Crown, 'chance'>) => a.len === b.len && a.startSe === b.startSe && a.endSe === b.endSe
+  const subsetOf = (a: MinedCrown, b: MinedCrown) => a.chips.length < b.chips.length && a.chips.every((k) => b.chips.includes(k));
+  const overlap = (a: MinedCrown, b: MinedCrown) => !(a.endSe! < b.startSe! || b.endSe! < a.startSe!);
+  const sameRun = (a: MinedCrown, b: MinedCrown) => a.len === b.len && a.startSe === b.startSe && a.endSe === b.endSe
     && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
   let kept = list.filter((c) => (
     !list.some((o) => o.dir === c.dir && subsetOf(o, c) && overlap(o, c) && score.get(o)! >= score.get(c)!)
     && !(c.dir === 'U' && list.some((o) => o.dir === 'W' && sameRun(o, c)))
     && !((c.dir === 'W' || c.dir === 'L') && list.some((o) => isMargin(o.dir) && baseDir(o.dir) === c.dir && sameRun(o, c)))
   ));
-  kept.sort((a, b) => score.get(b)! - score.get(a)!);
+  kept.sort((a, b) => score.get(b)! - score.get(a)! || b.len - a.len);
   if (kept[0]?.scope === 'all') {
     const eras: MinedCrown[] = [];
     for (const c of kept) {
@@ -117,6 +137,5 @@ export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crow
     kept = eras;
   }
   const pass = kept.filter((c) => score.get(c)! >= w.cutoff || c.chips.length === 0);
-  return (pass.length ? pass : kept.slice(0, w.fallback)).map((c) => finish(c, ctx));
+  return (pass.length ? pass : kept.slice(0, w.fallback)).map((c) => finish(c, ctx, w));
 }
-

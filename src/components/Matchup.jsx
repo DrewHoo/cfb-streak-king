@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { P, teams, fbsNow, upcomingOf } from '../lib/model.ts';
 import { chipLabel } from '../lib/minedChips.ts';
-import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, h2hStreaksOn, LEN_FLOOR } from '../lib/team.ts';
+import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, LEN_FLOOR } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord, oddsText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { CloseIcon } from './Icons.jsx';
@@ -16,10 +16,8 @@ import { ShareIcon, Chevron } from './Icons.jsx';
 
 const ON_LINE_CAP = { phone: 4, desk: 6 };
 const bad = (dir) => baseDir(dir) === 'L' || dir === 'N';
-// `vs` is a head-to-head streak's opponent, the choice its "vsteam" chip carries
-export const streakWords = (chips, vs) => (chips.length
-  ? chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipLabel(k))).join(' · ')
-  : 'all games');
+/** A streak's conditions as words; a mined key ("vsteam:alabama") carries its choice. */
+export const streakWords = (chips) => (chips.length ? chips.map(chipLabel).join(' · ') : 'all games');
 
 /**
  * One streak with its place in the field, shaped like a crown in the King-of
@@ -32,9 +30,9 @@ export function StreakRow({ s, onClick, next, tag }) {
     <button className="srow" onClick={onClick}>
       <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}</span>
       <span className="srow-txt">
-        <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips, s.vs)}</span>
+        <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips)}</span>
         <small>
-          <b className={s.vs == null && s.rank === 1 && s.tied === 1 ? 'k' : ''}>{s.vs != null ? 'head-to-head' : `${rankText(s)} of ${s.field}`}</b>
+          <b className={s.rank === 1 && s.tied === 1 ? 'k' : ''}>{rankText(s)} of {s.field}</b>
           {s.since != null && ` · since ${s.since}`}
           {s.chance != null && ` · ${oddsText(s.chance)} by chance`}
           {tag ? ` · ${tag}` : ''}
@@ -65,19 +63,17 @@ function Side({ ti, rank, onTeam }) {
 const sameStreak = (a, b) => a.dir === b.dir && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
 
 // `pin` is the streak on the board underneath, when this game is its next: it
-// leads the list. The team's crowns join it as soon as they're loaded.
+// leads the list. The team's crowns fill it as soon as they're loaded.
 function OnLine({ ti, game, crowns: seed, pin, todayEp, onStreak, cap }) {
   const [all, setAll] = useState(false);
   const crowns = useActiveCrowns(ti, seed);
-  // the game puts the head-to-head runs in too, when they're worth telling
-  const h2h = h2hStreaksOn(ti, game);
-  const on = streaksOn(teamStreaks(ti, todayEp, crowns), game);
-  const mine = h2h.length ? [...on, ...h2h].sort((a, b) => b.score - a.score || b.len - a.len) : on;
+  const mine = streaksOn(teamStreaks(ti, todayEp, crowns), game);
   const list = pin ? [pin, ...mine.filter((s) => !sameStreak(s, pin))] : mine;
   return (
     <div className="mu-on">
-      <h3>On the line for {teams[ti].name} <span>{list.length}</span></h3>
-      {!list.length && <p className="empty">No run of {LEN_FLOOR} or more that this game could end, and none {teams[ti].name} alone leads.</p>}
+      <h3>On the line for {teams[ti].name} <span>{crowns ? list.length : '…'}</span></h3>
+      {crowns === null && !list.length && <p className="empty">finding {teams[ti].name}’s streaks…</p>}
+      {crowns !== null && !list.length && <p className="empty">No run of {LEN_FLOOR} or more that this game could end stands out from chance.</p>}
       {(all ? list : list.slice(0, cap)).map((s) => <StreakRow key={s.dir + s.chips.join()} s={s} tag={s === pin ? 'this board' : null} onClick={() => onStreak(s, ti)} />)}
       {list.length > cap && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${list.length - cap} more`}</button>}
     </div>

@@ -1,12 +1,12 @@
 // A team's page: its record and rank, its next game, its schedule, and its
-// current streaks, the most surprising first (the single conditions it
-// stands out under, and the streaks it is king of). The name is a picker for
+// current streaks, the most surprising first (its active crowns, under any
+// mined definition, each with its place in the field). The name is a picker for
 // any other team. A streak row opens that streak on the board; a scheduled
 // game opens its matchup.
 
 import { useMemo, useState } from 'react';
 import { P, teams, confOf, gamesOf, upcomingOf } from '../lib/model.ts';
-import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn, h2hStreaksOn } from '../lib/team.ts';
+import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
@@ -52,12 +52,7 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
   const r = seasonRecord(ti);
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
-  // the head-to-head runs vs the next opponent join the list when they're worth telling
-  const streaks = useMemo(() => {
-    const list = teamStreaks(ti, todayEp, crowns.active);
-    const h2h = next ? h2hStreaksOn(ti, next) : [];
-    return h2h.length ? [...list, ...h2h].sort((a, b) => b.score - a.score || b.len - a.len) : list;
-  }, [ti, todayEp, crowns.active, next]);
+  const streaks = useMemo(() => teamStreaks(ti, todayEp, crowns.active), [ti, todayEp, crowns.active]);
   const played = gamesOf(ti).filter((g) => g.se === P.currentSeason);
   const ahead = upcomingOf(ti);
   const meta = [confOf(ti, P.currentSeason), coachLine(ti)].filter(Boolean).join(' · ');
@@ -104,6 +99,8 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
       <h2>Streaks</h2>
       <p className="tpg-note">{t.name}’s current runs and where each ranks, the ones furthest past chance first.</p>
       <div className="tpg-streaks">
+        {crowns.active === null && <p className="empty">finding every streak {t.name} is on…</p>}
+        {crowns.active !== null && streaks.length === 0 && <p className="empty">No current run of {t.name}’s stands out from chance.</p>}
         {(all ? streaks : streaks.slice(0, STREAKS_CAP)).map((s) => (
           <StreakRow key={s.dir + s.chips.join()} s={s} next onClick={() => on.streak(s, ti)} />
         ))}

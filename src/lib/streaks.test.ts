@@ -4,7 +4,7 @@ import type { Chip } from './chips.ts';
 import { conflicts } from './chips.ts';
 import { activeRun, runsOf, matches, decided, OUTCOMES, MINED_OUTCOMES } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard, baseRate } from './model.ts';
-import { mineRawCrowns, nearUniversalChips, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
+import { mineRaw, nearUniversalChips, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
 import { refsOf } from './minedChips.ts';
 import { PLAIN_CHIPS } from './chips.ts';
 
@@ -176,26 +176,28 @@ describe('boards', () => {
   });
 });
 
-// crowns.js walks packed bitmasks; the boards walk game lists. They are
+// crowns.ts walks packed bitmasks; the boards walk game lists. They are
 // independent implementations of the same semantics, so check one against the
-// other: every crown's definition must put that team alone on top of the board,
-// and its pooled rate must match baseRate's count over the game lists.
+// other: every mined run's length and place must be what the board under its
+// definition shows for that team, and its pooled rate must match baseRate's
+// count over the game lists.
 describe('crowns agree with the boards', () => {
-  test('every mined outcome names a crown somewhere, the margin ones included', async () => {
-    const cache = await mineRawCrowns('all');
-    const dirs = new Set([...cache.values()].flat().map((c) => c.dir));
+  test('every mined outcome names a run somewhere, the margin ones included', async () => {
+    const m = await mineRaw();
+    const dirs = new Set([...m.all.values()].flat().map((c) => c.dir));
     for (const d of MINED_OUTCOMES) expect(dirs, d).toContain(d);
     expect(dirs.size).toBe(MINED_OUTCOMES.length);
-  }, 300000);
+  }, 600000);
   for (const scope of ['active', 'all'] as const) {
-    test(`${scope} crowns`, async () => {
-      const cache = await mineRawCrowns(scope);
+    test(`${scope} runs`, async () => {
+      const m = await mineRaw();
       const rand = rng(scope === 'all' ? 3 : 5);
       const picked = [];
-      for (const [ti, list] of cache) for (const cr of list) if (rand() < 0.02) picked.push({ ti, cr });
-      expect(picked.length).toBeGreaterThan(50);
+      for (const [ti, list] of m[scope]) for (const cr of list) if (rand() < (scope === 'all' ? 0.001 : 0.003)) picked.push({ ti, cr });
+      expect(picked.length).toBeGreaterThan(100);
       for (const { ti, cr } of picked) {
         const def = refsOf(cr.chips);
+        expect(def.length, cr.chips.join('+')).toBe(cr.chips.length); // every mined key decodes
         const rows = scope === 'all'
           ? (() => { // an all-time board lists every run; the crown is the team's longest
             const best = new Map<number, BoardRow>();
@@ -204,17 +206,21 @@ describe('crowns agree with the boards', () => {
           })()
           : activeBoard(def, cr.dir, today);
         const label = `${teams[ti].id} ${cr.dir} ${cr.chips.join('+') || '(none)'}`;
-        expect(teams[rows[0].ti].id, label).toBe(teams[ti].id);
-        expect(rows[0].s.len, label).toBe(cr.len);
-        expect(rows[1]?.s.len ?? 0, label).toBeLessThan(cr.len);
+        const row = rows.find((r) => r.ti === ti)!;
+        expect(row, label).toBeDefined();
+        expect(row.s.len, label).toBe(cr.len);
         expect(cr.len).toBeGreaterThanOrEqual(LEN_FLOOR);
+        expect(rows.length, label).toBe(cr.field);
         expect(rows.length).toBeGreaterThanOrEqual(FIELD_FLOOR);
-        expect(cr.live, label).toBe(rows[0].live ?? true);
+        expect(cr.rank, label).toBe(1 + rows.filter((r) => r.s.len > cr.len).length);
+        expect(cr.tied, label).toBe(rows.filter((r) => r.s.len === cr.len).length);
+        expect(cr.second, label).toBe(Math.max(0, ...rows.filter((r) => r.ti !== ti).map((r) => r.s.len)));
+        if (scope === 'all') expect(cr.live, label).toBe(row.live ?? true);
         const rate = baseRate(def, cr.dir)!;
         expect(cr.n, label).toBe(rate.n);
         expect(cr.p, label).toBeCloseTo(rate.hit / rate.n, 12);
       }
-    }, 300000);
+    }, 600000);
   }
 });
 
@@ -223,9 +229,10 @@ describe('near-universal chips', () => {
     expect([...nearUniversalChips()].map((i) => PLAIN_CHIPS[i].key)).toEqual(['weekend']);
   });
 
-  test('never names a crown', async () => {
+  test('never names a run', async () => {
+    const m = await mineRaw();
     for (const scope of ['active', 'all'] as const) {
-      for (const list of (await mineRawCrowns(scope)).values()) for (const c of list) expect(c.chips).not.toContain('weekend');
+      for (const list of m[scope].values()) for (const c of list) expect(c.chips).not.toContain('weekend');
     }
-  }, 300000);
+  }, 600000);
 });

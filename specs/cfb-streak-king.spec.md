@@ -360,3 +360,80 @@ is the fuller answer and is a separate decision; `identityBits` is one tier of i
 Not in this pass: the other parameter chips (state, conference, month, team), which would
 multiply the walk again; the identity chips in the + menu's kings (kings.ts already builds
 their masks on demand).
+
+## One rule for every streak list (2026-10-11)
+
+Every view of streaks should use the same logic: the team page, the panel's list, the
+matchup's on-the-line list, and the schedule's broken and at-stake digests, the digests
+taking one row per team for their top six. The mined conditions grow to the parameter
+chips worth saying (every opponent color, mascot, team and conference; every month and
+venue state; leading or trailing at half by any margin), and a streak can carry up to four.
+
+Before this, the four views had three rules. The miner found only a team's sole-longest
+runs (its crowns) and only among plain chips; the team page added every single-chip run
+at any rank, walked in the browser; the digests walked single chips in the browser too,
+never saw a multi-chip run, and ran head-to-head as a pass of their own.
+
+### What changed
+
+`minedChips.ts` is the list the miner walks: the 40 plain chips plus 403 derived ones, each
+a real Chip with its choice baked into its test and the URL form as its key (`vsteam:alabama`,
+`state:TX`, `month:11`, `leadhalf:1`). The opponent chips form one exclusive group; months and
+states are exclusive among themselves. The old `identityBits` and the `M[k]` definition
+count are gone.
+
+`crowns.ts` mines every team's run under every definition, not only kings, with its rank,
+field and the longest run any other team holds (`second`). The space is 23M definitions, but
+an AND only shrinks a mask and the floors (a run of 4+, 10 teams holding any run) are
+monotone, so the walk is depth-first carrying each prefix's AND and drops a prefix under the
+floors with its whole subtree: 1.03M definitions survive. One walk serves three readings:
+`active` (the current run), `all` (the longest ever) and broken (every run a current-season
+game ended, placed among what every team carried into that week, which is one more scan per
+team and definition rather than a pass per week). A run is kept when it scores above
+`KEEP_FLOOR` (the cutoff less 6, so a team with nothing past the cutoff still has its best
+few); definitions producing the identical run collapse to the best-scoring telling. Each
+scope keeps a team's top `ROWS_CAP` (60) after ranking.
+
+`crownRank.ts` is the crown score review's model: `len·log2(1/p)`, plus `gapW·(len − second)·
+log2(1/p)`, less `log2(teams)`, less each chip's tier cost (brag 1, plain 3, trivia 9, in-game
+12; vsteam and vsconf are brag, leadhalf and trailhalf plain, color, mascot, month and state
+trivia) plus `log2` of the chip's choices, since "vs Tennessee" is one of 288 opponents the
+walk tried (vsteam 1 + 8.2 bits, state 9 + 5.6, month 9 + 2.3). The gap goes negative for a
+run that trails its field: Drew's reading of user feedback is that a #1 fans care about beats
+an impressive #3, so a 2nd-place run pays its whole gap (`gapFloor: null`; 0 is the other
+variant and keeps a trailing run at its plain score).
+
+`team.ts` reads a team's streaks from its crowns file and adds the next scheduled game each
+qualifies for (`nextQualifying`, reading each chip's choice). Head-to-head is now
+`vsteam:<id>` as a mined chip, with a field (every team that plays that opponent) instead
+of the fixed 2; `h2hStreak`, `h2hStreaksOn`, `h2hRate` and `mineH2H` are gone.
+`broken.ts` tells the miner's broken runs per completed week; `digests.ts` builds the
+schedule's three digests (every completed week's broken streaks, the first scheduled week's
+at-risk streaks, the streak most on the line in each scheduled game) and encodes them as
+`dist/games/digests.json`, which the games pages embed and the schedule fetches when opened
+from the board. The browser mines nothing on the deployed site; the dev server serves a
+build's `dist/crowns/` and digests when they exist and mines in the page otherwise.
+
+### Costs, measured on Drew's Mac
+
+| | before | now |
+|---|---|---|
+| chips walked | 80 | 443 |
+| definitions evaluated | 428k | 1.03M of 23M |
+| mine, build time | 67s (two scopes) | ~250s (three readings, one walk) |
+| browser walk on a team page or the schedule | 80 single-chip passes | none |
+
+The suite's mining tests share one worker and module cache (`fileParallelism: false`,
+`isolate: false` in `vite.config.js`), so the mine runs once per `npm test`.
+
+### What the lists look like
+
+A trailing run's negative gap keeps sole leaders on top (Vanderbilt's "10 straight
+non-conference night games after a loss, T-3rd of 90" sits under its #1s). The pooled-rate
+artifact remains: a chip that conditions on the team's own weakness (`whileunranked`) lowers
+the pooled win rate, so Auburn's "43 straight non-conference games after a loss in Alabama
+while unranked" outscores the same run without the word. The 90-game home-and-leading-at-half
+run is in Alabama's broken digest but not near the top: a win when leading at half at home
+is 90% likely, so 90 of them is 14 bits before the gap.
+
+Not in this pass: the half chips at other margins; the + menu's kings over the derived chips.

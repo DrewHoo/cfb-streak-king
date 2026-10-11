@@ -66,14 +66,15 @@ const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, 
 const { P, teams, fbsNow, firstSeason, allTimeBoard, todayEpochDay } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
-const { mineCrowns } = await vite.ssrLoadModule('/src/lib/crowns.ts')
+const { mineCrowns, mineBroken } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { streakGames } = await vite.ssrLoadModule('/src/lib/streaks.ts')
 
-const { completedWeeks, brokenWeek } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { completedWeeks, brokenWeeks } = await vite.ssrLoadModule('/src/lib/broken.ts')
 
 const todayEp = todayEpochDay()
 const rows = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
 const crowns = await mineCrowns('active')
+const brokenByWeek = brokenWeeks(await mineBroken())
 const args = process.argv.slice(2) // `npm run gen:og -- alabama` renders one card; `-- --weeks` only the week cards
 const weeksOnly = args.includes('--weeks')
 const teamIds = args.filter((a) => !a.startsWith('--'))
@@ -200,8 +201,9 @@ async function renderTeam(ti, W, H) {
   const t = teams[ti]
   const row = rows.find((r) => r.ti === ti)
   const held = crowns.get(ti) ?? []
-  const w = held.filter((c) => c.dir === 'W').length
-  const l = held.filter((c) => c.dir === 'L').length
+  // what the team is king of: its sole-leading runs
+  const w = held.filter((c) => c.dir === 'W' && c.rank === 1 && c.tied === 1).length
+  const l = held.filter((c) => c.dir === 'L' && c.rank === 1 && c.tied === 1).length
   const color = t.espn && (await logoUri(t.espn, 'color'))
   const lines = row ? wrap(claim(row, DEFAULT_CHIPS, 'W'), 44) : [`No winning streak vs unranked opponents on record.`]
   const parts = []
@@ -331,7 +333,7 @@ if (!weeksOnly) {
 if (!teamIds.length) {
   let n = 0
   for (const w of completedWeeks().filter((x) => x.wk != null)) {
-    const broken = brokenWeek(w.wk)
+    const broken = brokenByWeek.get(w.wk)
     if (!broken || !broken.list.length) continue
     await png(await renderWeek(broken, 1200, 630)).toFile(resolve(outDir, 'og', 'week', `${w.wk}.png`))
     n++
