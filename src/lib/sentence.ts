@@ -35,6 +35,7 @@
 import type { BoardRow, ChipRef, Crown, Dir } from './types.ts';
 import { P, teams } from './model.ts';
 import { chipByKey } from './chips.ts';
+import { refsOf } from './minedChips.ts';
 import { dirWord, marginWords, stateName } from './format.ts';
 import { baseDir } from './outcome.ts';
 
@@ -212,7 +213,7 @@ export function noClaim(ti: number, active: ChipRef[], dir: Dir): string {
 export function crownClaim(ti: number, cr: Crown): string {
   const live = cr.scope === 'active' || cr.live;
   const when = !live && cr.startSe != null && cr.endSe != null ? span(cr.startSe, cr.endSe) : '';
-  const chips = cr.chips.map((key) => ({ key }));
+  const chips = refsOf(cr.chips);
   return `${teams[ti].name} ${VERBS[baseDir(cr.dir)][live ? 0 : 1]} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips, cr.dir)}${when}.`;
 }
 

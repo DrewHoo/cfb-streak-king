@@ -22,6 +22,7 @@ import type { ChipRef, Crown, Dir, Scope } from './types.ts';
 import { teams, fbsNow } from './model.ts';
 import { DEFAULT_CHIPS, DEFAULT_SCOPE, chipsFromParam, chipsToParam } from './definition.ts';
 import { parseDir } from './outcome.ts';
+import { refsOf } from './minedChips.ts';
 
 export interface View {
   active: ChipRef[];
@@ -114,7 +115,7 @@ export function toUrl(v: View): UrlParts {
 
 /** The link for one streak of a team's: the board under its definition, the team's panel open. */
 export function crownUrl(ti: number, cr: Crown): UrlParts {
-  return toUrl({ ...DEFAULT_VIEW, active: cr.chips.map((key) => ({ key })), dir: cr.dir, scope: cr.scope, team: ti });
+  return toUrl({ ...DEFAULT_VIEW, active: refsOf(cr.chips), dir: cr.dir, scope: cr.scope, team: ti });
 }
 
 /** The link to the schedule; with a week, to that week's broken streaks; `risk`, to the week's at-risk streaks. */

@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { teams, firstSeason } from '../lib/model.ts';
-import { chipByKey } from '../lib/chips.ts';
+import { chipLabel } from '../lib/minedChips.ts';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
@@ -167,7 +167,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
           <div className={'lead' + (here ? ' here' : '')} key={cr.dir + cr.chips.join()}>
             <button className="lead-apply" onClick={() => onApply(cr)}>
               <span className={'lead-len' + (baseDir(cr.dir) === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
-              <span className="lead-txt">{cr.chips.length ? cr.chips.map((k) => chipByKey.get(k).label).join(' · ') : 'all games'}</span>
+              <span className="lead-txt">{cr.chips.length ? cr.chips.map(chipLabel).join(' · ') : 'all games'}</span>
               <span className="lead-meta">longest of {cr.field}{span ? ` · ${span}` : ''} · {oddsText(cr.chance)} by chance{here ? ' · shown above' : ''}</span>
             </button>
             <button className="ico lead-share" onClick={() => onShare(cr)} aria-label="Share this streak"><ShareIcon /></button>

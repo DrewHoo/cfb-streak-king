@@ -5,6 +5,7 @@ import { conflicts } from './chips.ts';
 import { activeRun, runsOf, matches, decided, OUTCOMES, MINED_OUTCOMES } from './streaks.ts';
 import { P, teams, CHIPS, activeBoard, allTimeBoard, baseRate } from './model.ts';
 import { mineRawCrowns, nearUniversalChips, LEN_FLOOR, FIELD_FLOOR } from './crowns.ts';
+import { refsOf } from './minedChips.ts';
 import { PLAIN_CHIPS } from './chips.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
@@ -185,7 +186,7 @@ describe('crowns agree with the boards', () => {
     const dirs = new Set([...cache.values()].flat().map((c) => c.dir));
     for (const d of MINED_OUTCOMES) expect(dirs, d).toContain(d);
     expect(dirs.size).toBe(MINED_OUTCOMES.length);
-  }, 60000);
+  }, 300000);
   for (const scope of ['active', 'all'] as const) {
     test(`${scope} crowns`, async () => {
       const cache = await mineRawCrowns(scope);
@@ -194,7 +195,7 @@ describe('crowns agree with the boards', () => {
       for (const [ti, list] of cache) for (const cr of list) if (rand() < 0.02) picked.push({ ti, cr });
       expect(picked.length).toBeGreaterThan(50);
       for (const { ti, cr } of picked) {
-        const def = cr.chips.map((key) => ({ key }));
+        const def = refsOf(cr.chips);
         const rows = scope === 'all'
           ? (() => { // an all-time board lists every run; the crown is the team's longest
             const best = new Map<number, BoardRow>();
@@ -213,7 +214,7 @@ describe('crowns agree with the boards', () => {
         expect(cr.n, label).toBe(rate.n);
         expect(cr.p, label).toBeCloseTo(rate.hit / rate.n, 12);
       }
-    }, 60000);
+    }, 300000);
   }
 });
 
@@ -226,5 +227,5 @@ describe('near-universal chips', () => {
     for (const scope of ['active', 'all'] as const) {
       for (const list of (await mineRawCrowns(scope)).values()) for (const c of list) expect(c.chips).not.toContain('weekend');
     }
-  }, 60000);
+  }, 300000);
 });

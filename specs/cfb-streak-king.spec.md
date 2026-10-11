@@ -313,3 +313,50 @@ sections carry the data details; this is the product and method record.
 Backlog after this pass: the Cloudflare worker; the "vs FBS opponents" chip; a loss cue on
 dark cells (deferred by Drew); coach-carried streaks across schools; sharing the
 corrections doc publicly so the README link works for others.
+
+## Opponent identity chips in the miner (2026-10-11)
+
+"Against orange schools" and "vs Bulldogs" should be able to name a crown, show on the team
+page, and be in the week's broken and at-stake digests. Today `vscolor` and `vsmascot` are
+parameter chips, so none of the three sees them: the crowns miner, `singleStreaks` and
+`minePlain` all walk `PLAIN_CHIPS`. Head-to-head is the precedent for a parameter chip in
+the digests, and it runs as its own pass in two of them.
+
+So the miner gets a derived list, `MINED_CHIPS` in `src/lib/minedChips.ts`: the plain chips
+plus one chip per color (7) and per mascot entry (34, the 27 name groups and the 7 classes).
+A derived chip is a real `Chip` with the choice baked into its test and the URL form as its
+key (`vscolor:orange`, `vsmascot:bulldogs`), so a crown's `chips` stay `string[]`, the
+crowns file needs no new encoding, and `decodeChips` turns the key back into a `ChipRef`
+for the sentence, the apply and the share link. The derived chips form one exclusive group,
+`identity`: a team has several mascot classes (Bulldogs is also animal and canine), so
+without that the miner would walk "vs Bulldogs · vs dog & wolf mascots". One identity chip
+plus up to three plain ones.
+
+The three readers switch to the list: `crowns.ts` builds its masks over it and walks it,
+`team.ts` iterates it for the single-condition rows (at-stake follows, it reads the team
+page's list), and `broken.ts` iterates it in `minePlain`. The definition counts crownRank
+charges (`M[k]`) are counted over the same list in one place, so the three agree.
+
+Costs, measured on Drew's Mac. The walk grows from 64,687 definitions to 428k (41 identity
+chips times the 8,856 definitions of up to three plain chips). The build-time mine went from
+18s to 67s for both scopes, the whole build from 32s to 83s; CI did the mine in 37s before,
+so expect ~2.5 minutes there. With no surcharge the crown files grew from 1.05 MB to 2.19 MB in all; with
+`identityBits` at 5 (below) they are 1.05 MB again. Page load is unchanged, since a team page
+embeds its own file. The
+single-condition passes the client runs (team page rows, the broken and at-stake digests)
+walk 80 chips instead of 39; the at-stake digest for a week takes ~0.5s in Node.
+
+Flood. With the identity chips costing what any chip costs, 71% of every team's top-six
+winning rows carried one (349 of 491), and Alabama's #2 read "49 straight vs unranked
+conference animal mascots". Forty-one fresh ways to slice a schedule produce a lot of sole
+leaders, and `M[k]` only charges the count. So `RANK.identityBits` charges each identity chip
+on top of the chip-count cost, default 5: that leaves 123 of 346 top-six rows with one, and
+the big ones (Georgia 50 straight vs animal mascots, Auburn 32 non-conference vs bird
+mascots) stay near the top. `M[k]` also grew, which charges every existing crown another
+1–2 bits, so a few near the −6.5 cutoff drop (Vanderbilt loses one of its two winning rows).
+The per-tier chip cost from the crown score review (claude.ai/artifact/XpW5iUtEUGnVJVWJPz3k2v)
+is the fuller answer and is a separate decision; `identityBits` is one tier of it.
+
+Not in this pass: the other parameter chips (state, conference, month, team), which would
+multiply the walk again; the identity chips in the + menu's kings (kings.ts already builds
+their masks on demand).

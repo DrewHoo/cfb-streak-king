@@ -1,8 +1,9 @@
-// Mine "streaks this team is king of": every ≤4-chip subset of the
-// parameterless catalog (exclusivity honored) × the seven mined outcomes
+// Mine "streaks this team is king of": every ≤4-chip subset of the mined
+// chips (minedChips.ts: the plain catalog plus the opponent color and mascot
+// choices; exclusivity honored) × the seven mined outcomes
 // (the plain five, and won or lost by 10+), evaluated over packed per-chip
-// bitmasks. The whole space is 64,687 definitions (the
-// empty one included) and mines in a second or two, lazily in the client.
+// bitmasks. The whole space is about 428k definitions (the empty one
+// included); the build mines it, and the dev server mines it in the page.
 //
 // Two scopes. 'active': the definition-direction whose sole longest active
 // streak belongs to this team. 'all': the sole longest run anywhere in the
@@ -14,7 +15,8 @@
 // team's crowns to show and orders them.
 
 import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
-import { PLAIN_CHIPS, conflicts, fitsDir, qualifies } from './chips.ts';
+import { conflicts, fitsDir, qualifies } from './chips.ts';
+import { MINED_CHIPS, definitionCounts } from './minedChips.ts';
 import { rankCrowns } from './crownRank.ts';
 import type { MinedCrown } from './crownRank.ts';
 import { fbsNow, gamesOf } from './model.ts';
@@ -41,7 +43,7 @@ export const FIELD_FLOOR = 10;
  */
 export const NEAR_UNIVERSAL = 0.9;
 
-const NP = PLAIN_CHIPS;
+const NP = MINED_CHIPS;
 
 const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };
 const mining: Record<Scope, Promise<Map<number, MinedCrown[]>> | null> = { active: null, all: null };
@@ -201,7 +203,7 @@ export function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope
   return best;
 }
 
-/** The plain chips (indices) that keep more than NEAR_UNIVERSAL of every team's games. */
+/** The mined chips (indices) that keep more than NEAR_UNIVERSAL of every team's games. */
 export function nearUniversalChips(data: TeamData[] = teamData()): Set<number> {
   const games = data.reduce((a, td) => a + td.n, 0);
   const out = new Set<number>();
@@ -230,8 +232,7 @@ async function mine(scope: Scope): Promise<{ raw: Map<number, MinedCrown[]>; M: 
     }
   })(0, []);
 
-  const M = [0, 0, 0, 0, 0];
-  for (const s of subsets) M[s.length]++;
+  const M = definitionCounts(NP, loose);
 
   const perTeam = new Map(T.map((ti) => [ti, new Map<string, MinedCrown>()])); // dedupe key -> crown
   const q = data.map((td) => new Uint32Array(td.words));

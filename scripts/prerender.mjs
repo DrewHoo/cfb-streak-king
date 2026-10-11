@@ -41,7 +41,7 @@ const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crowns
 const { completedWeeks, brokenWeek, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
 const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
-const { chipByKey } = await vite.ssrLoadModule('/src/lib/chips.ts')
+const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
 const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
 
@@ -165,7 +165,7 @@ console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under di
 // has a card the moment the site deploys.
 const weekly = { builtAt: P.builtAt, broken: {}, atRisk: null }
 // a broken run or an at-risk one as a card row: the count, the team, the claim, the small print
-const wordsOf = (chips, vs) => chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipByKey.get(k)?.label ?? k)).join(' · ')
+const wordsOf = (chips, vs) => chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipLabel(k))).join(' · ')
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
 const PRESENT = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' }
 const enderWords = (b) => {
@@ -175,37 +175,40 @@ const enderWords = (b) => {
   if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`
   return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`
 }
+// one page per week the schedule can open on (GamesPage's gameWeeks): the
+// week's at-risk streaks and games, with the week before it's broken runs
 const weekUrls = []
-for (const w of completedWeeks().filter((x) => x.wk != null)) {
-  const broken = brokenWeek(w.wk)
-  if (!broken) continue
-  weekly.broken[w.wk] = {
-    wk: w.wk, lo: w.lo, hi: w.hi, ofNote: broken.list.length,
+const weekNums = new Set(scheduledGames().map((g) => g.wk))
+for (const w of completedWeeks()) if (w.wk != null) weekNums.add(w.wk + 1)
+for (const n of [...weekNums].sort((a, b) => a - b)) {
+  const broken = brokenWeek(n - 1)
+  if (broken) weekly.broken[n - 1] = {
+    wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length,
     rows: broken.list.map((b) => ({
       count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
       claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips, b.vs)}` : ''}`,
       sub: `${b.vs != null ? 'head-to-head' : `was ${rankText(b)} of ${b.field}`} · since ${b.since} · ${enderWords(b)}`,
     })),
   }
-  const url = `${SITE}games/week/${w.wk}/`
-  const title = `Week ${w.wk} streaks broken · ${config.title}`
-  const top = broken.list.slice(0, 3).map((b) => brokenClaim(b))
+  const url = `${SITE}games/week/${n}/`
+  const title = `Week ${n} games · ${config.title}`
+  const top = broken ? broken.list.slice(0, 3).map((b) => brokenClaim(b)) : []
   const description = top.length
-    ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${w.wk}.` : ''}`
-    : `No streak of note broke in Week ${w.wk}.`
+    ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${n - 1}.` : ''} Week ${n}'s games and the streaks they put at risk.`
+    : `Week ${n}'s college football games and the streaks they put at risk.`
   const { html } = page({
-    initial: { games: true, bwk: w.wk },
+    initial: { games: true, bwk: n },
     url,
     title,
     description,
-    image: `${SITE}share/og.png?broken=${w.wk}`,
-    imageAlt: `The streaks broken in Week ${w.wk}, on a dark leaderboard.`,
+    image: broken ? `${SITE}share/og.png?broken=${n - 1}` : `${SITE}og.png`,
+    imageAlt: broken ? `The streaks broken in Week ${n - 1}, on a dark leaderboard.` : `${config.title}: the default board.`,
     jsonLd: {
       '@context': 'https://schema.org',
-      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${w.wk}`, url]])],
+      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${n}`, url]])],
     },
   })
-  const dir = path.join(ROOT, 'dist', 'games', 'week', String(w.wk))
+  const dir = path.join(ROOT, 'dist', 'games', 'week', String(n))
   fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(path.join(dir, 'index.html'), html)
   weekUrls.push(url)

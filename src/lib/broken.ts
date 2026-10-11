@@ -1,6 +1,6 @@
 // The streaks broken in the last completed week: the runs that were alive
-// under the empty definition or a single plain condition (the team page's
-// space) until a result that week ended them, plus head-to-head runs against
+// under the empty definition or a single mined condition (the team page's
+// space: the plain chips and the opponent color and mascot choices) until a result that week ended them, plus head-to-head runs against
 // the opponents actually played ("Michigan had won 18 straight vs
 // Minnesota"). Each is scored like a crown — how far past chance the run
 // sat — with one telling kept per broken run, the field it ranked in as the
@@ -14,7 +14,8 @@
 import type { Dir, GameRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { FLAG } from './schema.ts';
-import { PLAIN_CHIPS, chipByKey, fitsDir } from './chips.ts';
+import { fitsDir } from './chips.ts';
+import { MINED_CHIPS, chipLabel } from './minedChips.ts';
 import { matches } from './streaks.ts';
 import { MINED_MARGIN, baseDir, isMargin, marginDir } from './outcome.ts';
 import { teamData, nearUniversalChips } from './crowns.ts';
@@ -101,7 +102,7 @@ export function completedWeeks(): CompletedWeek[] {
 const DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 const bit = (m: Uint32Array, i: number) => (m[i >> 5] & (1 << (i & 31))) !== 0;
 
-// Every run under the empty definition or one plain chip that a week-`w`
+// Every run under the empty definition or one mined chip that a week-`w`
 // game ended: walk each team's qualifying games split at the week's Tuesday,
 // take the trailing run entering the week, extend it through the week's
 // games until one misses.
@@ -111,8 +112,8 @@ function minePlain(w: number): BrokenStreak[] {
   const ctx = { M: DEFS, teams: fbsNow.size };
   const wlo = w * 7 + TUE;
   const out: BrokenStreak[] = [];
-  for (const ci of [null, ...PLAIN_CHIPS.map((_, i) => i).filter((i) => !loose.has(i))]) {
-    const chip = ci == null ? null : PLAIN_CHIPS[ci];
+  for (const ci of [null, ...MINED_CHIPS.map((_, i) => i).filter((i) => !loose.has(i))]) {
+    const chip = ci == null ? null : MINED_CHIPS[ci];
     const chips = chip ? [chip.key] : [];
     const dirs = DIRS.filter((d) => !chip || fitsDir(chip, d));
     // the definition's qualifying games per team and its pooled outcome rates
@@ -295,6 +296,6 @@ export function brokenLastWeek(): BrokenWeek | null {
 /** The claim a broken run makes, in plain words: "Michigan had won 18 straight on the road vs Minnesota". */
 export function brokenClaim(b: BrokenStreak): string {
   const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[baseDir(b.dir) as 'W' | 'L' | 'C' | 'N'];
-  const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : chipByKey.get(k)?.label ?? k)).join(' ');
+  const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : chipLabel(k))).join(' ');
   return `${teams[b.ti]?.name} ${verb} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`;
 }

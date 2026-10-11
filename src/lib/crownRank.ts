@@ -9,6 +9,8 @@
 //                          every place a run could start (all-time)
 //   − chipW·log2(M[k])     M[k] = how many k-chip definitions the miner walks
 //   − postBits per chip read from the game's own play
+//   − identityBits per opponent color or mascot chip: 41 ways to slice the
+//     schedule that fans rarely say, so one costs more than a plain chip
 //   + span·log2(seasons)   a run across decades is a story in itself
 //
 // p is the outcome's rate over every current FBS team's qualifying games
@@ -27,11 +29,13 @@
 import type { Crown } from './types.ts';
 import { chipByKey } from './chips.ts';
 import { baseDir, isMargin } from './outcome.ts';
+import { isIdentityKey } from './minedChips.ts';
 
 export const RANK = {
   chanceW: 1,
   chipW: 0.75,
   postBits: 7,
+  identityBits: 5,
   spanA: 0.75,
   spanAll: 1.75,
   cutoff: -6.5,
@@ -59,6 +63,7 @@ export interface RankContext {
 const P_MAX = 0.995;
 const seasons = (c: Omit<Crown, 'chance'>) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
 const inGame = (c: Omit<Crown, 'chance'>) => c.chips.filter((k) => IN_GAME_GROUPS.has(chipByKey.get(k)?.group ?? '')).length;
+const identity = (c: Omit<Crown, 'chance'>) => c.chips.filter(isIdentityKey).length;
 
 /**
  * How likely chance alone makes a streak this long under the definition: each
@@ -79,6 +84,7 @@ export function crownScore(c: MinedCrown, ctx: RankContext, w = RANK): number {
     - w.chanceW * chance
     - w.chipW * Math.log2(ctx.M[c.chips.length])
     - w.postBits * inGame(c)
+    - w.identityBits * identity(c)
     + span * Math.log2(seasons(c));
 }
 

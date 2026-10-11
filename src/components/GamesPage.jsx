@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { scheduledGames, lineText, topOnLine, rankText } from '../lib/team.ts';
-import { brokenLastWeek, brokenWeek, completedWeeks } from '../lib/broken.ts';
+import { brokenWeek, completedWeeks } from '../lib/broken.ts';
 import { atRiskWeek } from '../lib/atRisk.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
@@ -76,12 +76,10 @@ function BrokenRow({ b, onOpen }) {
   );
 }
 
-// the digest of a completed week's broken runs, above the schedule; the
-// week is a picker, each choice its own address (/games/week/<n>/), and
-// the default (/games/) is the latest completed week
-function Broken({ bwk, onOpen, onWeek, onLink }) {
-  const weeks = useMemo(() => completedWeeks().filter((w) => w.wk != null), []);
-  const broken = useMemo(() => (bwk != null ? brokenWeek(bwk) : null) ?? brokenLastWeek(), [bwk]);
+// the digest of one completed week's broken runs: the week before the
+// selected one, so it sits above that week's at-risk streaks and games
+function Broken({ wk, onOpen, onLink }) {
+  const broken = useMemo(() => brokenWeek(wk), [wk]);
   // "more" opens per week, so flipping weeks folds it back up
   const [moreWk, setMoreWk] = useState(null);
   if (!broken) return null;
@@ -90,14 +88,7 @@ function Broken({ bwk, onOpen, onWeek, onLink }) {
   return (
     <section className="gwk">
       <div className="gwk-h gbk-h">
-        <span className="gbk-ttl">
-          Streaks broken{broken.wk != null && weeks.length > 0 ? ' in' : ''}
-          {broken.wk != null && weeks.length > 0 && (
-            <span className="gbk-wk">
-              <Picker value={broken.wk} options={weeks.map((w) => ({ value: w.wk, label: `Week ${w.wk}` }))} onChange={onWeek} ariaLabel="Pick a week of broken streaks" />
-            </span>
-          )}
-        </span>
+        <span className="gbk-ttl">Streaks broken{broken.wk != null ? ` in Week ${broken.wk}` : ''}</span>
         <small>
           {span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}
           {broken.wk != null && <button className="lnk" onClick={() => onLink('broken', broken.wk)} aria-label={`Link to Week ${broken.wk}’s broken streaks`} title="link to this"><LinkIcon /></button>}
@@ -204,12 +195,25 @@ function Week({ games, todayEp, onGame }) {
   return <div className="gwk-list"><div className="gm gm-head" aria-hidden="true"><span>kick</span><span>away</span><span /><span>home</span><span className="gm-line">line</span></div>{out}</div>;
 }
 
+/**
+ * The weeks the page can open on: every week with games scheduled, and the
+ * week after each completed one (so its broken digest is reachable). The
+ * default is the first scheduled week, the one about to be played.
+ */
+export function gameWeeks() {
+  const byWk = new Map();
+  for (const g of scheduledGames()) (byWk.get(g.wk) ?? byWk.set(g.wk, []).get(g.wk)).push(g);
+  const scheduled = [...byWk.entries()].sort((a, b) => a[0] - b[0]);
+  const options = new Set(scheduled.map(([wk]) => wk));
+  for (const w of completedWeeks()) if (w.wk != null) options.add(w.wk + 1);
+  return { scheduled, options: [...options].sort((a, b) => a - b), first: scheduled[0]?.[0] ?? Math.max(0, ...options) };
+}
+
 export function GamesPage({ todayEp, bwk, risk, copied, on }) {
-  const weeks = useMemo(() => {
-    const byWk = new Map();
-    for (const g of scheduledGames()) (byWk.get(g.wk) ?? byWk.set(g.wk, []).get(g.wk)).push(g);
-    return [...byWk.entries()].sort((a, b) => a[0] - b[0]);
-  }, []);
+  const { scheduled: weeks, options, first } = useMemo(gameWeeks, []);
+  // the selected week: its at-risk streaks and games, and the week before it's broken runs
+  const sel = bwk ?? first;
+  const selGames = weeks.find(([wk]) => wk === sel)?.[1];
   const [open, setOpen] = useState(() => new Set());
   const toggle = (wk) => setOpen((cur) => { const next = new Set(cur); if (next.has(wk)) next.delete(wk); else next.add(wk); return next; });
   return (
@@ -221,19 +225,24 @@ export function GamesPage({ todayEp, bwk, risk, copied, on }) {
           {copied && <span className="toast">copied</span>}
         </span>
       </div>
-      <h1 className="gpg-h1">{P.currentSeason} games</h1>
+      <h1 className="gpg-h1">
+        {P.currentSeason} games
+        {options.length > 1 && (
+          <span className="gbk-wk"> · <Picker value={sel} options={options.map((wk) => ({ value: wk, label: `Week ${wk}` }))} onChange={on.week} ariaLabel="Pick a week" /></span>
+        )}
+      </h1>
       <p className="tpg-note">Every scheduled game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</p>
-      <Broken bwk={bwk} onOpen={on.streak} onWeek={on.week} onLink={on.link} />
-      {weeks.length > 0 && <AtRisk wk={weeks[0][0]} games={weeks[0][1]} todayEp={todayEp} onGame={on.game} onLink={on.link} focus={risk} />}
+      <Broken wk={sel - 1} onOpen={on.streak} onLink={on.link} />
+      {selGames && <AtRisk wk={sel} games={selGames} todayEp={todayEp} onGame={on.game} onLink={on.link} focus={risk} />}
       {weeks.length === 0 && <p className="empty">No games are scheduled.</p>}
-      {weeks.map(([wk, games], i) => {
-        const shown = i === 0 || open.has(wk);
+      {weeks.map(([wk, games]) => {
+        const shown = wk === sel || open.has(wk);
         return (
           <section key={wk} className="gwk">
-            <button className={'gwk-h' + (shown ? ' on' : '')} onClick={() => toggle(wk)} aria-expanded={shown} disabled={i === 0}>
+            <button className={'gwk-h' + (shown ? ' on' : '')} onClick={() => toggle(wk)} aria-expanded={shown} disabled={wk === sel}>
               <span>Week {wk}</span>
               <small>{span(games[0].ep, games[games.length - 1].ep)} · {games.length} games</small>
-              {i > 0 && <Chevron />}
+              {wk !== sel && <Chevron />}
             </button>
             {shown && <Week games={games} todayEp={todayEp} onGame={on.game} />}
           </section>

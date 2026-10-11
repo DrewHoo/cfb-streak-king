@@ -5,6 +5,7 @@ import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } 
 import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { gameVs } from './lib/team.ts';
+import { refsOf } from './lib/minedChips.ts';
 import { dirWord, dayOf, rowKey, siteWord } from './lib/format.ts';
 import { track } from './lib/analytics.ts';
 import { writeUrl, absoluteUrl } from './urlState.js';
@@ -145,7 +146,8 @@ export default function App({ initial } = {}) {
   // opponent; a broken run names its all-time row.
   function openStreak(s, ti, from) {
     crowns.followDir(s.dir);
-    const chips = s.chips.map((key) => (key === 'vsteam' && s.vs != null ? { key, param: s.vs } : { key }));
+    // a digest's head-to-head run carries its opponent in `vs`; a mined key decodes to its chip and choice
+    const chips = s.chips.flatMap((key) => (key === 'vsteam' ? (s.vs != null ? [{ key, param: s.vs }] : []) : refsOf([key])));
     dispatch({ type: 'streak', chips, dir: s.dir, scope: s.scope ?? 'active', team: ti, run: s.run ?? null });
     track('lead apply', { chips: s.chips.join(',') || 'overall', dir: s.dir, scope: s.scope ?? 'active', len: s.len, from });
   }
@@ -176,10 +178,11 @@ export default function App({ initial } = {}) {
     share(`This week's college football games, with every streak on the line`, absoluteUrl(BASE, gamesUrl()));
   }
   // a schedule section's own address: the URL moves to it, and the share sheet (or the clipboard) gets it
+  // a broken digest sits under the week after it, so its address is that week's
   function linkSection(kind, wk) {
-    if (kind === 'risk') dispatch({ type: 'risk' }); else dispatch({ type: 'bweek', wk });
+    if (kind === 'risk') dispatch({ type: 'risk' }); else dispatch({ type: 'bweek', wk: wk + 1 });
     track('share', { games: true, section: kind, wk });
-    share(kind === 'risk' ? `Week ${wk}'s college football streaks most at risk` : `The college football streaks broken in Week ${wk}`, absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk, kind === 'risk')));
+    share(kind === 'risk' ? `Week ${wk}'s college football streaks most at risk` : `The college football streaks broken in Week ${wk}`, absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk + 1, kind === 'risk')));
   }
   function shareGame() {
     track('share', { team: teams[game].id, matchup: true });

@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { P, teams, fbsNow, upcomingOf } from '../lib/model.ts';
-import { chipByKey } from '../lib/chips.ts';
+import { chipLabel } from '../lib/minedChips.ts';
 import { seasonRecord, recordText, atsText, teamStreaks, streaksOn, rankText, lastMeeting, h2hStreaksOn, LEN_FLOOR } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, shortDate, siteWord, spreadText, gamesWord, oddsText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
@@ -18,7 +18,7 @@ const ON_LINE_CAP = { phone: 4, desk: 6 };
 const bad = (dir) => baseDir(dir) === 'L' || dir === 'N';
 // `vs` is a head-to-head streak's opponent, the choice its "vsteam" chip carries
 export const streakWords = (chips, vs) => (chips.length
-  ? chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipByKey.get(k).label)).join(' · ')
+  ? chips.map((k) => (k === 'vsteam' && vs != null ? `vs ${teams[vs]?.name ?? '?'}` : chipLabel(k))).join(' · ')
   : 'all games');
 
 /**

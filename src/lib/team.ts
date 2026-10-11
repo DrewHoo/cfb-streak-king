@@ -10,7 +10,8 @@
 
 import type { Crown, Dir, GameRow, UpcomingRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
-import { PLAIN_CHIPS, conflicts, fitsDir, qualifiesPregame } from './chips.ts';
+import { fitsDir, qualifiesPregame } from './chips.ts';
+import { MINED_CHIPS, MINED_DEFS, minedIdx } from './minedChips.ts';
 import type { PregameChip } from './chips.ts';
 import { teamData, walkActive, spreadWalk, nearUniversalChips, asMarginRuns } from './crowns.ts';
 import type { Run } from './crowns.ts';
@@ -84,20 +85,8 @@ export const worthShowing = (s: Pick<TeamStreak, 'len' | 'rank' | 'tied'>) => s.
 const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 
 // how many definitions have each chip count, the cost crownRank charges a definition
-export const DEFS = (() => {
-  const M = [0, 0, 0, 0, 0];
-  (function walk(start: number, chosen: number[]) {
-    M[chosen.length]++;
-    if (chosen.length === 4) return;
-    for (let i = start; i < PLAIN_CHIPS.length; i++) {
-      if (chosen.some((j) => conflicts(PLAIN_CHIPS[j], PLAIN_CHIPS[i]))) continue;
-      walk(i + 1, [...chosen, i]);
-    }
-  })(0, []);
-  return M;
-})();
+export const DEFS = MINED_DEFS;
 
-const plainIdx = new Map(PLAIN_CHIPS.map((c, i) => [c.key, i]));
 const popcount = (x: number) => {
   x -= (x >>> 1) & 0x55555555;
   x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
@@ -106,13 +95,13 @@ const popcount = (x: number) => {
 const countAnd = (a: Uint32Array, b: Uint32Array) => { let n = 0; for (let w = 0; w < a.length; w++) n += popcount(a[w] & b[w]); return n; };
 
 /**
- * Every team's current streaks under one definition of plain chips, one per
+ * Every team's current streaks under one definition of mined chips, one per
  * outcome the definition can define, scored. Walks the crowns miner's
  * bitmasks; the lengths and fields are activeBoard's (team.test.ts holds
  * them to it).
  */
 function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[]> {
-  const cs = chips.map((k) => PLAIN_CHIPS[plainIdx.get(k)!]);
+  const cs = chips.map((k) => MINED_CHIPS[minedIdx.get(k)!]);
   const dirs = SHEET_DIRS.filter((d) => cs.every((c) => fitsDir(c, d)));
   const pre = cs.every((c) => c.pregame) ? (u: UpcomingRow) => cs.every((c) => qualifiesPregame(c as PregameChip, u)) : null;
   const data = teamData();
@@ -123,7 +112,7 @@ function streaksUnder(chips: string[], todayEp: number): Map<number, TeamStreak[
     const q = new Uint32Array(td.words);
     // past the last game the bits stay clear, so a count is a count of games
     for (let i = 0; i < td.n; i++) q[i >> 5] |= 1 << (i & 31);
-    for (const k of chips) { const m = td.masks[plainIdx.get(k)!]; for (let w = 0; w < td.words; w++) q[w] &= m[w]; }
+    for (const k of chips) { const m = td.masks[minedIdx.get(k)!]; for (let w = 0; w < td.words; w++) q[w] &= m[w]; }
     const r: Partial<Record<Dir, Run>> = walkActive(td, q);
     const c = spreadWalk(td, q, td.covered, 'active');
     if (c) r.C = c;
@@ -181,7 +170,7 @@ function singleStreaks(todayEp: number): Map<number, TeamStreak[]> {
   if (cache?.todayEp === todayEp) return cache.byTeam;
   const byTeam = new Map<number, TeamStreak[]>([...fbsNow].map((ti) => [ti, []]));
   const loose = nearUniversalChips();
-  for (const c of [null, ...PLAIN_CHIPS.filter((_, i) => !loose.has(i))]) {
+  for (const c of [null, ...MINED_CHIPS.filter((_, i) => !loose.has(i))]) {
     for (const [ti, list] of streaksUnder(c ? [c.key] : [], todayEp)) byTeam.get(ti)!.push(...list);
   }
   cache = { todayEp, byTeam };

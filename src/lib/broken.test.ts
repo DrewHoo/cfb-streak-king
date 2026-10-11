@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { brokenLastWeek, brokenWeek, completedWeeks, brokenClaim, BROKEN_CAP, BROKEN_CUTOFF, BROKEN_FLOOR } from './broken.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
-import { chipByKey, qualifies } from './chips.ts';
+import { qualifies } from './chips.ts';
+import { minedChipByKey } from './minedChips.ts';
 import { matches, decided } from './streaks.ts';
 import { LEN_FLOOR, fitsSite } from './team.ts';
 
@@ -55,7 +56,7 @@ describe('brokenLastWeek', () => {
   test('each plain run re-derives from the team’s games: len straight, then the ender', () => {
     if (!broken) return;
     for (const b of allRows.filter((x) => x.vs == null)) {
-      const chips = b.chips.map((k) => chipByKey.get(k)!);
+      const chips = b.chips.map((k) => minedChipByKey.get(k)!);
       const qual = gamesOf(b.ti).filter((g) => chips.every((c) => qualifies(c, g)) && decided(b.dir, g));
       const at = qual.indexOf(b.ender);
       expect(at).toBeGreaterThanOrEqual(b.len);
@@ -113,7 +114,7 @@ describe('brokenLastWeek', () => {
     if (!broken) return;
     const wlo = weekIdx(broken.hi) * 7 + 5; // the week's Tuesday
     for (const b of allRows.filter((x) => x.vs == null)) {
-      const chips = b.chips.map((k) => chipByKey.get(k)!);
+      const chips = b.chips.map((k) => minedChipByKey.get(k)!);
       let longer = 0;
       for (const ti of fbsNow) {
         const qual = gamesOf(ti).filter((g) => g.ep < wlo && chips.every((c) => qualifies(c, g)) && decided(b.dir, g));

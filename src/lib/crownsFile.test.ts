@@ -11,4 +11,4 @@ test('every team’s crowns survive the file encoding', async () => {
     const rounded = (list: typeof c.active) => list.map((x) => ({ ...x, chance: +x.chance.toPrecision(2) }));
     expect(back).toEqual(JSON.parse(JSON.stringify({ active: rounded(c.active), all: rounded(c.all) })));
   }
-}, 60000);
+}, 300000);
