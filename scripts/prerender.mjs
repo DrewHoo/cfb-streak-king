@@ -432,7 +432,7 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', `${P.currentSeason}.json`),
     rows: ranking.slice(0, 7).map((s, i) => ({
       count: String(s.n), team: teams[s.ti].id, bad: false,
       claim: `${i + 1}. ${teams[s.ti].name} · ${(Math.round(s.points * 10) / 10).toFixed(1)} points`,
-      sub: `${s.by.alltime} all-time · ${s.by.leading} led the field · ${s.by.active} other${s.best ? ` · best: ${brokenClaim(s.best)}` : ''}`,
+      sub: `${s.by.alltime} all-time · ${s.by.leading} led the field · ${s.by.active} other`,
     })),
   }
   weekly.stopper = {}
