@@ -111,7 +111,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12a';
+const CARD_VERSION = '2026-10-12b';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -151,7 +151,8 @@ function loadModel(): Promise<Model> {
 /** dist/share/weekly.json: the week cards' rows, as the prerender writes them. */
 interface WeeklyRow { count: string; team: string; bad: boolean; claim: string; sub: string }
 interface WeeklyCard { wk: number; lo: number; hi: number; ofNote?: number; rows: WeeklyRow[] }
-interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null }
+interface StopperCard { season: number; name: string; n: number; points: number; rank: number; rows: WeeklyRow[] }
+interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null; stoppers?: { season: number; rows: WeeklyRow[] }; stopper?: Record<string, StopperCard> }
 let weeklyCache: { day: string; data: Promise<Weekly> } | null = null;
 function loadWeekly(): Promise<Weekly> {
   const day = dayKey();
@@ -226,6 +227,30 @@ async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> 
   const res = renderCard({
     heading: kind === 'risk' ? `Week ${card.wk} at-risk streaks` : `Streaks broken · Week ${card.wk}`,
     words: kind === 'risk' ? `${spanOf(card.lo, card.hi)} · by what the game can take away` : `${spanOf(card.lo, card.hi)} · ${card.ofNote ?? rows.length} of note`,
+    rows,
+    dense: true,
+    footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
+  });
+  const png = await res.arrayBuffer();
+  if (!png.byteLength) throw new Error('empty render');
+  return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
+}
+
+/** The streak-stoppers card: the leaderboard's top, or one team's own stopped streaks. */
+async function stopperCard(id: string | null): Promise<Response> {
+  const [weekly, m] = await Promise.all([loadWeekly(), loadModel()]);
+  const card = id ? weekly.stopper?.[id] : weekly.stoppers;
+  if (!card) throw new Error(`no stoppers card${id ? ` for ${id}` : ''}`);
+  const byId = new Map(m.teams.map((t) => [t.id, t]));
+  const rows: CardRow[] = [];
+  for (const r of card.rows) {
+    const t = byId.get(r.team);
+    rows.push({ count: r.count, name: r.claim, sub: r.sub, bad: r.bad, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
+  }
+  const own = id ? (card as StopperCard) : null;
+  const res = renderCard({
+    heading: own ? `Streaks ${own.name} stopped · ${own.season}` : `Top Streak-Stoppers · ${card.season}`,
+    words: own ? `${own.n} ended by winning · ${own.points} points · #${own.rank} among stoppers` : 'streaks broken by winning the game · points by what the run was',
     rows,
     dense: true,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
@@ -351,11 +376,15 @@ export default {
         const cached = await caches.default.match(key);
         const week = url.searchParams.get('broken') ?? url.searchParams.get('risk');
         const game = url.searchParams.get('game');
-        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
+        const stopper = url.searchParams.get('stopper');
+        const stoppers = url.searchParams.has('stoppers') || (stopper != null && /^[a-z0-9-]+$/.test(stopper));
+        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : stoppers ? 'stoppers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
         const res = game
           ? await gameCard(game)
-          : week != null && /^\d{1,2}$/.test(week)
+          : stoppers
+            ? await stopperCard(stopper)
+            : week != null && /^\d{1,2}$/.test(week)
             ? await weekCard(url.searchParams.has('risk') ? 'risk' : 'broken', Number(week))
             : await ogCard(url.searchParams);
         ctx.waitUntil(caches.default.put(key, res.clone()));

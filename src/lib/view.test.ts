@@ -109,6 +109,12 @@ describe('view', () => {
     expect(viewReducer(v, { type: 'streak', chips: [], dir: 'W', scope: 'active', team: 2 }).stoppers).toBe(false);
     expect(viewReducer(viewReducer(initialView(), { type: 'games' }), { type: 'stoppers' }).games).toBe(false);
     expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), stoppers: true } }).stoppers).toBe(true);
+    // one team's stopped streaks, and back to the leaderboard
+    const s = viewReducer(v, { type: 'stoppers', team: 4 });
+    expect([s.stoppers, s.stopper]).toEqual([true, 4]);
+    expect(viewReducer(s, { type: 'stoppers' }).stopper).toBeNull();
+    expect(viewReducer(s, { type: 'board' }).stopper).toBeNull();
+    expect(viewReducer(s, { type: 'page', team: 2 })).toMatchObject({ stoppers: true, stopper: 4, page: 2 });
   });
 
   test('a game page takes the place of the board, a team page or the schedule, and keeps the board’s open team', () => {

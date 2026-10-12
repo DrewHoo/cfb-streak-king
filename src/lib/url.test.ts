@@ -82,6 +82,10 @@ describe('url', () => {
     expect(parseUrl('/cfb-streak-king/stoppers', '').stoppers).toBe(true);
     expect(parseUrl('/cfb-streak-king/games/', '').stoppers).toBe(false);
     expect(toUrl({ ...DEFAULT_VIEW, stoppers: true, page: idx('byu') }).path).toBe('team/byu/');
+    // one team's stopped streaks, its own address
+    expect(stoppersUrl(idx('georgia')).path).toBe('stoppers/georgia/');
+    expect(parseUrl('/cfb-streak-king/stoppers/georgia/', '')).toMatchObject({ stoppers: true, stopper: idx('georgia'), page: null });
+    expect(parseUrl('/cfb-streak-king/stoppers/not-a-team/', '')).toMatchObject({ stoppers: false, stopper: null });
   });
 
   test('a week of broken streaks is /games/week/<n>/, and round-trips', () => {

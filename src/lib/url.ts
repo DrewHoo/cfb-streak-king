@@ -48,15 +48,16 @@ export interface View {
   games: boolean;
   /** The schedule's week, /games/week/<n>/; null = the first scheduled week. */
   bwk: number | null;
-  /** The streak-stoppers leaderboard, /stoppers/. */
+  /** The streak-stoppers leaderboard, /stoppers/; with a team, that team's stopped streaks, /stoppers/<id>/. */
   stoppers: boolean;
+  stopper: number | null;
   /** The schedule's season, /games/<season>/week/<n>/; null = the running season. */
   season: number | null;
   /** The schedule, opened on the week's at-risk streaks: /games/at-risk/. */
   risk: boolean;
 }
 
-export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, run: null, page: null, game: null, games: false, bwk: null, season: null, risk: false, stoppers: false };
+export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, run: null, page: null, game: null, games: false, bwk: null, season: null, risk: false, stoppers: false, stopper: null };
 
 const teamById = (id: string | null) => {
   const ti = id ? teams.findIndex((t) => t.id === id) : -1;
@@ -78,7 +79,9 @@ export const seasonFromPath = (pathname: string) => {
 /** Whether a path is the schedule's at-risk streaks, /cfb-streak-king/games/at-risk/. */
 export const riskFromPath = (pathname: string) => /\/games\/at-risk\/?$/.test(pathname);
 /** Whether a path is the streak-stoppers leaderboard, /cfb-streak-king/stoppers/. */
-export const stoppersFromPath = (pathname: string) => /\/stoppers\/?$/.test(pathname);
+export const stoppersFromPath = (pathname: string) => /\/stoppers\/?$/.test(pathname) || stopperFromPath(pathname) != null;
+/** The team in a stopped-streaks path like /cfb-streak-king/stoppers/georgia/. */
+export const stopperFromPath = (pathname: string) => teamById(/\/stoppers\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1] ?? null);
 /** Whether a path is the schedule, /cfb-streak-king/games/, a season or week of it, or its at-risk streaks. */
 export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) || weekFromPath(pathname) != null || seasonFromPath(pathname) != null || riskFromPath(pathname);
 
@@ -115,6 +118,7 @@ export function parseUrl(pathname: string, search: string): View {
     season: inPath == null && !game ? seasonFromPath(pathname) : null,
     risk: inPath == null && !game && riskFromPath(pathname),
     stoppers: inPath == null && !game && stoppersFromPath(pathname),
+    stopper: inPath == null && !game ? stopperFromPath(pathname) : null,
   };
 }
 
@@ -125,7 +129,7 @@ export function toUrl(v: View): UrlParts {
   // a team page or a game page is its own address; the board's definition stays in memory
   const board = v.page == null && v.game == null && !v.games && !v.stoppers;
   return {
-    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.stoppers ? 'stoppers/' : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : '',
+    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.stoppers ? `stoppers/${v.stopper != null ? `${teams[v.stopper].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : '',
     params: {
       vs: null, // the old matchup param
       t: board && v.team != null ? teams[v.team].id : null,
@@ -150,7 +154,7 @@ export function crownUrl(ti: number, cr: Crown): UrlParts {
 export const gamesUrl = (bwk: number | null = null, risk = false, season: number | null = null): UrlParts => toUrl({ ...DEFAULT_VIEW, games: true, bwk, risk, season });
 
 /** The link to the streak-stoppers leaderboard. */
-export const stoppersUrl = (): UrlParts => toUrl({ ...DEFAULT_VIEW, stoppers: true });
+export const stoppersUrl = (stopper: number | null = null): UrlParts => toUrl({ ...DEFAULT_VIEW, stoppers: true, stopper });
 
 /** The link to a team's page. */
 export function teamUrl(ti: number): UrlParts {

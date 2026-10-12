@@ -448,6 +448,8 @@ button.xrow:hover, button.xrow:focus-visible { background: rgba(243, 226, 188, 0
   background: transparent; border: none; border-bottom: 1px dotted var(--line); padding: 6px 2px;
   color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
+.srow.marked { grid-template-columns: 44px 22px minmax(0, 1fr) auto; }
+.srow-mark { width: 22px; height: 22px; align-self: center; }
 .srow:hover, .srow:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
 .srow > svg { color: var(--ink-faint); align-self: center; }
 .srow-len { font-family: 'Graduate', serif; font-size: 17px; color: var(--cream); }
@@ -735,4 +737,13 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .stp-weights th, .stp-weights td { padding: 7px 10px; border-bottom: 1px dotted var(--line); text-align: right; font-weight: 400; }
 .stp-weights thead th { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); border-bottom-style: solid; border-bottom-color: var(--ink-faint); }
 .stp-weights tbody th { text-align: left; font-family: 'Source Serif 4', Georgia, serif; font-size: 13.5px; }
+/* one team's stopped streaks: whose they were, with a count each; a tap filters the list */
+.stp-h1 { display: flex; align-items: center; gap: 12px; }
+.stp-h1 .stp-logo { width: 34px; height: 34px; }
+.stp-vict { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
+.stp-v { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px 4px 5px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; cursor: pointer; }
+.stp-v:hover { border-color: var(--ink-faint); color: var(--ink); }
+.stp-v.on { border-color: var(--cream); color: var(--cream); }
+.stp-v .stp-logo { width: 18px; height: 18px; }
+.stp-v b { font-weight: 600; }
 @media (max-width: 520px) { .stp-stats { grid-template-columns: repeat(3, 1fr); row-gap: 12px; } }

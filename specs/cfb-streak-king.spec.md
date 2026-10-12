@@ -625,8 +625,12 @@ from the miner's broken runs over the full four-chip space.
   `everLen`), led the field (rank 1 as the week began, ties included), other active.
 - Points per break: `STOP.points[category] / (1 + STOP.discount × conditions)`, 10 / 4 / 1 and
   0.5. The ranking is by points, then breaks; pills re-sort by breaks or all-time breaks.
-- A row opens the team's page at "Streaks broken this season": the team's breaks, all-time first
-  then by score (6, the rest behind "more"), with its count, points and rank among stoppers.
+- A row opens `/stoppers/<id>/`, the team's stopped streaks: a strip of whose they were (logo and
+  count each, a tap filters the list), then the rows, all-time first then by score (12, the rest
+  behind "more"), each with the owner's mark. A team page shows its first six under "Streaks broken
+  this season" with its count, points, rank and a link to the full list.
+- Cards: `share/og.png?stoppers=<season>` (the leaderboard's top seven) and `?stopper=<id>` (a
+  team's top seven breaks), from rows the prerender writes to `dist/share/weekly.json`.
 - The build writes `dist/stoppers/<season>.json` (`StoppersFile`: rows per stopper in the
   season-file broken-row shape, plus each stopper's rank) and embeds it in the prerendered
   page; a team page embeds a slice (its own rows, `complete: false`) and fetches the file only

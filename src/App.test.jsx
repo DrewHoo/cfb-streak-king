@@ -126,8 +126,16 @@ describe('prerender + hydrate', () => {
     expect(b.html.replace(/<[^>]+>/g, '')).toContain('Georgia ended 1 streak by winning');
     expect(b.html).toContain('show 1 sub-streak');
     expect(b.html.replace(/<[^>]+>/g, '')).toContain('#1 among streak-stoppers');
+    expect(b.html).toContain('srow-mark'); // whose streak it was
     expect(b.errors).toEqual([]);
     await b.unmount();
+    // the team's own stopped-streaks page, from its slice
+    const c = await hydrate({ stoppers: true, stopper: uga, stops: slice }, '/cfb-streak-king/stoppers/georgia/');
+    expect(c.html.replace(/<!-- -->/g, '')).toContain('Streaks Georgia stopped');
+    expect(c.html.replace(/<!-- -->/g, '')).toContain('Alabama’s run · all-time longest');
+    expect(c.html).toContain('srow-mark');
+    expect(c.errors).toEqual([]);
+    await c.unmount();
   });
 
   test('a URL with a definition hydrates first, then applies it', async () => {

@@ -43,7 +43,7 @@ const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts'
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
-const { buildStoppers, encodeStoppers, decodeStoppers, stoppersSlice, stopRanking } = await vite.ssrLoadModule('/src/lib/stoppers.ts')
+const { buildStoppers, encodeStoppers, decodeStoppers, stoppersSlice, stopRanking, stopRows, stopCat, stopPoints, STOP_WORDS } = await vite.ssrLoadModule('/src/lib/stoppers.ts')
 const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
@@ -397,8 +397,7 @@ const gameUrls = []
   }
   fs.mkdirSync(path.join(ROOT, 'dist', 'share'), { recursive: true })
   fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'meta.json'), JSON.stringify(meta))
-  // the week cards' rows (broken and at-risk), for the worker's og.png?broken= and ?risk=
-  fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'weekly.json'), JSON.stringify(weekly))
+  // the cards' rows (broken, at-risk, the stoppers) go to dist/share/weekly.json once the stoppers' are in (below)
   // the worker's og.png route runs the site's own model; publish the payload it reads
   fs.copyFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), path.join(ROOT, 'dist', 'share', 'payload.json'))
   console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds; payload copied for the og worker`)
@@ -407,6 +406,7 @@ const gameUrls = []
 // --- the streak-stoppers: the running season's breaks by the team that made them, one file and one page ---
 const stoppers = buildStoppers(minedBroken)
 const stoppersFile = encodeStoppers(stoppers)
+const stopperUrls = []
 fs.mkdirSync(path.join(ROOT, 'dist', 'stoppers'), { recursive: true })
 fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', `${P.currentSeason}.json`), JSON.stringify(stoppersFile))
 {
@@ -421,17 +421,55 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', `${P.currentSeason}.json`),
     initial: { stoppers: true, stops: decodeStoppers(stoppersFile) },
     stoppers: stoppersFile,
     url, title, description,
-    image: `${SITE}og.png`, imageAlt: config.ogImageAlt,
+    image: `${SITE}share/og.png?stoppers=${P.currentSeason}`, imageAlt: `The ${P.currentSeason} streak-stoppers, on a dark leaderboard.`,
     jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-stoppers', url]])] },
   })
   fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', 'index.html'), html)
-  console.log(`stoppers: ${ranking.length} teams broke a streak in ${P.currentSeason}, ${ranking.reduce((a, s) => a + s.n, 0)} breaks; page and file under dist/stoppers/`)
+  // the cards' rows: the leaderboard's top, and each stopper's own top breaks (the worker's og.png?stoppers= and ?stopper=)
+  const stopWords = (b) => `${STOP_WORDS[stopCat(b)]} · was ${rankText(b)} of ${b.field} · ${enderWords(b)}`
+  weekly.stoppers = {
+    season: P.currentSeason,
+    rows: ranking.slice(0, 7).map((s, i) => ({
+      count: String(s.n), team: teams[s.ti].id, bad: false,
+      claim: `${i + 1}. ${teams[s.ti].name} · ${(Math.round(s.points * 10) / 10).toFixed(1)} points`,
+      sub: `${s.by.alltime} all-time · ${s.by.leading} led the field · ${s.by.active} other${s.best ? ` · best: ${brokenClaim(s.best)}` : ''}`,
+    })),
+  }
+  weekly.stopper = {}
+  // one page per stopper: its stopped streaks, at /stoppers/<id>/, with its own card
+  for (const s of ranking) {
+    const t = teams[s.ti]
+    const rows = stopRows(stoppers.teams.get(s.ti) ?? []).filter((b) => !b.dup)
+    weekly.stopper[t.id] = {
+      season: P.currentSeason, name: t.name, n: s.n, points: Math.round(s.points * 10) / 10, rank: stoppers.ranks.get(s.ti) ?? 0,
+      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: stopWords(b) })),
+    }
+    const url = `${SITE}stoppers/${t.id}/`
+    const title = `Streaks ${t.name} stopped in ${P.currentSeason} · ${config.title}`
+    const top = rows.slice(0, 3).map((b) => brokenClaim(b))
+    const description = `${t.name} ended ${s.n} streak${s.n === 1 ? '' : 's'} by winning this season, #${stoppers.ranks.get(s.ti)} among streak-stoppers: ${top.join('. ')}.`
+    // rendered from the decoded file the page embeds (rounded scores and odds), so the hydrate matches
+    const sliceFile = encodeStoppers(stoppersSlice(stoppers, s.ti))
+    const { html } = page({
+      initial: { stoppers: true, stopper: s.ti, stops: decodeStoppers(sliceFile) },
+      stoppers: sliceFile,
+      url, title, description,
+      image: `${SITE}share/og.png?stopper=${t.id}`, imageAlt: `The streaks ${t.name} stopped in ${P.currentSeason}, on a dark leaderboard.`,
+      jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-stoppers', `${SITE}stoppers/`], [t.name, url]])] },
+    })
+    const dir = path.join(ROOT, 'dist', 'stoppers', t.id)
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, 'index.html'), html)
+    stopperUrls.push(url)
+  }
+  fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'weekly.json'), JSON.stringify(weekly))
+  console.log(`stoppers: ${ranking.length} teams broke a streak in ${P.currentSeason}, ${ranking.reduce((a, s) => a + s.n, 0)} breaks; the page, ${stopperUrls.length} team pages and the file under dist/stoppers/`)
 }
 
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE, `${SITE}games/`, `${SITE}stoppers/`, ...weekUrls, ...gameUrls]
+const urls = [SITE, `${SITE}games/`, `${SITE}stoppers/`, ...stopperUrls, ...weekUrls, ...gameUrls]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]
@@ -444,7 +482,7 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)), stops: stoppersSlice(stoppers, ti) },
+    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)), stops: decodeStoppers(encodeStoppers(stoppersSlice(stoppers, ti))) },
     embed: crownsOf(ti),
     stoppers: encodeStoppers(stoppersSlice(stoppers, ti)),
     url,

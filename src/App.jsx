@@ -14,7 +14,7 @@ import { useCrowns } from './hooks/useCrowns.ts';
 import { useDigests } from './hooks/useDigests.ts';
 import { useSeason } from './hooks/useSeason.ts';
 import { useStoppers } from './hooks/useStoppers.ts';
-import { StoppersPage } from './components/StoppersPage.jsx';
+import { StoppersPage, StopperPage } from './components/StoppersPage.jsx';
 import { useStarred } from './hooks/useStarred.ts';
 import { useShare } from './hooks/useShare.ts';
 import { Dateline } from './components/Dateline.jsx';
@@ -37,8 +37,8 @@ const BASE = import.meta.env.BASE_URL;
 // that game with its season's rows; /games/ starts on the schedule, and
 // /games/week/<n>/ on that week.
 export default function App({ initial } = {}) {
-  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.stoppers));
-  const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk, stoppers } = view;
+  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.stoppers, i?.stopper ?? null));
+  const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk, stoppers, stopper } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -62,7 +62,7 @@ export default function App({ initial } = {}) {
   }, [game, games, season, bwk]);
   const seasonRows = useSeason(gameSeason, need, initial);
   // the season's streak-stoppers: all of them on the leaderboard, a team page's own rows on it
-  const stops = useStoppers(stoppers ? 'all' : page != null ? [page] : [], initial);
+  const stops = useStoppers(stopper != null ? [stopper] : stoppers ? 'all' : page != null ? [page] : [], initial);
   // a team page opened from the stoppers leaderboard scrolls to its breaks
   const [teamFocus, setTeamFocus] = useState(null);
   const star = useStarred(active, dir);
@@ -99,14 +99,14 @@ export default function App({ initial } = {}) {
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.stoppers !== stoppers);
+    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.stoppers !== stoppers || was.stopper !== stopper);
     const opened = !!was && (page == null && game == null && team != null && was.team == null);
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
     if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
     if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, run, page, game, games, bwk, season, risk, stoppers, hydrated]);
+  }, [active, dir, scope, week, team, run, page, game, games, bwk, season, risk, stoppers, stopper, hydrated]);
 
   // Closing a panel: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -155,6 +155,15 @@ export default function App({ initial } = {}) {
   function openStoppers(from) {
     track('stoppers', { from });
     dispatch({ type: 'stoppers' });
+  }
+  // one team's stopped streaks, their own address
+  function openStopper(ti, from) {
+    track('stoppers', { from, team: teams[ti].id });
+    dispatch({ type: 'stoppers', team: ti });
+  }
+  function shareStopper(ti) {
+    track('share', { stoppers: true, team: teams[ti].id });
+    share(`The streaks ${teams[ti].name} stopped this season`, absoluteUrl(BASE, stoppersUrl(ti)));
   }
   function shareStoppers() {
     track('share', { stoppers: true });
@@ -235,6 +244,7 @@ export default function App({ initial } = {}) {
             board: () => dispatch({ type: 'board' }),
             team: (ti) => openTeam(ti, 'picker'),
             stoppers: () => openStoppers('team page'),
+            stopper: (ti) => openStopper(ti, 'team page'),
             game: (ti, g) => openGame(ti, g, 'team page'),
             streak: (s, ti) => openStreak(s, ti, 'team page'),
             share: shareTeam,
@@ -251,10 +261,15 @@ export default function App({ initial } = {}) {
             share: shareGame,
           }}
         />
+      ) : stopper != null ? (
+        <StopperPage
+          ti={stopper} stoppers={stops} copied={copied}
+          on={{ stoppers: () => openStoppers('stopper'), team: (ti) => openTeam(ti, 'stopper'), streak: (s, ti) => openStreak(s, ti, 'stopper'), share: shareStopper }}
+        />
       ) : stoppers ? (
         <StoppersPage
           stoppers={stops} copied={copied}
-          on={{ board: () => dispatch({ type: 'board' }), team: (ti) => openTeam(ti, 'stoppers'), share: shareStoppers }}
+          on={{ board: () => dispatch({ type: 'board' }), stopper: (ti) => openStopper(ti, 'stoppers'), share: shareStoppers }}
         />
       ) : games ? (
         <GamesPage

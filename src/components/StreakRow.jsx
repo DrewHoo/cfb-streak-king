@@ -8,6 +8,7 @@ import { rankText } from '../lib/team.ts';
 import { monthDay, siteWord, gamesWord, oddsText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { Chevron } from './Icons.jsx';
+import { TeamMark } from './Chip.jsx';
 
 const bad = (dir) => baseDir(dir) === 'L' || dir === 'N';
 /** A streak's conditions as words; a mined key ("vsteam:alabama") carries its choice. */
@@ -17,13 +18,16 @@ export const streakWords = (chips) => (chips.length ? chips.map(chipLabel).join(
  * One streak with its place in the field, shaped like a crown in the King-of
  * list: the length, the words, then rank, start, odds. `next` adds its next
  * qualifying game, `tag` a word after the field, `lead` a line of its own
- * before the small print (a game page's "passed Georgia's 12").
+ * before the small print (a game page's "passed Georgia's 12"), `mark` a
+ * team's logo before the words (whose streak it was, in a list of stops).
  */
-export function StreakRow({ s, onClick, next, tag, lead }) {
+export function StreakRow({ s, onClick, next, tag, lead, mark }) {
   const n = next ? s.next : null;
+  const mt = mark != null ? teams[mark] : null;
   return (
-    <button className="srow" onClick={onClick}>
+    <button className={'srow' + (mt ? ' marked' : '')} onClick={onClick}>
       <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}</span>
+      {mt && (mt.espn ? <TeamMark ti={mark} className="srow-mark" /> : <b className="srow-mark gm-ini">{mt.name[0]}</b>)}
       <span className="srow-txt">
         <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips)}</span>
         {lead && <span className="srow-lead">{lead}</span>}
