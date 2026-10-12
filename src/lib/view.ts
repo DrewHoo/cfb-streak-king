@@ -33,7 +33,7 @@ export type ViewAction =
   | { type: 'games' }
   | { type: 'bweek'; wk: number | null; season?: number | null }
   | { type: 'risk' }
-  | { type: 'breakers'; team?: number | null }
+  | { type: 'breakers'; team?: number | null; season?: number | null }
   | { type: 'board' }
   | { type: 'game'; key: GameKey }
   | { type: 'limit'; limit: number | ((l: number) => number) };
@@ -95,8 +95,8 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       // the week's at-risk streaks, their own address
       return { ...v, games: true, bwk: null, season: null, risk: true, breakers: false, breaker: null, page: null, game: null };
     case 'breakers':
-      // the streak-breakers leaderboard, in the board's place; with a team, that team's broken streaks
-      return { ...v, breakers: true, breaker: a.team ?? null, games: false, bwk: null, season: null, risk: false, page: null, game: null };
+      // the streak-breakers leaderboard, in the board's place, the running season unless one is named; with a team, that team's broken streaks
+      return { ...v, breakers: true, breaker: a.team ?? null, games: false, bwk: null, season: a.season ?? null, risk: false, page: null, game: null };
     case 'board':
       return { ...v, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null };
     case 'game':

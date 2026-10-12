@@ -7,12 +7,13 @@
 //                   (?vs=...) gets its own title, description and og tags,
 //                   worded by src/lib/shareWords.ts (pure) plus
 //                   dist/share/meta.json, published by the prerender.
-//   /game/<date>/<teams>/ and /games/<season>/...
+//   /game/<date>/<teams>/, /games/<season>/..., /breakers/<season>/...
 //                   an address the origin has no file for (a past season's
-//                   game or schedule) is answered with the app shell
-//                   (dist/404.html) as a 200 and, for a game, its own head
-//                   from the season file (dist/games/<season>.json); a
-//                   prerendered game page passes through with its card.
+//                   game, schedule or streak-breakers) is answered with the
+//                   app shell (dist/404.html) as a 200 and, for a game or a
+//                   season's streak-breakers, its own head and card from the
+//                   season file (dist/games/<season>.json); a prerendered
+//                   page passes through with its card.
 //   /share/og.png   the definition's board drawn on demand (card.ts): the
 //                   worker fetches the payload the prerender publishes,
 //                   runs the site's own createModel/boards, and renders the
@@ -28,6 +29,7 @@ import { createModel } from '../../src/lib/createModel.ts';
 import type { Payload, BoardRow, Dir } from '../../src/lib/types.ts';
 import { dirWord, yy, siteWord, monthDay } from '../../src/lib/format.ts';
 import { parseDir } from '../../src/lib/outcome.ts';
+import { BREAK, breakCat, breakPoints, rankOrder } from '../../src/lib/breakScore.ts';
 import { renderCard } from './card.ts';
 import type { CardRow } from './card.ts';
 
@@ -111,7 +113,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12i';
+const CARD_VERSION = '2026-10-12j';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -244,9 +246,129 @@ async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> 
   return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
 }
 
-/** The streak-breakers card: the leaderboard's top, or one team's own broken streaks. */
-async function breakerCard(id: string | null): Promise<Response> {
+/** One break of a past season, as the cards and the head word it. */
+interface PastBreak { victim: number; row: GameRowWords; cat: 'alltime' | 'leading'; score: number; ender: string }
+/** A team that broke a streak that season: its standing breaks, the most telling first, and its place. */
+interface PastBreaker { ti: number; n: number; points: number; alltime: number; leading: number; victims: [number, number][]; breaks: PastBreak[]; rank: number }
+const pastCache = new Map<number, { day: string; data: Promise<PastBreaker[]> }>();
+/**
+ * A past season's streak-breakers from its season file, scored the way
+ * breakers.ts scores them (breakScore.ts): a winning run ended by a loss to
+ * the breaker, the full tellings only, ranked by points then breaks.
+ */
+function pastBreakers(se: number): Promise<PastBreaker[]> {
+  const day = dayKey();
+  const got = pastCache.get(se);
+  if (got?.day === day) return got.data;
+  const data = (async () => {
+    const [file, m] = await Promise.all([loadSeason(se), loadModel()]);
+    if (!file) return [];
+    const ids = m.teams.map((t) => t.id);
+    const by = new Map<number, PastBreaker>();
+    for (const g of Object.values(file.games)) {
+      for (const [ti, c, since, enderI, , everLen, everN] of g.ended) {
+        if (c[14]) continue; // a shorter telling
+        const dir = c[1];
+        const chips = c[0] ? c[0].split('+') : [];
+        const b = { len: c[2], everLen: everLen ?? 0, rank: c[5], chips };
+        const cat = breakCat(b);
+        if (!cat) continue;
+        const ender = m.gamesOf(ti).find((x) => x.i === enderI);
+        if (!ender) continue;
+        const win = dir[0] === 'W' && ender.r === 'L';
+        const cover = BREAK.covers && dir === 'C' && ender.cover === 'L';
+        if (!win && !cover) continue;
+        const opp = ender.oppIdx;
+        const s = by.get(opp) ?? { ti: opp, n: 0, points: 0, alltime: 0, leading: 0, victims: [], breaks: [], rank: 0 };
+        by.set(opp, s);
+        s.n++;
+        s.points += breakPoints(b);
+        s[cat]++;
+        const v = s.victims.find(([x]) => x === ti);
+        if (v) v[1]++; else s.victims.push([ti, 1]);
+        const name = m.teams[opp]?.name ?? '?';
+        s.breaks.push({
+          victim: ti, cat, score: c[13],
+          row: { team: ids[ti], chips: c[0], dir, len: c[2], atEdge: !!c[3], rank: c[5], tied: c[6], field: c[4], since, everLen, everN },
+          ender: win ? `lost to ${name} ${ender.them}–${ender.us}` : `didn’t cover vs ${name}`,
+        });
+      }
+    }
+    const out = [...by.values()].sort(rankOrder);
+    out.forEach((s, i) => {
+      s.rank = i + 1;
+      s.victims.sort((a, b) => b[1] - a[1] || (m.teams[a[0]]?.name ?? '').localeCompare(m.teams[b[0]]?.name ?? ''));
+      s.breaks.sort((a, b) => (a.cat === b.cat ? 0 : a.cat === 'alltime' ? -1 : 1) || b.score - a.score || b.row.len - a.row.len);
+    });
+    return out;
+  })().catch(() => { pastCache.delete(se); return [] as PastBreaker[]; });
+  pastCache.set(se, { day, data });
+  return data;
+}
+
+/** A past season's head: the leaderboard's top three, or one team's count and place. */
+async function pastBreakersText(se: number, id: string | null, meta: ShareMeta): Promise<{ title: string; description: string }> {
+  const [list, m] = await Promise.all([pastBreakers(se), loadModel()]);
+  const ti = id ? m.teams.findIndex((t) => t.id === id) : -1;
+  const own = ti >= 0 ? list.find((s) => s.ti === ti) : null;
+  if (id) {
+    const name = meta.teams[id] ?? m.teams[ti]?.name ?? id;
+    return {
+      title: `Streaks ${name} broke in ${se} · ${meta.site}`,
+      description: own
+        ? `${name} ended ${fmtN(own.n)} longest active or all-time longest streak${own.n === 1 ? '' : 's'} by winning in ${se}, Streak King Rank #${own.rank}.`
+        : `${name} didn’t break a streak in ${se}.`,
+    };
+  }
+  const top = list.slice(0, 3).map((s) => `${s.rank}. ${m.teams[s.ti]?.name} (${s.n})`).join(', ');
+  return {
+    title: `Top Streak-Breakers ${se} · ${meta.site}`,
+    description: top
+      ? `The college football teams that broke the biggest streaks in ${se}, by Streak King Rank: ${top}. Every longest active or all-time longest streak a team ended by beating its owner.`
+      : `The college football teams that broke the biggest streaks in ${se}.`,
+  };
+}
+
+/** A past season's card: the leaderboard's top, or one team's own broken streaks. */
+async function pastBreakerCard(id: string | null, se: number): Promise<Response> {
+  const [list, m, meta] = await Promise.all([pastBreakers(se), loadModel(), loadMeta()]);
+  const byIdx = (ti: number) => m.teams[ti];
+  const rows: CardRow[] = [];
+  const ti = id ? m.teams.findIndex((t) => t.id === id) : -1;
+  const own = id ? list.find((s) => s.ti === ti) ?? null : null;
+  if (id && !own) throw new Error(`no breaks for ${id} in ${se}`);
+  if (own) {
+    for (const b of own.breaks.slice(0, 7)) {
+      const t = byIdx(b.victim);
+      rows.push({ count: `${b.row.len}${b.row.atEdge ? '+' : ''}`, name: `${t?.name ?? '?'} had won ${rowWords(b.row, meta)}`, sub: `${ledeOf(b.row)} · since ${b.row.since} · ${b.ender}`, bad: false, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
+    }
+  } else {
+    for (const s of list.slice(0, 7)) {
+      const t = byIdx(s.ti);
+      const chips = [];
+      for (const [v, n] of s.victims.slice(0, 4)) chips.push({ logo: await logoUri(byIdx(v)?.espn), initial: byIdx(v)?.name[0] ?? '?', n });
+      rows.push({ count: String(s.n), name: `${s.rank}. ${t?.name ?? '?'}`, sub: `${s.alltime} all-time · ${s.leading} longest active`, bad: false, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?', chips });
+    }
+  }
+  const lead = own ? byIdx(own.ti) : null;
+  const res = renderCard({
+    heading: own ? `Streaks ${lead?.name} broke · ${se}` : `Top Streak-Breakers · ${se}`,
+    words: own ? `${fmtN(own.n)} streak${own.n === 1 ? '' : 's'} broken by winning · Streak King Rank #${own.rank}` : 'longest active and all-time longest streaks, broken by winning the game',
+    logo: lead ? await logoUri(lead.espn) : null,
+    rows,
+    more: own ? moreLine(own.n, rows.length, 'broken') : moreLine(list.length, rows.length, 'teams'),
+    dense: true,
+    footer: `${se} · definitions of up to two conditions · drewhoover.com`,
+  });
+  const png = await res.arrayBuffer();
+  if (!png.byteLength) throw new Error('empty render');
+  return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
+}
+
+/** The streak-breakers card: the leaderboard's top, or one team's own broken streaks; a past season's worked out from its season file. */
+async function breakerCard(id: string | null, se: number | null = null): Promise<Response> {
   const [weekly, m] = await Promise.all([loadWeekly(), loadModel()]);
+  if (se != null && se !== m.P.currentSeason) return pastBreakerCard(id, se);
   const card = id ? weekly.breaker?.[id] : weekly.breakers;
   if (!card) throw new Error(`no breakers card${id ? ` for ${id}` : ''}`);
   const byId = new Map(m.teams.map((t) => [t.id, t]));
@@ -402,12 +524,15 @@ export default {
         const game = url.searchParams.get('game');
         const breaker = url.searchParams.get('breaker');
         const breakers = url.searchParams.has('breakers') || (breaker != null && /^[a-z0-9-]+$/.test(breaker));
+        // the season: ?breakers=<season>, or a team's ?breaker=<id>&season=<season>; absent, the running one
+        const seParam = url.searchParams.get('season') ?? url.searchParams.get('breakers');
+        const breakSe = seParam && /^\d{4}$/.test(seParam) ? Number(seParam) : null;
         report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
         const res = game
           ? await gameCard(game)
           : breakers
-            ? await breakerCard(breaker)
+            ? await breakerCard(breaker, breakSe)
             : week != null && /^\d{1,2}$/.test(week)
             ? await weekCard(url.searchParams.has('risk') ? 'risk' : 'broken', Number(week))
             : await ogCard(url.searchParams);
@@ -431,16 +556,26 @@ export default {
       const meta = await loadMeta();
       const game = gameFromShare(url.pathname, meta);
       const pastSeason = /\/games\/\d{4}(\/week\/\d{1,2})?\/?$/.test(url.pathname);
-      if (res.status === 404 && (game || pastSeason)) {
+      // a past season's streak-breakers (/breakers/<season>/, /breakers/<season>/<id>/), or the page's first address (/stoppers/)
+      const bk = /\/(breakers|stoppers)(?:\/(\d{4}))?(?:\/([a-z0-9-]+))?\/?$/.exec(url.pathname);
+      if (res.status === 404 && (game || pastSeason || bk)) {
         await res.body?.cancel();
         const shell = await fetch(`${ORIGIN}${BASE}/404.html?d=${dayKey()}`, edge(3600));
         if (!shell.ok) { await shell.body?.cancel(); return new Response('not found', { status: 404 }); }
         res = new Response(shell.body, { status: 200, headers: shell.headers });
         if (agentOf(request.headers.get('user-agent')) !== 'browser') report(ctx, request, 'share unfurl', urlProps(url));
+        const bkSe = bk ? (bk[2] ? Number(bk[2]) : (await loadModel()).P.currentSeason) : null;
+        const bkId = bk?.[3] ?? null;
         const text = game
           ? gameText(game, meta, gameScore(game, await loadModel()), await gameRows(game.key, game.date))
-          : { title: `${/\d{4}/.exec(url.pathname)![0]} games · ${meta.site}`, description: `Every game with a current FBS team that season, and the streaks each ended.` };
-        const img = game ? `${ORIGIN}${BASE}/share/og.png?game=${encodeURIComponent(game.key)}` : `${ORIGIN}${BASE}/og.png`;
+          : bk
+            ? await pastBreakersText(bkSe!, bkId, meta)
+            : { title: `${/\d{4}/.exec(url.pathname)![0]} games · ${meta.site}`, description: `Every game with a current FBS team that season, and the streaks each ended.` };
+        const img = game
+          ? `${ORIGIN}${BASE}/share/og.png?game=${encodeURIComponent(game.key)}`
+          : bk
+            ? `${ORIGIN}${BASE}/share/og.png?${bkId ? `breaker=${bkId}&season=${bkSe}` : `breakers=${bkSe}`}`
+            : `${ORIGIN}${BASE}/og.png`;
         return new HTMLRewriter()
           .on('title', { element(e) { e.setInnerContent(text.title); } })
           .on('meta[name="description"]', content(text.description))

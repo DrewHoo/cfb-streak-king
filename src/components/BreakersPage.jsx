@@ -1,13 +1,17 @@
 // Top Streak-Breakers: every team by the streaks it ended by beating their
-// owner this season, in Streak King Rank order (breakers.ts: the points behind
+// owner in a season (the running one, or any past one from the year picker),
+// in Streak King Rank order (breakers.ts: the points behind
 // it count a break of the all-time longest run under a definition most, of
 // the longest active run less, and fewer conditions more; the page shows only
 // the order). A row opens the team's breaks, at /breakers/<id>/.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { P, teams } from '../lib/model.ts';
+import { P, teams, fbsNow } from '../lib/model.ts';
 import { BREAK_WORDS, breakCat, breakOrder, breakRanking, breakRows, breakSummary } from '../lib/breakers.ts';
 import { TeamMark } from './Chip.jsx';
+import { Picker } from './Picker.jsx';
+import { seasons } from '../lib/game.ts';
+import { HIST_CHIPS } from '../lib/crowns.ts';
 import { ShareIcon, Chevron } from './Icons.jsx';
 import { streakWords, Tellings } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
@@ -18,6 +22,15 @@ export const BREAKERS_CAP = 25;
 const BREAKS_CAP = 12;
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' };
 export const SKR_NOTE = 'Streak King Rank measures a team’s season by the rarity of the streaks they broke by beating other teams.';
+
+/** The year picker in a title: every season since 1936. */
+const YearPicker = ({ season, onYear }) => (
+  <span className="gbk-wk"><Picker value={season} options={seasons().map((se) => ({ value: se, label: String(se) }))} onChange={onYear} ariaLabel="Pick a season" /></span>
+);
+/** A past season reads definitions of up to HIST_CHIPS conditions; the running season up to four. */
+const PastNote = ({ season }) => (season === P.currentSeason ? null : (
+  <> Seasons before {P.currentSeason} count definitions of up to {HIST_CHIPS === 2 ? 'two' : HIST_CHIPS} conditions, so their numbers don’t compare with this season’s.</>
+));
 
 // the break worth the most to a breaker, in words: "Alabama had won 14 straight at home vs ranked opponents"
 function bestWords(b) {
@@ -72,7 +85,7 @@ function Row({ s, skr, onBreaker }) {
 }
 
 /** One team's broken streaks: whose they were (a tap filters), then the list, the all-time longest first. */
-export function BreakerPage({ ti, breakers, copied, on }) {
+export function BreakerPage({ ti, season, breakers, copied, on }) {
   const t = teams[ti];
   const [victim, setVictim] = useState(null);
   const rows = useMemo(() => (breakers ? breakRows(breakers.teams.get(ti) ?? []) : null), [breakers, ti]);
@@ -83,18 +96,19 @@ export function BreakerPage({ ti, breakers, copied, on }) {
   return (
     <div className="bkr">
       <div className="tpg-bar">
-        <button className="crumb" onClick={on.breakers}><Chevron left /> Top Streak-Breakers</button>
+        <button className="crumb" onClick={on.breakers}><Chevron left /> Top Streak-Breakers{season === P.currentSeason ? '' : ` ${season}`}</button>
         <span className="dateline-acts">
           <button className="ico" onClick={() => on.share(ti)} aria-label={`Share the streaks ${t.name} broke`}><ShareIcon /></button>
           {copied && <span className="toast">copied</span>}
         </span>
       </div>
-      <h1 className="gpg-h1 bkr-h1">{t.espn ? <TeamMark ti={ti} className="bkr-logo" /> : null}<span>Streaks {t.name} broke <span className="bkr-se">{breakers?.season ?? P.currentSeason}</span></span></h1>
+      <h1 className="gpg-h1 bkr-h1">{t.espn ? <TeamMark ti={ti} className="bkr-logo" /> : null}<span>Streaks {t.name} broke <YearPicker season={season} onYear={on.year} /></span></h1>
       <p className="tpg-note bkr-note">
         {sum && sum.n > 0
           ? <>{t.name} ended <b>{sum.n}</b> {sum.n === 1 ? 'streak' : 'streaks'} by winning: {sum.by.alltime} all-time longest, {sum.by.leading} longest active{rank != null ? <>. Streak King Rank <b>#{rank}</b> <SkrInfo /></> : ''}. </>
-          : sum ? <>{t.name} hasn’t broken a streak this season. </> : null}
-        <button className="gp-wk" onClick={() => on.team(ti)}>{t.name}’s page ›</button>
+          : sum ? <>{t.name} didn’t break a streak {season === P.currentSeason ? 'this season' : `in ${season}`}. </> : null}
+        <PastNote season={season} />{' '}
+        {fbsNow.has(ti) && <button className="gp-wk" onClick={() => on.team(ti)}>{t.name}’s page ›</button>}
       </p>
       {victims.length > 1 && (
         <div className="bkr-vict" role="group" aria-label="Whose streaks, with a count each; one filters the list">
@@ -122,7 +136,7 @@ const SORTS = {
   team: (a, b) => teams[a.ti].name.localeCompare(teams[b.ti].name),
 };
 
-export function BreakersPage({ breakers, copied, on }) {
+export function BreakersPage({ season, breakers, copied, on }) {
   const [sort, setSort] = useState({ key: 'skr', rev: false });
   const [all, setAll] = useState(false);
   const ranking = useMemo(() => (breakers ? breakRanking(breakers).map((s, i) => ({ ...s, skr: breakers.ranks.get(s.ti) ?? i + 1 })) : []), [breakers]);
@@ -131,7 +145,6 @@ export function BreakersPage({ breakers, copied, on }) {
     return sort.rev ? out.reverse() : out;
   }, [ranking, sort]);
   const shown = all ? ordered : ordered.slice(0, BREAKERS_CAP);
-  const season = breakers?.season ?? P.currentSeason;
   const head = (key, label) => (
     <button className={'bkr-sort' + (sort.key === key ? ' on' : '')} onClick={() => setSort((s) => ({ key, rev: s.key === key ? !s.rev : false }))}
       aria-label={`Sort by ${label}`} aria-pressed={sort.key === key}>
@@ -147,8 +160,13 @@ export function BreakersPage({ breakers, copied, on }) {
           {copied && <span className="toast">copied</span>}
         </span>
       </div>
-      <h1 className="gpg-h1">Top Streak-Breakers <span className="bkr-se">{season}</span></h1>
-      <p className="tpg-note">Which fanbases are having the best time this season: every team that ended an all-time longest or the longest active streak by winning the game.</p>
+      <h1 className="gpg-h1">Top Streak-Breakers <YearPicker season={season} onYear={on.year} /></h1>
+      <p className="tpg-note">
+        {season === P.currentSeason
+          ? 'Which fanbases are having the best time this season: every team that ended an all-time longest or the longest active streak by winning the game.'
+          : `Which fanbases had the best time in ${season}: every team that ended an all-time longest or the longest active streak by winning the game.`}
+        <PastNote season={season} />
+      </p>
 
       <div className="bkr-list">
         <div className="bkr-row bkr-head">
@@ -160,7 +178,7 @@ export function BreakersPage({ breakers, copied, on }) {
           <span />
         </div>
         {!breakers && <p className="empty">finding the season’s breaks…</p>}
-        {breakers && ranking.length === 0 && <p className="empty">No streak has been broken this season yet.</p>}
+        {breakers && ranking.length === 0 && <p className="empty">{season === P.currentSeason ? 'No streak has been broken this season yet.' : `No streak was broken in ${season}.`}</p>}
         {shown.map((s) => <Row key={s.ti} s={s} skr={s.skr} onBreaker={on.breaker} />)}
       </div>
       {ordered.length > BREAKERS_CAP && (

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { buildBreakers, breakCat, breakPoints, breakSummary, breakRanking, breakRows, encodeBreakers, decodeBreakers, breakersSlice, BREAK } from './breakers.ts';
-import { mineBroken } from './crowns.ts';
+import { buildBreakers, breakersFromSeason, rankOrder, breakCat, breakPoints, breakSummary, breakRanking, breakRows, encodeBreakers, decodeBreakers, breakersSlice, BREAK } from './breakers.ts';
+import { mineBroken, HIST_CHIPS } from './crowns.ts';
 import { buildSeasons } from './seasons.ts';
 import { keyOf, keyString } from './game.ts';
 import { P, teams, gamesOf } from './model.ts';
@@ -70,7 +70,7 @@ describe('breakers', () => {
     expect(top.by.alltime + top.by.leading).toBe(top.n);
     expect(top.victims.reduce((a, [, n]) => a + n, 0)).toBe(top.n);
     for (let i = 1; i < top.victims.length; i++) expect(top.victims[i - 1][1]).toBeGreaterThanOrEqual(top.victims[i][1]);
-    for (let i = 1; i < ranking.length; i++) expect(ranking[i - 1].points).toBeGreaterThanOrEqual(ranking[i].points);
+    for (let i = 1; i < ranking.length; i++) expect(ranking[i - 1].points).toBeGreaterThanOrEqual(ranking[i].points - 1e-9); // a tie compares rounded (rankOrder)
     expect(breakers.ranks.get(top.ti)).toBe(1);
     expect(breakSummary(top.ti, []).n).toBe(0);
   });
@@ -88,6 +88,35 @@ describe('breakers', () => {
         expect(same!.dup).toBe(b.dup); // one telling per run on both pages, so the standing counts nest
       }
     }
+  });
+
+  test('a past season builds from its season file the same way: every break a win of the breaker’s, ranked by points', () => {
+    const se = P.currentSeason - 1;
+    const past = breakersFromSeason(buildSeasons(mined).get(se), se);
+    expect(past.season).toBe(se);
+    const ranking = breakRanking(past);
+    expect(ranking.length).toBeGreaterThan(0);
+    for (const [breaker, rows] of past.teams) {
+      for (const b of rows) {
+        expect(b.ender.oppIdx).toBe(breaker);
+        expect(b.ender.se).toBe(se);
+        expect(breakCat(b)).not.toBeNull();
+        if (b.dir !== 'C') { expect(baseDir(b.dir)).toBe('W'); expect(b.ender.r).toBe('L'); }
+        // two-chip definitions before the running season
+        expect(b.chips.length).toBeLessThanOrEqual(HIST_CHIPS);
+      }
+    }
+    for (let i = 1; i < ranking.length; i++) expect(ranking[i - 1].points).toBeGreaterThanOrEqual(ranking[i].points - 1e-9); // a tie compares rounded (rankOrder)
+    ranking.forEach((s, i) => expect(past.ranks.get(s.ti)).toBe(i + 1));
+    expect(breakersFromSeason(undefined, 1950).teams.size).toBe(0);
+  });
+
+  test('a tie in points falls the same way however the points were summed: then breaks, then the team', () => {
+    const a = { ti: 7, n: 4, points: 0.1 + 0.2 }, b = { ti: 3, n: 4, points: 0.3 };
+    expect(a.points === b.points).toBe(false); // the float noise the page and the worker can differ by
+    expect([a, b].sort(rankOrder).map((x) => x.ti)).toEqual([3, 7]);
+    expect([b, a].sort(rankOrder).map((x) => x.ti)).toEqual([3, 7]);
+    expect([{ ti: 1, n: 3, points: 5 }, { ti: 2, n: 4, points: 5 }].sort(rankOrder).map((x) => x.ti)).toEqual([2, 1]);
   });
 
   test('the file round-trips, and a slice carries one team’s rows and rank', () => {

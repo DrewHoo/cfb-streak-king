@@ -132,6 +132,13 @@ describe('prerender + hydrate', () => {
     expect(b.html).toContain('now the all-time longest streak');
     expect(b.errors).toEqual([]);
     await b.unmount();
+    // a past season's leaderboard boots on its address (the 404 shell), built from its season file, labeled two-condition
+    const past = await hydrate({ breakers: true, season: 1995 }, '/cfb-streak-king/breakers/1995/');
+    expect(past.html).toContain('Top Streak-Breakers');
+    expect(past.html).toContain('1995');
+    expect(past.html.replace(/<!-- -->/g, '')).toContain('count definitions of up to two conditions');
+    expect(past.errors).toEqual([]);
+    await past.unmount();
     // the team's own broken-streaks page, from its slice
     const c = await hydrate({ breakers: true, breaker: uga, breaks: slice }, '/cfb-streak-king/breakers/georgia/');
     expect(c.html.replace(/<!-- -->/g, '')).toContain('Streaks Georgia broke');

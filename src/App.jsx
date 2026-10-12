@@ -58,7 +58,7 @@ export default function App({ initial } = {}) {
   }, [game, games, season, bwk]);
   const seasonRows = useSeason(gameSeason, need, initial);
   // the season's streak-breakers: all of them on the leaderboard, a team page's own rows on it
-  const breaks = useBreakers(breaker != null ? [breaker] : breakers ? 'all' : page != null ? [page] : [], initial);
+  const breaks = useBreakers(breaker != null ? [breaker] : breakers ? 'all' : page != null ? [page] : [], initial, page == null && breakers ? season ?? P.currentSeason : P.currentSeason);
   // a team page opened from the breakers leaderboard scrolls to its breaks
   const [teamFocus, setTeamFocus] = useState(null);
   const star = useStarred(active, dir);
@@ -146,22 +146,25 @@ export default function App({ initial } = {}) {
     setTeamFocus(from === 'breakers' ? 'breaks' : null);
     dispatch({ type: 'page', team: ti });
   }
-  function openBreakers(from) {
-    track('breakers', { from });
-    dispatch({ type: 'breakers' });
+  // the streak-breakers, the running season unless one is named (a past season's own address)
+  function openBreakers(from, se = null) {
+    track('breakers', { from, ...(se != null ? { season: se } : {}) });
+    dispatch({ type: 'breakers', season: se === P.currentSeason ? null : se });
   }
   // one team's broken streaks, their own address
-  function openBreaker(ti, from) {
-    track('breakers', { from, team: teams[ti].id });
-    dispatch({ type: 'breakers', team: ti });
+  function openBreaker(ti, from, se = null) {
+    track('breakers', { from, team: teams[ti].id, ...(se != null ? { season: se } : {}) });
+    dispatch({ type: 'breakers', team: ti, season: se === P.currentSeason ? null : se });
   }
+  const breakSeason = page == null && breakers ? season ?? P.currentSeason : P.currentSeason;
+  const seasonWord = (se) => (se === P.currentSeason ? 'this season' : `in ${se}`);
   function shareBreaker(ti) {
-    track('share', { breakers: true, team: teams[ti].id });
-    share(`The streaks ${teams[ti].name} broke this season`, absoluteUrl(BASE, breakersUrl(ti)));
+    track('share', { breakers: true, team: teams[ti].id, season: breakSeason });
+    share(`The streaks ${teams[ti].name} broke ${seasonWord(breakSeason)}`, absoluteUrl(BASE, breakersUrl(ti, breakSeason)));
   }
   function shareBreakers() {
-    track('share', { breakers: true });
-    share(`Top Streak-Breakers: the college football teams that broke the most streaks this season`, absoluteUrl(BASE, breakersUrl()));
+    track('share', { breakers: true, season: breakSeason });
+    share(`Top Streak-Breakers: the college football teams that broke the most streaks ${seasonWord(breakSeason)}`, absoluteUrl(BASE, breakersUrl(null, breakSeason)));
   }
   // a game's page, from a row that describes it from one team's side
   function openGame(ti, g, from) {
@@ -255,13 +258,13 @@ export default function App({ initial } = {}) {
         />
       ) : breaker != null ? (
         <BreakerPage
-          ti={breaker} breakers={breaks} copied={copied}
-          on={{ breakers: () => openBreakers('breaker'), team: (ti) => openTeam(ti, 'breaker'), streak: (s, ti) => openStreak(s, ti, 'breaker'), allTime: (b) => openAllTime(b, 'breaker all-time'), share: shareBreaker }}
+          ti={breaker} season={breakSeason} breakers={breaks} copied={copied}
+          on={{ breakers: () => openBreakers('breaker', breakSeason), year: (se) => openBreaker(breaker, 'breaker year', se), team: (ti) => openTeam(ti, 'breaker'), streak: (s, ti) => openStreak(s, ti, 'breaker'), allTime: (b) => openAllTime(b, 'breaker all-time'), share: shareBreaker }}
         />
       ) : breakers ? (
         <BreakersPage
-          breakers={breaks} copied={copied}
-          on={{ board: () => dispatch({ type: 'board' }), breaker: (ti) => openBreaker(ti, 'breakers'), share: shareBreakers }}
+          season={breakSeason} breakers={breaks} copied={copied}
+          on={{ board: () => dispatch({ type: 'board' }), breaker: (ti) => openBreaker(ti, 'breakers', breakSeason), year: (se) => openBreakers('breakers year', se), share: shareBreakers }}
         />
       ) : games ? (
         <GamesPage

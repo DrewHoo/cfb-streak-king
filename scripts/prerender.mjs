@@ -43,7 +43,7 @@ const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts'
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
-const { buildBreakers, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows } = await vite.ssrLoadModule('/src/lib/breakers.ts')
+const { breakersFromSeason, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows } = await vite.ssrLoadModule('/src/lib/breakers.ts')
 const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
@@ -408,7 +408,8 @@ const gameUrls = []
 }
 
 // --- the streak-breakers: the running season's breaks by the team that made them, one file and one page ---
-const breakers = buildBreakers(minedBroken)
+// the same rows the schedule and the game pages read, so a game's count holds every break credited here
+const breakers = breakersFromSeason(seasonRows.get(P.currentSeason), P.currentSeason)
 const breakersFile = encodeBreakers(breakers)
 const breakerUrls = []
 fs.mkdirSync(path.join(ROOT, 'dist', 'breakers'), { recursive: true })

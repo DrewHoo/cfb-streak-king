@@ -670,7 +670,6 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .subs .srow-len, .subs .bk-len { color: var(--ink-muted); }
 
 /* Top Streak-Breakers: the leaderboard of breaks, by Streak King Rank */
-.bkr-se { color: var(--ink); }
 .bkr-alltime-t { color: var(--cream) !important; }
 .bkr-leading-t { color: var(--rust) !important; }
 .pill { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; background: transparent; border: 1px solid var(--line); color: var(--ink-muted); padding: 7px 12px; border-radius: 999px; cursor: pointer; }

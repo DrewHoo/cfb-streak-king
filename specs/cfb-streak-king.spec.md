@@ -674,3 +674,24 @@ on-the-line counts, the game page, the streak-breakers page and a team page.
 - The board's team panel no longer lists the team's streaks ("{Team}'s N active streaks"); the
   team page is where they live.
 
+## Streak-Breakers by season (2026-10-12)
+
+A year picker in the Top Streak-Breakers title (every season since 1936) opens a past season at
+`/breakers/<season>/`, a team's breaks at `/breakers/<season>/<id>/`; the running season stays
+at `/breakers/`. Every season's leaderboard is built the same way, from the season file's rows
+(`breakersFromSeason`): the running season's from the full four-chip space at the build, a past
+season's in the browser from `dist/games/<season>.json`, definitions of up to two conditions.
+The page says so ("Seasons before 2026 count definitions of up to two conditions, so their
+numbers don't compare with this season's"), Drew's call (option 1a) over mining history deeper.
+
+- "All-time longest" means as of today (the miner's `everLen`): a past break of a run that was
+  the record then but has been passed since counts as longest active. Fixing it means the miner
+  tracking the record as of each week; noted, not done.
+- Past seasons aren't prerendered: GitHub Pages answers with the shell and the app boots on the
+  path. The share worker gives those addresses a head and a card from the season file, scored
+  with `breakScore.ts`, the pure half of `breakers.ts`.
+- Mining a past season at four conditions on the fly isn't practical (the walk is every team
+  and game since 1936 whatever season is asked; minutes in a browser, far past a worker's CPU
+  limit). Past seasons are final, so a one-time offline mine stored per season is the path if it's
+  wanted; probe one season's cost first.
+

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { teams, upcomingOf } from './model.ts';
+import { P, teams, fbsNow, upcomingOf } from './model.ts';
 import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf } from './url.ts';
 import type { View } from './url.ts';
 
@@ -86,6 +86,17 @@ describe('url', () => {
     expect(breakersUrl(idx('georgia')).path).toBe('breakers/georgia/');
     expect(parseUrl('/cfb-streak-king/breakers/georgia/', '')).toMatchObject({ breakers: true, breaker: idx('georgia'), page: null });
     expect(parseUrl('/cfb-streak-king/breakers/not-a-team/', '')).toMatchObject({ breakers: false, breaker: null });
+    // a past season, its own address; the running season is /breakers/ itself; a year with no games isn't one
+    expect(breakersUrl(null, 1995).path).toBe('breakers/1995/');
+    expect(breakersUrl(idx('iowa'), 1995).path).toBe('breakers/1995/iowa/');
+    expect(breakersUrl(null, P.currentSeason).path).toBe('breakers/');
+    expect(parseUrl('/cfb-streak-king/breakers/1995/', '')).toMatchObject({ breakers: true, breaker: null, season: 1995, games: false });
+    expect(parseUrl('/cfb-streak-king/breakers/1995/iowa/', '')).toMatchObject({ breakers: true, breaker: idx('iowa'), season: 1995 });
+    expect(parseUrl(`/cfb-streak-king/breakers/${P.currentSeason}/`, '')).toMatchObject({ breakers: true, season: null });
+    expect(parseUrl('/cfb-streak-king/breakers/1850/', '')).toMatchObject({ breakers: false, season: null });
+    // a breaker below FBS (or one that has left it) still has an address
+    const below = teams.findIndex((t, i) => !fbsNow.has(i));
+    expect(parseUrl(`/cfb-streak-king/breakers/${teams[below].id}/`, '')).toMatchObject({ breakers: true, breaker: below });
     // the page's first address still opens it
     expect(parseUrl('/cfb-streak-king/stoppers/', '')).toMatchObject({ breakers: true, breaker: null });
     expect(parseUrl('/cfb-streak-king/stoppers/georgia/', '')).toMatchObject({ breakers: true, breaker: idx('georgia') });

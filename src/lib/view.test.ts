@@ -117,6 +117,12 @@ describe('view', () => {
     expect(viewReducer(s, { type: 'breakers' }).breaker).toBeNull();
     expect(viewReducer(s, { type: 'board' }).breaker).toBeNull();
     expect(viewReducer(s, { type: 'page', team: 2 })).toMatchObject({ breakers: true, breaker: 4, page: 2 });
+    // a past season, and back to the running one; the schedule's season doesn't carry in
+    const past = viewReducer(v, { type: 'breakers', season: 1995 });
+    expect([past.breakers, past.season]).toEqual([true, 1995]);
+    expect(viewReducer(past, { type: 'breakers', team: 4, season: 1995 })).toMatchObject({ breaker: 4, season: 1995 });
+    expect(viewReducer(past, { type: 'breakers' }).season).toBeNull();
+    expect(viewReducer(viewReducer(initialView(), { type: 'bweek', wk: 3, season: 1990 }), { type: 'breakers' }).season).toBeNull();
   });
 
   test('a game page takes the place of the board, a team page or the schedule, and keeps the board’s open team', () => {

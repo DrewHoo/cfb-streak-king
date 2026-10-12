@@ -24,12 +24,12 @@
 //                   (negative before 1970)
 
 import type { ChipRef, Dir, Scope } from './types.ts';
-import { teams, fbsNow } from './model.ts';
+import { P, teams, fbsNow } from './model.ts';
 import { DEFAULT_CHIPS, DEFAULT_SCOPE, chipsFromParam, chipsToParam } from './definition.ts';
 import { parseDir } from './outcome.ts';
 import { refsOf } from './minedChips.ts';
 import { gameVs } from './team.ts';
-import { gameFromPath, gamePath, keyOf } from './game.ts';
+import { gameFromPath, gamePath, keyOf, seasons } from './game.ts';
 import type { GameKey } from './game.ts';
 
 export interface View {
@@ -48,7 +48,7 @@ export interface View {
   games: boolean;
   /** The schedule's week, /games/week/<n>/; null = the first scheduled week. */
   bwk: number | null;
-  /** The streak-breakers leaderboard, /breakers/; with a team, that team's broken streaks, /breakers/<id>/. */
+  /** The streak-breakers leaderboard, /breakers/ (a past season's at /breakers/<season>/, `season`); with a team, that team's broken streaks, /breakers/<id>/. */
   breakers: boolean;
   breaker: number | null;
   /** The schedule's season, /games/<season>/week/<n>/; null = the running season. */
@@ -78,10 +78,32 @@ export const seasonFromPath = (pathname: string) => {
 };
 /** Whether a path is the schedule's at-risk streaks, /cfb-streak-king/games/at-risk/. */
 export const riskFromPath = (pathname: string) => /\/games\/at-risk\/?$/.test(pathname);
-/** Whether a path is the streak-breakers leaderboard, /cfb-streak-king/breakers/ (or its first address, /stoppers/). */
-export const breakersFromPath = (pathname: string) => /\/(?:breakers|stoppers)\/?$/.test(pathname) || breakerFromPath(pathname) != null;
-/** The team in a broken-streaks path like /cfb-streak-king/breakers/georgia/. */
-export const breakerFromPath = (pathname: string) => teamById(/\/(?:breakers|stoppers)\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1] ?? null);
+// any team the payload has: a breaker can be below FBS, or have left it since its season
+const anyTeamById = (id: string | null | undefined) => {
+  const ti = id ? teams.findIndex((t) => t.id === id) : -1;
+  return ti >= 0 ? ti : null;
+};
+// /breakers/, /breakers/<season>/, /breakers/<id>/, /breakers/<season>/<id>/ (and the page's first address, /stoppers/)
+const BREAKERS_PATH = /\/(?:breakers|stoppers)(?:\/(\d{4}))?(?:\/([a-z0-9-]+))?\/?$/;
+const breakersSeason = (m: RegExpExecArray | null): number | null | undefined => {
+  if (!m) return undefined;
+  if (m[1] == null) return null;
+  const se = Number(m[1]);
+  // the running season is /breakers/ itself; a season with no games isn't one
+  return se === P.currentSeason ? null : seasons().includes(se) ? se : undefined;
+};
+/** The season in a streak-breakers path like /cfb-streak-king/breakers/1995/ or /breakers/1995/iowa/; null for the running season. */
+export const breakersSeasonFromPath = (pathname: string) => breakersSeason(BREAKERS_PATH.exec(pathname)) ?? null;
+/** The team in a broken-streaks path like /cfb-streak-king/breakers/georgia/ or /breakers/1995/iowa/. */
+export const breakerFromPath = (pathname: string) => {
+  const m = BREAKERS_PATH.exec(pathname);
+  return breakersSeason(m) === undefined ? null : anyTeamById(m?.[2]);
+};
+/** Whether a path is the streak-breakers leaderboard (any season) or one team's broken streaks. */
+export const breakersFromPath = (pathname: string) => {
+  const m = BREAKERS_PATH.exec(pathname);
+  return breakersSeason(m) !== undefined && (m![2] == null || anyTeamById(m![2]) != null);
+};
 /** Whether a path is the schedule, /cfb-streak-king/games/, a season or week of it, or its at-risk streaks. */
 export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) || weekFromPath(pathname) != null || seasonFromPath(pathname) != null || riskFromPath(pathname);
 
@@ -115,7 +137,7 @@ export function parseUrl(pathname: string, search: string): View {
     game,
     games: inPath == null && !game && gamesFromPath(pathname),
     bwk: inPath == null && !game ? bwk : null,
-    season: inPath == null && !game ? seasonFromPath(pathname) : null,
+    season: inPath == null && !game ? seasonFromPath(pathname) ?? breakersSeasonFromPath(pathname) : null,
     risk: inPath == null && !game && riskFromPath(pathname),
     breakers: inPath == null && !game && breakersFromPath(pathname),
     breaker: inPath == null && !game ? breakerFromPath(pathname) : null,
@@ -129,7 +151,7 @@ export function toUrl(v: View): UrlParts {
   // a team page or a game page is its own address; the board's definition stays in memory
   const board = v.page == null && v.game == null && !v.games && !v.breakers;
   return {
-    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : '',
+    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : '',
     params: {
       vs: null, // the old matchup param
       t: board && v.team != null ? teams[v.team].id : null,
@@ -160,7 +182,7 @@ export function hrefOf(base: string, { path, params }: UrlParts): string {
 export const gamesUrl = (bwk: number | null = null, risk = false, season: number | null = null): UrlParts => toUrl({ ...DEFAULT_VIEW, games: true, bwk, risk, season });
 
 /** The link to the streak-breakers leaderboard. */
-export const breakersUrl = (breaker: number | null = null): UrlParts => toUrl({ ...DEFAULT_VIEW, breakers: true, breaker });
+export const breakersUrl = (breaker: number | null = null, season: number | null = null): UrlParts => toUrl({ ...DEFAULT_VIEW, breakers: true, breaker, season: season === P.currentSeason ? null : season });
 
 /** The link to a team's page. */
 export function teamUrl(ti: number): UrlParts {
