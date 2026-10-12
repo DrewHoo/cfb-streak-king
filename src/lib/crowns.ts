@@ -450,7 +450,8 @@ async function mineAll(): Promise<Mined> {
             };
             const score = crownScore(mined, ctx);
             if (score < KEEP_FLOOR && chips.length) continue;
-            const key = dir + '|' + run.enderIdx;
+            // the identical run (same games) under another definition collapses; a different run the same game ended stands
+            const key = dir + '|' + run.enderIdx + '|' + run.startIdx + '|' + run.len;
             const held = broken[t];
             const prev = held.get(key);
             if (!prev) held.set(key, mined);

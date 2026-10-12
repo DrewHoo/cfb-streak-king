@@ -64,7 +64,7 @@ export interface DigestsFile {
 }
 
 const toCrown = (c: Crown): CrownRow => [
-  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2),
+  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2) || 0, // a score that rounds to -0 is 0
 ];
 const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score]: CrownRow): Crown => ({
   chips: chips ? chips.split('+') : [], dir, scope, len, atEdge: !!atEdge, field, rank, tied, second,

@@ -88,6 +88,8 @@ export interface GameContext {
   rv: number;
   /** Venue state, postal code. */
   vst: string | null;
+  /** The team's own campus state, postal code; a venue-state chip never counts a game here. */
+  ownSt: string | null;
   month: number;
   /** Day of the week of the game date, 0 Sunday. */
   wday: number;

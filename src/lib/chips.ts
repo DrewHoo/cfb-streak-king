@@ -67,7 +67,8 @@ export const CHIPS: Chip[] = [
   pre({ key: 'road', label: 'on the road', group: 'site', exclusive: true, test: (x) => !x.home && !x.neutral }),
   pre({ key: 'neutral', label: 'neutral site', group: 'site', exclusive: true, test: (x) => x.neutral }),
   pre({ key: 'away', label: 'not at home', group: 'site', exclusive: true, test: (x) => !(x.home && !x.neutral) }),
-  pre({ key: 'state', label: 'in [state]', group: 'site', param: 'state', test: (x, p) => x.vst === p }),
+  // a game in the team's own state is a home game with a worse pooled rate (the visitors' losses), so it never counts; "in Texas" is the trip there
+  pre({ key: 'state', label: 'in [state]', group: 'site', param: 'state', test: (x, p) => x.vst === p && x.ownSt !== p }),
   pre({ key: 'ranked', label: 'vs ranked opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank! > 0 }),
   pre({ key: 'top10', label: 'vs top-10 opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank! >= 1 && x.oppRank! <= 10 }),
   pre({ key: 'top5', label: 'vs top-5 opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank! >= 1 && x.oppRank! <= 5 }),

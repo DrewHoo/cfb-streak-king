@@ -10,15 +10,17 @@ test('the schedule’s digests survive the file encoding', async () => {
   const back = decodeDigests(JSON.parse(JSON.stringify(encodeDigests(d))));
   // what the file rounds
   const r2 = (x: number) => +x.toPrecision(2);
-  const r = (x: number, k: number) => +x.toFixed(k);
+  const r = (x: number, k: number) => +x.toFixed(k) || 0;
   for (const [wk, w] of Object.entries(d.broken)) {
     const b = back.broken[Number(wk)];
     expect(b.list.length).toBe(w.list.length);
     expect(b.more.length).toBe(w.more.length);
     for (const [i, x] of [...w.list, ...w.more].entries()) {
       const y = [...b.list, ...b.more][i];
-      expect(y).toMatchObject({ ti: x.ti, chips: x.chips, dir: x.dir, len: x.len, rank: x.rank, tied: x.tied, field: x.field, since: x.since, run: x.run, chance: r2(x.chance), score: r(x.score, 2) });
-      expect(y.ender).toBe(x.ender);
+      const label = `week ${wk} row ${i}: ${x.chips.join('+')} ${x.dir} ${x.len}`;
+      const want = { ti: x.ti, chips: x.chips, dir: x.dir, len: x.len, rank: x.rank, tied: x.tied, field: x.field, since: x.since, run: x.run, chance: r2(x.chance), score: r(x.score, 2) };
+      for (const [k, v] of Object.entries(want)) expect(y[k as keyof typeof y], `${label} ${k}`).toEqual(v);
+      expect(y.ender, `${label} ender`).toBe(x.ender);
     }
   }
   if (d.atRisk) {

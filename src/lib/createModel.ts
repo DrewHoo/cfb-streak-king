@@ -122,6 +122,7 @@ export function createModel(P: Payload) {
       oppMascots: teams[oppIdx]?.mg ?? NO_MASCOTS,
       oppColor: teams[oppIdx]?.kc ?? -1,
       inState: sameState(teams[oppIdx]?.st, teams[ti]?.st),
+      ownSt: teams[ti]?.st ?? null,
     };
   }
 

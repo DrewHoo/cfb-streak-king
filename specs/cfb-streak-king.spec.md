@@ -437,3 +437,23 @@ run is in Alabama's broken digest but not near the top: a win when leading at ha
 is 90% likely, so 90 of them is 14 bits before the gap.
 
 Not in this pass: the half chips at other margins; the + menu's kings over the derived chips.
+
+### Amendment (2026-10-11, later): the broken collapse and the state chip
+
+Alabama's 18 straight at home · in conference · at night, which Georgia ended on October 10,
+was missing from the week-6 broken digest. Two causes. The digest kept one telling per team,
+direction and ending game, a rule from when it knew only single-chip definitions; with every
+definition in play, every Alabama winning run that loss ended collapsed into the best-scoring
+one. And the best-scoring one was "38 straight vs the SEC · in October · in Alabama" at 48.7
+bits, because the pooled win rate for games in Alabama vs the SEC is the visitors' (.41), so
+each of Alabama's home wins counted as a rare event, and the field was 10 teams with 1- and
+2-game runs, so the gap term added 30 more.
+
+So: the miner collapses broken runs per identical run (same direction, ender, start and
+length), and a different run the same game ended stands on its own; the digest's top six is
+still one row per team, so Alabama's row is its best telling and the rest sit behind "more".
+And the venue-state chip never counts a game in the team's own state (`ownSt` on every row,
+`chips.ts`): "in Texas" for Texas was "at home" with a rigged rate, and for everyone else it
+is the trip there, with an honest one. With both, Alabama's week-6 row is the 90 straight at
+home when leading at half (15.5), which Drew confirmed feels right, and the 18 (10.2) is in
+"more".

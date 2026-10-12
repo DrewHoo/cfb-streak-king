@@ -12,7 +12,7 @@ type Row = [string, Dir, number, 0 | 1, number, number, number, number, number |
 export interface CrownsFile { v: 3; active: Row[]; all: Row[] }
 
 const toRow = (c: Crown): Row => [
-  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(1),
+  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(1) || 0, // a score that rounds to -0 is 0
 ];
 const fromRow = (scope: Scope) => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score]: Row): Crown => ({
   chips: chips ? chips.split('+') : [], dir, scope, len, atEdge: !!atEdge, field, rank, tied, second,

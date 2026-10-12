@@ -76,10 +76,20 @@ describe('brokenWeeks', () => {
     }
   });
 
-  test('one telling per broken run: no two rows share a team, direction and ender', () => {
+  test('one telling per broken run: no two rows share a team, direction, ender, start and length; a different run the same game ended stands', () => {
     if (!broken) return;
-    const keys = allRows.map((b) => `${b.ti}|${b.dir}|${b.ender.i}`);
+    const keys = allRows.map((b) => `${b.ti}|${b.dir}|${b.ender.i}|${b.run}|${b.len}`);
     expect(new Set(keys).size).toBe(keys.length);
+    const byEnder = new Map<string, number>();
+    for (const b of allRows) { const k = `${b.ti}|${b.dir}|${b.ender.i}`; byEnder.set(k, (byEnder.get(k) ?? 0) + 1); }
+    expect(Math.max(...byEnder.values())).toBeGreaterThan(1);
+  });
+
+  test('a venue-state run never counts a game in the team’s own state', () => {
+    for (const b of allRows) {
+      const st = b.chips.find((k) => k.startsWith('state:'))?.slice(6);
+      if (st) expect(teams[b.ti].st).not.toBe(st);
+    }
   });
 
   test('every completed week has a digest whose enders sit inside it', () => {
