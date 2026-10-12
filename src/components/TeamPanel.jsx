@@ -46,16 +46,18 @@ export function LedgerHead() {
   );
 }
 
-export function LedgerRow({ ti, g, cls, cover }) {
+export function LedgerRow({ ti, g, cls, cover, onGame }) {
   // a win reads in cream; in cover mode, a cover does
   const good = cover ? g.cover === 'W' : g.r === 'W';
+  // with onGame the row is a button to the game's page
+  const Row = onGame ? 'button' : 'div';
   return (
-    <div className={'xrow' + (cls ? ' ' + cls : '')}>
+    <Row className={'xrow' + (cls ? ' ' + cls : '') + (onGame ? ' game-row' : '')} onClick={onGame ? () => onGame(ti, g) : undefined} aria-label={onGame ? `${teams[ti].name} ${siteWord(g)} ${teams[g.oppIdx]?.name}: the game` : undefined}>
       <span className="xd">{shortDate(g.ep)}</span>
       <OwnRank ti={ti} g={g} />
       <Opp g={g} />
       <span className={'xsc' + (good ? ' w' : '')}><i className="xr">{g.r}</i>{g.us}–{g.them}{cover && g.sp != null ? <i className="xsp"> {spreadText(g.sp)}</i> : null}</span>
-    </div>
+    </Row>
   );
 }
 

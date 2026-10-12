@@ -82,29 +82,32 @@ export function brokenWeeks(mined: { broken: Map<number, BrokenRun[]>; teams: nu
   const weeks = completedWeeks();
   const ctx = { teams: mined.teams };
   const gsOf = new Map(teamData().map((td) => [td.ti, td.gs]));
-  const byWeek = new Map<number, BrokenStreak[]>(weeks.map((_, w) => [w, []]));
+  // by grid week; the miner's runs cover every season, the digest the running one's completed weeks
+  const byWeek = new Map<number, BrokenStreak[]>(weeks.map((x) => [x.w, []]));
   for (const [ti, runs] of mined.broken) {
     const gs = gsOf.get(ti)!;
     for (const r of runs) {
       if (!SHEET_DIRS.includes(r.dir)) continue; // the undefeated run is the winning one's story
-      const { p: _p, n: _n, enderIdx, w, startIdx, ...rest } = r;
-      byWeek.get(w)!.push({
+      const list = byWeek.get(r.week);
+      if (!list) continue;
+      const { p: _p, n: _n, enderIdx, week: _w, startIdx, ...rest } = r;
+      list.push({
         ...rest, ti, chance: chanceOf(r, ctx), score: crownScore(r, ctx),
         since: gs[startIdx].se, ender: gs[enderIdx], scope: 'all', run: gs[startIdx].ep,
       });
     }
   }
   const out = new Map<number, BrokenWeek>();
-  weeks.forEach((win, w) => {
-    if (win.wk == null) return;
-    const mine = byWeek.get(w)!;
+  for (const win of weeks) {
+    if (win.wk == null) continue;
+    const mine = byWeek.get(win.w)!;
     const retold = marginRetold(mine);
     const all = mine
       .filter((b) => !retold(b) && b.score >= BROKEN_FLOOR)
       .sort((a, b) => b.score - a.score || b.len - a.len);
     const { list, more } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
     out.set(win.wk, { wk: win.wk, lo: win.lo, hi: win.hi, list, more });
-  });
+  }
   return out;
 }
 

@@ -7,6 +7,12 @@
 //                   (?vs=...) gets its own title, description and og tags,
 //                   worded by src/lib/shareWords.ts (pure) plus
 //                   dist/share/meta.json, published by the prerender.
+//   /game/<date>/<teams>/ and /games/<season>/...
+//                   an address the origin has no file for (a past season's
+//                   game or schedule) is answered with the app shell
+//                   (dist/404.html) as a 200 and, for a game, its own head
+//                   from the season file (dist/games/<season>.json); a
+//                   prerendered game page passes through with its card.
 //   /share/og.png   the definition's board drawn on demand (card.ts): the
 //                   worker fetches the payload the prerender publishes,
 //                   runs the site's own createModel/boards, and renders the
@@ -15,7 +21,8 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, defWords, decodeRefs } from '../../src/lib/shareWords.ts';
+import { shareText, defWords, decodeRefs, gameFromShare, gameText } from '../../src/lib/shareWords.ts';
+import type { GameRowWords } from '../../src/lib/shareWords.ts';
 import type { ShareMeta } from '../../src/lib/shareWords.ts';
 import { createModel } from '../../src/lib/createModel.ts';
 import type { Payload, BoardRow, Dir } from '../../src/lib/types.ts';
@@ -104,7 +111,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-08e';
+const CARD_VERSION = '2026-10-12a';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -159,6 +166,47 @@ function loadWeekly(): Promise<Weekly> {
   return weeklyCache.data;
 }
 
+/** dist/games/<season>.json: each game's rows, as seasonFile.ts encodes them (a crown row's fields by position). */
+type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number];
+interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number][]; leaders: [number, SeasonCrown, number, number | null][] }> }
+const seasonCache = new Map<number, { day: string; data: Promise<SeasonFile | null> }>();
+function loadSeason(season: number): Promise<SeasonFile | null> {
+  const day = dayKey();
+  const got = seasonCache.get(season);
+  if (got?.day === day) return got.data;
+  const data = (async () => {
+    const res = await fetch(`${ORIGIN}${BASE}/games/${season}.json?d=${day}`, edge(3600));
+    if (!res.ok) { await res.body?.cancel(); return null; }
+    return (await res.json()) as SeasonFile;
+  })().catch(() => { seasonCache.delete(season); return null; });
+  seasonCache.set(season, { day, data });
+  return data;
+}
+/** A game's rows from its season file (a January game belongs to the season before), as the words want them, ended runs first. */
+async function gameRows(key: string, date: string): Promise<GameRowWords[]> {
+  const m = await loadModel();
+  const year = Number(date.slice(0, 4));
+  const ids = m.teams.map((t) => t.id);
+  for (const season of [year, year - 1]) {
+    const file = await loadSeason(season);
+    const g = file?.games[key];
+    if (!g) continue;
+    const row = (team: number, c: SeasonCrown, since: number, leader: boolean): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], atEdge: !!c[3], rank: c[5], field: c[4], since, leader });
+    return [...g.ended.map(([t, c, since]) => row(t, c, since, false)), ...g.leaders.map(([t, c, since]) => row(t, c, since, true))];
+  }
+  return [];
+}
+/** A played game's score from the model, from the home side; null when the game isn't in the payload. */
+function gameScore(g: NonNullable<ReturnType<typeof gameFromShare>>, m: Model): { home: number; away: number } | null {
+  const ep = Math.floor(Date.parse(g.date + 'T00:00:00Z') / 86400000);
+  const home = m.teams.findIndex((t) => t.id === g.home), away = m.teams.findIndex((t) => t.id === g.away);
+  for (const [ti, opp] of [[home, away], [away, home]]) {
+    const row = m.gamesOf(ti).find((x) => x.ep === ep && x.oppIdx === opp);
+    if (row) return ti === home ? { home: row.us, away: row.them } : { home: row.them, away: row.us };
+  }
+  return null;
+}
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const md = (ep: number) => { const d = new Date(ep * 86400000); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`; };
 const spanOf = (lo: number, hi: number) => (lo === hi ? md(lo) : `${md(lo)} – ${md(hi)}`);
@@ -186,6 +234,38 @@ async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> 
   return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
 }
 
+/** A game card: the streaks the game ended and the leaders it made, from the season file. */
+async function gameCard(key: string): Promise<Response> {
+  const m = await loadModel();
+  const g = gameFromShare(`/game/${key}/`, await loadMeta());
+  if (!g) throw new Error(`no game at ${key}`);
+  const rows = await gameRows(key, g.date);
+  const byId = new Map(m.teams.map((t) => [t.id, t]));
+  const score = gameScore(g, m);
+  const meta = await loadMeta();
+  const cards: CardRow[] = [];
+  for (const r of rows.slice(0, 7)) {
+    const t = byId.get(r.team);
+    const w = (defWords(r.chips || 'all', meta) ?? []).join(' · ');
+    const verb = r.leader ? 'now leads' : ({ W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' } as Record<string, string>)[r.dir[0]] ?? 'had won';
+    cards.push({
+      count: `${r.len}${r.atEdge ? '+' : ''}`, name: `${t?.name ?? r.team} ${verb}${r.leader ? ':' : ''} ${r.len}${r.atEdge ? '+' : ''} straight${w ? ` ${w}` : ''}`,
+      sub: r.leader ? `sole leader of ${r.field} · since ${r.since}` : `was ${r.rank === 1 ? '1st' : `${r.rank}th`} of ${r.field} · since ${r.since}`,
+      bad: r.dir[0] === 'L' || r.dir[0] === 'N', live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?',
+    });
+  }
+  const away = meta.teams[g.away], home = meta.teams[g.home];
+  const res = renderCard({
+    heading: score ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`}` : `${away} ${g.neutral ? 'vs' : 'at'} ${home}`,
+    words: `${g.date} · ${rows.some((r) => !r.leader) ? 'the streaks it ended' : 'what it put on the line'}`,
+    rows: cards,
+    dense: true,
+    footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
+  });
+  const png = await res.arrayBuffer();
+  if (!png.byteLength) throw new Error('empty render');
+  return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
+}
 async function logoUri(espn: string | null | undefined): Promise<string | null> {
   if (!espn) return null;
   try {
@@ -269,11 +349,14 @@ export default {
         const key = new Request(`${url.origin}${url.pathname}?v=${CARD_VERSION}&${url.searchParams}`, { method: 'GET' });
         const cached = await caches.default.match(key);
         const week = url.searchParams.get('broken') ?? url.searchParams.get('risk');
-        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
+        const game = url.searchParams.get('game');
+        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
-        const res = week != null && /^\d{1,2}$/.test(week)
-          ? await weekCard(url.searchParams.has('risk') ? 'risk' : 'broken', Number(week))
-          : await ogCard(url.searchParams);
+        const res = game
+          ? await gameCard(game)
+          : week != null && /^\d{1,2}$/.test(week)
+            ? await weekCard(url.searchParams.has('risk') ? 'risk' : 'broken', Number(week))
+            : await ogCard(url.searchParams);
         ctx.waitUntil(caches.default.put(key, res.clone()));
         return res;
       } catch (e) {
@@ -286,11 +369,39 @@ export default {
     // everything else: origin, with <head> rewritten where the URL says more
     // than the prerendered page could. A same-zone subrequest skips the
     // worker and lands on GitHub Pages (and lets `wrangler dev` hit the live site).
-    const res = await fetch(new Request(`${ORIGIN}${url.pathname}${url.search}`, request));
+    let res = await fetch(new Request(`${ORIGIN}${url.pathname}${url.search}`, request));
     try {
       if (request.method !== 'GET') return res;
+      // a game or a past season's schedule the build didn't prerender: the
+      // shell, as a 200, and for a game its own head and card
+      const meta = await loadMeta();
+      const game = gameFromShare(url.pathname, meta);
+      const pastSeason = /\/games\/\d{4}(\/week\/\d{1,2})?\/?$/.test(url.pathname);
+      if (res.status === 404 && (game || pastSeason)) {
+        await res.body?.cancel();
+        const shell = await fetch(`${ORIGIN}${BASE}/404.html?d=${dayKey()}`, edge(3600));
+        if (!shell.ok) { await shell.body?.cancel(); return new Response('not found', { status: 404 }); }
+        res = new Response(shell.body, { status: 200, headers: shell.headers });
+        if (agentOf(request.headers.get('user-agent')) !== 'browser') report(ctx, request, 'share unfurl', urlProps(url));
+        const text = game
+          ? gameText(game, meta, gameScore(game, await loadModel()), await gameRows(game.key, game.date))
+          : { title: `${/\d{4}/.exec(url.pathname)![0]} games · ${meta.site}`, description: `Every game with a current FBS team that season, and the streaks each ended.` };
+        const img = game ? `${ORIGIN}${BASE}/share/og.png?game=${encodeURIComponent(game.key)}` : `${ORIGIN}${BASE}/og.png`;
+        return new HTMLRewriter()
+          .on('title', { element(e) { e.setInnerContent(text.title); } })
+          .on('meta[name="description"]', content(text.description))
+          .on('meta[property="og:title"]', content(text.title))
+          .on('meta[property="og:description"]', content(text.description))
+          .on('meta[property="og:url"]', content(`${ORIGIN}${url.pathname}`))
+          .on('link[rel="canonical"]', { element(e) { e.setAttribute('href', `${ORIGIN}${url.pathname}`); } })
+          .on('meta[property="og:image"]', content(img))
+          .on('meta[name="twitter:image"]', content(img))
+          .on('meta[name="twitter:title"]', content(text.title))
+          .on('meta[name="twitter:description"]', content(text.description))
+          .transform(res);
+      }
       if (!(res.headers.get('content-type') ?? '').includes('text/html')) return res;
-      const text = shareText(url.pathname, url.searchParams, await loadMeta());
+      const text = shareText(url.pathname, url.searchParams, meta);
       if (!text) return res;
       if (agentOf(request.headers.get('user-agent')) !== 'browser') report(ctx, request, 'share unfurl', urlProps(url));
       const board = !/\/team\//.test(url.pathname);

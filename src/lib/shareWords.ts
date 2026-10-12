@@ -102,6 +102,47 @@ export function decodeRefs(c: string | null, t: RefTables): { key: string; param
   return out.slice(0, 4);
 }
 
+/** A game's address, /game/<date>/<away>-at-<home>/ (-vs- neutral), as the ids it names; null when it names no two teams the meta knows. */
+export function gameFromShare(pathname: string, meta: ShareMeta): { date: string; away: string; home: string; neutral: boolean; key: string } | null {
+  const m = /\/game\/(\d{4}-\d{2}-\d{2})\/([a-z0-9-]+)\/?$/.exec(pathname);
+  if (!m) return null;
+  const re = /-(at|vs)-/g;
+  let x: RegExpExecArray | null;
+  while ((x = re.exec(m[2]))) {
+    const away = m[2].slice(0, x.index), home = m[2].slice(x.index + x[0].length);
+    if (meta.teams[away] && meta.teams[home]) return { date: m[1], away, home, neutral: x[1] === 'vs', key: `${m[1]}/${m[2]}` };
+  }
+  return null;
+}
+
+const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed', U: 'was undefeated in' } as Record<string, string>;
+const marginOfDir = (dir: string) => { const by = Number(dir.slice(1)); return by ? ` by ${by}+ points` : ''; };
+/** One row of a season file's game: the fields the words need. */
+export interface GameRowWords { team: string; chips: string; dir: string; len: number; atEdge: boolean; rank: number; field: number; since: number; leader?: boolean }
+
+/**
+ * Title and description for a game's page, from the season file's rows for
+ * it: the score when played, the top runs it ended and the leaders it made.
+ */
+export function gameText(g: NonNullable<ReturnType<typeof gameFromShare>>, meta: ShareMeta, score: { home: number; away: number } | null, rows: GameRowWords[]): ShareText {
+  const away = meta.teams[g.away], home = meta.teams[g.home];
+  const at = g.neutral ? 'vs' : 'at';
+  const title = score
+    ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`} · ${meta.site}`
+    : `${away} ${at} ${home}, ${g.date} · ${meta.site}`;
+  const words = (r: GameRowWords) => {
+    const w = defWords(r.chips || 'all', meta) ?? [];
+    return `${r.len}${r.atEdge ? '+' : ''} straight${marginOfDir(r.dir)}${w.length ? ` ${w.join(' · ')}` : ''}`;
+  };
+  const ended = rows.filter((r) => !r.leader).slice(0, 3).map((r) => `${meta.teams[r.team] ?? r.team} ${PAST[r.dir[0]] ?? 'had won'} ${words(r)}`);
+  const led = rows.filter((r) => r.leader).slice(0, 2).map((r) => `${meta.teams[r.team] ?? r.team} now leads: ${words(r)}`);
+  const parts = [...ended, ...led];
+  const description = score
+    ? (parts.length ? `${parts.join('. ')}. Every streak this game ended, and every field it handed a new leader.` : `${away} ${at} ${home}: no streak that led its field ended here.`)
+    : `Every streak on the line when ${away} play ${at} ${home}, ${g.date}.`;
+  return { title, description };
+}
+
 const SCOPE = (q: URLSearchParams) => (q.get('scope') === 'active' ? 'active' : 'all-time');
 const DIR = (q: URLSearchParams) => dirWord(parseDir(q.get('dir')) ?? 'W');
 

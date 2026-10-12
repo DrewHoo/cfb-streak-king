@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { teams } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, teamFromPath } from './url.ts';
+import { teams, upcomingOf } from './model.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -23,9 +23,12 @@ describe('url', () => {
       { ...DEFAULT_VIEW, active: [], dir: 'L7' },
       { ...DEFAULT_VIEW, active: [{ key: 'vsteam', param: idx('auburn') }], team: idx('kansas'), run: -4000 },
       { ...DEFAULT_VIEW, page: idx('byu') },
-      { ...DEFAULT_VIEW, page: idx('byu'), game: idx('byu'), vs: idx('tcu') },
+      { ...DEFAULT_VIEW, game: { ep: 20736, home: idx('alabama'), away: idx('georgia'), neutral: false } },
+      { ...DEFAULT_VIEW, game: { ep: 20473, home: idx('miami-fl'), away: idx('indiana'), neutral: true } },
       { ...DEFAULT_VIEW, games: true },
       { ...DEFAULT_VIEW, games: true, bwk: 5 },
+      { ...DEFAULT_VIEW, games: true, bwk: 5, season: 1987 },
+      { ...DEFAULT_VIEW, games: true, season: 1987 },
       { ...DEFAULT_VIEW, games: true, risk: true },
     ];
     for (const v of views) expect(roundTrip(v)).toEqual(v);
@@ -80,12 +83,21 @@ describe('url', () => {
     expect(parseUrl('/cfb-streak-king/games/week/x/', '').bwk).toBeNull();
   });
 
-  test('a matchup hangs off the team: its game against ?vs=, or its next', () => {
-    expect(parseUrl('/cfb-streak-king/team/byu/', '?vs=tcu')).toMatchObject({ page: idx('byu'), game: idx('byu'), vs: idx('tcu') });
-    expect(parseUrl('/cfb-streak-king/team/byu/', '?vs=next')).toMatchObject({ game: idx('byu'), vs: null });
-    // opened over the board, it still takes the team's address and leaves the definition out
-    const u = toUrl({ ...DEFAULT_VIEW, active: [{ key: 'road' }], team: idx('utah'), game: idx('byu'), vs: null });
-    expect([u.path, search(u.params)]).toEqual(['team/byu/', 'vs=next']);
+  test('a game is /game/<date>/<away>-at-<home>/ (-vs- neutral), and the old matchup address opens the team’s game', () => {
+    const key = { ep: 20736, home: idx('alabama'), away: idx('georgia'), neutral: false };
+    expect(gameUrl(key).path).toBe('game/2026-10-10/georgia-at-alabama/');
+    expect(parseUrl('/cfb-streak-king/game/2026-10-10/georgia-at-alabama/', '')).toMatchObject({ game: key, page: null, games: false });
+    expect(parseUrl('/cfb-streak-king/game/2026-01-19/indiana-vs-miami-fl/', '').game).toMatchObject({ home: idx('miami-fl'), away: idx('indiana'), neutral: true });
+    expect(parseUrl('/cfb-streak-king/game/2026-10-10/nobody-at-alabama/', '').game).toBeNull();
+    // the old matchup address: the team's next game, or its game against the opponent
+    const next = upcomingOf(idx('byu'))[0];
+    if (next) {
+      expect(parseUrl('/cfb-streak-king/team/byu/', '?vs=next')).toMatchObject({ game: { ep: next.ep }, page: null });
+      expect(parseUrl('/cfb-streak-king/team/byu/', `?vs=${teams[next.oppIdx].id}`).game).toMatchObject({ ep: next.ep });
+    }
+    // the game page leaves the definition out
+    const u = toUrl({ ...DEFAULT_VIEW, active: [{ key: 'road' }], team: idx('utah'), game: key });
+    expect([u.path, search(u.params)]).toEqual(['game/2026-10-10/georgia-at-alabama/', '']);
   });
 
   test('junk params fall back to defaults', () => {

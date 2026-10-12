@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
+import { P, teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase, crownClaim } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
-import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl } from './lib/url.ts';
+import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
-import { gameVs } from './lib/team.ts';
+import { findGame, keyOf } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
-import { dirWord, dayOf, rowKey, siteWord } from './lib/format.ts';
+import { dirWord, dayOf, rowKey } from './lib/format.ts';
 import { track } from './lib/analytics.ts';
 import { writeUrl, absoluteUrl } from './urlState.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { useCrowns } from './hooks/useCrowns.ts';
 import { useDigests } from './hooks/useDigests.ts';
+import { useSeason } from './hooks/useSeason.ts';
 import { useStarred } from './hooks/useStarred.ts';
 import { useShare } from './hooks/useShare.ts';
 import { Dateline } from './components/Dateline.jsx';
@@ -21,7 +22,7 @@ import { Grid } from './components/Grid.jsx';
 import { TeamPanel } from './components/TeamPanel.jsx';
 import { TeamPage } from './components/TeamPage.jsx';
 import { GamesPage } from './components/GamesPage.jsx';
-import { Matchup } from './components/Matchup.jsx';
+import { GamePage } from './components/GamePage.jsx';
 import { Starred } from './components/Starred.jsx';
 import { Notes, KOFI_URL } from './components/Notes.jsx';
 
@@ -29,11 +30,12 @@ const BASE = import.meta.env.BASE_URL;
 
 // `initial` seeds state the prerender and the hydrate must agree on: a
 // per-team page (/team/<id>/) starts on that team's page with its crowns
-// ({ active, all }) already loaded; /games/ starts on the schedule, and
-// /games/week/<n>/ on that week's broken streaks.
+// ({ active, all }) already loaded; a game page (/game/<date>/<teams>/) on
+// that game with its season's rows; /games/ starts on the schedule, and
+// /games/week/<n>/ on that week.
 export default function App({ initial } = {}) {
-  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk));
-  const { active, dir, scope, week, team, run, limit, page, game, vs, games, bwk, risk } = view;
+  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null));
+  const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -42,6 +44,10 @@ export default function App({ initial } = {}) {
   const crowns = useCrowns(crownTeam, initial);
   // the schedule's digests: embedded on a games page, loaded when the schedule opens from the board
   const digests = useDigests(games, initial);
+  // the open game, and its season's rows (what each game ended, who it made a leader); the schedule's selected season likewise
+  const found = useMemo(() => (game ? findGame(game) : null), [game]);
+  const gameSeason = found ? (found.played ? found.played.sides[0].row.se : P.currentSeason) : games ? season ?? P.currentSeason : null;
+  const seasonRows = useSeason(gameSeason, initial);
   const star = useStarred(active, dir);
   const { copied, share } = useShare();
   const isMobile = useIsMobile();
@@ -66,26 +72,26 @@ export default function App({ initial } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // state -> URL. A change of definition replaces the entry. Opening a streak
-  // or a matchup, or moving to a team page or back to the board, pushes one,
-  // remembering the URL underneath so closing can be a step back. (The
-  // analytics embed counts each as a pageview.)
+  // state -> URL. A change of definition replaces the entry. Opening a
+  // streak, or moving to a team page, a game page or back to the board,
+  // pushes one, remembering the URL underneath so closing can be a step
+  // back. (The analytics embed counts each as a pageview.)
   const last = useRef(null);
   useEffect(() => {
     if (!hydrated) return;
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && (was.page !== page || was.games !== games || was.bwk !== bwk || was.risk !== risk);
-    const opened = !!was && ((game != null && was.game == null) || (page == null && game == null && team != null && was.team == null && was.game == null));
+    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk);
+    const opened = !!was && (page == null && game == null && team != null && was.team == null);
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
     if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
     if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, run, page, game, vs, games, bwk, risk, hydrated]);
+  }, [active, dir, scope, week, team, run, page, game, games, bwk, season, risk, hydrated]);
 
-  // Closing a panel or a matchup: step back when that lands exactly on what's
+  // Closing a panel: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
   function close(action) {
     const after = absoluteUrl(BASE, toUrl(viewReducer(view, action)));
@@ -106,18 +112,6 @@ export default function App({ initial } = {}) {
     : null;
   const nextUp = rows.find((r) => r.onTheLine)?.next;
   const weekDay = nextUp ? dayOf(nextUp.ep) : 'Saturday';
-  const matchup = game != null ? gameVs(game, vs, todayEp) : null;
-  // the board's own streak for the matchup's team, when this game is its next
-  // one: it leads that team's list in the sheet (plain chips only, as a
-  // team's list is)
-  const pin = useMemo(() => {
-    if (!matchup || page != null || scope !== 'active' || active.some((a) => a.param != null)) return null;
-    const row = rows.find((r) => r.ti === game);
-    if (!row || row.next?.i !== matchup.i) return null;
-    const level = rows.filter((r) => r.s.len === row.s.len);
-    const since = row.qual[row.qual.length - row.s.len].se;
-    return { chips: active.map((a) => a.key), dir, len: row.s.len, atEdge: row.s.atEdge, rank: rows.indexOf(level[0]) + 1, tied: level.length, field: rows.length, next: row.next, since, chance: null, score: 0 };
-  }, [matchup, page, scope, active, dir, rows, game]);
 
   const define = (chips, d) => dispatch({ type: 'define', active: chips, dir: d });
   const on = {
@@ -140,9 +134,14 @@ export default function App({ initial } = {}) {
     track('team page', { team: teams[ti].id, from });
     dispatch({ type: 'page', team: ti });
   }
+  // a game's page, from a row that describes it from one team's side
   function openGame(ti, g, from) {
-    track('matchup', { team: teams[ti].id, opp: teams[g.oppIdx]?.id, from });
-    dispatch({ type: 'game', team: ti, vs: g.oppIdx });
+    track('game', { team: teams[ti].id, opp: teams[g.oppIdx]?.id, from });
+    dispatch({ type: 'game', key: keyOf(ti, g) });
+  }
+  function openGameKey(key, from) {
+    track('game', { team: teams[key.home].id, opp: teams[key.away].id, from });
+    dispatch({ type: 'game', key });
   }
   // one streak — a crown, a row of a team's list, or a broken run: its board,
   // with that team open. A mined key decodes to its chip and choice; a
@@ -186,9 +185,10 @@ export default function App({ initial } = {}) {
     track('share', { games: true, section: kind, wk });
     share(kind === 'risk' ? `Week ${wk}'s college football streaks most at risk` : `The college football streaks broken in Week ${wk}`, absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk + 1, kind === 'risk')));
   }
-  function shareGame() {
-    track('share', { team: teams[game].id, matchup: true });
-    share(`${teams[game].name} ${siteWord(matchup)} ${teams[matchup.oppIdx]?.name}: every streak on the line`, absoluteUrl(BASE, toUrl({ ...view, vs: matchup.oppIdx })));
+  function shareGame(key) {
+    track('share', { game: true, team: teams[key.home].id, opp: teams[key.away].id });
+    const played = !!found?.played;
+    share(`${teams[key.away].name} ${key.neutral ? 'vs' : 'at'} ${teams[key.home].name}: ${played ? 'the streaks it ended' : 'every streak on the line'}`, absoluteUrl(BASE, gameUrl(key)));
   }
 
   const panel = team != null && (
@@ -214,14 +214,26 @@ export default function App({ initial } = {}) {
             share: shareTeam,
           }}
         />
-      ) : games ? (
-        <GamesPage
-          digests={digests} bwk={bwk} risk={risk} copied={copied}
+      ) : game != null ? (
+        <GamePage
+          found={found} season={seasonRows} todayEp={todayEp} isMobile={isMobile} copied={copied}
           on={{
             board: () => dispatch({ type: 'board' }),
-            game: (ti, g) => openGame(ti, g, 'games'),
+            team: (ti) => openTeam(ti, 'game'),
+            streak: (s, ti) => openStreak(s, ti, 'game'),
+            week: (se, wk) => { dispatch({ type: 'bweek', wk, season: se === P.currentSeason ? null : se }); track('games', { from: 'game' }); },
+            share: shareGame,
+          }}
+        />
+      ) : games ? (
+        <GamesPage
+          digests={digests} seasonRows={seasonRows} season={season ?? P.currentSeason} bwk={bwk} risk={risk} copied={copied}
+          on={{
+            board: () => dispatch({ type: 'board' }),
+            game: (key) => openGameKey(key, 'games'),
             streak: (b) => openStreak(b, b.ti, 'broken'),
-            week: (wk) => { dispatch({ type: 'bweek', wk }); track('broken week', { wk }); },
+            week: (wk) => { dispatch({ type: 'bweek', wk, season }); track('broken week', { wk, season }); },
+            year: (se) => { dispatch({ type: 'bweek', wk: null, season: se === P.currentSeason ? null : se }); track('games year', { season: se }); },
             link: linkSection,
             share: shareGames,
           }}
@@ -245,12 +257,6 @@ export default function App({ initial } = {}) {
           <Starred starred={star.starred} todayEp={todayEp} onApply={applyStarred} onRemove={star.remove} />
         </>
       )}
-
-      <Matchup
-        ti={matchup ? game : null} game={matchup} crowns={game === crownTeam ? crowns.active : null} pin={pin} todayEp={todayEp} isMobile={isMobile}
-        onClose={() => close({ type: 'closeGame' })} onTeam={(ti) => openTeam(ti, 'matchup')}
-        onStreak={(s, ti) => openStreak(s, ti, 'matchup')} onShare={shareGame}
-      />
 
       <Notes />
 

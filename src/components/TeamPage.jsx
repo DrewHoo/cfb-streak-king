@@ -11,7 +11,7 @@ import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
-import { StreakRow } from './Matchup.jsx';
+import { StreakRow } from './StreakRow.jsx';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 
 const STREAKS_CAP = 10;
@@ -90,7 +90,7 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
           <h2>{P.currentSeason} schedule</h2>
           <div className="ledger tpg-sched">
             <LedgerHead />
-            {played.map((g) => <LedgerRow key={g.i} ti={ti} g={g} />)}
+            {played.map((g) => <LedgerRow key={g.i} ti={ti} g={g} onGame={on.game} />)}
             {ahead.map((g) => <NextRow key={g.i} ti={ti} g={g} onGame={on.game} />)}
           </div>
         </>

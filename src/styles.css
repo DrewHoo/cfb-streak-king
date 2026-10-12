@@ -656,3 +656,23 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
   .gm-line { font-size: 9.5px; overflow: hidden; text-overflow: ellipsis; }
   .gm-claim { font-size: 10.5px; }
 }
+
+/* game page: the score, both teams, what the game did to the streaks */
+.gp { max-width: 560px; margin: 0 auto; }
+.gp-h1 { text-align: left; font-size: clamp(26px, 6vw, 38px); margin: 14px 0 2px; }
+.gp-when { margin: 0 0 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); }
+.gp-wk { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--cream); background: none; border: 0; padding: 0; cursor: pointer; }
+.gp-wk:hover, .gp-wk:focus-visible { color: var(--rust); outline: none; }
+.gp-top { padding: 14px 0; }
+.mu-score { font-family: 'Graduate', serif; font-weight: 400; font-size: 30px; line-height: 1; color: var(--cream); }
+.gp-sec { margin-top: 22px; }
+.gp-sec h2 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 2px; font-size: 20px; }
+.gp-sec h2 span { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+.srow-lead { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-muted); }
+/* the schedule's results ledger */
+.gm-score { font-family: 'Graduate', serif; font-weight: 400; font-size: 13px; color: var(--ink-faint); letter-spacing: 0; }
+.gm-score b { font-weight: 400; color: var(--ink-muted); }
+.gm.away-won .gm-score .as, .gm.home-won .gm-score .hs { color: var(--cream); }
+/* a team page's played row opens the game */
+.xrow.game-row { font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--line, rgba(239,230,217,0.08)); text-align: left; cursor: pointer; width: 100%; }
+.xrow.game-row:hover, .xrow.game-row:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }

@@ -9,7 +9,8 @@ const row: MinedCrown = { chips: ['home'], dir: 'W', scope: 'active', len: 5, at
 const small: Mined = {
   active: new Map([[7, [row]]]),
   all: new Map([[7, [{ ...row, scope: 'all' }]]]),
-  broken: new Map([[7, [{ ...row, ti: 7, enderIdx: 9, w: 0, startIdx: 4, live: false }]]]),
+  broken: new Map([[7, [{ ...row, ti: 7, enderIdx: 9, week: 2960, startIdx: 4, live: false }]]]),
+  leaders: new Map([[7, [{ ...row, ti: 7, week: 2960, prev: 3, prevLen: 4, causeT: 3, causeIdx: 11, startIdx: 4 }]]]),
   teams: 136,
 };
 
@@ -19,8 +20,8 @@ describe('the raw mine as a file', () => {
     expect(back).toEqual(small);
   });
 
-  test('the stamp names the payload, the chips and the floor', () => {
-    expect(MINE_STAMP).toMatch(/^payload \d{4}-.* · chips \d+\/[0-9a-f]{8} · keep -?\d+(\.\d+)?$/);
+  test('the stamp names the payload, the chips, the floor and the history depth', () => {
+    expect(MINE_STAMP).toMatch(/^payload \d{4}-.* · chips \d+\/[0-9a-f]{8} · keep -?\d+(\.\d+)? · hist \d$/);
   });
 
   test('a file with another stamp is refused with a warning', () => {

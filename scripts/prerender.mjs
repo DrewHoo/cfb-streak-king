@@ -41,6 +41,9 @@ const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crowns
 const { completedWeeks, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
+const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
+const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
+const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
 const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
@@ -61,8 +64,9 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
  * One page: the app rendered with `initial`, and a head whose title,
  * description, canonical and image are the page's own.
  */
-function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests }) {
-  const appHtml = renderToString(React.createElement(App, { initial }))
+function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests, season, shell = false }) {
+  // the shell (dist/404.html) carries no markup: the app boots from an empty root on whatever address reached it
+  const appHtml = shell ? '' : renderToString(React.createElement(App, { initial }))
   const head = `
     <meta name="description" content="${esc(description)}" />
     <link rel="canonical" href="${url}" />
@@ -94,7 +98,7 @@ function page({ initial, url, title, description, image, imageAlt, jsonLd, embed
   html = html.replace('</head>', head)
   // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
   const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}`)
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}`)
   return { html, appHtml }
 }
 
@@ -158,6 +162,27 @@ const digestsFile = encodeDigests(buildDigests(todayEpochDay(), minedBroken, (ti
 const digests = decodeDigests(digestsFile)
 fs.mkdirSync(path.join(ROOT, 'dist', 'games'), { recursive: true })
 fs.writeFileSync(path.join(ROOT, 'dist', 'games', 'digests.json'), JSON.stringify(digestsFile))
+
+// --- the season files: what each game ended (its leaders' runs) and who it
+// made a leader, one file per season (seasons.ts); a games page or a game
+// page embeds the slice it shows ---
+const seasonRows = buildSeasons(minedBroken)
+let seasonGames = 0
+for (const [season, rows] of seasonRows) {
+  fs.writeFileSync(path.join(ROOT, 'dist', 'games', `${season}.json`), JSON.stringify(encodeSeason(rows)))
+  seasonGames += rows.games.size
+}
+console.log(`season files: ${seasonRows.size} seasons under dist/games/, ${seasonGames} games with rows`)
+// the season's rows for just these games, as the file encodes them, and decoded for the render
+const seasonSlice = (season, keys) => {
+  const rows = seasonRows.get(season)
+  const games = new Map()
+  for (const k of keys) if (rows?.games.has(k)) games.set(k, rows.games.get(k))
+  const file = encodeSeason({ season, builtAt: P.builtAt, games })
+  return { file, rows: decodeSeason(file) }
+}
+const currentWeeks = seasonWeeks(P.currentSeason)
+const weekKeys = (wk) => (currentWeeks.find((w) => w.wk === wk)?.games ?? []).map((g) => keyString(g.key))
 console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken streaks, ${digests.atRisk ? `week ${digests.atRisk.wk} at risk (${digests.atRisk.list.length} rows)` : 'nothing at risk'}, ${Object.keys(digests.onLine).length} games with a streak on the line`)
 
 // --- the schedule: every scheduled game, by week ---
@@ -165,9 +190,12 @@ console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken stre
   const url = `${SITE}games/`
   const title = `This week's games · ${config.title}`
   const description = `Every scheduled FBS game, with the line and the streak most on the line in it.`
+  const first = currentWeeks.find((w) => w.games.some((g) => g.scheduled))?.wk ?? currentWeeks.at(-1)?.wk
+  const slice = seasonSlice(P.currentSeason, weekKeys(first))
   const { html } = page({
-    initial: { games: true, digests },
+    initial: { games: true, digests, season: slice.rows },
     digests: digestsFile,
+    season: slice.file,
     url,
     title,
     description,
@@ -220,9 +248,11 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
   const description = top.length
     ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${n - 1}.` : ''} Week ${n}'s games and the streaks they put at risk.`
     : `Week ${n}'s college football games and the streaks they put at risk.`
+  const slice = seasonSlice(P.currentSeason, weekKeys(n))
   const { html } = page({
-    initial: { games: true, bwk: n, digests },
+    initial: { games: true, bwk: n, digests, season: slice.rows },
     digests: digestsFile,
+    season: slice.file,
     url,
     title,
     description,
@@ -255,9 +285,11 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
     weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows }
     const top = rows.slice(0, 3).map((r) => `${r.claim}, ${r.sub.split(' · ')[0]}`)
     const description = `${top.join('. ')}. The streaks the week's games can take away, ranked by the odds.`
+    const slice = seasonSlice(P.currentSeason, weekKeys(wk))
     const { html } = page({
-      initial: { games: true, risk: true, digests },
+      initial: { games: true, risk: true, digests, season: slice.rows },
       digests: digestsFile,
+      season: slice.file,
       url,
       title,
       description,
@@ -274,6 +306,82 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
     weekUrls.push(url)
     console.log(`prerendered the at-risk page: week ${wk}, ${rows.length} rows`)
   }
+}
+
+// --- one page per game of the running season: what it ended and who it made
+// a leader, or what it puts on the line; with its own head. Older games
+// have no file: the share worker answers their addresses with the app
+// shell (dist/404.html, below) and the game's head ---
+const gameUrls = []
+{
+  const PAST_ENDED = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
+  let n = 0
+  for (const week of currentWeeks) {
+    for (const item of week.games) {
+      const key = item.key
+      const ks = keyString(key)
+      const slice = seasonSlice(P.currentSeason, [ks])
+      const rows = slice.rows.games.get(ks) ?? { ended: [], leaders: [] }
+      const away = teams[key.away].name, home = teams[key.home].name
+      const at = key.neutral ? 'vs' : 'at'
+      const url = `${SITE}${gamePath(key)}`
+      let title, description
+      if (item.played) {
+        const [hs, as] = scoreOf(item.played)
+        const winner = hs > as ? `${home} ${hs}, ${away} ${as}` : as > hs ? `${away} ${as}, ${home} ${hs}` : `${away} ${as}, ${home} ${hs} (tie)`
+        title = `${winner} · ${config.title}`
+        const top = rows.ended.slice(0, 3).map((b) => `${teams[b.ti].name} ${PAST_ENDED[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`)
+        const leaders = rows.leaders.slice(0, 2).map((l) => `${teams[l.ti].name} now leads: ${l.len} straight${marginWords(l.dir)}${l.chips.length ? ` ${wordsOf(l.chips)}` : ''}`)
+        description = [...top, ...leaders].length
+          ? `${[...top, ...leaders].join('. ')}. Every streak this game ended, and every field it handed a new leader.`
+          : `${away} ${at} ${home}, ${isoDate(key.ep)}: no streak that led its field ended here.`
+      } else {
+        const g = item.scheduled
+        title = `${away} ${at} ${home}, ${monthDay(key.ep)} · ${config.title}`
+        const top = digests.onLine[g.i]
+        description = top
+          ? `${teams[top.ti].name} ${PRESENT[baseDir(top.s.dir)]} ${top.s.len}${top.s.atEdge ? '+' : ''} straight${marginWords(top.s.dir)}${top.s.chips.length ? ` ${wordsOf(top.s.chips)}` : ''}. Every streak on the line when ${away} play${key.neutral ? '' : ' at'} ${home}.`
+          : `Every streak on the line when ${away} play ${at} ${home}, ${monthDay(key.ep)}.`
+      }
+      const { html } = page({
+        initial: { game: key, season: slice.rows },
+        season: slice.file,
+        url,
+        title,
+        description,
+        image: `${SITE}share/og.png?game=${encodeURIComponent(ks)}`,
+        imageAlt: `${away} ${at} ${home}: the streaks it ended, on a dark leaderboard.`,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`${away} ${at} ${home}`, url]])],
+        },
+      })
+      const dir = path.join(ROOT, 'dist', gamePath(key))
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(path.join(dir, 'index.html'), html)
+      gameUrls.push(url)
+      n++
+    }
+  }
+  console.log(`prerendered ${n} game pages under dist/game/`)
+}
+
+// --- the app shell for an address with no file (an older game's page, a
+// past season's schedule): GitHub Pages serves 404.html for it and the app
+// boots on the address; the share worker turns that into a 200 with the
+// page's own head ---
+{
+  const { html } = page({
+    shell: true,
+    initial: {},
+    url: SITE,
+    title: config.title,
+    description: config.description,
+    image: `${SITE}og.png`,
+    imageAlt: config.ogImageAlt,
+    jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(SITE, config.title, config.description)] },
+  })
+  fs.writeFileSync(path.join(ROOT, 'dist', '404.html'), html)
 }
 
 // --- share metadata for the Cloudflare worker (workers/share): the words a
@@ -297,7 +405,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE, `${SITE}games/`, ...weekUrls]
+const urls = [SITE, `${SITE}games/`, ...weekUrls, ...gameUrls]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]

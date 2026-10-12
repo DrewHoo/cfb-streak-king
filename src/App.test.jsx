@@ -8,7 +8,7 @@ import React, { act } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import App from './App.jsx';
-import { teams } from './lib/model.ts';
+import { teams, upcomingOf } from './lib/model.ts';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // jsdom has no matchMedia; useIsMobile only needs the shape
@@ -79,11 +79,21 @@ describe('prerender + hydrate', () => {
     await unmount();
   });
 
-  test('a matchup link hydrates as the team page, then raises the sheet', async () => {
+  test('a game page hydrates without a mismatch, played or scheduled, and an old matchup link lands on the game', async () => {
+    const played = { ep: 20736, home: teams.findIndex((t) => t.id === 'alabama'), away: teams.findIndex((t) => t.id === 'georgia'), neutral: false };
+    const a = await hydrate({ game: played, season: null }, '/cfb-streak-king/game/2026-10-10/georgia-at-alabama/');
+    expect(a.html).toContain('class="gp"');
+    expect(a.html).toContain('Streaks this game ended');
+    expect(a.errors).toEqual([]);
+    await a.unmount();
     const ti = teams.findIndex((t) => t.id === 'byu');
-    const { errors, unmount } = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/cfb-streak-king/team/byu/?vs=next');
-    expect(errors).toEqual([]);
-    expect(document.body.querySelector('.sheet.matchup')).not.toBeNull();
-    await unmount();
+    const next = upcomingOf(ti)[0];
+    if (next) {
+      const b = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/cfb-streak-king/team/byu/?vs=next');
+      expect(b.errors).toEqual([]);
+      expect(b.root.querySelector('.gp')).not.toBeNull();
+      expect(b.root.textContent).toContain('On the line');
+      await b.unmount();
+    }
   });
 });

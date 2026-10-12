@@ -2,6 +2,8 @@ import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
 import { teamFromPath, gamesFromPath, weekFromPath, riskFromPath } from './lib/url.ts'
+import { gameFromPath } from './lib/game.ts'
+import { decodeSeason } from './lib/seasonFile.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
 import { decodeDigests } from './lib/digests.ts'
 import './styles.css'
@@ -10,20 +12,24 @@ import './styles.css'
 // build time so crawlers get the whole page without running anything.
 // Hydrate onto it rather than throwing it away (createRoot would). The dev
 // server has no baked markup, so fall back to a plain render there.
-// /team/<id>/ is a prerendered team page; the hydrate must start from the
-// same state the prerender did, so the team comes from the path here, not
-// from a post-mount effect
-const page = teamFromPath(window.location.pathname)
-// a team page embeds that team's crowns, a games page the schedule's digests (scripts/prerender.mjs)
+// /team/<id>/ and /game/<date>/<teams>/ are prerendered pages; the hydrate
+// must start from the same state the prerender did, so the team or game
+// comes from the path here, not from a post-mount effect
+const game = gameFromPath(window.location.pathname)
+const page = game ? null : teamFromPath(window.location.pathname)
+// a team page embeds that team's crowns, a games page the schedule's digests, a game page its season's rows (scripts/prerender.mjs)
 const embedded = document.getElementById('crowns-data')
 const digests = document.getElementById('digests-data')
+const season = document.getElementById('season-data')
 const initial = {
   page,
-  games: page == null && gamesFromPath(window.location.pathname),
-  bwk: page == null ? weekFromPath(window.location.pathname) : null,
-  risk: page == null && riskFromPath(window.location.pathname),
+  game,
+  games: page == null && !game && gamesFromPath(window.location.pathname),
+  bwk: page == null && !game ? weekFromPath(window.location.pathname) : null,
+  risk: page == null && !game && riskFromPath(window.location.pathname),
   crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
+  season: season ? decodeSeason(JSON.parse(season.textContent)) : null,
 }
 
 const root = document.getElementById('root')

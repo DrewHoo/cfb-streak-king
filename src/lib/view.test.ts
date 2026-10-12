@@ -71,9 +71,9 @@ describe('view', () => {
     expect(a.run).toBeNull();
   });
 
-  test('a streak picked on a team page or a matchup lands on the board with that team open', () => {
-    const v = viewReducer({ ...initialView(4), game: 4, vs: 9 }, { type: 'streak', chips: ['home'], dir: 'C', scope: 'active', team: 4 });
-    expect([v.page, v.game, v.vs, v.team, v.dir]).toEqual([null, null, null, 4, 'C']);
+  test('a streak picked on a team page or a game page lands on the board with that team open', () => {
+    const v = viewReducer({ ...initialView(4), game: { ep: 1, home: 4, away: 9, neutral: false } }, { type: 'streak', chips: ['home'], dir: 'C', scope: 'active', team: 4 });
+    expect([v.page, v.game, v.team, v.dir]).toEqual([null, null, 4, 'C']);
   });
 
   test("loading a team page's URL keeps the board that was showing", () => {
@@ -100,13 +100,19 @@ describe('view', () => {
     expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), games: true, risk: true } }).risk).toBe(true);
   });
 
-  test('a matchup opens over the board or a page and closes back to it; a page closes a matchup', () => {
-    let v = viewReducer({ ...initialView(), team: 3 }, { type: 'game', team: 3, vs: null });
-    expect([v.game, v.team, v.page]).toEqual([3, 3, null]);
-    v = viewReducer(v, { type: 'closeGame' });
-    expect([v.game, v.team]).toEqual([null, 3]);
-    v = viewReducer(viewReducer(v, { type: 'game', team: 3, vs: 5 }), { type: 'page', team: 5 });
-    expect([v.page, v.game, v.vs, v.team]).toEqual([5, null, null, 3]);
-    expect(viewReducer(v, { type: 'board' }).page).toBeNull();
+  test('a game page takes the place of the board, a team page or the schedule, and keeps the board’s open team', () => {
+    const key = { ep: 1, home: 3, away: 5, neutral: false };
+    let v = viewReducer({ ...initialView(), team: 3 }, { type: 'game', key });
+    expect([v.game, v.team, v.page, v.games]).toEqual([key, 3, null, false]);
+    v = viewReducer(v, { type: 'page', team: 5 });
+    expect([v.page, v.game, v.team]).toEqual([5, null, 3]);
+    v = viewReducer(viewReducer(v, { type: 'games' }), { type: 'game', key });
+    expect([v.games, v.game]).toEqual([false, key]);
+    expect(viewReducer(v, { type: 'board' }).game).toBeNull();
+    // a past season's week keeps its season; the running season's has none
+    const w = viewReducer(v, { type: 'bweek', wk: 5, season: 1987 });
+    expect([w.games, w.bwk, w.season, w.game]).toEqual([true, 5, 1987, null]);
+    expect(viewReducer(w, { type: 'bweek', wk: 6 }).season).toBeNull();
+    expect(viewReducer(w, { type: 'games' }).season).toBeNull();
   });
 });

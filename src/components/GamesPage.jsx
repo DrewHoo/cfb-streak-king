@@ -1,18 +1,21 @@
-// The schedule: every scheduled game with an FBS team, by week, as a ledger:
-// kickoff, away, home, the line as of the build, and beneath a row the most
-// interesting streak on the line in it, said in a line. The first week (the
-// one with games still unrecorded) is open; later weeks open on a tap. A row
-// opens the game's matchup.
+// The schedule: one week of one season at a time. A year picker and a week
+// picker in the title select it; above the week's games sit the broken-
+// streaks digest of the week before and, for the running week, its at-risk
+// streaks. A played week is a results ledger (score, and the game's top
+// broken run beneath), a scheduled week the schedule (kickoff, the line as
+// of the build, and the streak most on the line beneath). A row opens the
+// game's page.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
-import { scheduledGames, lineText, rankText } from '../lib/team.ts';
-import { completedWeeks } from '../lib/weeks.ts';
+import { lineText, rankText } from '../lib/team.ts';
+import { seasons, seasonWeeks, scoreOf, keyString } from '../lib/game.ts';
+import { digestOf, BROKEN_CAP, BROKEN_CUTOFF } from '../lib/broken.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron, LinkIcon } from './Icons.jsx';
-import { streakWords } from './Matchup.jsx';
+import { streakWords } from './StreakRow.jsx';
 import { Picker } from './Picker.jsx';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -24,7 +27,6 @@ function span(a, b) {
   return monthName(a) === monthName(b) ? `${monthName(a)} ${dayNum(a)}–${dayNum(b)}` : `${monthName(a)} ${dayNum(a)} – ${monthName(b)} ${dayNum(b)}`;
 }
 
-// on a phone a team with a mark is its mark, rank and record; the name stays for one without
 // on a phone a team with a mark is its mark and rank; the name stays for one without
 function Side({ ti, rank }) {
   const t = teams[ti];
@@ -75,10 +77,21 @@ function BrokenRow({ b, onOpen }) {
   );
 }
 
+/**
+ * A past season's week digest, from the season file's rows: every run the
+ * week's games ended (rank 1 as the week began, by construction), the
+ * best first, one per team in the top six.
+ */
+export function brokenFromRows(seasonRows, week) {
+  if (!seasonRows || !week) return null;
+  const all = week.games.flatMap((g) => seasonRows.games.get(keyString(g.key))?.ended ?? []).sort((a, b) => b.score - a.score || b.len - a.len);
+  const { list, more } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
+  return { wk: week.wk, lo: week.lo, hi: week.hi, list, more };
+}
+
 // the digest of one completed week's broken runs: the week before the
 // selected one, so it sits above that week's at-risk streaks and games
-function Broken({ wk, digests, onOpen, onLink }) {
-  const broken = digests?.broken[wk];
+function Broken({ broken, onOpen, onLink }) {
   // "more" opens per week, so flipping weeks folds it back up
   const [moreWk, setMoreWk] = useState(null);
   if (!broken) return null;
@@ -90,12 +103,12 @@ function Broken({ wk, digests, onOpen, onLink }) {
         <span className="gbk-ttl">Streaks broken{broken.wk != null ? ` in Week ${broken.wk}` : ''}</span>
         <small>
           {span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}
-          {broken.wk != null && <button className="lnk" onClick={() => onLink('broken', broken.wk)} aria-label={`Link to Week ${broken.wk}’s broken streaks`} title="link to this"><LinkIcon /></button>}
+          {broken.wk != null && onLink && <button className="lnk" onClick={() => onLink('broken', broken.wk)} aria-label={`Link to Week ${broken.wk}’s broken streaks`} title="link to this"><LinkIcon /></button>}
         </small>
       </div>
       <div className="gbk-list">
         {rows.map((b) => (
-          <BrokenRow key={`${b.ti}|${b.dir}|${b.chips.join()}`} b={b} onOpen={onOpen} />
+          <BrokenRow key={`${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} b={b} onOpen={onOpen} />
         ))}
         {broken.more.length > 0 && (
           <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
@@ -108,13 +121,13 @@ function Broken({ wk, digests, onOpen, onLink }) {
 }
 
 // one streak at risk: the length, the claim, then the chance the game ends
-// it, the game and the line, and where the run ranks; opens the matchup
+// it, the game and the line, and where the run ranks; opens the game
 function AtRiskRow({ r, onGame }) {
   const t = teams[r.ti];
   const opp = teams[r.row.oppIdx];
   const bad = baseDir(r.s.dir) === 'L' || r.s.dir === 'N';
   return (
-    <button className="bk" onClick={() => onGame(r.ti, r.row)}>
+    <button className="bk" onClick={() => onGame({ ep: r.game.ep, home: r.game.home, away: r.game.away, neutral: r.game.neutral })}>
       <span className={'bk-len' + (bad ? ' l' : '')}>{r.s.len}{r.s.atEdge ? '+' : ''}</span>
       {t?.espn ? <TeamMark ti={r.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
       <span className="bk-txt">
@@ -133,7 +146,7 @@ function AtRiskRow({ r, onGame }) {
 // the week's streaks most at risk, above its games: what the games can take
 // away (atRisk.ts, worked out by the build for the first scheduled week),
 // the most first, the rest behind "more"
-function AtRisk({ wk, games, risk, onGame, onLink, focus }) {
+function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
   const [all, setAll] = useState(false);
   // its own address lands on it
   const ref = useRef(null);
@@ -145,7 +158,7 @@ function AtRisk({ wk, games, risk, onGame, onLink, focus }) {
       <div className="gwk-h gbk-h">
         <span className="gbk-ttl">Week {wk} at-risk streaks</span>
         <small>
-          {span(games[0].ep, games[games.length - 1].ep)} · by what the game can take away
+          {span(lo, hi)} · by what the game can take away
           <button className="lnk" onClick={() => onLink('risk', wk)} aria-label="Link to this week’s at-risk streaks" title="link to this"><LinkIcon /></button>
         </small>
       </div>
@@ -159,14 +172,12 @@ function AtRisk({ wk, games, risk, onGame, onLink, focus }) {
   );
 }
 
-// the ledger's row: kickoff, away, home, the line; beneath it the most
+// a scheduled game's row: kickoff, away, home, the line; beneath it the most
 // interesting streak either side puts on the line, as a compressed claim
-function Row({ g, top, onGame }) {
+function ScheduledRow({ g, top, onGame }) {
   const line = lineText(g);
-  // the matchup from an FBS side, the home one when both are
-  const side = g.sides.find((s) => s.ti === g.home) ?? g.sides[0];
   return (
-    <button className="gm" onClick={() => onGame(side.ti, side.row)} aria-label={`${teams[g.away].name} ${g.neutral ? 'vs' : 'at'} ${teams[g.home].name}: the matchup`}>
+    <button className="gm" onClick={() => onGame({ ep: g.ep, home: g.home, away: g.away, neutral: g.neutral })} aria-label={`${teams[g.away].name} ${g.neutral ? 'vs' : 'at'} ${teams[g.home].name}: the game`}>
       <span className="gm-kick">{kickOf(g) || 'TBA'}</span>
       <Side ti={g.away} rank={g.awayRank} />
       <i className="gm-at">{g.neutral ? 'vs' : '@'}</i>
@@ -182,38 +193,72 @@ function Row({ g, top, onGame }) {
   );
 }
 
+// a played game's row: the score, away, home; beneath it the game's top
+// broken run, when the season's rows have one
+function PlayedRow({ item, rows, onGame }) {
+  const { key, played } = item;
+  const [hs, as] = scoreOf(played);
+  const r = played.row;
+  const homeRank = played.ti === key.home ? r.ownRank : r.oppRank;
+  const awayRank = played.ti === key.away ? r.ownRank : r.oppRank;
+  const top = rows?.ended[0];
+  return (
+    <button className={'gm played' + (hs === as ? '' : hs > as ? ' home-won' : ' away-won')} onClick={() => onGame(key)} aria-label={`${teams[key.away].name} ${key.neutral ? 'vs' : 'at'} ${teams[key.home].name}: the game`}>
+      <span className="gm-kick gm-score"><b className="as">{as}</b>–<b className="hs">{hs}</b></span>
+      <Side ti={key.away} rank={awayRank} />
+      <i className="gm-at">{key.neutral ? 'vs' : '@'}</i>
+      <Side ti={key.home} rank={homeRank} />
+      <span className="gm-line">{rows ? `${rows.ended.length} ended` : ''}</span>
+      {top && (
+        <span className="gm-claim">
+          {teams[top.ti].name} {PAST(top.dir)} <b className={baseDir(top.dir) === 'L' || top.dir === 'N' ? 'l' : ''}>{top.len}{top.atEdge ? '+' : ''}</b> straight{marginWords(top.dir)}{top.chips.length ? ` ${streakWords(top.chips)}` : ''}
+          <small> · was {rankText(top)} of {top.field}</small>
+        </span>
+      )}
+    </button>
+  );
+}
+
 // a week's games under day dividers
-function Week({ games, digests, onGame }) {
+function Week({ week, digests, seasonRows, onGame }) {
   const out = [];
   let last = null;
-  for (const g of games) {
-    if (g.ep !== last) { out.push(<div key={'d' + g.ep} className="gm-day">{dayOf(g.ep)} {monthDay(g.ep)}</div>); last = g.ep; }
-    out.push(<Row key={g.i} g={g} top={digests?.onLine[g.i]} onGame={onGame} />);
+  for (const item of week.games) {
+    const ep = item.key.ep;
+    if (ep !== last) { out.push(<div key={'d' + ep} className="gm-day">{dayOf(ep)} {monthDay(ep)}</div>); last = ep; }
+    const k = keyString(item.key);
+    out.push(item.scheduled
+      ? <ScheduledRow key={k} g={item.scheduled} top={digests?.onLine[item.scheduled.i]} onGame={onGame} />
+      : <PlayedRow key={k} item={item} rows={seasonRows?.games.get(k) ?? (seasonRows ? { ended: [], leaders: [] } : null)} onGame={onGame} />);
   }
-  return <div className="gwk-list"><div className="gm gm-head" aria-hidden="true"><span>kick</span><span>away</span><span /><span>home</span><span className="gm-line">line</span></div>{out}</div>;
+  const played = week.games.some((g) => g.played);
+  return (
+    <div className="gwk-list">
+      <div className="gm gm-head" aria-hidden="true"><span>{played ? 'final' : 'kick'}</span><span>away</span><span /><span>home</span><span className="gm-line">{played ? 'streaks' : 'line'}</span></div>
+      {out}
+    </div>
+  );
 }
 
 /**
- * The weeks the page can open on: every week with games scheduled, and the
- * week after each completed one (so its broken digest is reachable). The
- * default is the first scheduled week, the one about to be played.
+ * The week a season's schedule opens on: the running season's first
+ * scheduled week (the one about to be played), a past season's first week.
  */
-export function gameWeeks() {
-  const byWk = new Map();
-  for (const g of scheduledGames()) (byWk.get(g.wk) ?? byWk.set(g.wk, []).get(g.wk)).push(g);
-  const scheduled = [...byWk.entries()].sort((a, b) => a[0] - b[0]);
-  const options = new Set(scheduled.map(([wk]) => wk));
-  for (const w of completedWeeks()) if (w.wk != null) options.add(w.wk + 1);
-  return { scheduled, options: [...options].sort((a, b) => a - b), first: scheduled[0]?.[0] ?? Math.max(0, ...options) };
+export function defaultWeek(season, weeks) {
+  if (season === P.currentSeason) return weeks.find((w) => w.games.some((g) => g.scheduled))?.wk ?? weeks.at(-1)?.wk ?? null;
+  return weeks[0]?.wk ?? null;
 }
 
-export function GamesPage({ digests, bwk, risk, copied, on }) {
-  const { scheduled: weeks, options, first } = useMemo(gameWeeks, []);
+export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on }) {
+  const weeks = useMemo(() => seasonWeeks(season), [season]);
   // the selected week: its at-risk streaks and games, and the week before it's broken runs
-  const sel = bwk ?? first;
-  const selGames = weeks.find(([wk]) => wk === sel)?.[1];
-  const [open, setOpen] = useState(() => new Set());
-  const toggle = (wk) => setOpen((cur) => { const next = new Set(cur); if (next.has(wk)) next.delete(wk); else next.add(wk); return next; });
+  const sel = bwk ?? defaultWeek(season, weeks);
+  const week = weeks.find((w) => w.wk === sel) ?? null;
+  const before = weeks.find((w) => w.wk === sel - 1) ?? null;
+  const current = season === P.currentSeason;
+  const broken = current ? digests?.broken[sel - 1] ?? null : brokenFromRows(seasonRows, before);
+  const atRisk = current && digests?.atRisk?.wk === sel ? digests.atRisk : null;
+  const loading = current ? !digests : !seasonRows;
   return (
     <div className="gpg">
       <div className="tpg-bar">
@@ -224,29 +269,30 @@ export function GamesPage({ digests, bwk, risk, copied, on }) {
         </span>
       </div>
       <h1 className="gpg-h1">
-        {P.currentSeason} games
-        {options.length > 1 && (
-          <span className="gbk-wk"> · <Picker value={sel} options={options.map((wk) => ({ value: wk, label: `Week ${wk}` }))} onChange={on.week} ariaLabel="Pick a week" /></span>
+        <span className="gbk-wk"><Picker value={season} options={seasons().map((se) => ({ value: se, label: String(se) }))} onChange={on.year} ariaLabel="Pick a season" /></span>
+        {' games'}
+        {weeks.length > 1 && (
+          <span className="gbk-wk"> · <Picker value={sel} options={weeks.map((w) => ({ value: w.wk, label: `Week ${w.wk}` }))} onChange={on.week} ariaLabel="Pick a week" /></span>
         )}
       </h1>
-      <p className="tpg-note">Every scheduled game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</p>
-      {!digests && <p className="empty">finding the week’s streaks…</p>}
-      <Broken wk={sel - 1} digests={digests} onOpen={on.streak} onLink={on.link} />
-      {selGames && digests?.atRisk?.wk === sel && <AtRisk wk={sel} games={selGames} risk={digests.atRisk} onGame={on.game} onLink={on.link} focus={risk} />}
-      {weeks.length === 0 && <p className="empty">No games are scheduled.</p>}
-      {weeks.map(([wk, games]) => {
-        const shown = wk === sel || open.has(wk);
-        return (
-          <section key={wk} className="gwk">
-            <button className={'gwk-h' + (shown ? ' on' : '')} onClick={() => toggle(wk)} aria-expanded={shown} disabled={wk === sel}>
-              <span>Week {wk}</span>
-              <small>{span(games[0].ep, games[games.length - 1].ep)} · {games.length} games</small>
-              {wk !== sel && <Chevron />}
-            </button>
-            {shown && <Week games={games} digests={digests} onGame={on.game} />}
-          </section>
-        );
-      })}
+      <p className="tpg-note">
+        {current
+          ? <>Every game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</>
+          : <>Every game with a current FBS team, and the streaks it ended: the runs of up to two conditions whose team led the field.</>}
+      </p>
+      {loading && <p className="empty">finding the week’s streaks…</p>}
+      <Broken broken={broken} onOpen={on.streak} onLink={current ? on.link : null} />
+      {week && atRisk && <AtRisk wk={sel} lo={week.lo} hi={week.hi} risk={atRisk} onGame={on.game} onLink={on.link} focus={risk} />}
+      {!week && <p className="empty">No games in this week.</p>}
+      {week && (
+        <section className="gwk">
+          <div className="gwk-h on">
+            <span>Week {week.wk}</span>
+            <small>{span(week.lo, week.hi)} · {week.games.length} games</small>
+          </div>
+          <Week week={week} digests={digests} seasonRows={seasonRows} onGame={on.game} />
+        </section>
+      )}
     </div>
   );
 }

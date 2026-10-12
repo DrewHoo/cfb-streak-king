@@ -457,3 +457,131 @@ And the venue-state chip never counts a game in the team's own state (`ownSt` on
 is the trip there, with an honest one. With both, Alabama's week-6 row is the 90 straight at
 home when leading at half (15.5), which Drew confirmed feels right, and the 18 (10.2) is in
 "more".
+
+## Game pages: what a game ended, and what it put on the line (2026-10-12)
+
+### What Drew asked for
+
+- `/games/` shows one week's schedule, the selected one, and no other weeks.
+- The title's week picker gets a year picker beside it: any season since 1936.
+- A played game's row opens the game's own page: the streaks it broke, kept to the ones whose
+  team led the field among active streaks when the game was played, and the streaks for which
+  a team became the leader as a result of the game.
+- An unplayed game's row opens the same address, which shows the streaks the game puts at risk.
+- A current-season game shows streaks of up to four chips; an older game, up to two.
+
+### Addresses
+
+One per game, readable and unique back to 1936: `/game/<date>/<away>-at-<home>/`, with `-vs-`
+in place of `-at-` for a neutral site (`/game/2026-10-10/georgia-at-alabama/`,
+`/game/2026-01-19/indiana-vs-miami-fl/`). A team below FBS has an id in the payload, so the
+address still forms. The matchup sheet (`/team/<id>/?vs=<opp>|next`) is the unplayed-game view
+today; it goes, and that address redirects in the app to the game's page, so an old link lands.
+The team page's next-game card, its schedule ledger (played and scheduled rows), the at-risk
+rows, the broken rows' score line ("lost to Georgia 20–17") and the schedule rows all open
+the game's page. A game page's share button shares its address; the broken and at-risk digests
+keep theirs.
+
+The build prerenders a page per current-season game (about 900 a season), with its own head
+and `share/og.png?game=<date>/<away>-at-<home>` as the image. Older games have no file:
+the share worker answers a `/game/` path the origin 404s with the app shell, status 200, and
+the game's own title, description and canonical read from the season file, and `public/404.html`
+boots the app for anyone reaching the origin without the worker. A crawler that runs no JS gets
+an old game's head and no rows; current-season pages are the ones that get shared.
+
+### The page
+
+Score line (or the kickoff and the line for an unplayed game), both teams linking to their
+pages, then:
+
+- **Played.** "Streaks this game ended": both sides' broken runs whose team was 1st in the field
+  as the week began, ties included, best first, six shown and the rest behind "more", no
+  one-per-team rule (it's one game). Then "New leaders": every definition under which a team
+  is the sole longest active run after the game and was not before it, whether the game ended
+  the old leader's run (the new leader may not have played) or the winner's run grew past it.
+  Each row is the definition, the new leader's run with its length and the run it passed, and
+  opens the board under the definition with the new leader open.
+- **Unplayed.** "On the line": every streak either side's run that the game is the next
+  qualifying game for, ranked by stake (score × the chance the game ends it, atRisk.ts),
+  both sides together, six and "more". Leaders are marked as everywhere else (bold rank).
+
+A run's row reads as the digests' rows do and opens the run's board (a broken run on its
+all-time row).
+
+### Data
+
+- **Current season, full space.** The broken walk already records every run a current-season
+  game ended, placed in the field as the week began. It adds, per team and definition, the run
+  length after each current-season game, so the leader before and after a game is known: the
+  new-leader rows come from that, and the rank-1 filter is a line.
+- **Past seasons, up to two chips.** A second pass over the 36k definitions of up to two chips
+  (my estimate: a few minutes), emitting for every game since 1936 the runs it ended at rank 1
+  and the leaders it made. The same scan with the week's entering lengths kept for every week
+  since 1936 rather than this season's. Outcomes as the sheet's: W, L, C, N and the 10+
+  margins.
+- **Files.** `dist/games/<season>.json`: the season's games (date, teams, score, line, week)
+  and each game's rows, broken and new-leader, rank-1 only, scores above the broken floor.
+  The current season's file carries the full-space rows; `dist/games/digests.json` keeps the
+  week digests, the at-risk week and the streak on the line per scheduled game as today, built
+  from the same rows. A game page embeds its own rows (current season) or fetches its season's
+  file; the schedule fetches a season's file when the year changes.
+- **Weeks in a past season.** The schedule's week numbers exist only for the current season
+  (`upcoming.wk`). A past season's weeks are the Tuesday–Monday grid counted from the week of
+  its first game as week 1, shown with their date spans; bowls and playoffs fall in the weeks
+  they were played.
+
+### The schedule page
+
+Year picker (seasons 1936 to now) beside the week picker; the week options are the season's.
+Default: the current season, the first scheduled week. For the selected week: the broken
+digest of the week before, the at-risk digest when it's the running week, then that week's
+games: a results ledger for a played week (score, with the game's top broken run in the claim
+line in place of the streak on the line), the schedule for a scheduled week. A past season's
+week shows its broken digest from the two-chip rows; its games are all results.
+
+### Rules
+
+- Rank 1 for a broken run includes ties; a new leader must be sole.
+- A new-leader row needs the new leader's run to be LEN_FLOOR or longer and the definition
+  to score above the cutoff for it (the crown score of the new leader's run), so a 4-game run
+  that leads a field of fives isn't news.
+- A margin run and its plain retelling collapse as in the digests.
+- The current-season page and its week digest agree: a game's broken rows are the week
+  digest's rows for that ender, before the week's one-per-team cut.
+
+### Build and the worker
+
+The history pass adds to the build and to `npm test`; CI is 25 minutes per push today with
+the mine run twice (tests, then build). Separate change, worth doing with this: the test job
+reads the build's output rather than mining again. The worker gets a `game` route (shell +
+head + card) with `CARD_VERSION` bumped; `shareWords.ts` grows the game's sentence.
+
+### Not in this pass
+
+What a game extended (the runs that survived it). Older games past two chips. Games with no
+rows at all still get a page (the score line and "nothing of note").
+
+### Shipped (2026-10-12)
+
+As specced, with these particulars:
+
+- The walk moved into `mineCore.js`, plain JavaScript with no imports, run on one thread per
+  core (`mineWorker.js`: Node's worker_threads at the build, Web Workers on the dev server).
+  The main thread deals pieces of the walk on demand: the empty definition, each first chip's
+  subtree, and for the first 16 chips (the plain ones, whose subtrees dwarf a team's) the node
+  and one subtree per second chip. One forward scan per team, definition and result sequence
+  yields the trailing run, the longest run, the runs ended and each week's entering length,
+  so the four readings share the scan. The field entering each recorded week (best, how many
+  share it, second, count) is one typed-array pass per team, so placing a broken run and
+  spotting a new leader cost nothing more per week.
+- Measured on Drew's 10-core Mac: the mine 47s (365s of CPU; it was 257s single-threaded
+  for three readings over the running season only), `npm run build` 2:48 in all, `npm test`
+  75s against the build's mine. `dist/` is 84 MB: 885 game pages (32 MB), 91 season files
+  (21 MB raw; the 2026 file 95 KB gzipped, 1987's 44 KB), `data/build/mined.json` 253 MB.
+- A new leader's row says what happened: "Ohio State now leads: Alabama's 13 ended" when the
+  game ended the old leader's run, "past Alabama's 13" when the new leader's own game carried
+  it past, "breaking a tie" when the field had no sole leader. The miner carries the old
+  leader's length (`prevLen`) for it.
+- The dev server (`vite preview` too) has no `404.html` route, so an old game's address
+  there hydrates over the board's markup and React logs a recoverable mismatch; the deployed
+  site serves the empty shell.
