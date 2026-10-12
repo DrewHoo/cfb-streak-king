@@ -71,7 +71,7 @@ export function StoppersPage({ stoppers, copied, on }) {
         </span>
       </div>
       <h1 className="gpg-h1">Top Streak-Stoppers <span className="stp-se">{season}</span></h1>
-      <p className="tpg-note">Every team, by the streaks it ended by beating their owner this season. One telling per run, so a run told again under more conditions counts once. Points by what the run was: the all-time longest under its definition, the leader of the active field, or any other live run; fewer conditions, more points.</p>
+      <p className="tpg-note">High scores are a good proxy for which fanbases are having the best time this season. A team gets credit for every streak it ended by winning the game. Breaking an all-time record is worth the most, breaking the longest active streak less, and breaking any other active streak the least. Streaks with fewer conditions are worth more.</p>
 
       <div className="stp-stats">
         <span><b>{fmt(total())}</b>streaks broken</span>
@@ -103,7 +103,7 @@ export function StoppersPage({ stoppers, copied, on }) {
       )}
 
       <h2>Points</h2>
-      <p className="tpg-note">A break’s points by what the run was and how many conditions it carried: the base divided by one plus {STOP.discount} per condition.</p>
+      <p className="tpg-note">What a break is worth, by what kind of streak it was and how many conditions it had. Each condition divides the base by another {STOP.discount}.</p>
       <div className="stp-wrap">
         <table className="stp-weights">
           <thead><tr><th>break of a run that…</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
@@ -114,7 +114,7 @@ export function StoppersPage({ stoppers, copied, on }) {
           </tbody>
         </table>
       </div>
-      <p className="tpg-note">A losing streak is its owner’s own story, so ending one by losing earns nothing. {STOP.covers ? 'A covering streak ended by a miss counts too.' : 'Covering streaks are left out for now.'}</p>
+      <p className="tpg-note">A streak counts once, however many ways the site can describe it. Losing streaks don’t count: you have to win the game. {STOP.covers ? 'Streaks against the spread count when the stopper covers.' : 'Streaks against the spread are left out for now.'}</p>
     </div>
   );
 }
