@@ -27,14 +27,14 @@ const trimRulings = {
 }
 
 // The dev server has no build output, so a team page would mine every
-// crown in the page (minutes). When a build has run, serve its crowns and
-// digests from dist/ instead; the page falls back to mining only when they
-// are missing.
+// crown in the page (minutes) and a game page would show nothing. When a
+// build has run, serve its crowns, digests and season files from dist/
+// instead; the page falls back to mining only when they are missing.
 const serveBuilt = {
   name: 'serve-built-data',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      const m = new RegExp(`^/${pkg.name}/(crowns/[\\w-]+\\.json|games/digests\\.json)$`).exec((req.url ?? '').split('?')[0])
+      const m = new RegExp(`^/${pkg.name}/(crowns/[\\w-]+\\.json|games/(?:digests|\\d{4})\\.json)$`).exec((req.url ?? '').split('?')[0])
       const file = m && path.join(server.config.root, 'dist', m[1])
       if (!file || !fs.existsSync(file)) return next()
       res.setHeader('Content-Type', 'application/json')
