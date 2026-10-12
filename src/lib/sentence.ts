@@ -32,10 +32,9 @@
 // Adding a chip means adding one row to SLOTS. Anything missing falls back
 // to the chip's label so a new chip never breaks the sentence.
 
-import type { BoardRow, ChipRef, Crown, Dir } from './types.ts';
+import type { BoardRow, ChipRef, Dir } from './types.ts';
 import { P, teams } from './model.ts';
 import { chipByKey } from './chips.ts';
-import { refsOf } from './minedChips.ts';
 import { dirWord, marginWords, stateName } from './format.ts';
 import { baseDir } from './outcome.ts';
 
@@ -207,14 +206,6 @@ export function claim(row: BoardRow, active: ChipRef[], dir: Dir): string {
 /** A team with no streak under the definition. */
 export function noClaim(ti: number, active: ChipRef[], dir: Dir): string {
   return `${teams[ti].name} has no active ${dirWord(dir)} streak in ${definitionPhrase(active)}.`;
-}
-
-/** The sentence for one streak a team is king of (its share text). */
-export function crownClaim(ti: number, cr: Crown): string {
-  const live = cr.scope === 'active' || cr.live;
-  const when = !live && cr.startSe != null && cr.endSe != null ? span(cr.startSe, cr.endSe) : '';
-  const chips = refsOf(cr.chips);
-  return `${teams[ti].name} ${VERBS[baseDir(cr.dir)][live ? 0 : 1]} ${cr.len}${cr.atEdge ? '+' : ''} straight ${definitionPhrase(chips, cr.dir)}${when}.`;
 }
 
 export const ordinal = (n: number) => {

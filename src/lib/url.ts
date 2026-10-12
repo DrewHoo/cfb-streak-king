@@ -23,7 +23,7 @@
 //   ?run=<ep>       all-time: the open run, by its first game's epoch day
 //                   (negative before 1970)
 
-import type { ChipRef, Crown, Dir, Scope } from './types.ts';
+import type { ChipRef, Dir, Scope } from './types.ts';
 import { teams, fbsNow } from './model.ts';
 import { DEFAULT_CHIPS, DEFAULT_SCOPE, chipsFromParam, chipsToParam } from './definition.ts';
 import { parseDir } from './outcome.ts';
@@ -143,11 +143,6 @@ export function toUrl(v: View): UrlParts {
       sort: null,
     },
   };
-}
-
-/** The link for one streak of a team's: the board under its definition, the team's panel open. */
-export function crownUrl(ti: number, cr: Crown): UrlParts {
-  return toUrl({ ...DEFAULT_VIEW, active: refsOf(cr.chips), dir: cr.dir, scope: cr.scope, team: ti });
 }
 
 /** The board under a definition, no team open (a broken digest's "now the all-time longest" link). */

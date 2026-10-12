@@ -7,7 +7,11 @@ ranked, as an underdog, in November) and rank every current FBS team by its
 longest all-time or active winning, losing, undefeated, covering or not-covering
 streak under it,
 1936 (the first AP poll) to the present.
-Each team also gets a page listing every streak it alone is king of. Live at
+Each team also gets a page listing every definition under which it has the
+longest active streak (or, switched to all-time, the longest ever), and the
+streaks it broke this season. The schedule shows every week's broken streaks
+and the ones at risk in the coming games, and Top Streak-Breakers ranks the
+teams by the streaks they ended by winning. Live at
 [drewhoover.com/cfb-streak-king](https://drewhoover.com/cfb-streak-king/).
 
 [![The all-time board: the longest winning streaks against unranked opponents, one column per streak, one square per game](docs/screenshot.png)](https://drewhoover.com/cfb-streak-king/)
@@ -161,10 +165,5 @@ on push and on a twice-weekly cron.
 
 ## Not here yet
 
-- Per-definition social previews. Crawlers read the exact URL's HTML and
-  GitHub Pages ignores query strings, so only the root and `/team/<id>/`
-  have their own image. The plan is a Cloudflare worker in front of Pages
-  that rewrites `<head>` for query-string URLs and renders the PNG on a
-  second route; it needs the domain's DNS on Cloudflare.
 - A "vs FBS opponents" chip (FCS games count only as losses).
-- Streaks of failing to cover, and over/under streaks.
+- Over/under streaks.

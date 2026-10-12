@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -117,12 +117,6 @@ describe('url', () => {
 
   test('junk params fall back to defaults', () => {
     expect(parseUrl('/', '?dir=X&scope=nope&run=abc&week=yes')).toEqual(DEFAULT_VIEW);
-  });
-
-  test('a crown links to the board under its definition with the team open', () => {
-    const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, live: true, also: 0, chance: 0, score: 0, dup: false });
-    expect(u.path).toBe('');
-    expect(search(u.params)).toBe('t=alabama&c=road&dir=U&scope=active');
   });
 
   test('a broken run’s all-time link is the board under its definition, no team open', () => {

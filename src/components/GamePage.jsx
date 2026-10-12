@@ -149,7 +149,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
       ) : (
         <Rows
           title="On the line" cap={cap} rows={onLine}
-          empty={loading ? 'finding the streaks…' : 'No run of four or more that this game could end stands out from chance.'}
+          empty={loading ? 'finding the streaks…' : 'Neither team has a longest active streak this game could end.'}
           keyOf={({ ti, s }) => `${ti}|${s.dir}|${s.chips.join()}`}
           render={({ ti, s, p }) => (
             <StreakRow s={s} mark={ti} lead={`${teams[ti].name}${p != null ? ` · ${Math.round(100 * p)}% to end` : ''}`} onClick={() => on.streak(s, ti)} />

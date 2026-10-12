@@ -291,8 +291,10 @@ sections carry the data details; this is the product and method record.
 - **FCS methodology.** A loss to an FCS team breaks a streak and a win over one counts,
   same as any other opponent; a "vs FBS opponents" chip is the right place to change that,
   not the default. A team's own list starts at its latest FBS entry (Streak semantics).
-- **Analytics events.** definition, preset, team open, show more, share, save streak,
-  unsave streak, apply saved streak, lead apply, leads scope, leads dir, week filter.
+- **Analytics events.** definition, team open, team page, game, games, games year, broken
+  week, breakers, show more, share, save streak, unsave streak, apply saved streak, lead apply,
+  team streaks scope, week filter, kofi. (leads scope and leads dir went with the panel's list
+  of a team's streaks, 2026-10-12.)
 - **Social previews.** `gen-og.mjs` draws the real default board and 136 team cards from
   the payload with opentype.js glyph outlines. Crawlers fetch the exact URL's HTML with no
   JS and GitHub Pages ignores query strings, so a shared definition URL shows the root
@@ -363,8 +365,9 @@ their masks on demand).
 
 ## One rule for every streak list (2026-10-11)
 
-Every view of streaks should use the same logic: the team page, the panel's list, the
-matchup's on-the-line list, and the schedule's broken and at-stake digests, the digests
+Every view of streaks should use the same logic: the team page, the panel's list (since
+removed), the matchup's on-the-line list (now the game page's), and the schedule's broken and
+at-stake digests, the digests
 taking one row per team for their top six. The mined conditions grow to the parameter
 chips worth saying (every opponent color, mascot, team and conference; every month and
 venue state; leading or trailing at half by any margin), and a streak can carry up to four.
@@ -392,7 +395,8 @@ game ended, placed among what every team carried into that week, which is one mo
 team and definition rather than a pass per week). A run is kept when it scores above
 `KEEP_FLOOR` (the cutoff less 6, so a team with nothing past the cutoff still has its best
 few); definitions producing the identical run collapse to the best-scoring telling. Each
-scope keeps a team's top `ROWS_CAP` (60) after ranking.
+scope kept a team's top `ROWS_CAP` (60) after ranking until 2026-10-12, when a team's lists
+became every run it leads its field with, no cap and no cutoff (One floor for every list).
 
 `crownRank.ts` is the crown score review's model: `len·log2(1/p)`, plus `gapW·(len − second)·
 log2(1/p)`, less `log2(teams)`, less each chip's tier cost (brag 1, plain 3, trivia 9, in-game
@@ -613,8 +617,8 @@ built: rankCrowns for a team's crowns, the week digests per team, the season row
 per team), carried in the three files, so every list hides the same rows: the team page, the
 panel, the game page, both digests. On the page a flagged row is a sub-streak, folded beneath
 the run it is a sub-streak of (the standing row with the nearest subset of its conditions,
-`subsByParent` in StreakRow.jsx) behind "show N sub-streaks" on that row; "all N" or "N more"
-works as before over the standing rows. Drew's wording, in place of a list-end "shorter
+`subsByParent` in StreakRow.jsx) behind "show N sub-streaks" on that row; "see 25 more" pages
+through the standing rows (2026-10-12; it was "all N" or "N more"). Drew's wording, in place of a list-end "shorter
 tellings" button.
 
 `RANK.olderStands` (default on): a shorter telling that started before the longer run stands

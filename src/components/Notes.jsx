@@ -83,7 +83,7 @@ export function Notes() {
             every place a run could start) gets that many tries at the field's rate.
           </li>
               <li>
-            A team's page shows the most interesting streak definitions according to a complicated and imperfect heuristic that takes into account the streak occurring by chance, among other factors. You can read it in the source code if you're so inclined (open a PR if you disagree with me!). 
+            A team's page lists every definition under which it has the longest active streak (or, all-time, the longest ever); a streak counts as broken under the same rule, when a win ended the longest active or all-time longest run. Each list is ordered by a complicated and imperfect heuristic that takes into account the streak occurring by chance, among other factors. You can read it in the source code if you're so inclined (open a PR if you disagree with me!). 
             </li>
               <li>
                 'Power conference' means: the six BCS automatic-qualifying conferences from 1998, the Power 5 from 2014, the Power 4 from 2024.
