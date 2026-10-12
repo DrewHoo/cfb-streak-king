@@ -241,7 +241,7 @@ for (const w of completedWeeks()) if (w.wk != null) weekNums.add(w.wk)
 for (const n of [...weekNums].sort((a, b) => a - b)) {
   const broken = digests.broken[n]
   if (broken) weekly.broken[n] = {
-    wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length,
+    wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length, total: broken.list.length + broken.more.length,
     rows: broken.list.map((b) => ({
       count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
       claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`,
@@ -288,7 +288,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
       claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips)}` : ''}`,
       sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)}`,
     }))
-    weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows }
+    weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows, total: risk.list.length + risk.more.length }
     const top = rows.slice(0, 3).map((r) => `${r.claim}, ${r.sub.split(' · ')[0]}`)
     const description = `${top.join('. ')}. The streaks the week's games can take away, ranked by the odds.`
     const slice = seasonSlice(P.currentSeason, weekKeys(wk))
@@ -431,11 +431,13 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
   fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', 'index.html'), html)
   // the cards' rows: the leaderboard's top, and each breaker's own top breaks (the worker's og.png?breakers= and ?breaker=)
   weekly.breakers = {
-    season: P.currentSeason,
+    season: P.currentSeason, teams: ranking.length,
     rows: ranking.slice(0, 7).map((s, i) => ({
       count: String(s.n), team: teams[s.ti].id, bad: false,
       claim: `${i + 1}. ${teams[s.ti].name}`,
-      sub: `${s.by.alltime} all-time longest · ${s.by.leading} longest active`,
+      sub: `${s.by.alltime} all-time · ${s.by.leading} longest active`,
+      // whose streaks, a chip each, the most first
+      vs: s.victims.slice(0, 4).map(([v, n]) => [teams[v].id, n]),
     })),
   }
   weekly.breaker = {}

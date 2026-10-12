@@ -111,7 +111,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12g';
+const CARD_VERSION = '2026-10-12i';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -149,10 +149,15 @@ function loadModel(): Promise<Model> {
 }
 
 /** dist/share/weekly.json: the week cards' rows, as the prerender writes them. */
-interface WeeklyRow { count: string; team: string; bad: boolean; claim: string; sub: string }
-interface WeeklyCard { wk: number; lo: number; hi: number; ofNote?: number; rows: WeeklyRow[] }
+/** A card row; `vs` is a leaderboard row's whose-streaks chips, [team id, count]. */
+interface WeeklyRow { count: string; team: string; bad: boolean; claim: string; sub: string; vs?: [string, number][] }
+/** `total` is every row the digest holds (list and more), what the card's rows are the top of. */
+interface WeeklyCard { wk: number; lo: number; hi: number; ofNote?: number; total?: number; rows: WeeklyRow[] }
 interface BreakerCard { season: number; name: string; n: number; rank: number; rows: WeeklyRow[] }
-interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null; breakers?: { season: number; rows: WeeklyRow[] }; breaker?: Record<string, BreakerCard> }
+interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null; breakers?: { season: number; teams?: number; rows: WeeklyRow[] }; breaker?: Record<string, BreakerCard> }
+const fmtN = (n: number) => n.toLocaleString('en-US');
+/** "+134 more broken", or nothing when the rows are all there is. */
+const moreLine = (total: number | undefined, shown: number, word: string) => (total != null && total > shown ? `+${fmtN(total - shown)} more ${word}` : null);
 let weeklyCache: { day: string; data: Promise<Weekly> } | null = null;
 function loadWeekly(): Promise<Weekly> {
   const day = dayKey();
@@ -226,8 +231,11 @@ async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> 
   }
   const res = renderCard({
     heading: kind === 'risk' ? `Week ${card.wk} at-risk streaks` : `Streaks broken · Week ${card.wk}`,
-    words: kind === 'risk' ? `${spanOf(card.lo, card.hi)} · by what the game can take away` : `${spanOf(card.lo, card.hi)} · ${card.ofNote ?? rows.length} of note`,
+    words: card.total != null
+      ? `${spanOf(card.lo, card.hi)} · ${fmtN(card.total)} streak${card.total === 1 ? '' : 's'} ${kind === 'risk' ? 'at stake' : 'broken'}`
+      : kind === 'risk' ? `${spanOf(card.lo, card.hi)} · by what the game can take away` : `${spanOf(card.lo, card.hi)} · ${card.ofNote ?? rows.length} of note`,
     rows,
+    more: moreLine(card.total, rows.length, kind === 'risk' ? 'at stake' : 'broken'),
     dense: true,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
   });
@@ -245,13 +253,22 @@ async function breakerCard(id: string | null): Promise<Response> {
   const rows: CardRow[] = [];
   for (const r of card.rows) {
     const t = byId.get(r.team);
-    rows.push({ count: r.count, name: r.claim, sub: r.sub, bad: r.bad, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
+    const chips = [];
+    for (const [v, n] of r.vs ?? []) {
+      const vt = byId.get(v);
+      chips.push({ logo: await logoUri(vt?.espn), initial: vt?.name[0] ?? '?', n });
+    }
+    rows.push({ count: r.count, name: r.claim, sub: r.sub, bad: r.bad, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?', chips });
   }
   const own = id ? (card as BreakerCard) : null;
+  const lead = id ? byId.get(id) : null;
+  const teamsN = own ? null : (card as Weekly['breakers'])?.teams;
   const res = renderCard({
     heading: own ? `Streaks ${own.name} broke · ${own.season}` : `Top Streak-Breakers · ${card.season}`,
-    words: own ? `${own.n} ended by winning · Streak King Rank #${own.rank}` : 'all-time longest and longest active streaks, broken by winning the game',
+    words: own ? `${fmtN(own.n)} streak${own.n === 1 ? '' : 's'} broken by winning · Streak King Rank #${own.rank}` : 'all-time longest and longest active streaks, broken by winning the game',
+    logo: lead ? await logoUri(lead.espn) : null,
     rows,
+    more: own ? moreLine(own.n, rows.length, 'broken') : moreLine(teamsN ?? undefined, rows.length, 'teams'),
     dense: true,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
   });
@@ -276,7 +293,8 @@ async function gameCard(key: string): Promise<Response> {
   const score = gameScore(g, m);
   const meta = await loadMeta();
   const cards: CardRow[] = [];
-  for (const r of rows.slice(0, 7)) {
+  const shown = rows.slice(0, 7);
+  for (const r of shown) {
     const t = byId.get(r.team);
     const verb = r.leader ? 'now leads' : ({ W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' } as Record<string, string>)[r.dir[0]] ?? 'had won';
     cards.push({
@@ -288,8 +306,9 @@ async function gameCard(key: string): Promise<Response> {
   const away = meta.teams[g.away], home = meta.teams[g.home];
   const res = renderCard({
     heading: score ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`}` : `${away} ${g.neutral ? 'vs' : 'at'} ${home}`,
-    words: `${g.date} · ${ended ? `${ended} streak${ended === 1 ? '' : 's'} broken` : 'what it put on the line'}`,
+    words: `${g.date} · ${ended ? `${fmtN(ended)} streak${ended === 1 ? '' : 's'} broken` : 'what it put on the line'}`,
     rows: cards,
+    more: moreLine(ended, shown.filter((r) => !r.leader).length, 'broken'),
     dense: true,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
   });

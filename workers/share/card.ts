@@ -33,6 +33,8 @@ export interface CardRow {
   initial: string;
   /** A live run's next qualifying game: "next vs <mark> 10/14". */
   next?: { word: string; logo: string | null; initial: string; date: string } | null;
+  /** A dense row's team chips at its right: a mark and a count each (whose streaks a breaker broke). */
+  chips?: { logo: string | null; initial: string; n: number }[];
 }
 
 export interface Card {
@@ -43,6 +45,10 @@ export interface Card {
   footer: string;
   /** Rows that are a claim with small print under it (a week's broken or at-risk streaks), not a name and a span. */
   dense?: boolean;
+  /** A team's mark beside the heading (a breaker's own card). */
+  logo?: string | null;
+  /** A line under the rows for what they leave out: "+134 more broken". */
+  more?: string | null;
 }
 
 // satori reads the text as-is, entities included, so only the characters
@@ -57,10 +63,14 @@ export function renderCard(card: Card): Response {
       ${r.logo
         ? `<img src="${r.logo}" width="32" height="32" />`
         : `<div style="display:flex; justify-content:center; width:32px; font-family:'Graduate'; font-size:18px; color:${MUTED};">${esc(r.initial)}</div>`}
-      <div style="display:flex; flex-direction:column; flex-grow:1; width:590px;">
+      <div style="display:flex; flex-direction:column; flex-grow:1; width:${r.chips?.length ? 300 : 590}px;">
         <div style="display:flex; font-family:'Source Serif 4'; font-size:18px; color:${INK}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(r.name)}</div>
         <div style="display:flex; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:1px; color:${FAINT}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">${esc((r.sub ?? '').toUpperCase())}</div>
       </div>
+      ${r.chips?.length ? `<div style="display:flex; flex-direction:row; justify-content:flex-end; gap:6px; width:276px;">${r.chips.map((c) => `
+        <div style="display:flex; flex-direction:row; align-items:center; gap:4px; padding:2px 8px 2px 4px; border:1px solid ${LINE}; border-radius:999px; font-family:'IBM Plex Mono'; font-weight:600; font-size:13px; color:${MUTED};">
+          ${c.logo ? `<img src="${c.logo}" width="20" height="20" />` : `<span style="font-family:'Graduate'; font-size:12px;">${esc(c.initial)}</span>`}<span>${c.n}</span>
+        </div>`).join('')}</div>` : ''}
     </div>`).join('')
     : card.rows.map((r) => `
     <div style="display:flex; flex-direction:row; align-items:center; gap:16px; padding:7px 0; border-bottom:1px dashed ${LINE};">
@@ -84,9 +94,14 @@ export function renderCard(card: Card): Response {
   <div style="display:flex; flex-direction:column; align-items:center; width:1200px; height:630px; background-color:${BG}; padding:40px 0 32px;
               background-image: radial-gradient(circle at 600px -126px, rgba(243,226,188,0.13) 0%, rgba(243,226,188,0) 65%);">
     <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; letter-spacing:4px; color:${RUST};">COLLEGE FOOTBALL STREAK KING</div>
-    <div style="display:flex; font-family:'Graduate'; font-size:34px; color:${CREAM}; margin-top:10px; max-width:720px;">${esc(card.heading.toUpperCase())}</div>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:14px; margin-top:10px; max-width:720px;">
+      ${card.logo ? `<img src="${card.logo}" width="44" height="44" />` : ''}
+      <div style="display:flex; font-family:'Graduate'; font-size:34px; color:${CREAM};">${esc(card.heading.toUpperCase())}</div>
+    </div>
     <div style="display:flex; font-family:'Source Serif 4'; font-size:22px; color:${MUTED}; margin-top:2px; max-width:720px;">${esc(card.words)}</div>
-    <div style="display:flex; flex-direction:column; margin-top:12px; flex-grow:1; width:720px;">${rows}</div>
+    <div style="display:flex; flex-direction:column; margin-top:12px; flex-grow:1; width:720px;">${rows}
+      ${card.more ? `<div style="display:flex; justify-content:center; font-family:'IBM Plex Mono'; font-size:13px; letter-spacing:2px; color:${MUTED}; margin-top:8px;">${esc(card.more.toUpperCase())}</div>` : ''}
+    </div>
     <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${FAINT}; margin-top:10px;">${esc(card.footer.toUpperCase())}</div>
   </div>`;
 
