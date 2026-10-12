@@ -9,8 +9,8 @@ import { P, teams } from '../lib/model.ts';
 import { BREAK_WORDS, breakCat, breakOrder, breakRanking, breakRows, breakSummary } from '../lib/breakers.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron } from './Icons.jsx';
-import { streakWords, StreakRow, Tellings } from './StreakRow.jsx';
-import { dayOf, monthDay } from '../lib/format.ts';
+import { streakWords, Tellings } from './StreakRow.jsx';
+import { BrokenRow } from './BrokenRow.jsx';
 import { marginWords } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 
@@ -109,7 +109,7 @@ export function BreakerPage({ ti, breakers, copied, on }) {
       <div className="tpg-streaks">
         {rows === null && <p className="empty">finding the streaks {t.name} broke…</p>}
         {shown !== null && <Tellings rows={shown} cap={BREAKS_CAP} all={all} setAll={setAll} moreWord="broken" order={breakOrder} keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} render={(b) => (
-          <StreakRow s={b} mark={b.ti} lead={`${teams[b.ti].name}’s run · ${BREAK_WORDS[breakCat(b)]}`} tag={`${dayOf(b.ender.ep)} ${monthDay(b.ender.ep)}`} onClick={() => on.streak(b, b.ti)} />
+          <BrokenRow b={b} onOpen={(x) => on.streak(x, x.ti)} onBoard={on.allTime} />
         )} />}
       </div>
     </div>

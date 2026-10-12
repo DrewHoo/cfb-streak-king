@@ -1,13 +1,16 @@
 import { describe, expect, test } from 'vitest';
 import { buildBreakers, breakCat, breakPoints, breakSummary, breakRanking, breakRows, encodeBreakers, decodeBreakers, breakersSlice, BREAK } from './breakers.ts';
 import { mineBroken } from './crowns.ts';
+import { buildSeasons } from './seasons.ts';
+import { keyOf, keyString } from './game.ts';
 import { P, teams, gamesOf } from './model.ts';
 import { baseDir } from './outcome.ts';
 import { minedChipByKey } from './minedChips.ts';
 import { qualifies } from './chips.ts';
 import { matches, decided } from './streaks.ts';
 
-const breakers = buildBreakers(await mineBroken());
+const mined = await mineBroken();
+const breakers = buildBreakers(mined);
 const ranking = breakRanking(breakers);
 
 describe('breakers', () => {
@@ -70,6 +73,21 @@ describe('breakers', () => {
     for (let i = 1; i < ranking.length; i++) expect(ranking[i - 1].points).toBeGreaterThanOrEqual(ranking[i].points);
     expect(breakers.ranks.get(top.ti)).toBe(1);
     expect(breakSummary(top.ti, []).n).toBe(0);
+  });
+
+  test('a game’s broken count holds every break the breakers credit for it, row for row', () => {
+    const season = buildSeasons(mined).get(P.currentSeason);
+    if (!season) return;
+    const id = (b: { ti: number; dir: string; chips: string[] }) => `${b.ti}|${b.dir}|${b.chips.join('+')}`;
+    for (const rows of breakers.teams.values()) {
+      for (const b of breakRows(rows)) {
+        const game = season.games.get(keyString(keyOf(b.ti, b.ender)));
+        expect(game).toBeDefined();
+        const same = game!.ended.find((x) => id(x) === id(b));
+        expect(same).toBeDefined();
+        expect(same!.dup).toBe(b.dup); // one telling per run on both pages, so the standing counts nest
+      }
+    }
   });
 
   test('the file round-trips, and a slice carries one team’s rows and rank', () => {

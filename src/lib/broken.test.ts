@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { brokenWeeks, completedWeeks, brokenClaim, everText, BROKEN_CAP, BROKEN_CUTOFF, BROKEN_FLOOR } from './broken.ts';
+import { brokenWeeks, completedWeeks, brokenClaim, everText, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
 import { mineBroken } from './crowns.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { qualifies } from './chips.ts';
@@ -49,12 +49,11 @@ describe('brokenWeeks', () => {
     }
   });
 
-  test('"more" holds the rest in order: below the cut, past the cap, or a team’s further run, down to the floor', () => {
+  test('"more" holds the rest in order: below the cut, past the cap, or a team’s further run', () => {
     if (!broken) return;
     for (let i = 1; i < broken.more.length; i++) expect(broken.more[i - 1].score).toBeGreaterThanOrEqual(broken.more[i].score);
     const listed = new Set(broken.list.map((b) => b.ti));
     for (const b of broken.more) {
-      expect(b.score).toBeGreaterThanOrEqual(BROKEN_FLOOR);
       expect(b.score < BROKEN_CUTOFF || broken.list.length === BROKEN_CAP || listed.has(b.ti)).toBe(true);
       expect(b.len).toBeGreaterThanOrEqual(LEN_FLOOR);
     }

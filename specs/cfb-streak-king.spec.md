@@ -543,7 +543,9 @@ the two-chip rows; its games are all results.
 
 Only streaks that led the active field (ties included) or were the all-time longest show
 anywhere on the schedule: the broken digest, the at-risk digest, the streak on the line and the
-counts. A broken row's small print leads with what the run was ("now the all-time longest
+counts. No score floor: a game's broken count is every streak it ended (both sides, covering
+runs too), a superset of what the streak-breakers page credits the winner for that game, and the
+two fold sub-streaks over the same rows, so the numbers nest exactly. A broken row's small print leads with what the run was ("now the all-time longest
 streak", a link to that definition's all-time board with no team open, else "was the longest
 active streak"), then since when, then the game that ended it without its date
 ("lost to Georgia 20–17"); the row itself opens the all-time board at the team.

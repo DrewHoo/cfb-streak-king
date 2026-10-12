@@ -8,7 +8,6 @@ import { chanceOf, crownScore } from './crownRank.ts';
 import { markDupsByTeam } from './broken.ts';
 import type { BrokenRun, LeaderRun } from './crowns.ts';
 import { teamData } from './crowns.ts';
-import { BROKEN_FLOOR } from './broken.ts';
 import type { BrokenStreak } from './broken.ts';
 import { keyOf, keyString } from './game.ts';
 import { SHEET_DIRS } from './team.ts';
@@ -30,8 +29,8 @@ export function buildSeasons(mined: { broken: Map<number, BrokenRun[]>; leaders:
     const gs = gsOf.get(ti)!;
     for (const r of runs) {
       if (r.rank !== 1 || !SHEET_DIRS.includes(r.dir)) continue;
+      // no score floor: a game's count holds every streak it broke, so it covers what the streak-breakers credit for it
       const score = crownScore(r, ctx);
-      if (score < BROKEN_FLOOR) continue;
       const ender = gs[r.enderIdx];
       const { p: _p, n: _n, enderIdx: _e, week: _w, startIdx, ...rest } = r;
       const row: BrokenStreak = { ...rest, ti, chance: chanceOf(r, ctx), score, dup: false, since: gs[startIdx].se, ender, scope: 'all', run: gs[startIdx].ep };

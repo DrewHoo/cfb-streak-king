@@ -130,7 +130,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
             empty={loading ? 'finding the streaks…' : 'No streak that led its field ended here.'}
             keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`}
             render={(b) => (
-              <StreakRow s={b} lead={`${teams[b.ti].name}’s run${everText(b) ? ` · ${everText(b)}` : ''}`} onClick={() => on.streak(b, b.ti)} />
+              <StreakRow s={b} mark={b.ti} lead={`${teams[b.ti].name}’s run${everText(b) ? ` · ${everText(b)}` : ''}`} onClick={() => on.streak(b, b.ti)} />
             )}
           />
           <Rows
@@ -140,6 +140,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
             render={(l) => (
               <StreakRow
                 s={l}
+                mark={l.ti}
                 lead={`${teams[l.ti].name} now leads${l.prev != null ? (l.ended ? `: ${teams[l.prev].name}’s ${l.prevLen} ended` : `, past ${teams[l.prev].name}’s ${l.prevLen}`) : ', breaking a tie'}`}
                 onClick={() => on.streak(l, l.ti)}
               />
@@ -152,7 +153,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
           empty={loading ? 'finding the streaks…' : 'No run of four or more that this game could end stands out from chance.'}
           keyOf={({ ti, s }) => `${ti}|${s.dir}|${s.chips.join()}`}
           render={({ ti, s, p }) => (
-            <StreakRow s={s} lead={`${teams[ti].name}${p != null ? ` · ${Math.round(100 * p)}% to end` : ''}`} onClick={() => on.streak(s, ti)} />
+            <StreakRow s={s} mark={ti} lead={`${teams[ti].name}${p != null ? ` · ${Math.round(100 * p)}% to end` : ''}`} onClick={() => on.streak(s, ti)} />
           )}
         />
       )}

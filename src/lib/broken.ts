@@ -48,7 +48,7 @@ export interface BrokenWeek {
   hi: number;
   /** The runs worth telling, the furthest past chance first. */
   list: BrokenStreak[];
-  /** The rest, behind "more": a team's further runs, and real broken runs that chance explains better, down to BROKEN_FLOOR. */
+  /** The rest, behind "more": a team's further runs, and the broken runs that chance explains better (every one, so a game's count holds every break it made). */
   more: BrokenStreak[];
   /** The shorter tellings (dup), behind their own button. */
   dups: BrokenStreak[];
@@ -57,8 +57,6 @@ export interface BrokenWeek {
 export const BROKEN_CAP = 6;
 /** A broken run scoring under this isn't news on its own. */
 export const BROKEN_CUTOFF = -2.5;
-/** Under this (the crowns' own cutoff), it isn't worth a tap either. */
-export const BROKEN_FLOOR = -6.5;
 
 /**
  * A digest from a ranked list: the first `cap` rows that are of note, one
@@ -125,7 +123,7 @@ export function brokenWeeks(mined: { broken: Map<number, BrokenRun[]>; teams: nu
     const mine = byWeek.get(win.w)!;
     const retold = marginRetold(mine);
     // only a run that led the active field as the week began, or was the all-time longest
-    const all = markDupsByTeam(mine.filter((b) => (b.rank === 1 || b.len >= b.everLen) && !retold(b) && b.score >= BROKEN_FLOOR))
+    const all = markDupsByTeam(mine.filter((b) => (b.rank === 1 || b.len >= b.everLen) && !retold(b)))
       .sort((a, b) => b.score - a.score || b.len - a.len);
     const { list, more, dups } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
     out.set(win.wk, { wk: win.wk, lo: win.lo, hi: win.hi, list, more, dups });

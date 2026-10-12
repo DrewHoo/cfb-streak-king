@@ -187,6 +187,10 @@ export default function App({ initial } = {}) {
     dispatch({ type: 'streak', chips, dir: s.dir, scope: s.scope ?? 'active', team: ti, run: s.run ?? null });
     track('lead apply', { chips: s.chips.join(',') || 'overall', dir: s.dir, scope: s.scope ?? 'active', len: s.len, from });
   }
+  // a broken run's "now the all-time longest": its definition's all-time board, no team open
+  function openAllTime(b, from) {
+    openStreak({ ...b, scope: 'all', run: null }, null, from);
+  }
   function applyStarred(f) {
     define(decodeChips(f.c), f.dir);
     track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
@@ -247,6 +251,7 @@ export default function App({ initial } = {}) {
             breaker: (ti) => openBreaker(ti, 'team page'),
             game: (ti, g) => openGame(ti, g, 'team page'),
             streak: (s, ti) => openStreak(s, ti, 'team page'),
+            allTime: (b) => openAllTime(b, 'team page all-time'),
             share: shareTeam,
           }}
         />
@@ -264,7 +269,7 @@ export default function App({ initial } = {}) {
       ) : breaker != null ? (
         <BreakerPage
           ti={breaker} breakers={breaks} copied={copied}
-          on={{ breakers: () => openBreakers('breaker'), team: (ti) => openTeam(ti, 'breaker'), streak: (s, ti) => openStreak(s, ti, 'breaker'), share: shareBreaker }}
+          on={{ breakers: () => openBreakers('breaker'), team: (ti) => openTeam(ti, 'breaker'), streak: (s, ti) => openStreak(s, ti, 'breaker'), allTime: (b) => openAllTime(b, 'breaker all-time'), share: shareBreaker }}
         />
       ) : breakers ? (
         <BreakersPage
@@ -278,7 +283,7 @@ export default function App({ initial } = {}) {
             board: () => dispatch({ type: 'board' }),
             game: (key) => openGameKey(key, 'games'),
             streak: (b) => openStreak(b, b.ti, 'broken'),
-            allTime: (b) => openStreak({ ...b, scope: 'all', run: null }, null, 'broken all-time'),
+            allTime: (b) => openAllTime(b, 'broken all-time'),
             week: (wk) => { dispatch({ type: 'bweek', wk, season }); track('broken week', { wk, season }); },
             year: (se) => { dispatch({ type: 'bweek', wk: null, season: se === P.currentSeason ? null : se }); track('games year', { season: se }); },
             link: linkSection,

@@ -12,9 +12,10 @@ import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow, Tellings } from './StreakRow.jsx';
-import { BREAK_WORDS, breakCat, breakOrder, breakRows, breakSummary } from '../lib/breakers.ts';
+import { breakOrder, breakRows, breakSummary } from '../lib/breakers.ts';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 import { SkrInfo } from './BreakersPage.jsx';
+import { BrokenRow } from './BrokenRow.jsx';
 
 const STREAKS_CAP = 10;
 const BREAKS_CAP = 6;
@@ -132,7 +133,7 @@ export function TeamPage({ ti, todayEp, crowns, breakers, focus, isMobile, copie
         {breaks === null && <p className="empty">finding the streaks {t.name} broke…</p>}
         {breaks !== null && breakSum.n === 0 && <p className="empty">{t.name} hasn’t broken a streak this season.</p>}
         {breaks !== null && <Tellings rows={breaks} cap={BREAKS_CAP} all={allBreaks} setAll={setAllBreaks} moreWord="broken" order={breakOrder} keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} render={(b) => (
-          <StreakRow s={b} mark={b.ti} lead={`${teams[b.ti].name}’s run · ${BREAK_WORDS[breakCat(b)]}`} tag={`${dayOf(b.ender.ep)} ${monthDay(b.ender.ep)}`} onClick={() => on.streak(b, b.ti)} />
+          <BrokenRow b={b} onOpen={(x) => on.streak(x, x.ti)} onBoard={on.allTime} />
         )} />}
       </div>
 

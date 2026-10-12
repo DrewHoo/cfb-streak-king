@@ -19,6 +19,7 @@ import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron, LinkIcon } from './Icons.jsx';
 import { streakWords, subsByParent, Subs } from './StreakRow.jsx';
+import { BrokenRow } from './BrokenRow.jsx';
 import { Picker } from './Picker.jsx';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -46,45 +47,6 @@ const VERBS = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' }
 const PASTS = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' };
 const VERB = (dir) => VERBS[baseDir(dir)];
 const PAST = (dir) => PASTS[baseDir(dir)];
-
-// how the run ended, from the team's side: the game that broke it
-function enderWords(b) {
-  const g = b.ender;
-  const opp = teams[g.oppIdx]?.name ?? '?';
-  if (b.dir === 'C' || b.dir === 'N') return `${g.cover === 'P' ? 'pushed' : g.cover === 'W' ? 'covered' : 'didn’t cover'} vs ${opp}`;
-  if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`;
-  return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`;
-}
-
-const BASE = import.meta.env.BASE_URL;
-/** What the run was, as the week began: the all-time longest, else the active field's leader. */
-const leadWords = (b) => everText(b) ?? (b.tied > 1 ? 'was tied for the longest active streak' : 'was the longest active streak');
-
-// one broken run: the length, the claim in past tense, then what it was (the
-// all-time longest a link to its all-time board, no team open), since when,
-// and the game that ended it; the row opens the run's all-time board at the team
-function BrokenRow({ b, onOpen, onBoard }) {
-  const t = teams[b.ti];
-  const claim = `${t?.name} ${PAST(b.dir)} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
-  const ever = everText(b);
-  return (
-    <div className="bk">
-      <button className="bk-hit" onClick={() => onOpen(b)} aria-label={claim} />
-      <span className={'bk-len' + (baseDir(b.dir) === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
-      {t?.espn ? <TeamMark ti={b.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
-      <span className="bk-txt">
-        <span>{claim}</span>
-        <small>
-          {ever
-            ? <a className="bk-lede" href={hrefOf(BASE, boardUrl(b.chips, b.dir, 'all'))} onClick={(e) => { e.preventDefault(); onBoard(b); }}>{ever}</a>
-            : <b className="k">{leadWords(b)}</b>}
-          {' · since '}{b.since}{' · '}{enderWords(b)}
-        </small>
-      </span>
-      <Chevron />
-    </div>
-  );
-}
 
 /**
  * A past season's week digest, from the season file's rows: every run the

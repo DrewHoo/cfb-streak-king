@@ -128,14 +128,16 @@ describe('prerender + hydrate', () => {
     expect(b.html.replace(/<[^>]+>/g, '')).toContain('Georgia ended 1 streak by winning');
     expect(b.html).toContain('show 1 sub-streak');
     expect(b.html.replace(/<[^>]+>/g, '')).toContain('Streak King Rank #1');
-    expect(b.html).toContain('srow-mark'); // whose streak it was
+    expect(b.html).toContain('bk-logo'); // whose streak it was, in the schedule's row
+    expect(b.html).toContain('now the all-time longest streak');
     expect(b.errors).toEqual([]);
     await b.unmount();
     // the team's own broken-streaks page, from its slice
     const c = await hydrate({ breakers: true, breaker: uga, breaks: slice }, '/cfb-streak-king/breakers/georgia/');
     expect(c.html.replace(/<!-- -->/g, '')).toContain('Streaks Georgia broke');
-    expect(c.html.replace(/<!-- -->/g, '')).toContain('Alabama’s run · all-time longest');
-    expect(c.html).toContain('srow-mark');
+    expect(c.html.replace(/<!-- -->/g, '')).toContain('Alabama had won 9 straight at home');
+    expect(c.html.replace(/<!-- -->/g, '')).toContain('now the all-time longest streak');
+    expect(c.html).toContain('bk-logo');
     expect(c.errors).toEqual([]);
     await c.unmount();
   });
