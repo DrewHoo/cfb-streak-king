@@ -21,7 +21,7 @@ export function buildSeasons(mined: { broken: Map<number, BrokenRun[]>; leaders:
   const seasons = new Map<number, Season>();
   const rowsAt = (season: number, key: string): GameRows => {
     let s = seasons.get(season);
-    if (!s) seasons.set(season, (s = { season, builtAt: P.builtAt, games: new Map() }));
+    if (!s) seasons.set(season, (s = { season, builtAt: P.builtAt, games: new Map(), complete: true }));
     let r = s.games.get(key);
     if (!r) s.games.set(key, (r = { ended: [], leaders: [] }));
     return r;

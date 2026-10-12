@@ -4,7 +4,7 @@ import { definitionPhrase, crownClaim } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
 import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
-import { findGame, keyOf } from './lib/game.ts';
+import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
 import { dirWord, dayOf, rowKey } from './lib/format.ts';
 import { track } from './lib/analytics.ts';
@@ -21,7 +21,7 @@ import { BaseRate } from './components/BaseRate.jsx';
 import { Grid } from './components/Grid.jsx';
 import { TeamPanel } from './components/TeamPanel.jsx';
 import { TeamPage } from './components/TeamPage.jsx';
-import { GamesPage } from './components/GamesPage.jsx';
+import { GamesPage, defaultWeek } from './components/GamesPage.jsx';
 import { GamePage } from './components/GamePage.jsx';
 import { Starred } from './components/Starred.jsx';
 import { Notes, KOFI_URL } from './components/Notes.jsx';
@@ -44,10 +44,20 @@ export default function App({ initial } = {}) {
   const crowns = useCrowns(crownTeam, initial);
   // the schedule's digests: embedded on a games page, loaded when the schedule opens from the board
   const digests = useDigests(games, initial);
-  // the open game, and its season's rows (what each game ended, who it made a leader); the schedule's selected season likewise
+  // the open game, and its season's rows (what each game ended, who it made a
+  // leader); the schedule's selected season likewise. A page's embedded slice
+  // serves until a page needs a game it lacks (another week's, after a click)
   const found = useMemo(() => (game ? findGame(game) : null), [game]);
   const gameSeason = found ? (found.played ? found.played.sides[0].row.se : P.currentSeason) : games ? season ?? P.currentSeason : null;
-  const seasonRows = useSeason(gameSeason, initial);
+  const need = useMemo(() => {
+    if (game) return [keyString(game)];
+    if (!games) return [];
+    const se = season ?? P.currentSeason;
+    const weeks = seasonWeeks(se);
+    const wk = bwk ?? defaultWeek(se, weeks);
+    return (weeks.find((w) => w.wk === wk)?.games ?? []).map((g) => keyString(g.key));
+  }, [game, games, season, bwk]);
+  const seasonRows = useSeason(gameSeason, need, initial);
   const star = useStarred(active, dir);
   const { copied, share } = useShare();
   const isMobile = useIsMobile();

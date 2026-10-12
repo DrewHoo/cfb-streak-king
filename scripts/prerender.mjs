@@ -178,7 +178,8 @@ const seasonSlice = (season, keys) => {
   const rows = seasonRows.get(season)
   const games = new Map()
   for (const k of keys) if (rows?.games.has(k)) games.set(k, rows.games.get(k))
-  const file = encodeSeason({ season, builtAt: P.builtAt, games })
+  // a slice: a game the slice lacks may still have rows in the file, and the app fetches it then
+  const file = encodeSeason({ season, builtAt: P.builtAt, games, complete: false })
   return { file, rows: decodeSeason(file) }
 }
 const currentWeeks = seasonWeeks(P.currentSeason)

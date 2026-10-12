@@ -32,6 +32,8 @@ export interface Season {
   builtAt: string;
   /** Rows by the game's key string ("2026-10-10/georgia-at-alabama"); a game with nothing of note has no entry. */
   games: Map<string, GameRows>;
+  /** False for a slice a page embeds (one game's rows, one week's): a game missing from it may still have rows in the season's file. */
+  complete: boolean;
 }
 
 export const rowsOf = (s: Season | null, k: GameKey): GameRows => s?.games.get(keyString(k)) ?? { ended: [], leaders: [] };
@@ -44,7 +46,7 @@ type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, num
 type BrokenRow = [number, CrownRow, number, number, number];
 // a new leader: [team, crown, since, previous leader or null, what it held, the old run ended (1) or the new one passed it (0)]
 type LeaderRow = [number, CrownRow, number, number | null, number, 0 | 1];
-export interface SeasonFile { v: 1; season: number; builtAt: string; games: Record<string, { ended: BrokenRow[]; leaders: LeaderRow[] }> }
+export interface SeasonFile { v: 1; season: number; builtAt: string; complete?: boolean; games: Record<string, { ended: BrokenRow[]; leaders: LeaderRow[] }> }
 
 const toCrown = (c: Crown): CrownRow => [
   c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2) || 0, c.dup ? 1 : 0,
@@ -65,7 +67,7 @@ const fromLeader = ([ti, c, since, prev, prevLen, ended]: LeaderRow): NewLeader 
 export function encodeSeason(s: Season): SeasonFile {
   const games: SeasonFile['games'] = {};
   for (const [k, r] of s.games) games[k] = { ended: r.ended.map(toBroken), leaders: r.leaders.map(toLeader) };
-  return { v: 1, season: s.season, builtAt: s.builtAt, games };
+  return { v: 1, season: s.season, builtAt: s.builtAt, ...(s.complete ? {} : { complete: false }), games };
 }
 
 export function decodeSeason(f: SeasonFile): Season {
@@ -74,7 +76,7 @@ export function decodeSeason(f: SeasonFile): Season {
     if (!gameKeyFromString(k)) continue;
     games.set(k, { ended: r.ended.map(fromBroken).filter((b): b is BrokenStreak => b != null), leaders: r.leaders.map(fromLeader) });
   }
-  return { season: f.season, builtAt: f.builtAt, games };
+  return { season: f.season, builtAt: f.builtAt, games, complete: f.complete !== false };
 }
 
 // --- in the browser ---
@@ -88,7 +90,7 @@ export function loadSeason(season: number): Promise<Season> {
     p = fetch(`${import.meta.env.BASE_URL}games/${season}.json`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then(decodeSeason)
-      .catch(() => ({ season, builtAt: P.builtAt, games: new Map<string, GameRows>() }));
+      .catch(() => ({ season, builtAt: P.builtAt, games: new Map<string, GameRows>(), complete: true }));
     loading.set(season, p);
   }
   return p;
