@@ -68,6 +68,7 @@ const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineCrowns, mineBroken } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { streakGames } = await vite.ssrLoadModule('/src/lib/streaks.ts')
+const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 
 const { completedWeeks, brokenWeeks } = await vite.ssrLoadModule('/src/lib/broken.ts')
 
@@ -228,7 +229,7 @@ async function renderTeam(ti, W, H) {
   // undefeated crown often repeats a winning one
   y += 40
   for (const cr of held.filter((c) => c.dir !== 'U').slice(0, 3)) {
-    const words = [marginWords(cr.dir).trim(), ...cr.chips.map((k) => P.chipLabel?.[k] ?? k)].filter(Boolean).join(' · ') || 'all games'
+    const words = [marginWords(cr.dir).trim(), ...cr.chips.map(chipLabel)].filter(Boolean).join(' · ') || 'all games'
     parts.push(line([
       { str: `${cr.len}${cr.atEdge ? '+' : ''}`, font: 'Graduate', size: 19, fill: baseDir(cr.dir) === 'L' ? RUST : CREAM },
       { str: `  ${words}`, font: 'Mono', size: 15, fill: FAINT },
@@ -285,7 +286,7 @@ async function renderWeek(broken, W, H) {
     const color = t?.espn && (await logoUri(t.espn, 'color'))
     if (color) parts.push(`<image x="${L + 68}" y="${y + 2}" width="38" height="38" href="${color}"/>`)
     const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[baseDir(b.dir)]
-    const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : P.chipLabel?.[k] ?? k)).join(' ')
+    const words = b.chips.map((k) => (k === 'vsteam' && b.vs != null ? `vs ${teams[b.vs]?.name ?? '?'}` : chipLabel(k))).join(' ')
     const claim = `${t?.name} ${verb} ${count} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`
     const tx = L + 122
     parts.push(text(fit(claim, 'Serif', 23, R - tx), { x: tx, y: y + 21, font: 'Serif', size: 23, fill: INK }))

@@ -120,6 +120,12 @@ const marginOfDir = (dir: string) => { const by = Number(dir.slice(1)); return b
 /** One row of a season file's game: the fields the words need. */
 export interface GameRowWords { team: string; chips: string; dir: string; len: number; atEdge: boolean; rank: number; tied?: number; field: number; since: number; leader?: boolean; everLen?: number; everN?: number }
 
+/** A season-file row's run in words: "14 straight by 10+ points at home · vs ranked opponents" (the file joins chips with '+'). */
+export function rowWords(r: GameRowWords, meta: ShareMeta): string {
+  const w = defWords(r.chips ? r.chips.split('+').join(',') : 'all', meta) ?? [];
+  return `${r.len}${r.atEdge ? '+' : ''} straight${marginOfDir(r.dir)}${w.length ? ` ${w.join(' · ')}` : ''}`;
+}
+
 /**
  * Title and description for a game's page, from the season file's rows for
  * it: the score when played, the top runs it ended and the leaders it made.
@@ -130,10 +136,7 @@ export function gameText(g: NonNullable<ReturnType<typeof gameFromShare>>, meta:
   const title = score
     ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`} · ${meta.site}`
     : `${away} ${at} ${home}, ${g.date} · ${meta.site}`;
-  const words = (r: GameRowWords) => {
-    const w = defWords(r.chips || 'all', meta) ?? [];
-    return `${r.len}${r.atEdge ? '+' : ''} straight${marginOfDir(r.dir)}${w.length ? ` ${w.join(' · ')}` : ''}`;
-  };
+  const words = (r: GameRowWords) => rowWords(r, meta);
   const ended = rows.filter((r) => !r.leader).slice(0, 3).map((r) => `${meta.teams[r.team] ?? r.team} ${PAST[r.dir[0]] ?? 'had won'} ${words(r)}`);
   const led = rows.filter((r) => r.leader).slice(0, 2).map((r) => `${meta.teams[r.team] ?? r.team} now leads: ${words(r)}`);
   const parts = [...ended, ...led];

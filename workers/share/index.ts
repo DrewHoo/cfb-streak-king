@@ -21,7 +21,7 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, defWords, decodeRefs, gameFromShare, gameText } from '../../src/lib/shareWords.ts';
+import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords } from '../../src/lib/shareWords.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
 import type { ShareMeta } from '../../src/lib/shareWords.ts';
 import { createModel } from '../../src/lib/createModel.ts';
@@ -111,7 +111,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12f';
+const CARD_VERSION = '2026-10-12g';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -278,10 +278,9 @@ async function gameCard(key: string): Promise<Response> {
   const cards: CardRow[] = [];
   for (const r of rows.slice(0, 7)) {
     const t = byId.get(r.team);
-    const w = (defWords(r.chips || 'all', meta) ?? []).join(' · ');
     const verb = r.leader ? 'now leads' : ({ W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' } as Record<string, string>)[r.dir[0]] ?? 'had won';
     cards.push({
-      count: `${r.len}${r.atEdge ? '+' : ''}`, name: `${t?.name ?? r.team} ${verb}${r.leader ? ':' : ''} ${r.len}${r.atEdge ? '+' : ''} straight${w ? ` ${w}` : ''}`,
+      count: `${r.len}${r.atEdge ? '+' : ''}`, name: `${t?.name ?? r.team} ${verb}${r.leader ? ':' : ''} ${rowWords(r, meta)}`,
       sub: r.leader ? `sole leader of ${r.field} · since ${r.since}` : `${ledeOf(r)} · since ${r.since}`,
       bad: r.dir[0] === 'L' || r.dir[0] === 'N', live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?',
     });
