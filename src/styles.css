@@ -676,6 +676,9 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 /* a team page's played row opens the game */
 .xrow.game-row { font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--line, rgba(239,230,217,0.08)); text-align: left; cursor: pointer; width: 100%; }
 .xrow.game-row:hover, .xrow.game-row:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
-/* a list's two tails: more rows, and the shorter tellings */
-.tails { display: flex; gap: 14px; flex-wrap: wrap; }
-.dupbtn { color: var(--ink-faint); }
+/* a row's sub-streaks, folded beneath it */
+.subs-wrap { display: flex; flex-direction: column; }
+.subbtn { align-self: flex-start; font: inherit; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.04em; color: var(--ink-faint); background: none; border: 0; padding: 3px 0 5px 56px; cursor: pointer; }
+.subbtn:hover, .subbtn:focus-visible { color: var(--cream); outline: none; }
+.subs { margin-left: 28px; padding-left: 10px; border-left: 2px dotted var(--line, rgba(239,230,217,0.12)); }
+.subs .srow-len, .subs .bk-len { color: var(--ink-muted); }

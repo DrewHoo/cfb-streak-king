@@ -49,7 +49,6 @@ function NextCard({ ti, game, onLine, onGame }) {
 export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
   const t = teams[ti];
   const [all, setAll] = useState(false);
-  const [withDups, setWithDups] = useState(false);
   const r = seasonRecord(ti);
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
@@ -102,8 +101,8 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
       <div className="tpg-streaks">
         {crowns.active === null && <p className="empty">finding every streak {t.name} is on…</p>}
         {crowns.active !== null && streaks.length === 0 && <p className="empty">No current run of {t.name}’s stands out from chance.</p>}
-        <Tellings rows={streaks} cap={STREAKS_CAP} all={all} setAll={setAll} withDups={withDups} setWithDups={setWithDups} render={(s) => (
-          <StreakRow key={s.dir + s.chips.join()} s={s} next onClick={() => on.streak(s, ti)} />
+        <Tellings rows={streaks} cap={STREAKS_CAP} all={all} setAll={setAll} keyOf={(s) => s.dir + s.chips.join()} render={(s) => (
+          <StreakRow s={s} next onClick={() => on.streak(s, ti)} />
         )} />
       </div>
 

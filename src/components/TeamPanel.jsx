@@ -139,7 +139,6 @@ function Ledger({ row, edge, cover, onGame }) {
  */
 export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, dir, scope, active, onApply, onShare }) {
   const [all, setAll] = useState(false);
-  const [withDups, setWithDups] = useState(false);
   const name = teams[ti].name;
   const list0 = crowns ? crowns.filter((c) => c.dir === crownsDir) : [];
   const full = list0.filter((c) => !c.dup);
@@ -164,13 +163,13 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
       {crowns !== null && list0.length === 0 && (
         <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of {name}’s stands out from chance.</p>
       )}
-      <Tellings rows={list0} cap={CROWNS_CAP} all={all} setAll={setAll} withDups={withDups} setWithDups={setWithDups} render={(cr) => {
+      <Tellings rows={list0} cap={CROWNS_CAP} all={all} setAll={setAll} keyOf={(cr) => cr.dir + cr.chips.join()} render={(cr) => {
         const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;
         const span = cr.scope === 'all' && cr.startSe != null
           ? (cr.live ? `since ${cr.startSe}` : cr.startSe === cr.endSe ? String(cr.startSe) : `${cr.startSe}–${cr.endSe}`)
           : cr.startSe ? `since ${cr.startSe}` : '';
         return (
-          <div className={'lead' + (here ? ' here' : '')} key={cr.dir + cr.chips.join()}>
+          <div className={'lead' + (here ? ' here' : '')}>
             <button className="lead-apply" onClick={() => onApply(cr)}>
               <span className={'lead-len' + (baseDir(cr.dir) === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
               <span className="lead-txt">{cr.chips.length ? cr.chips.map(chipLabel).join(' · ') : 'all games'}</span>

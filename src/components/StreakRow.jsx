@@ -1,7 +1,7 @@
 // One streak as a row in a list: the length, the words, then rank, start,
 // odds. Shared by the team page, the game page and the schedule's digests.
 
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { teams } from '../lib/model.ts';
 import { chipLabel } from '../lib/minedChips.ts';
 import { rankText } from '../lib/team.ts';
@@ -41,24 +41,62 @@ export function StreakRow({ s, onClick, next, tag, lead }) {
 }
 
 /**
- * A list of streaks with its two tails: the full tellings up to `cap`, then
- * "all N" (or "N more"), and the shorter tellings (rows flagged dup: a run
- * the team tells at least as long under fewer conditions) behind "N shorter
- * tellings". With the shorter tellings shown, everything is in score order.
+ * Each sub-streak (a row flagged dup: a run the team tells at least as long
+ * under fewer conditions) under the run it is a sub-streak of: the standing
+ * row of the same team and outcome whose conditions are a subset of its own
+ * and whose run is no shorter, the nearest one (most conditions, then best
+ * score). A sub-streak with no standing ancestor in the list stands itself.
  */
-export function Tellings({ rows, cap, all, setAll, withDups, setWithDups, render, moreWord = 'all' }) {
-  const full = rows.filter((r) => !r.dup);
-  const dups = rows.length - full.length;
-  const shown = withDups ? rows : full;
-  const list = all ? shown : shown.slice(0, cap);
+export function subsByParent(rows) {
+  const standing = rows.filter((r) => !r.dup);
+  const subs = new Map();
+  const loose = [];
+  for (const r of rows) {
+    if (!r.dup) continue;
+    const parent = standing
+      .filter((o) => (o.ti ?? null) === (r.ti ?? null) && o.dir === r.dir && o.len >= r.len && o.chips.length < r.chips.length && o.chips.every((k) => r.chips.includes(k)))
+      .sort((a, b) => b.chips.length - a.chips.length || b.score - a.score)[0];
+    if (parent) (subs.get(parent) ?? subs.set(parent, []).get(parent)).push(r);
+    else loose.push(r);
+  }
+  return { standing: [...standing, ...loose].sort((a, b) => b.score - a.score || b.len - a.len), subs };
+}
+
+/**
+ * A row's sub-streaks, folded beneath it: "show N sub-streaks" opens them,
+ * indented, in score order. `open` and `setOpen` hold the open rows' keys.
+ */
+export function Subs({ parent, subs, k, open, setOpen, render }) {
+  if (!subs?.length) return null;
+  const on = open.has(k);
+  return (
+    <div className="subs-wrap">
+      <button className="subbtn" onClick={() => setOpen((cur) => { const next = new Set(cur); if (on) next.delete(k); else next.add(k); return next; })} aria-expanded={on}>
+        {on ? 'hide sub-streaks' : `show ${subs.length} sub-streak${subs.length === 1 ? '' : 's'}`}
+      </button>
+      {on && <div className="subs">{subs.map((r) => render(r, parent))}</div>}
+    </div>
+  );
+}
+
+/**
+ * A list of streaks: the standing rows up to `cap`, then "all N" (or "N
+ * more"); each row's sub-streaks folded beneath it. `keyOf` names a row.
+ */
+export function Tellings({ rows, cap, all, setAll, render, keyOf, moreWord = 'all' }) {
+  const [open, setOpen] = useState(() => new Set());
+  const { standing, subs } = subsByParent(rows);
+  const list = all ? standing : standing.slice(0, cap);
   return (
     <Fragment>
-      {list.map(render)}
-      {(shown.length > cap || dups > 0) && (
-        <div className="tails">
-          {shown.length > cap && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : moreWord === 'all' ? `all ${shown.length}` : `${shown.length - cap} more${moreWord ? ` ${moreWord}` : ''}`}</button>}
-          {dups > 0 && <button className="morebtn dupbtn" onClick={() => setWithDups((v) => !v)}>{withDups ? 'hide shorter tellings' : `${dups} shorter ${dups === 1 ? 'telling' : 'tellings'}`}</button>}
-        </div>
+      {list.map((r) => (
+        <Fragment key={keyOf(r)}>
+          {render(r)}
+          <Subs parent={r} subs={subs.get(r)} k={keyOf(r)} open={open} setOpen={setOpen} render={(x) => <Fragment key={keyOf(x)}>{render(x)}</Fragment>} />
+        </Fragment>
+      ))}
+      {standing.length > cap && (
+        <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : moreWord === 'all' ? `all ${standing.length}` : `${standing.length - cap} more${moreWord ? ` ${moreWord}` : ''}`}</button>
       )}
     </Fragment>
   );

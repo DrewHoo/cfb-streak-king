@@ -37,15 +37,14 @@ function Side({ ti, rank, score, onTeam }) {
 }
 
 // a list of six, the rest behind "more", the shorter tellings behind their own button
-function Rows({ title, rows, cap, empty, render }) {
+function Rows({ title, rows, cap, empty, keyOf, render }) {
   const [all, setAll] = useState(false);
-  const [withDups, setWithDups] = useState(false);
   const full = rows.filter((r) => !r.dup);
   return (
     <section className="gp-sec">
       <h2>{title} <span>{full.length}</span></h2>
       {!rows.length && <p className="empty">{empty}</p>}
-      <Tellings rows={rows} cap={cap} all={all} setAll={setAll} withDups={withDups} setWithDups={setWithDups} moreWord="" render={render} />
+      <Tellings rows={rows} cap={cap} all={all} setAll={setAll} moreWord="" keyOf={keyOf} render={render} />
     </section>
   );
 }
@@ -81,7 +80,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
     const out = [];
     for (const { ti, row: r } of scheduled.sides) {
       const crowns = ti === key.home ? homeCrowns : awayCrowns;
-      for (const s of streaksOn(teamStreaks(ti, todayEp, crowns), r)) out.push({ ti, s, p: pBreak(s.dir, r.sp), stake: (pBreak(s.dir, r.sp) ?? 0.5) * s.score });
+      for (const s of streaksOn(teamStreaks(ti, todayEp, crowns), r)) out.push({ ti, s, p: pBreak(s.dir, r.sp), stake: (pBreak(s.dir, r.sp) ?? 0.5) * s.score, dup: s.dup, dir: s.dir, len: s.len, chips: s.chips, score: s.score });
     }
     return out.sort((a, b) => b.stake - a.stake || b.s.len - a.s.len);
   }, [scheduled, homeCrowns, awayCrowns, todayEp, key.home]);
@@ -128,16 +127,18 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
           <Rows
             title="Streaks this game ended" cap={cap} rows={rows.ended}
             empty={loading ? 'finding the streaks…' : 'No streak that led its field ended here.'}
+            keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`}
             render={(b) => (
-              <StreakRow key={`${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} s={b} lead={`${teams[b.ti].name}’s run`} onClick={() => on.streak(b, b.ti)} />
+              <StreakRow s={b} lead={`${teams[b.ti].name}’s run`} onClick={() => on.streak(b, b.ti)} />
             )}
           />
           <Rows
             title="New leaders" cap={cap} rows={rows.leaders}
             empty={loading ? 'finding the streaks…' : 'Nobody took over a field because of this game.'}
+            keyOf={(l) => `${l.ti}|${l.dir}|${l.chips.join()}`}
             render={(l) => (
               <StreakRow
-                key={`${l.ti}|${l.dir}|${l.chips.join()}`} s={l}
+                s={l}
                 lead={`${teams[l.ti].name} now leads${l.prev != null ? (l.ended ? `: ${teams[l.prev].name}’s ${l.prevLen} ended` : `, past ${teams[l.prev].name}’s ${l.prevLen}`) : ', breaking a tie'}`}
                 onClick={() => on.streak(l, l.ti)}
               />
@@ -148,8 +149,9 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
         <Rows
           title="On the line" cap={cap} rows={onLine}
           empty={loading ? 'finding the streaks…' : 'No run of four or more that this game could end stands out from chance.'}
+          keyOf={({ ti, s }) => `${ti}|${s.dir}|${s.chips.join()}`}
           render={({ ti, s, p }) => (
-            <StreakRow key={`${ti}|${s.dir}|${s.chips.join()}`} s={s} lead={`${teams[ti].name}${p != null ? ` · ${Math.round(100 * p)}% to end` : ''}`} onClick={() => on.streak(s, ti)} />
+            <StreakRow s={s} lead={`${teams[ti].name}${p != null ? ` · ${Math.round(100 * p)}% to end` : ''}`} onClick={() => on.streak(s, ti)} />
           )}
         />
       )}

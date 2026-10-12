@@ -595,8 +595,11 @@ extra word skipped a loss. Equal length hides the superset; all-time, the two mu
 seasons. One flag on every row (`dup`, set by `markDups` in crownRank.ts where each list is
 built: rankCrowns for a team's crowns, the week digests per team, the season rows per game
 per team), carried in the three files, so every list hides the same rows: the team page, the
-panel, the game page, both digests. Each list has two tails: "all N" or "N more" as before,
-then "N shorter tellings" for the flagged rows; shown, everything is in score order.
+panel, the game page, both digests. On the page a flagged row is a sub-streak, folded beneath
+the run it is a sub-streak of (the standing row with the nearest subset of its conditions,
+`subsByParent` in StreakRow.jsx) behind "show N sub-streaks" on that row; "all N" or "N more"
+works as before over the standing rows. Drew's wording, in place of a list-end "shorter
+tellings" button.
 
 `RANK.olderStands` (default on): a shorter telling that started before the longer run stands
 on its own ("at home at night, 5 since 2019" beside "at night, 10 since 2022"). Drew isn't

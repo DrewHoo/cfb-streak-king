@@ -6,7 +6,7 @@
 // of the build, and the streak most on the line beneath). A row opens the
 // game's page.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { lineText, rankText } from '../lib/team.ts';
 import { seasons, seasonWeeks, scoreOf, keyString } from '../lib/game.ts';
@@ -15,7 +15,7 @@ import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../l
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron, LinkIcon } from './Icons.jsx';
-import { streakWords } from './StreakRow.jsx';
+import { streakWords, subsByParent, Subs } from './StreakRow.jsx';
 import { Picker } from './Picker.jsx';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -92,13 +92,14 @@ export function brokenFromRows(seasonRows, week) {
 // the digest of one completed week's broken runs: the week before the
 // selected one, so it sits above that week's at-risk streaks and games
 function Broken({ broken, onOpen, onLink }) {
-  // "more" and the shorter tellings open per week, so flipping weeks folds them back up
+  // "more" and the sub-streaks open per week, so flipping weeks folds them back up
   const [moreWk, setMoreWk] = useState(null);
-  const [dupWk, setDupWk] = useState(null);
+  const [open, setOpen] = useState(() => new Set());
   if (!broken) return null;
   const all = moreWk === broken.wk;
-  const withDups = dupWk === broken.wk;
-  const rows = [...(all ? [...broken.list, ...broken.more] : broken.list), ...(withDups ? broken.dups : [])];
+  const rows = all ? [...broken.list, ...broken.more] : broken.list;
+  const { subs } = subsByParent([...broken.list, ...broken.more, ...broken.dups]);
+  const keyOf = (b) => `${broken.wk}|${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`;
   return (
     <section className="gwk">
       <div className="gwk-h gbk-h">
@@ -110,20 +111,16 @@ function Broken({ broken, onOpen, onLink }) {
       </div>
       <div className="gbk-list">
         {rows.map((b) => (
-          <BrokenRow key={`${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} b={b} onOpen={onOpen} />
+          <Fragment key={keyOf(b)}>
+            <BrokenRow b={b} onOpen={onOpen} />
+            <Subs parent={b} subs={subs.get(b)} k={keyOf(b)} open={open} setOpen={setOpen} render={(x) => <BrokenRow key={keyOf(x)} b={x} onOpen={onOpen} />} />
+          </Fragment>
         ))}
-        <div className="tails">
-          {broken.more.length > 0 && (
-            <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
-              {all ? 'fewer' : `${broken.more.length} more broken`}
-            </button>
-          )}
-          {broken.dups.length > 0 && (
-            <button className="morebtn dupbtn" onClick={() => setDupWk(withDups ? null : broken.wk)}>
-              {withDups ? 'hide shorter tellings' : `${broken.dups.length} shorter ${broken.dups.length === 1 ? 'telling' : 'tellings'}`}
-            </button>
-          )}
-        </div>
+        {broken.more.length > 0 && (
+          <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
+            {all ? 'fewer' : `${broken.more.length} more broken`}
+          </button>
+        )}
       </div>
     </section>
   );
@@ -157,12 +154,17 @@ function AtRiskRow({ r, onGame }) {
 // the most first, the rest behind "more"
 function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
   const [all, setAll] = useState(false);
-  const [withDups, setWithDups] = useState(false);
+  const [open, setOpen] = useState(() => new Set());
   // its own address lands on it
   const ref = useRef(null);
   useEffect(() => { if (focus && risk) ref.current?.scrollIntoView({ block: 'start' }); }, [focus, risk]);
   if (!risk || !risk.list.length) return null;
-  const rows = [...(all ? [...risk.list, ...risk.more] : risk.list), ...(withDups ? risk.dups : [])];
+  const rows = all ? [...risk.list, ...risk.more] : risk.list;
+  // a row at risk carries its streak; the grouping reads the streak's fields
+  const flat = (r) => ({ ...r, dir: r.s.dir, len: r.s.len, chips: r.s.chips, score: r.s.score });
+  const { subs } = subsByParent([...risk.list, ...risk.more, ...risk.dups].map(flat));
+  const subsOf = (r) => [...subs.entries()].find(([p]) => p.s === r.s)?.[1];
+  const keyOf = (r) => `${r.ti}|${r.s.dir}|${r.s.chips.join()}`;
   return (
     <section className="gwk" ref={ref}>
       <div className="gwk-h gbk-h">
@@ -173,15 +175,15 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
         </small>
       </div>
       <div className="gbk-list">
-        {rows.map((r) => <AtRiskRow key={`${r.ti}|${r.s.dir}|${r.s.chips.join()}`} r={r} onGame={onGame} />)}
-        <div className="tails">
-          {risk.more.length > 0 && (
-            <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${risk.more.length} more at risk`}</button>
-          )}
-          {risk.dups.length > 0 && (
-            <button className="morebtn dupbtn" onClick={() => setWithDups((v) => !v)}>{withDups ? 'hide shorter tellings' : `${risk.dups.length} shorter ${risk.dups.length === 1 ? 'telling' : 'tellings'}`}</button>
-          )}
-        </div>
+        {rows.map((r) => (
+          <Fragment key={keyOf(r)}>
+            <AtRiskRow r={r} onGame={onGame} />
+            <Subs parent={r} subs={subsOf(r)} k={keyOf(r)} open={open} setOpen={setOpen} render={(x) => <AtRiskRow key={keyOf(x)} r={x} onGame={onGame} />} />
+          </Fragment>
+        ))}
+        {risk.more.length > 0 && (
+          <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${risk.more.length} more at risk`}</button>
+        )}
       </div>
     </section>
   );
