@@ -167,7 +167,7 @@ function loadWeekly(): Promise<Weekly> {
 }
 
 /** dist/games/<season>.json: each game's rows, as seasonFile.ts encodes them (a crown row's fields by position). */
-type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number];
+type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
 interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number][]; leaders: [number, SeasonCrown, number, number | null][] }> }
 const seasonCache = new Map<number, { day: string; data: Promise<SeasonFile | null> }>();
 function loadSeason(season: number): Promise<SeasonFile | null> {
@@ -192,7 +192,8 @@ async function gameRows(key: string, date: string): Promise<GameRowWords[]> {
     const g = file?.games[key];
     if (!g) continue;
     const row = (team: number, c: SeasonCrown, since: number, leader: boolean): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], atEdge: !!c[3], rank: c[5], field: c[4], since, leader });
-    return [...g.ended.map(([t, c, since]) => row(t, c, since, false)), ...g.leaders.map(([t, c, since]) => row(t, c, since, true))];
+    // the full tellings only: a shorter telling (dup) stays off the head and the card
+    return [...g.ended.filter(([, c]) => !c[14]).map(([t, c, since]) => row(t, c, since, false)), ...g.leaders.filter(([, c]) => !c[14]).map(([t, c, since]) => row(t, c, since, true))];
   }
   return [];
 }

@@ -13,6 +13,18 @@ import { teams, upcomingOf } from './lib/model.ts';
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // jsdom has no matchMedia; useIsMobile only needs the shape
 window.matchMedia ??= (query) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {} });
+// the build's files, empty: without them a page would fall back to mining in
+// the page (minutes), and these tests check the render, not the rows
+const empty = (url) => (
+  /crowns\//.test(url) ? { v: 4, active: [], all: [] }
+    : /digests\.json/.test(url) ? { v: 1, builtAt: '', broken: {}, atRisk: null, onLine: {} }
+      : /games\/\d{4}\.json/.test(url) ? { v: 1, season: Number(/(\d{4})\.json/.exec(url)[1]), builtAt: '', games: {} }
+        : null
+);
+globalThis.fetch = async (url) => {
+  const body = empty(String(url));
+  return body ? new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } }) : new Response('', { status: 404 });
+};
 
 async function hydrate(initial, url = '/cfb-streak-king/') {
   window.history.replaceState(null, '', url);
@@ -41,7 +53,7 @@ describe('prerender + hydrate', () => {
   test('a team page hydrates without a mismatch, crowns included', async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
     // any crowns will do: this checks the render, crowns.test covers their contents
-    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2024, live: true, also: 0, chance: 0.01, score: 5 });
+    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2024, live: true, also: 0, chance: 0.01, score: 5, dup: false });
     const crowns = { active: [crown(['road'], 'W', 9), crown(['ranked'], 'W', 5), crown(['night'], 'L', 4)], all: [] };
     const { html, errors, unmount } = await hydrate({ page: ti, crowns }, '/cfb-streak-king/team/alabama/');
     expect(html).toContain('Alabama');

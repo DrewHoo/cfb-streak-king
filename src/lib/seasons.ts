@@ -5,6 +5,7 @@
 
 import { P, gamesOf } from './model.ts';
 import { chanceOf, crownScore } from './crownRank.ts';
+import { markDupsByTeam } from './broken.ts';
 import type { BrokenRun, LeaderRun } from './crowns.ts';
 import { teamData } from './crowns.ts';
 import { BROKEN_FLOOR } from './broken.ts';
@@ -33,7 +34,7 @@ export function buildSeasons(mined: { broken: Map<number, BrokenRun[]>; leaders:
       if (score < BROKEN_FLOOR) continue;
       const ender = gs[r.enderIdx];
       const { p: _p, n: _n, enderIdx: _e, week: _w, startIdx, ...rest } = r;
-      const row: BrokenStreak = { ...rest, ti, chance: chanceOf(r, ctx), score, since: gs[startIdx].se, ender, scope: 'all', run: gs[startIdx].ep };
+      const row: BrokenStreak = { ...rest, ti, chance: chanceOf(r, ctx), score, dup: false, since: gs[startIdx].se, ender, scope: 'all', run: gs[startIdx].ep };
       rowsAt(ender.se, keyString(keyOf(ti, ender))).ended.push(row);
     }
   }
@@ -44,14 +45,15 @@ export function buildSeasons(mined: { broken: Map<number, BrokenRun[]>; leaders:
       const cause = gamesOf(r.causeT)[r.causeIdx];
       if (!cause) continue;
       const { p: _p, n: _n, week: _w, causeT, causeIdx: _i, startIdx, prev, ...rest } = r;
-      const row: NewLeader = { ...rest, ti, chance: chanceOf(r, ctx), score: crownScore(r, ctx), since: gs[startIdx].se, prev: prev >= 0 ? prev : null, scope: 'active', ended: prev >= 0 && causeT === prev };
+      const row: NewLeader = { ...rest, ti, chance: chanceOf(r, ctx), score: crownScore(r, ctx), dup: false, since: gs[startIdx].se, prev: prev >= 0 ? prev : null, scope: 'active', ended: prev >= 0 && causeT === prev };
       rowsAt(cause.se, keyString(keyOf(r.causeT, cause))).leaders.push(row);
     }
   }
+  // each team's rows for a game flagged against its own, the shorter tellings after the rest
   for (const s of seasons.values()) {
     for (const r of s.games.values()) {
-      r.ended.sort((a, b) => b.score - a.score || b.len - a.len);
-      r.leaders.sort((a, b) => b.score - a.score || b.len - a.len);
+      r.ended = markDupsByTeam(r.ended).sort((a, b) => b.score - a.score || b.len - a.len);
+      r.leaders = markDupsByTeam(r.leaders).sort((a, b) => b.score - a.score || b.len - a.len);
     }
   }
   return seasons;

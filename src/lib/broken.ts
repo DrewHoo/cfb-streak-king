@@ -6,11 +6,11 @@
 // it. The schedule shows the digest; the build writes every week's to
 // dist/games/digests.json (digests.ts) and the page reads that.
 
-import type { Crown, GameRow } from './types.ts';
+import type { Crown, Dir, GameRow, Scope } from './types.ts';
 import { teams } from './model.ts';
 import { chipLabel } from './minedChips.ts';
 import { baseDir, isMargin } from './outcome.ts';
-import { chanceOf, crownScore } from './crownRank.ts';
+import { chanceOf, crownScore, markDups } from './crownRank.ts';
 import type { BrokenRun } from './crowns.ts';
 import { teamData } from './crowns.ts';
 import { completedWeeks } from './weeks.ts';
@@ -42,6 +42,8 @@ export interface BrokenWeek {
   list: BrokenStreak[];
   /** The rest, behind "more": a team's further runs, and real broken runs that chance explains better, down to BROKEN_FLOOR. */
   more: BrokenStreak[];
+  /** The shorter tellings (dup), behind their own button. */
+  dups: BrokenStreak[];
 }
 
 export const BROKEN_CAP = 6;
@@ -53,16 +55,28 @@ export const BROKEN_FLOOR = -6.5;
 /**
  * A digest from a ranked list: the first `cap` rows that are of note, one
  * per team, so one team's week doesn't fill the whole list; everything else
- * behind "more", in the same order.
+ * behind "more", in the same order; the shorter tellings (dup) behind their
+ * own button.
  */
-export function digestOf<T extends { ti: number }>(ranked: T[], ofNote: (x: T) => boolean, cap: number): { list: T[]; more: T[] } {
+export function digestOf<T extends { ti: number; dup?: boolean }>(ranked: T[], ofNote: (x: T) => boolean, cap: number): { list: T[]; more: T[]; dups: T[] } {
   const list: T[] = [];
   const more: T[] = [];
+  const dups: T[] = [];
   const seen = new Set<number>();
   for (const x of ranked) {
-    if (list.length < cap && ofNote(x) && !seen.has(x.ti)) { list.push(x); seen.add(x.ti); } else more.push(x);
+    if (x.dup) dups.push(x);
+    else if (list.length < cap && ofNote(x) && !seen.has(x.ti)) { list.push(x); seen.add(x.ti); } else more.push(x);
   }
-  return { list, more };
+  return { list, more, dups };
+}
+
+/** Each team's rows flagged against its own: a run told at least as long under fewer conditions is a shorter telling. */
+export function markDupsByTeam<T extends { ti: number; chips: string[]; dir: Dir; len: number; scope?: Scope; startSe?: number; endSe?: number }>(rows: T[]): (T & { dup: boolean })[] {
+  const byTeam = new Map<number, T[]>();
+  for (const r of rows) (byTeam.get(r.ti) ?? byTeam.set(r.ti, []).get(r.ti)!).push(r);
+  const out: (T & { dup: boolean })[] = [];
+  for (const list of byTeam.values()) out.push(...markDups(list));
+  return out;
 }
 
 // a plain run a margin run retells: same team, chips, start and ender ("had
@@ -92,7 +106,7 @@ export function brokenWeeks(mined: { broken: Map<number, BrokenRun[]>; teams: nu
       if (!list) continue;
       const { p: _p, n: _n, enderIdx, week: _w, startIdx, ...rest } = r;
       list.push({
-        ...rest, ti, chance: chanceOf(r, ctx), score: crownScore(r, ctx),
+        ...rest, ti, chance: chanceOf(r, ctx), score: crownScore(r, ctx), dup: false,
         since: gs[startIdx].se, ender: gs[enderIdx], scope: 'all', run: gs[startIdx].ep,
       });
     }
@@ -102,11 +116,10 @@ export function brokenWeeks(mined: { broken: Map<number, BrokenRun[]>; teams: nu
     if (win.wk == null) continue;
     const mine = byWeek.get(win.w)!;
     const retold = marginRetold(mine);
-    const all = mine
-      .filter((b) => !retold(b) && b.score >= BROKEN_FLOOR)
+    const all = markDupsByTeam(mine.filter((b) => !retold(b) && b.score >= BROKEN_FLOOR))
       .sort((a, b) => b.score - a.score || b.len - a.len);
-    const { list, more } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
-    out.set(win.wk, { wk: win.wk, lo: win.lo, hi: win.hi, list, more });
+    const { list, more, dups } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
+    out.set(win.wk, { wk: win.wk, lo: win.lo, hi: win.hi, list, more, dups });
   }
   return out;
 }

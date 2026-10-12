@@ -1,6 +1,7 @@
 // One streak as a row in a list: the length, the words, then rank, start,
 // odds. Shared by the team page, the game page and the schedule's digests.
 
+import { Fragment } from 'react';
 import { teams } from '../lib/model.ts';
 import { chipLabel } from '../lib/minedChips.ts';
 import { rankText } from '../lib/team.ts';
@@ -36,5 +37,29 @@ export function StreakRow({ s, onClick, next, tag, lead }) {
       </span>
       <Chevron />
     </button>
+  );
+}
+
+/**
+ * A list of streaks with its two tails: the full tellings up to `cap`, then
+ * "all N" (or "N more"), and the shorter tellings (rows flagged dup: a run
+ * the team tells at least as long under fewer conditions) behind "N shorter
+ * tellings". With the shorter tellings shown, everything is in score order.
+ */
+export function Tellings({ rows, cap, all, setAll, withDups, setWithDups, render, moreWord = 'all' }) {
+  const full = rows.filter((r) => !r.dup);
+  const dups = rows.length - full.length;
+  const shown = withDups ? rows : full;
+  const list = all ? shown : shown.slice(0, cap);
+  return (
+    <Fragment>
+      {list.map(render)}
+      {(shown.length > cap || dups > 0) && (
+        <div className="tails">
+          {shown.length > cap && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : moreWord === 'all' ? `all ${shown.length}` : `${shown.length - cap} more${moreWord ? ` ${moreWord}` : ''}`}</button>}
+          {dups > 0 && <button className="morebtn dupbtn" onClick={() => setWithDups((v) => !v)}>{withDups ? 'hide shorter tellings' : `${dups} shorter ${dups === 1 ? 'telling' : 'tellings'}`}</button>}
+        </div>
+      )}
+    </Fragment>
   );
 }

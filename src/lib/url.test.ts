@@ -105,7 +105,7 @@ describe('url', () => {
   });
 
   test('a crown links to the board under its definition with the team open', () => {
-    const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, live: true, also: 0, chance: 0, score: 0 });
+    const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, live: true, also: 0, chance: 0, score: 0, dup: false });
     expect(u.path).toBe('');
     expect(search(u.params)).toBe('t=alabama&c=road&dir=U&scope=active');
   });

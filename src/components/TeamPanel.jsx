@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { teams, firstSeason } from '../lib/model.ts';
 import { chipLabel } from '../lib/minedChips.ts';
 import { rankText } from '../lib/team.ts';
+import { Tellings } from './StreakRow.jsx';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
 import { encodeChips } from '../lib/definition.ts';
@@ -138,15 +139,16 @@ function Ledger({ row, edge, cover, onGame }) {
  */
 export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, dir, scope, active, onApply, onShare }) {
   const [all, setAll] = useState(false);
+  const [withDups, setWithDups] = useState(false);
   const name = teams[ti].name;
   const list0 = crowns ? crowns.filter((c) => c.dir === crownsDir) : [];
-  const list = all ? list0 : list0.slice(0, CROWNS_CAP);
+  const full = list0.filter((c) => !c.dup);
   const defC = encodeChips(active);
   return (
     <div className="leads">
       <p className="leads-lead">
         {name}’s{' '}
-        <b className={baseDir(crownsDir) === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? list0.length : '…'}</b>{' '}
+        <b className={baseDir(crownsDir) === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? full.length : '…'}</b>{' '}
         <Picker value={crownsScope} onChange={onCrownsScope} ariaLabel="Active or all-time" options={[{ value: 'active', label: 'Active' }, { value: 'all', label: 'All-time' }]} />{' '}
         <Picker
           value={crownsDir} onChange={onCrownsDir} ariaLabel="Winning or losing"
@@ -162,7 +164,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
       {crowns !== null && list0.length === 0 && (
         <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of {name}’s stands out from chance.</p>
       )}
-      {list.map((cr) => {
+      <Tellings rows={list0} cap={CROWNS_CAP} all={all} setAll={setAll} withDups={withDups} setWithDups={setWithDups} render={(cr) => {
         const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;
         const span = cr.scope === 'all' && cr.startSe != null
           ? (cr.live ? `since ${cr.startSe}` : cr.startSe === cr.endSe ? String(cr.startSe) : `${cr.startSe}–${cr.endSe}`)
@@ -177,10 +179,7 @@ export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCr
             <button className="ico lead-share" onClick={() => onShare(cr)} aria-label="Share this streak"><ShareIcon /></button>
           </div>
         );
-      })}
-      {list0.length > CROWNS_CAP && (
-        <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `all ${list0.length}`}</button>
-      )}
+      }} />
     </div>
   );
 }

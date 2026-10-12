@@ -24,18 +24,20 @@
 //
 // p is the outcome's rate over every current FBS team's qualifying games
 // (createModel's baseRate). Then a team's list drops a run when:
-//   - a run with a subset of its chips, same outcome and overlapping
-//     seasons, scores as well (a slice of the same run)
 //   - it's an undefeated run identical to a winning one, or a winning or
 //     losing run identical to one told by its margin ("won 12 straight by
 //     10+" says "won 12 straight" and more)
 //   - (all-time) it retells a better run's era: same outcome, one
 //     definition inside the other, most of the seasons shared
 //   - it scores under the cutoff, unless it has no chips
-// and shows its top `fallback` when nothing is left. The weights were set
-// by eye on the crown score review (claude.ai/artifact/XpW5iUtEUGnVJVWJPz3k2v).
+// and shows its top `fallback` when nothing is left. A run the team tells
+// at least as long under a subset of its conditions ("at home at night, 5"
+// beside "at night, 10") is a shorter telling, kept but flagged `dup`
+// (markDups) and shown on request; with `olderStands`, a shorter telling
+// that started before the longer run stands on its own. The weights were
+// set by eye on the crown score review (claude.ai/artifact/XpW5iUtEUGnVJVWJPz3k2v).
 
-import type { Crown } from './types.ts';
+import type { Crown, Dir, Scope } from './types.ts';
 import { baseDir, isMargin } from './outcome.ts';
 import { baseKey, choicesOf } from './minedChips.ts';
 
@@ -54,6 +56,8 @@ export const RANK = {
   fallback: 3,
   /** Percent of the shorter run's seasons two all-time runs share to be one era. */
   eraOv: 50,
+  /** A shorter telling that started before the longer run under fewer conditions is not a dup. */
+  olderStands: true,
 };
 
 // each catalog chip's tier; a derived chip ("vsteam:alabama") goes by its catalog key
@@ -68,8 +72,25 @@ for (const [tier, keys] of Object.entries(TIERS) as [Tier, string[]][]) for (con
 /** A mined key's tier; a chip the table doesn't name costs as a plain one. */
 export const tierOf = (key: string): Tier => tierByKey.get(baseKey(key)) ?? 'plain';
 
-/** A mined run with its definition's pooled rate and qualifying-game count, before its chance and score are worked out. */
-export type MinedCrown = Omit<Crown, 'chance' | 'score'> & { p: number; n: number };
+/** A mined run with its definition's pooled rate and qualifying-game count, before its chance, score and dup flag are worked out. */
+export type MinedCrown = Omit<Crown, 'chance' | 'score' | 'dup'> & { p: number; n: number };
+
+type Telling = { chips: readonly string[]; dir: Dir; len: number; scope?: Scope; startSe?: number; endSe?: number };
+const subsetOf = (a: Telling, b: Telling) => a.chips.length < b.chips.length && a.chips.every((k) => b.chips.includes(k));
+const overlap = (a: Telling, b: Telling) => a.endSe == null || b.endSe == null || a.startSe == null || b.startSe == null || !(a.endSe < b.startSe || b.endSe < a.startSe);
+/**
+ * Whether `r` is a shorter telling among `rows` (one team's, one list): some
+ * row of the same outcome under a strict subset of its conditions runs at
+ * least as long (and, all-time, overlaps it in seasons), unless `olderStands`
+ * and `r` started first.
+ */
+export function isDup(r: Telling, rows: readonly Telling[], w = RANK): boolean {
+  return rows.some((o) => o !== r && o.dir === r.dir && subsetOf(o, r) && o.len >= r.len
+    && (r.scope !== 'all' || overlap(o, r))
+    && !(w.olderStands && r.startSe != null && o.startSe != null && r.startSe < o.startSe));
+}
+/** Each row with its `dup` flag set against the others. */
+export const markDups = <T extends Telling>(rows: T[], w = RANK): (T & { dup: boolean })[] => rows.map((r) => ({ ...r, dup: isDup(r, rows, w) }));
 export interface RankContext {
   /** Teams that can hold a streak. */
   teams: number;
@@ -105,7 +126,7 @@ export function crownScore(c: MinedCrown, ctx: RankContext, w = RANK): number {
     + span * Math.log2(seasons(c));
 }
 
-const finish = (c: MinedCrown, ctx: RankContext, w: typeof RANK): Crown => {
+const finish = (c: MinedCrown, ctx: RankContext, w: typeof RANK): Omit<Crown, 'dup'> => {
   const { p: _p, n: _n, ...rest } = c;
   return { ...rest, chance: chanceOf(c, ctx), score: crownScore(c, ctx, w) };
 };
@@ -113,13 +134,10 @@ const finish = (c: MinedCrown, ctx: RankContext, w: typeof RANK): Crown => {
 /** One team's runs in one scope: the ones worth showing, best first. */
 export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crown[] {
   const score = new Map(list.map((c) => [c, crownScore(c, ctx, w)]));
-  const subsetOf = (a: MinedCrown, b: MinedCrown) => a.chips.length < b.chips.length && a.chips.every((k) => b.chips.includes(k));
-  const overlap = (a: MinedCrown, b: MinedCrown) => !(a.endSe! < b.startSe! || b.endSe! < a.startSe!);
   const sameRun = (a: MinedCrown, b: MinedCrown) => a.len === b.len && a.startSe === b.startSe && a.endSe === b.endSe
     && a.chips.length === b.chips.length && a.chips.every((k) => b.chips.includes(k));
   let kept = list.filter((c) => (
-    !list.some((o) => o.dir === c.dir && subsetOf(o, c) && overlap(o, c) && score.get(o)! >= score.get(c)!)
-    && !(c.dir === 'U' && list.some((o) => o.dir === 'W' && sameRun(o, c)))
+    !(c.dir === 'U' && list.some((o) => o.dir === 'W' && sameRun(o, c)))
     && !((c.dir === 'W' || c.dir === 'L') && list.some((o) => isMargin(o.dir) && baseDir(o.dir) === c.dir && sameRun(o, c)))
   ));
   kept.sort((a, b) => score.get(b)! - score.get(a)! || b.len - a.len);
@@ -137,5 +155,5 @@ export function rankCrowns(list: MinedCrown[], ctx: RankContext, w = RANK): Crow
     kept = eras;
   }
   const pass = kept.filter((c) => score.get(c)! >= w.cutoff || c.chips.length === 0);
-  return (pass.length ? pass : kept.slice(0, w.fallback)).map((c) => finish(c, ctx, w));
+  return markDups((pass.length ? pass : kept.slice(0, w.fallback)).map((c) => finish(c, ctx, w)), w);
 }

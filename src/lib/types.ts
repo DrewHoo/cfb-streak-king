@@ -198,4 +198,6 @@ export interface Crown {
   /** The chance some team's streak reaches this length under the definition by luck alone, 0–1. */
   chance: number;
   score: number;
+  /** A shorter telling: the team holds a run at least as long under a subset of these conditions (crownRank.ts markDups); shown on request. */
+  dup: boolean;
 }

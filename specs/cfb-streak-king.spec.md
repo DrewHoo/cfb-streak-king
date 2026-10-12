@@ -585,3 +585,19 @@ As specced, with these particulars:
 - The dev server (`vite preview` too) has no `404.html` route, so an old game's address
   there hydrates over the board's markup and React logs a recoverable mismatch; the deployed
   site serves the empty shell.
+
+### Shorter tellings (2026-10-12)
+
+The collapse hides only identical runs. The next layer, Drew's: a run is a shorter telling
+when the same team holds one under a strict subset of its conditions that is at least as long
+("at home at night, 5" beside "at night, 10"); a superset that runs longer stands, since the
+extra word skipped a loss. Equal length hides the superset; all-time, the two must overlap in
+seasons. One flag on every row (`dup`, set by `markDups` in crownRank.ts where each list is
+built: rankCrowns for a team's crowns, the week digests per team, the season rows per game
+per team), carried in the three files, so every list hides the same rows: the team page, the
+panel, the game page, both digests. Each list has two tails: "all N" or "N more" as before,
+then "N shorter tellings" for the flagged rows; shown, everything is in score order.
+
+`RANK.olderStands` (default on): a shorter telling that started before the longer run stands
+on its own ("at home at night, 5 since 2019" beside "at night, 10 since 2022"). Drew isn't
+sure it's the right behavior, hence the switch.

@@ -66,11 +66,14 @@ describe('team', () => {
   });
 
   test("a game puts on the line the streaks whose next qualifying game it is", () => {
-    const ti = teamList().find((t) => nextGameOf(t, today) && teamStreaks(t, today, of(t)).some((s) => s.next))!;
+    // a streak's next qualifying game may be a later one than the team's next game
+    const ti = teamList().find((t) => { const n = nextGameOf(t, today); return n && teamStreaks(t, today, of(t)).some((s) => s.next?.i === n.i); })!;
     const next = nextGameOf(ti, today)!;
-    const on = streaksOn(teamStreaks(ti, today, of(ti)), next);
+    const list = teamStreaks(ti, today, of(ti));
+    const on = streaksOn(list, next);
     expect(on.length).toBeGreaterThan(0);
     expect(on.every((s) => s.next!.i === next.i)).toBe(true);
+    for (const s of list) if (s.next && s.next.i !== next.i) expect(s.next.ep).toBeGreaterThanOrEqual(next.ep);
   });
 
   test('the next qualifying game reads every chip, choice included; a chip read from the game itself has none', () => {

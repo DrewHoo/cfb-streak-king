@@ -59,11 +59,15 @@ export interface AtRisk {
   p: number;
   /** score × p: the bits of streak the game is expected to take. */
   stake: number;
+  /** The streak's own flag: a shorter telling of one of the team's other runs. */
+  dup: boolean;
 }
 
 export interface AtRiskWeek {
   list: AtRisk[];
   more: AtRisk[];
+  /** The shorter tellings (dup), behind their own button. */
+  dups: AtRisk[];
 }
 
 /**
@@ -79,7 +83,7 @@ export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf: (t
       for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
         const p = pBreak(s.dir, row.sp);
         if (p == null) continue;
-        rows.push({ ti, s, game, row, p, stake: s.score * p });
+        rows.push({ ti, s, game, row, p, stake: s.score * p, dup: s.dup });
       }
     }
   }

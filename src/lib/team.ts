@@ -151,6 +151,7 @@ export function topOnLine(g: ScheduledGame, todayEp: number, crownsOf: (ti: numb
   let best: { ti: number; s: TeamStreak } | null = null;
   for (const { ti, row } of g.sides) {
     for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
+      if (s.dup) continue;
       if (!best || s.score > best.s.score) best = { ti, s };
     }
   }

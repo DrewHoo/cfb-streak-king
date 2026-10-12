@@ -85,18 +85,20 @@ function BrokenRow({ b, onOpen }) {
 export function brokenFromRows(seasonRows, week) {
   if (!seasonRows || !week) return null;
   const all = week.games.flatMap((g) => seasonRows.games.get(keyString(g.key))?.ended ?? []).sort((a, b) => b.score - a.score || b.len - a.len);
-  const { list, more } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
-  return { wk: week.wk, lo: week.lo, hi: week.hi, list, more };
+  const { list, more, dups } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
+  return { wk: week.wk, lo: week.lo, hi: week.hi, list, more, dups };
 }
 
 // the digest of one completed week's broken runs: the week before the
 // selected one, so it sits above that week's at-risk streaks and games
 function Broken({ broken, onOpen, onLink }) {
-  // "more" opens per week, so flipping weeks folds it back up
+  // "more" and the shorter tellings open per week, so flipping weeks folds them back up
   const [moreWk, setMoreWk] = useState(null);
+  const [dupWk, setDupWk] = useState(null);
   if (!broken) return null;
   const all = moreWk === broken.wk;
-  const rows = all ? [...broken.list, ...broken.more] : broken.list;
+  const withDups = dupWk === broken.wk;
+  const rows = [...(all ? [...broken.list, ...broken.more] : broken.list), ...(withDups ? broken.dups : [])];
   return (
     <section className="gwk">
       <div className="gwk-h gbk-h">
@@ -110,11 +112,18 @@ function Broken({ broken, onOpen, onLink }) {
         {rows.map((b) => (
           <BrokenRow key={`${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} b={b} onOpen={onOpen} />
         ))}
-        {broken.more.length > 0 && (
-          <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
-            {all ? 'fewer' : `${broken.more.length} more broken`}
-          </button>
-        )}
+        <div className="tails">
+          {broken.more.length > 0 && (
+            <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
+              {all ? 'fewer' : `${broken.more.length} more broken`}
+            </button>
+          )}
+          {broken.dups.length > 0 && (
+            <button className="morebtn dupbtn" onClick={() => setDupWk(withDups ? null : broken.wk)}>
+              {withDups ? 'hide shorter tellings' : `${broken.dups.length} shorter ${broken.dups.length === 1 ? 'telling' : 'tellings'}`}
+            </button>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -148,11 +157,12 @@ function AtRiskRow({ r, onGame }) {
 // the most first, the rest behind "more"
 function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
   const [all, setAll] = useState(false);
+  const [withDups, setWithDups] = useState(false);
   // its own address lands on it
   const ref = useRef(null);
   useEffect(() => { if (focus && risk) ref.current?.scrollIntoView({ block: 'start' }); }, [focus, risk]);
   if (!risk || !risk.list.length) return null;
-  const rows = all ? [...risk.list, ...risk.more] : risk.list;
+  const rows = [...(all ? [...risk.list, ...risk.more] : risk.list), ...(withDups ? risk.dups : [])];
   return (
     <section className="gwk" ref={ref}>
       <div className="gwk-h gbk-h">
@@ -164,9 +174,14 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
       </div>
       <div className="gbk-list">
         {rows.map((r) => <AtRiskRow key={`${r.ti}|${r.s.dir}|${r.s.chips.join()}`} r={r} onGame={onGame} />)}
-        {risk.more.length > 0 && (
-          <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${risk.more.length} more at risk`}</button>
-        )}
+        <div className="tails">
+          {risk.more.length > 0 && (
+            <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${risk.more.length} more at risk`}</button>
+          )}
+          {risk.dups.length > 0 && (
+            <button className="morebtn dupbtn" onClick={() => setWithDups((v) => !v)}>{withDups ? 'hide shorter tellings' : `${risk.dups.length} shorter ${risk.dups.length === 1 ? 'telling' : 'tellings'}`}</button>
+          )}
+        </div>
       </div>
     </section>
   );

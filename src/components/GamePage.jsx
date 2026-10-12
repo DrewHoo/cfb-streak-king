@@ -15,7 +15,7 @@ import { dayOf, monthDay, kickOf, shortDate, spreadText } from '../lib/format.ts
 import { useActiveCrowns } from '../hooks/useCrowns.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron } from './Icons.jsx';
-import { StreakRow } from './StreakRow.jsx';
+import { StreakRow, Tellings } from './StreakRow.jsx';
 
 const CAP = { phone: 4, desk: 6 };
 const year = (ep) => new Date(ep * 86400000).getUTCFullYear();
@@ -36,15 +36,16 @@ function Side({ ti, rank, score, onTeam }) {
     : <span className="mu-side">{body}</span>;
 }
 
-// a list of six, the rest behind "more"
-function Rows({ title, count, rows, cap, empty, render }) {
+// a list of six, the rest behind "more", the shorter tellings behind their own button
+function Rows({ title, rows, cap, empty, render }) {
   const [all, setAll] = useState(false);
+  const [withDups, setWithDups] = useState(false);
+  const full = rows.filter((r) => !r.dup);
   return (
     <section className="gp-sec">
-      <h2>{title} <span>{count ?? rows.length}</span></h2>
+      <h2>{title} <span>{full.length}</span></h2>
       {!rows.length && <p className="empty">{empty}</p>}
-      {(all ? rows : rows.slice(0, cap)).map(render)}
-      {rows.length > cap && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${rows.length - cap} more`}</button>}
+      <Tellings rows={rows} cap={cap} all={all} setAll={setAll} withDups={withDups} setWithDups={setWithDups} moreWord="" render={render} />
     </section>
   );
 }

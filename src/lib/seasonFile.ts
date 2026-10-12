@@ -38,8 +38,8 @@ export const rowsOf = (s: Season | null, k: GameKey): GameRows => s?.games.get(k
 
 // --- the file ---
 
-// a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score]
-type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number];
+// a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]
+type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
 // a broken run: [team, crown, since, ender game id, run start]
 type BrokenRow = [number, CrownRow, number, number, number];
 // a new leader: [team, crown, since, previous leader or null, what it held, the old run ended (1) or the new one passed it (0)]
@@ -47,12 +47,12 @@ type LeaderRow = [number, CrownRow, number, number | null, number, 0 | 1];
 export interface SeasonFile { v: 1; season: number; builtAt: string; games: Record<string, { ended: BrokenRow[]; leaders: LeaderRow[] }> }
 
 const toCrown = (c: Crown): CrownRow => [
-  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2) || 0,
+  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2) || 0, c.dup ? 1 : 0,
 ];
-const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score]: CrownRow): Crown => ({
+const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]: CrownRow): Crown => ({
   chips: chips ? chips.split('+') : [], dir, scope, len, atEdge: !!atEdge, field, rank, tied, second,
   ...(startSe != null ? { startSe } : {}), ...(endSe != null ? { endSe } : {}),
-  live: !!live, also, chance, score,
+  live: !!live, also, chance, score, dup: !!dup,
 });
 const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run];
 const fromBroken = ([ti, c, since, enderI, run]: BrokenRow): BrokenStreak | null => {

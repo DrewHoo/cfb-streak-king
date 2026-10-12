@@ -49,8 +49,8 @@ export function buildDigests(todayEp: number, mined: Parameters<typeof brokenWee
 
 // --- the file ---
 
-// a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score]
-type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number];
+// a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]
+type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
 // a broken run: [team, crown, since, ender game id, run start]
 type BrokenRow = [number, CrownRow, number, number, number];
 // a streak at risk: [team, crown, next game id, p]
@@ -58,18 +58,18 @@ type RiskRow = [number, CrownRow, number, number];
 export interface DigestsFile {
   v: 1;
   builtAt: string;
-  broken: Record<number, { wk: number | null; lo: number; hi: number; list: BrokenRow[]; more: BrokenRow[] }>;
-  atRisk: { wk: number; lo: number; hi: number; list: RiskRow[]; more: RiskRow[] } | null;
+  broken: Record<number, { wk: number | null; lo: number; hi: number; list: BrokenRow[]; more: BrokenRow[]; dups: BrokenRow[] }>;
+  atRisk: { wk: number; lo: number; hi: number; list: RiskRow[]; more: RiskRow[]; dups: RiskRow[] } | null;
   onLine: Record<number, [number, CrownRow]>;
 }
 
 const toCrown = (c: Crown): CrownRow => [
-  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2) || 0, // a score that rounds to -0 is 0
+  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, +c.chance.toPrecision(2), +c.score.toFixed(2) || 0, c.dup ? 1 : 0, // a score that rounds to -0 is 0
 ];
-const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score]: CrownRow): Crown => ({
+const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]: CrownRow): Crown => ({
   chips: chips ? chips.split('+') : [], dir, scope, len, atEdge: !!atEdge, field, rank, tied, second,
   ...(startSe != null ? { startSe } : {}), ...(endSe != null ? { endSe } : {}),
-  live: !!live, also, chance, score,
+  live: !!live, also, chance, score, dup: !!dup,
 });
 const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run];
 const fromBroken = ([ti, c, since, enderI, run]: BrokenRow): BrokenStreak => ({
@@ -87,15 +87,15 @@ const fromRisk = ([ti, c, gameI, p]: RiskRow): AtRisk | null => {
   const side = game?.sides.find((x) => x.ti === ti);
   if (!game || !side) return null;
   const s = fromStreak(ti, c, gameI);
-  return { ti, s, game, row: side.row, p, stake: s.score * p };
+  return { ti, s, game, row: side.row, p, stake: s.score * p, dup: s.dup };
 };
 
 export function encodeDigests(d: Digests): DigestsFile {
   return {
     v: 1,
     builtAt: d.builtAt,
-    broken: Object.fromEntries(Object.entries(d.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, list: w.list.map(toBroken), more: w.more.map(toBroken) }])),
-    atRisk: d.atRisk ? { wk: d.atRisk.wk, lo: d.atRisk.lo, hi: d.atRisk.hi, list: d.atRisk.list.map(toRisk), more: d.atRisk.more.map(toRisk) } : null,
+    broken: Object.fromEntries(Object.entries(d.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, list: w.list.map(toBroken), more: w.more.map(toBroken), dups: w.dups.map(toBroken) }])),
+    atRisk: d.atRisk ? { wk: d.atRisk.wk, lo: d.atRisk.lo, hi: d.atRisk.hi, list: d.atRisk.list.map(toRisk), more: d.atRisk.more.map(toRisk), dups: d.atRisk.dups.map(toRisk) } : null,
     onLine: Object.fromEntries(Object.entries(d.onLine).map(([i, { ti, s }]) => [i, [ti, toCrown(s)]])),
   };
 }
@@ -104,8 +104,8 @@ export function decodeDigests(f: DigestsFile): Digests {
   const risks = (rows: RiskRow[]) => rows.map(fromRisk).filter((r): r is AtRisk => r != null);
   return {
     builtAt: f.builtAt,
-    broken: Object.fromEntries(Object.entries(f.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, list: w.list.map(fromBroken), more: w.more.map(fromBroken) }])),
-    atRisk: f.atRisk ? { wk: f.atRisk.wk, lo: f.atRisk.lo, hi: f.atRisk.hi, list: risks(f.atRisk.list), more: risks(f.atRisk.more) } : null,
+    broken: Object.fromEntries(Object.entries(f.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, list: w.list.map(fromBroken), more: w.more.map(fromBroken), dups: (w.dups ?? []).map(fromBroken) }])),
+    atRisk: f.atRisk ? { wk: f.atRisk.wk, lo: f.atRisk.lo, hi: f.atRisk.hi, list: risks(f.atRisk.list), more: risks(f.atRisk.more), dups: risks(f.atRisk.dups ?? []) } : null,
     onLine: Object.fromEntries(Object.entries(f.onLine).map(([i, [ti, c]]) => [i, { ti, s: fromStreak(ti, c, Number(i)) }])),
   };
 }

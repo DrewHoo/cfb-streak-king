@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { Dir, Scope } from './types.ts';
 import type { MinedCrown } from './crownRank.ts';
-import { RANK, chanceOf, crownScore, rankCrowns, tierOf, wordCost } from './crownRank.ts';
+import { RANK, chanceOf, crownScore, rankCrowns, tierOf, wordCost, isDup, markDups } from './crownRank.ts';
 import { choicesOf } from './minedChips.ts';
 
 const ctx = { teams: 136 };
@@ -68,11 +68,27 @@ describe('crownScore', () => {
 describe('rankCrowns', () => {
   const keys = (cs: { dir: Dir; chips: string[] }[]) => cs.map((c) => `${c.dir} ${c.chips.join('+')}`);
 
-  test('A+B hides behind A unless it scores better', () => {
+  test('A+B is a shorter telling of A when A runs at least as long; longer under more conditions it stands', () => {
     const a = crown({ chips: ['home'], len: 20 });
-    const worse = crown({ chips: ['home', 'night'], len: 20 });
-    const better = crown({ chips: ['home', 'rivalry'], len: 40 });
-    expect(keys(rankCrowns([a, worse, better], ctx))).toEqual(['W home+rivalry', 'W home']);
+    const shorter = crown({ chips: ['home', 'night'], len: 20 });
+    const longer = crown({ chips: ['home', 'rivalry'], len: 40 });
+    const out = rankCrowns([a, shorter, longer], ctx);
+    expect(keys(out)).toEqual(['W home+rivalry', 'W home', 'W home+night']);
+    expect(out.map((c) => c.dup)).toEqual([false, false, true]);
+    // another outcome is another story
+    expect(isDup(crown({ dir: 'L', chips: ['home', 'night'], len: 5 }), [a])).toBe(false);
+  });
+
+  test('a shorter telling that started first stands when olderStands is on, and not otherwise', () => {
+    const a = crown({ chips: ['night'], len: 10, startSe: 2022 });
+    const older = crown({ chips: ['home', 'night'], len: 5, startSe: 2019 });
+    expect(isDup(older, [a, older])).toBe(false);
+    expect(isDup(older, [a, older], { ...RANK, olderStands: false })).toBe(true);
+    expect(markDups([a, older]).map((c) => c.dup)).toEqual([false, false]);
+    // all-time: only an overlapping run tells the same story
+    const past = crown({ scope: 'all', chips: ['home', 'night'], len: 5, startSe: 1990, endSe: 1992 });
+    const later = crown({ scope: 'all', chips: ['night'], len: 10, startSe: 2000, endSe: 2003 });
+    expect(isDup(past, [later, past], { ...RANK, olderStands: false })).toBe(false);
   });
 
   test('only a slice of the same run hides: all-time runs in other seasons stand', () => {
@@ -113,10 +129,11 @@ describe('rankCrowns', () => {
     expect(rankCrowns(weak, ctx).map((c) => c.len)).toEqual([8, 7, 6]);
   });
 
-  test('ranked crowns carry their chance and score and drop the rate fields', () => {
+  test('ranked crowns carry their chance, score and dup flag and drop the rate fields', () => {
     const out = rankCrowns([crown()], ctx)[0];
     expect(Object.keys(out)).not.toContain('p');
     expect(out.chance).toBeCloseTo(chanceOf(crown(), ctx), 12);
     expect(out.score).toBeCloseTo(crownScore(crown(), ctx), 12);
+    expect(out.dup).toBe(false);
   });
 });

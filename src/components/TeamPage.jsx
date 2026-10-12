@@ -11,7 +11,7 @@ import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
-import { StreakRow } from './StreakRow.jsx';
+import { StreakRow, Tellings } from './StreakRow.jsx';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 
 const STREAKS_CAP = 10;
@@ -49,6 +49,7 @@ function NextCard({ ti, game, onLine, onGame }) {
 export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
   const t = teams[ti];
   const [all, setAll] = useState(false);
+  const [withDups, setWithDups] = useState(false);
   const r = seasonRecord(ti);
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
@@ -101,10 +102,9 @@ export function TeamPage({ ti, todayEp, crowns, isMobile, copied, on }) {
       <div className="tpg-streaks">
         {crowns.active === null && <p className="empty">finding every streak {t.name} is on…</p>}
         {crowns.active !== null && streaks.length === 0 && <p className="empty">No current run of {t.name}’s stands out from chance.</p>}
-        {(all ? streaks : streaks.slice(0, STREAKS_CAP)).map((s) => (
+        <Tellings rows={streaks} cap={STREAKS_CAP} all={all} setAll={setAll} withDups={withDups} setWithDups={setWithDups} render={(s) => (
           <StreakRow key={s.dir + s.chips.join()} s={s} next onClick={() => on.streak(s, ti)} />
-        ))}
-        {streaks.length > STREAKS_CAP && <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `all ${streaks.length}`}</button>}
+        )} />
       </div>
 
     </div>

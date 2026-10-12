@@ -144,7 +144,7 @@ describe('claim', () => {
   });
 
   test('a crown reads like a claim', () => {
-    const base = { chips: ['road', 'ranked'], scope: 'all' as const, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, also: 0, chance: 0, score: 0 };
+    const base = { chips: ['road', 'ranked'], scope: 'all' as const, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, also: 0, chance: 0, score: 0, dup: false };
     expect(crownClaim(idx('alabama'), { ...base, dir: 'W', len: 12, live: false, startSe: 2008, endSe: 2012 }))
       .toBe('Alabama won 12 straight games against ranked opponents on the road, 2008–2012.');
     expect(crownClaim(idx('alabama'), { ...base, dir: 'U', len: 5, live: true, startSe: 2024 }))
@@ -160,7 +160,7 @@ describe('claim', () => {
     expect(claim(r, chips('unranked'), 'W10')).toMatch(new RegExp(`^${teams[r.ti].name} has won ${r.s.len}\\+? straight games by 10\\+ points against unranked opponents(, since [A-Z][a-z]{2} \\d{4})?\\.$`));
     const one = allTimeBoard(chips('opener'), 'L21', today).find((x) => !x.live && x.s.len === 1 && x.s.start!.se === x.s.end!.se)!;
     expect(claim(one, chips('opener'), 'L21')).toMatch(/ lost 1 straight season opener by 21\+ points in \d{4}\.$/);
-    const base = { chips: ['road'], scope: 'all' as const, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, also: 0, chance: 0, score: 0 };
+    const base = { chips: ['road'], scope: 'all' as const, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, also: 0, chance: 0, score: 0, dup: false };
     expect(crownClaim(idx('alabama'), { ...base, dir: 'W10', len: 9, live: false, startSe: 2008, endSe: 2009 }))
       .toBe('Alabama won 9 straight games by 10+ points on the road, 2008–2009.');
     expect(noClaim(idx('alabama'), [], 'L7')).toBe('Alabama has no active losing by 7+ streak in games.');
