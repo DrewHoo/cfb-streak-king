@@ -43,7 +43,7 @@ export const rowsOf = (s: Season | null, k: GameKey): GameRows => s?.games.get(k
 // a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]
 type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
 // a broken run: [team, crown, since, ender game id, run start, the longest ever under the definition, how many teams' longest it is]
-type BrokenRow = [number, CrownRow, number, number, number, number, number];
+export type BrokenRow = [number, CrownRow, number, number, number, number, number];
 // a new leader: [team, crown, since, previous leader or null, what it held, the old run ended (1) or the new one passed it (0)]
 type LeaderRow = [number, CrownRow, number, number | null, number, 0 | 1];
 export interface SeasonFile { v: 1; season: number; builtAt: string; complete?: boolean; games: Record<string, { ended: BrokenRow[]; leaders: LeaderRow[] }> }
@@ -56,8 +56,8 @@ const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field,
   ...(startSe != null ? { startSe } : {}), ...(endSe != null ? { endSe } : {}),
   live: !!live, also, chance, score, dup: !!dup,
 });
-const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run, b.everLen, b.everN];
-const fromBroken = ([ti, c, since, enderI, run, everLen, everN]: BrokenRow): BrokenStreak | null => {
+export const encodeBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run, b.everLen, b.everN];
+export const decodeBroken = ([ti, c, since, enderI, run, everLen, everN]: BrokenRow): BrokenStreak | null => {
   const ender = gamesOf(ti).find((g) => g.i === enderI);
   return ender ? { ...fromCrown('all')(c), scope: 'all', ti, since, run, ender, everLen: everLen ?? 0, everN: everN ?? 0 } : null;
 };
@@ -66,7 +66,7 @@ const fromLeader = ([ti, c, since, prev, prevLen, ended]: LeaderRow): NewLeader 
 
 export function encodeSeason(s: Season): SeasonFile {
   const games: SeasonFile['games'] = {};
-  for (const [k, r] of s.games) games[k] = { ended: r.ended.map(toBroken), leaders: r.leaders.map(toLeader) };
+  for (const [k, r] of s.games) games[k] = { ended: r.ended.map(encodeBroken), leaders: r.leaders.map(toLeader) };
   return { v: 1, season: s.season, builtAt: s.builtAt, ...(s.complete ? {} : { complete: false }), games };
 }
 
@@ -74,7 +74,7 @@ export function decodeSeason(f: SeasonFile): Season {
   const games = new Map<string, GameRows>();
   for (const [k, r] of Object.entries(f.games)) {
     if (!gameKeyFromString(k)) continue;
-    games.set(k, { ended: r.ended.map(fromBroken).filter((b): b is BrokenStreak => b != null), leaders: r.leaders.map(fromLeader) });
+    games.set(k, { ended: r.ended.map(decodeBroken).filter((b): b is BrokenStreak => b != null), leaders: r.leaders.map(fromLeader) });
   }
   return { season: f.season, builtAt: f.builtAt, games, complete: f.complete !== false };
 }

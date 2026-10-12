@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, stoppersUrl } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -74,6 +74,14 @@ describe('url', () => {
     expect(gamesUrl()).toMatchObject({ path: 'games/', params: { c: null, t: null } });
     expect(parseUrl('/cfb-streak-king/games/', '')).toMatchObject({ games: true, page: null, team: null, bwk: null });
     expect(toUrl({ ...DEFAULT_VIEW, games: true, page: idx('byu') }).path).toBe('team/byu/');
+  });
+
+  test('the streak-stoppers leaderboard is /stoppers/, in the board’s place', () => {
+    expect(stoppersUrl()).toMatchObject({ path: 'stoppers/', params: { c: null, t: null } });
+    expect(parseUrl('/cfb-streak-king/stoppers/', '')).toMatchObject({ stoppers: true, games: false, page: null, team: null });
+    expect(parseUrl('/cfb-streak-king/stoppers', '').stoppers).toBe(true);
+    expect(parseUrl('/cfb-streak-king/games/', '').stoppers).toBe(false);
+    expect(toUrl({ ...DEFAULT_VIEW, stoppers: true, page: idx('byu') }).path).toBe('team/byu/');
   });
 
   test('a week of broken streaks is /games/week/<n>/, and round-trips', () => {

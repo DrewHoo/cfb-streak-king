@@ -609,3 +609,25 @@ tellings" button.
 `RANK.olderStands` (default on): a shorter telling that started before the longer run stands
 on its own ("at home at night, 5 since 2019" beside "at night, 10 since 2022"). Drew isn't
 sure it's the right behavior, hence the switch.
+
+## Top Streak-Stoppers
+
+`/stoppers/`, in the board's place (the trophy button on the board; a team page's breaks section
+links to it). Every team by the streaks it ended by beating their owner in the running season,
+from the miner's broken runs over the full four-chip space.
+
+- A break is a winning run (any margin) ended by a loss to the stopper. A losing streak is its
+  owner's own story: ending one by losing earns nothing. A covering run ended by a miss counts
+  only under the `STOP.covers` flag (off).
+- One telling per run: rows are dup-marked per (owner, ender game) the way the game page marks
+  them; a sub-streak is in the file and folds under its run, and doesn't count.
+- Category: all-time longest (the run was as long as the longest ever under its definition,
+  `everLen`), led the field (rank 1 as the week began, ties included), other active.
+- Points per break: `STOP.points[category] / (1 + STOP.discount × conditions)`, 10 / 4 / 1 and
+  0.5. The ranking is by points, then breaks; pills re-sort by breaks or all-time breaks.
+- A row opens the team's page at "Streaks broken this season": the team's breaks, all-time first
+  then by score (6, the rest behind "more"), with its count, points and rank among stoppers.
+- The build writes `dist/stoppers/<season>.json` (`StoppersFile`: rows per stopper in the
+  season-file broken-row shape, plus each stopper's rank) and embeds it in the prerendered
+  page; a team page embeds a slice (its own rows, `complete: false`) and fetches the file only
+  when a page needs another team.

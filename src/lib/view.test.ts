@@ -100,6 +100,17 @@ describe('view', () => {
     expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), games: true, risk: true } }).risk).toBe(true);
   });
 
+  test('the streak-stoppers open in the board’s place; the schedule, a game, a streak or the board leaves them', () => {
+    const v = viewReducer(initialView(), { type: 'stoppers' });
+    expect([v.stoppers, v.games, v.page]).toEqual([true, false, null]);
+    expect(viewReducer(v, { type: 'page', team: 2 })).toMatchObject({ stoppers: true, page: 2 }); // a team page over it; Back returns
+    expect(viewReducer(v, { type: 'games' }).stoppers).toBe(false);
+    expect(viewReducer(v, { type: 'board' }).stoppers).toBe(false);
+    expect(viewReducer(v, { type: 'streak', chips: [], dir: 'W', scope: 'active', team: 2 }).stoppers).toBe(false);
+    expect(viewReducer(viewReducer(initialView(), { type: 'games' }), { type: 'stoppers' }).games).toBe(false);
+    expect(viewReducer(initialView(), { type: 'load', view: { ...initialView(), stoppers: true } }).stoppers).toBe(true);
+  });
+
   test('a game page takes the place of the board, a team page or the schedule, and keeps the board’s open team', () => {
     const key = { ep: 1, home: 3, away: 5, neutral: false };
     let v = viewReducer({ ...initialView(), team: 3 }, { type: 'game', key });

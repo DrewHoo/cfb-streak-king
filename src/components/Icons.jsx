@@ -33,6 +33,9 @@ export const LinkIcon = () => (
   </svg>
 );
 
+export const TrophyIcon = () => (
+  <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 2h6v4.5a3 3 0 0 1-6 0V2zM5 3.5H2.5a2.5 2.5 0 0 0 2.5 3M11 3.5h2.5a2.5 2.5 0 0 1-2.5 3M8 9.5v2.5M5.5 14h5" /></svg>
+);
 export const CalendarIcon = () => (
   <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5" /><path d="M2 7h12M5.5 1.8v3M10.5 1.8v3" /></svg>
 );

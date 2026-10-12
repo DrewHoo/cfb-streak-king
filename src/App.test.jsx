@@ -21,6 +21,7 @@ const empty = (url) => (
   /crowns\//.test(url) ? { v: 4, active: [], all: [] }
     : /digests\.json/.test(url) ? { v: 1, builtAt: '', broken: {}, atRisk: null, onLine: {} }
       : /games\/\d{4}\.json/.test(url) ? { v: 1, season: Number(/(\d{4})\.json/.exec(url)[1]), builtAt: '', games: {} }
+        : /stoppers\/\d{4}\.json/.test(url) ? { v: 1, season: 2026, builtAt: '', teams: {}, ranks: {} }
         : null
 );
 globalThis.fetch = async (url) => {
@@ -104,6 +105,29 @@ describe('prerender + hydrate', () => {
     expect(hits.length).toBeGreaterThan(0);
     for (const g of hits) expect([teams[g.key.home].name, teams[g.key.away].name].some((n) => n.toLowerCase().includes(name.slice(0, 4).toLowerCase()))).toBe(true);
     expect(matchingGames(week.games, 'zzzzqq')).toEqual([]);
+  });
+
+  test('the streak-stoppers page and a team page’s breaks hydrate without a mismatch, from the embedded rows', async () => {
+    // a break: Georgia ended Alabama's run at home (Alabama's game row from its side)
+    const bama = teams.findIndex((t) => t.id === 'alabama'), uga = teams.findIndex((t) => t.id === 'georgia');
+    const ender = gamesOf(bama).find((g) => g.se === P.currentSeason && g.oppIdx === uga && g.r === 'L');
+    if (!ender) return; // another payload
+    const run = (chips, len, dup) => ({ chips, dir: 'W', scope: 'all', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2023, live: false, also: 0, chance: 0.01, score: 5, dup, ti: bama, since: 2023, ender, run: ender.ep - 400, everLen: len, everN: 1 });
+    const stoppers = { season: P.currentSeason, builtAt: '', complete: true, teams: new Map([[uga, [run(['home'], 9, false), run(['home', 'night'], 7, true)]]]), ranks: new Map([[uga, 1]]) };
+    const a = await hydrate({ stoppers: true, stops: stoppers }, '/cfb-streak-king/stoppers/');
+    expect(a.html).toContain('Top Streak-Stoppers');
+    expect(a.html).toContain('Georgia');
+    expect(a.html).toContain('Alabama had won 9 straight at home');
+    expect(a.errors).toEqual([]);
+    await a.unmount();
+    const slice = { ...stoppers, complete: false };
+    const b = await hydrate({ page: uga, crowns: { active: [], all: [] }, stops: slice }, '/cfb-streak-king/team/georgia/');
+    expect(b.html).toContain('Streaks broken this season');
+    expect(b.html.replace(/<[^>]+>/g, '')).toContain('Georgia ended 1 streak by winning');
+    expect(b.html).toContain('show 1 sub-streak');
+    expect(b.html.replace(/<[^>]+>/g, '')).toContain('#1 among streak-stoppers');
+    expect(b.errors).toEqual([]);
+    await b.unmount();
   });
 
   test('a URL with a definition hydrates first, then applies it', async () => {

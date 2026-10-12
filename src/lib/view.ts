@@ -33,11 +33,12 @@ export type ViewAction =
   | { type: 'games' }
   | { type: 'bweek'; wk: number | null; season?: number | null }
   | { type: 'risk' }
+  | { type: 'stoppers' }
   | { type: 'board' }
   | { type: 'game'; key: GameKey }
   | { type: 'limit'; limit: number | ((l: number) => number) };
 
-export const initialView = (page: number | null = null, games = false, bwk: number | null = null, risk = false, game: GameKey | null = null, season: number | null = null): ViewState => ({ ...DEFAULT_VIEW, page, game, games, bwk, season, risk, limit: DESKTOP_CAP });
+export const initialView = (page: number | null = null, games = false, bwk: number | null = null, risk = false, game: GameKey | null = null, season: number | null = null, stoppers = false): ViewState => ({ ...DEFAULT_VIEW, page, game, games, bwk, season, risk, stoppers, limit: DESKTOP_CAP });
 
 /** Whether a board row is the one already open. */
 export const isOpen = (v: View, row: BoardRow) => v.team === row.ti && (v.scope !== 'all' || v.run === row.s.start?.ep);
@@ -55,8 +56,8 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
   switch (a.type) {
     case 'load':
       // a team page's, a game page's or the schedule's URL says nothing of the board; keep the one in memory
-      return a.view.page != null || a.view.game != null || a.view.games
-        ? { ...v, page: a.view.page, game: a.view.game, games: a.view.games, bwk: a.view.bwk, season: a.view.season, risk: a.view.risk }
+      return a.view.page != null || a.view.game != null || a.view.games || a.view.stoppers
+        ? { ...v, page: a.view.page, game: a.view.game, games: a.view.games, bwk: a.view.bwk, season: a.view.season, risk: a.view.risk, stoppers: a.view.stoppers }
         : { ...v, ...a.view };
     case 'define':
       return { ...v, active: a.active, dir: a.dir ?? v.dir, limit: DESKTOP_CAP };
@@ -73,7 +74,7 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       return {
         ...v, active: a.chips.map((c) => (typeof c === 'string' ? { key: c } : c)), dir: a.dir, scope: a.scope,
         run: (a.scope === 'all' ? a.run : null) ?? null, limit: DESKTOP_CAP,
-        team: a.team ?? v.team, page: null, game: null, games: false, bwk: null, season: null, risk: false, week: a.scope === 'all' ? false : v.week,
+        team: a.team ?? v.team, page: null, game: null, games: false, bwk: null, season: null, risk: false, stoppers: false, week: a.scope === 'all' ? false : v.week,
       };
     case 'pick': {
       // picking the open row closes it; in all-time mode a team has one row per run
@@ -86,18 +87,21 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       // a team page over whatever is showing; the schedule underneath keeps its week for Back
       return { ...v, page: a.team, game: null };
     case 'games':
-      return { ...v, games: true, bwk: null, season: null, risk: false, page: null, game: null };
+      return { ...v, games: true, bwk: null, season: null, risk: false, stoppers: false, page: null, game: null };
     case 'bweek':
       // one week of the schedule, its own address; a null week is the season's default week
-      return { ...v, games: true, bwk: a.wk, season: a.season ?? null, risk: false, page: null, game: null };
+      return { ...v, games: true, bwk: a.wk, season: a.season ?? null, risk: false, stoppers: false, page: null, game: null };
     case 'risk':
       // the week's at-risk streaks, their own address
-      return { ...v, games: true, bwk: null, season: null, risk: true, page: null, game: null };
+      return { ...v, games: true, bwk: null, season: null, risk: true, stoppers: false, page: null, game: null };
+    case 'stoppers':
+      // the streak-stoppers leaderboard, in the board's place
+      return { ...v, stoppers: true, games: false, bwk: null, season: null, risk: false, page: null, game: null };
     case 'board':
-      return { ...v, page: null, game: null, games: false, bwk: null, season: null, risk: false };
+      return { ...v, page: null, game: null, games: false, bwk: null, season: null, risk: false, stoppers: false };
     case 'game':
       // a game's page, in place of whatever is showing
-      return { ...v, game: a.key, page: null, games: false, bwk: null, season: null, risk: false };
+      return { ...v, game: a.key, page: null, games: false, bwk: null, season: null, risk: false, stoppers: false };
     case 'limit':
       return { ...v, limit: typeof a.limit === 'function' ? a.limit(v.limit) : a.limit };
   }

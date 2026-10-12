@@ -43,6 +43,7 @@ const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts'
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
+const { buildStoppers, encodeStoppers, decodeStoppers, stoppersSlice, stopRanking } = await vite.ssrLoadModule('/src/lib/stoppers.ts')
 const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
@@ -64,7 +65,7 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
  * One page: the app rendered with `initial`, and a head whose title,
  * description, canonical and image are the page's own.
  */
-function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests, season, shell = false }) {
+function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests, season, stoppers, shell = false }) {
   // the shell (dist/404.html) carries no markup: the app boots from an empty root on whatever address reached it
   const appHtml = shell ? '' : renderToString(React.createElement(App, { initial }))
   const head = `
@@ -98,7 +99,7 @@ function page({ initial, url, title, description, image, imageAlt, jsonLd, embed
   html = html.replace('</head>', head)
   // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
   const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}`)
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('stoppers-data', stoppers)}`)
   return { html, appHtml }
 }
 
@@ -403,10 +404,34 @@ const gameUrls = []
   console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds; payload copied for the og worker`)
 }
 
+// --- the streak-stoppers: the running season's breaks by the team that made them, one file and one page ---
+const stoppers = buildStoppers(minedBroken)
+const stoppersFile = encodeStoppers(stoppers)
+fs.mkdirSync(path.join(ROOT, 'dist', 'stoppers'), { recursive: true })
+fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', `${P.currentSeason}.json`), JSON.stringify(stoppersFile))
+{
+  const ranking = stopRanking(stoppers)
+  const url = `${SITE}stoppers/`
+  const title = `Top Streak-Stoppers ${P.currentSeason} · ${config.title}`
+  const top = ranking.slice(0, 3).map((s, i) => `${i + 1}. ${teams[s.ti].name} (${s.n})`).join(', ')
+  const description = ranking.length
+    ? `The college football teams that broke the most streaks in ${P.currentSeason}: ${top}. Every streak a team ended by beating its owner, weighed by what the run was.`
+    : `The college football teams that break the most streaks: every streak a team ended by beating its owner, weighed by what the run was.`
+  const { html } = page({
+    initial: { stoppers: true, stops: decodeStoppers(stoppersFile) },
+    stoppers: stoppersFile,
+    url, title, description,
+    image: `${SITE}og.png`, imageAlt: config.ogImageAlt,
+    jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-stoppers', url]])] },
+  })
+  fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', 'index.html'), html)
+  console.log(`stoppers: ${ranking.length} teams broke a streak in ${P.currentSeason}, ${ranking.reduce((a, s) => a + s.n, 0)} breaks; page and file under dist/stoppers/`)
+}
+
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE, `${SITE}games/`, ...weekUrls, ...gameUrls]
+const urls = [SITE, `${SITE}games/`, `${SITE}stoppers/`, ...weekUrls, ...gameUrls]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]
@@ -419,8 +444,9 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)) },
+    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)), stops: stoppersSlice(stoppers, ti) },
     embed: crownsOf(ti),
+    stoppers: encodeStoppers(stoppersSlice(stoppers, ti)),
     url,
     title,
     description,
