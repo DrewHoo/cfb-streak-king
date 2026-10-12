@@ -30,7 +30,15 @@ export interface BrokenStreak extends Crown {
   /** The run's board: the all-time row starting at `run` (its first game's epoch day). */
   scope: 'all';
   run: number;
+  /** The longest run ever under the definition, by any team, and how many teams' longest it is. */
+  everLen: number;
+  everN: number;
 }
+
+/** The label for an ended run that is now the all-time longest under its definition, else null. */
+export const everText = (b: { len: number; everLen: number; everN: number }): string | null => (
+  b.len < b.everLen ? null : b.everN > 1 ? 'now tied for the all-time longest' : 'now the all-time longest streak'
+);
 
 export interface BrokenWeek {
   /** The schedule's number for the week; null when no scheduled game pins one down. */

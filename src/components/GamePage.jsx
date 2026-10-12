@@ -10,6 +10,7 @@ import { P, teams, fbsNow, gamesOf } from '../lib/model.ts';
 import { seasonRecord, recordText, atsText, teamStreaks, streaksOn } from '../lib/team.ts';
 import { pBreak } from '../lib/atRisk.ts';
 import { rowsOf } from '../lib/seasonFile.ts';
+import { everText } from '../lib/broken.ts';
 import { scoreOf } from '../lib/game.ts';
 import { dayOf, monthDay, kickOf, shortDate, spreadText } from '../lib/format.ts';
 import { useActiveCrowns } from '../hooks/useCrowns.ts';
@@ -129,7 +130,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
             empty={loading ? 'finding the streaks…' : 'No streak that led its field ended here.'}
             keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`}
             render={(b) => (
-              <StreakRow s={b} lead={`${teams[b.ti].name}’s run`} onClick={() => on.streak(b, b.ti)} />
+              <StreakRow s={b} lead={`${teams[b.ti].name}’s run${everText(b) ? ` · ${everText(b)}` : ''}`} onClick={() => on.streak(b, b.ti)} />
             )}
           />
           <Rows

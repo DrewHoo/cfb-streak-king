@@ -20,7 +20,7 @@ const page = game ? null : teamFromPath(window.location.pathname)
 // a team page embeds that team's crowns, a games page the schedule's digests, a game page its season's rows (scripts/prerender.mjs)
 const embedded = document.getElementById('crowns-data')
 const digests = document.getElementById('digests-data')
-const season = document.getElementById('season-data')
+const seasonRows = document.getElementById('season-data')
 const initial = {
   page,
   game,
@@ -29,7 +29,7 @@ const initial = {
   risk: page == null && !game && riskFromPath(window.location.pathname),
   crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
-  season: season ? decodeSeason(JSON.parse(season.textContent)) : null,
+  seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,
 }
 
 const root = document.getElementById('root')

@@ -8,7 +8,9 @@ import React, { act } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import App from './App.jsx';
-import { teams, upcomingOf } from './lib/model.ts';
+import { P, teams, gamesOf, upcomingOf } from './lib/model.ts';
+import { seasonWeeks } from './lib/game.ts';
+import { matchingGames } from './components/GamesPage.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // jsdom has no matchMedia; useIsMobile only needs the shape
@@ -74,6 +76,36 @@ describe('prerender + hydrate', () => {
     await unmount();
   });
 
+  test("a week page renders that week's broken digest, sub-streaks folded, in the prerender itself", async () => {
+    // a completed week of the running season, and one of its games as the ender
+    const weeks = seasonWeeks(P.currentSeason);
+    const week = weeks.find((w) => w.games.every((g) => !g.scheduled) && w.games.length);
+    const ti = week.games[0].key.home;
+    const ender = gamesOf(ti).find((g) => g.ep === week.games[0].key.ep);
+    const run = (chips, len, dup) => ({ chips, dir: 'W', scope: 'all', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2023, live: false, also: 0, chance: 0.01, score: 5, dup, ti, since: 2023, ender, run: ender.ep - 400 });
+    const digests = { builtAt: '', broken: { [week.wk]: { wk: week.wk, lo: week.lo, hi: week.hi, list: [run(['home'], 9, false)], more: [], dups: [run(['home', 'night'], 7, true)] } }, atRisk: null, onLine: {} };
+    const seasonRows = { season: P.currentSeason, builtAt: '', games: new Map(), complete: false };
+    const { html, errors, unmount } = await hydrate({ page: null, games: true, bwk: week.wk, digests, seasonRows }, `/cfb-streak-king/games/week/${week.wk}/`);
+    // the heading's two text nodes meet at a React marker
+    expect(html.replace(/<!-- -->/g, '')).toContain(`Streaks broken in Week ${week.wk}`);
+    expect(html).toContain('show 1 sub-streak');
+    expect(html).not.toContain('finding the week');
+    expect(html).not.toContain('No games in this week');
+    expect(errors).toEqual([]);
+    await unmount();
+  });
+
+  test("the schedule's filter keeps the games with a team by that name, and everything when empty", () => {
+    const week = seasonWeeks(P.currentSeason).find((w) => w.games.length > 10);
+    const ti = week.games[0].key.home;
+    const name = teams[ti].name;
+    expect(matchingGames(week.games, '')).toBe(week.games);
+    const hits = matchingGames(week.games, name.slice(0, 4).toUpperCase());
+    expect(hits.length).toBeGreaterThan(0);
+    for (const g of hits) expect([teams[g.key.home].name, teams[g.key.away].name].some((n) => n.toLowerCase().includes(name.slice(0, 4).toLowerCase()))).toBe(true);
+    expect(matchingGames(week.games, 'zzzzqq')).toEqual([]);
+  });
+
   test('a URL with a definition hydrates first, then applies it', async () => {
     const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?c=road&dir=L');
     expect(errors).toEqual([]);
@@ -93,7 +125,7 @@ describe('prerender + hydrate', () => {
 
   test('a game page hydrates without a mismatch, played or scheduled, and an old matchup link lands on the game', async () => {
     const played = { ep: 20736, home: teams.findIndex((t) => t.id === 'alabama'), away: teams.findIndex((t) => t.id === 'georgia'), neutral: false };
-    const a = await hydrate({ game: played, season: null }, '/cfb-streak-king/game/2026-10-10/georgia-at-alabama/');
+    const a = await hydrate({ game: played, seasonRows: null }, '/cfb-streak-king/game/2026-10-10/georgia-at-alabama/');
     expect(a.html).toContain('class="gp"');
     expect(a.html).toContain('Streaks this game ended');
     expect(a.errors).toEqual([]);

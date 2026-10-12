@@ -533,8 +533,8 @@ all-time row).
 ### The schedule page
 
 Year picker (seasons 1936 to now) beside the week picker; the week options are the season's.
-Default: the current season, the first scheduled week. For the selected week: the broken
-digest of the week before, the at-risk digest when it's the running week, then that week's
+Default: the current season, the first scheduled week. For the selected week: its broken
+digest once it has been played, the at-risk digest when it's the running week, then that week's
 games: a results ledger for a played week (score, with the game's top broken run in the claim
 line in place of the streak on the line), the schedule for a scheduled week. A past season's
 week shows its broken digest from the two-chip rows; its games are all results.
@@ -542,6 +542,11 @@ week shows its broken digest from the two-chip rows; its games are all results.
 ### Rules
 
 - Rank 1 for a broken run includes ties; a new leader must be sole.
+- An ended run carries the longest run ever under its definition (`everLen`, and how many teams'
+  longest it is, `everN`); a run that long is labeled "now the all-time longest streak" ("now tied
+  for the all-time longest" when another team's matches it) on the game page and in the week digest.
+- The week picker's options carry the week's dates; the schedule section has a filter box that
+  narrows the week to games with a team whose name contains what was typed (page state, not URL).
 - A new-leader row needs the new leader's run to be LEN_FLOOR or longer and the definition
   to score above the cutoff for it (the crown score of the new leader's run), so a 4-game run
   that leads a field of fives isn't news.

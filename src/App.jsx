@@ -189,11 +189,10 @@ export default function App({ initial } = {}) {
     share(`This week's college football games, with every streak on the line`, absoluteUrl(BASE, gamesUrl()));
   }
   // a schedule section's own address: the URL moves to it, and the share sheet (or the clipboard) gets it
-  // a broken digest sits under the week after it, so its address is that week's
   function linkSection(kind, wk) {
-    if (kind === 'risk') dispatch({ type: 'risk' }); else dispatch({ type: 'bweek', wk: wk + 1 });
+    if (kind === 'risk') dispatch({ type: 'risk' }); else dispatch({ type: 'bweek', wk });
     track('share', { games: true, section: kind, wk });
-    share(kind === 'risk' ? `Week ${wk}'s college football streaks most at risk` : `The college football streaks broken in Week ${wk}`, absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk + 1, kind === 'risk')));
+    share(kind === 'risk' ? `Week ${wk}'s college football streaks most at risk` : `The college football streaks broken in Week ${wk}`, absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk, kind === 'risk')));
   }
   function shareGame(key) {
     track('share', { game: true, team: teams[key.home].id, opp: teams[key.away].id });

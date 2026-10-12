@@ -194,7 +194,7 @@ console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken stre
   const first = currentWeeks.find((w) => w.games.some((g) => g.scheduled))?.wk ?? currentWeeks.at(-1)?.wk
   const slice = seasonSlice(P.currentSeason, weekKeys(first))
   const { html } = page({
-    initial: { games: true, digests, season: slice.rows },
+    initial: { games: true, digests, seasonRows: slice.rows },
     digests: digestsFile,
     season: slice.file,
     url,
@@ -228,14 +228,14 @@ const enderWords = (b) => {
   if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`
   return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`
 }
-// one page per week the schedule can open on (GamesPage's gameWeeks): the
-// week's at-risk streaks and games, with the week before it's broken runs
+// one page per week the schedule can open on: a completed week's broken
+// runs and results, a scheduled week's at-risk streaks and games
 const weekUrls = []
 const weekNums = new Set(scheduledGames().map((g) => g.wk))
-for (const w of completedWeeks()) if (w.wk != null) weekNums.add(w.wk + 1)
+for (const w of completedWeeks()) if (w.wk != null) weekNums.add(w.wk)
 for (const n of [...weekNums].sort((a, b) => a - b)) {
-  const broken = digests.broken[n - 1]
-  if (broken) weekly.broken[n - 1] = {
+  const broken = digests.broken[n]
+  if (broken) weekly.broken[n] = {
     wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length,
     rows: broken.list.map((b) => ({
       count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
@@ -247,18 +247,18 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
   const title = `Week ${n} games · ${config.title}`
   const top = broken ? broken.list.slice(0, 3).map((b) => brokenClaim(b)) : []
   const description = top.length
-    ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${n - 1}.` : ''} Week ${n}'s games and the streaks they put at risk.`
+    ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${n}.` : ''} Week ${n}'s results, and what each game ended.`
     : `Week ${n}'s college football games and the streaks they put at risk.`
   const slice = seasonSlice(P.currentSeason, weekKeys(n))
   const { html } = page({
-    initial: { games: true, bwk: n, digests, season: slice.rows },
+    initial: { games: true, bwk: n, digests, seasonRows: slice.rows },
     digests: digestsFile,
     season: slice.file,
     url,
     title,
     description,
-    image: broken ? `${SITE}share/og.png?broken=${n - 1}` : `${SITE}og.png`,
-    imageAlt: broken ? `The streaks broken in Week ${n - 1}, on a dark leaderboard.` : `${config.title}: the default board.`,
+    image: broken ? `${SITE}share/og.png?broken=${n}` : `${SITE}og.png`,
+    imageAlt: broken ? `The streaks broken in Week ${n}, on a dark leaderboard.` : `${config.title}: the default board.`,
     jsonLd: {
       '@context': 'https://schema.org',
       '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${n}`, url]])],
@@ -288,7 +288,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
     const description = `${top.join('. ')}. The streaks the week's games can take away, ranked by the odds.`
     const slice = seasonSlice(P.currentSeason, weekKeys(wk))
     const { html } = page({
-      initial: { games: true, risk: true, digests, season: slice.rows },
+      initial: { games: true, risk: true, digests, seasonRows: slice.rows },
       digests: digestsFile,
       season: slice.file,
       url,
@@ -345,7 +345,7 @@ const gameUrls = []
           : `Every streak on the line when ${away} play ${at} ${home}, ${monthDay(key.ep)}.`
       }
       const { html } = page({
-        initial: { game: key, season: slice.rows },
+        initial: { game: key, seasonRows: slice.rows },
         season: slice.file,
         url,
         title,

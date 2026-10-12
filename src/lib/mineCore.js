@@ -234,6 +234,9 @@ export function mineCore(input) {
             });
           }
         }
+        // the longest run ever under the definition, by any team, and how many teams' longest it is (lens holds the all-time reading's)
+        let everLen = 0, everN = 0;
+        for (let t = 0; t < T; t++) { if (lens[t] > everLen) { everLen = lens[t]; everN = 1; } else if (lens[t] && lens[t] === everLen) everN++; }
         // --- broken: every run a recorded week's game ended, placed as the week began; and the week's new leader.
         // The field's shape entering each recorded week (best, how many share it, the second, the count) in one pass per
         // team over its entering lengths, so a run's place and a change of leader cost nothing more per week.
@@ -269,7 +272,7 @@ export function mineCore(input) {
             for (let u = 0; u < T; u++) { const l = lenAt(u, w); if (l > run.len) rank++; else if (l === run.len) tied++; }
             collapse(perTeam.broken[t], dir + '|' + run.enderIdx + '|' + run.startIdx + '|' + run.len, {
               chips: def, dir, scope: 'active', len: run.len, atEdge: run.atEdge, field: fieldN[w], rank, tied, second,
-              startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, score: sc, enderIdx: run.enderIdx, w,
+              startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, score: sc, enderIdx: run.enderIdx, w, everLen, everN,
             });
           }
         }

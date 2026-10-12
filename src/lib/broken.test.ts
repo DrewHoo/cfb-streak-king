@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { brokenWeeks, completedWeeks, brokenClaim, BROKEN_CAP, BROKEN_CUTOFF, BROKEN_FLOOR } from './broken.ts';
+import { brokenWeeks, completedWeeks, brokenClaim, everText, BROKEN_CAP, BROKEN_CUTOFF, BROKEN_FLOOR } from './broken.ts';
 import { mineBroken } from './crowns.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { qualifies } from './chips.ts';
@@ -130,5 +130,28 @@ describe('brokenWeeks', () => {
       expect(b.field).toBe(field);
       expect(b.second).toBe(second);
     }
+  });
+
+  test('the longest ever under the definition holds against every team’s longest run, so "now the all-time longest" is earned', () => {
+    if (!broken) return;
+    for (const b of allRows.slice(0, 20)) {
+      const chips = b.chips.map((k) => minedChipByKey.get(k)!);
+      let ever = 0, n = 0;
+      for (const ti of fbsNow) {
+        const qual = gamesOf(ti).filter((g) => chips.every((c) => qualifies(c, g)) && decided(b.dir, g));
+        let best = 0, run = 0;
+        for (const g of qual) { run = matches(b.dir, g) ? run + 1 : 0; if (run > best) best = run; }
+        if (best > ever) { ever = best; n = 1; } else if (best && best === ever) n++;
+      }
+      expect(b.everLen).toBe(ever);
+      expect(b.everN).toBe(n);
+      expect(b.len).toBeLessThanOrEqual(b.everLen);
+    }
+  });
+
+  test('the all-time label: only a run as long as the longest ever, tied when another team’s matches it', () => {
+    expect(everText({ len: 9, everLen: 12, everN: 1 })).toBeNull();
+    expect(everText({ len: 12, everLen: 12, everN: 1 })).toBe('now the all-time longest streak');
+    expect(everText({ len: 12, everLen: 12, everN: 2 })).toBe('now tied for the all-time longest');
   });
 });

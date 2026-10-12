@@ -51,8 +51,8 @@ export function buildDigests(todayEp: number, mined: Parameters<typeof brokenWee
 
 // a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]
 type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
-// a broken run: [team, crown, since, ender game id, run start]
-type BrokenRow = [number, CrownRow, number, number, number];
+// a broken run: [team, crown, since, ender game id, run start, the longest ever under the definition, how many teams' longest it is]
+type BrokenRow = [number, CrownRow, number, number, number, number, number];
 // a streak at risk: [team, crown, next game id, p]
 type RiskRow = [number, CrownRow, number, number];
 export interface DigestsFile {
@@ -71,9 +71,9 @@ const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field,
   ...(startSe != null ? { startSe } : {}), ...(endSe != null ? { endSe } : {}),
   live: !!live, also, chance, score, dup: !!dup,
 });
-const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run];
-const fromBroken = ([ti, c, since, enderI, run]: BrokenRow): BrokenStreak => ({
-  ...fromCrown('all')(c), scope: 'all', ti, since, run,
+const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run, b.everLen, b.everN];
+const fromBroken = ([ti, c, since, enderI, run, everLen, everN]: BrokenRow): BrokenStreak => ({
+  ...fromCrown('all')(c), scope: 'all', ti, since, run, everLen: everLen ?? 0, everN: everN ?? 0,
   ender: gamesOf(ti).find((g) => g.i === enderI)!,
 });
 const toStreak = (ti: number, s: TeamStreak, gameI: number): [number, CrownRow, number] => [ti, toCrown(s), gameI];

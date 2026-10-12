@@ -242,6 +242,9 @@ export interface BrokenRun extends MinedCrown {
   week: number;
   /** The run's first game, as an index into the team's games. */
   startIdx: number;
+  /** The longest run ever under the definition, by any team, and how many teams' longest it is: a broken run of that length is now the all-time longest. */
+  everLen: number;
+  everN: number;
 }
 
 /** A team that became a definition's sole leader after a week, with the game that did it. */
@@ -315,7 +318,7 @@ interface Piece { prefix: number[]; descend: boolean }
 const SPLIT_ROOTS = 16;
 
 // what mineCore returns: per team, per reading, the candidates with chip indices and game indices
-interface CoreRun { chips: number[]; dir: Dir; scope: Scope; len: number; atEdge: boolean; field: number; rank: number; tied: number; second: number; startIdx: number; lastIdx: number; live: boolean; also: number; p: number; n: number; score: number; enderIdx?: number; w?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
+interface CoreRun { chips: number[]; dir: Dir; scope: Scope; len: number; atEdge: boolean; field: number; rank: number; tied: number; second: number; startIdx: number; lastIdx: number; live: boolean; also: number; p: number; n: number; score: number; enderIdx?: number; w?: number; everLen?: number; everN?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
 interface CoreOut { active: CoreRun[][]; all: CoreRun[][]; broken: CoreRun[][]; leaders: CoreRun[][] }
 
 // the threads' outputs, merged: the identical run found in two subtrees collapses as it would in one
@@ -341,7 +344,7 @@ function merge(data: TeamData[], parts: CoreOut[]): Mined {
       });
       const rows = [...held.values()];
       if (reading === 'active' || reading === 'all') out[reading].set(td.ti, rows.map(base));
-      else if (reading === 'broken') out.broken.set(td.ti, rows.map((r) => ({ ...base(r), ti: td.ti, enderIdx: r.enderIdx!, week: grid.weeks[r.w!], startIdx: r.startIdx })));
+      else if (reading === 'broken') out.broken.set(td.ti, rows.map((r) => ({ ...base(r), ti: td.ti, enderIdx: r.enderIdx!, week: grid.weeks[r.w!], startIdx: r.startIdx, everLen: r.everLen!, everN: r.everN! })));
       // the core names teams by their index in `data`; outside it they are team indices
       else out.leaders.set(td.ti, rows.map((r) => ({ ...base(r), ti: td.ti, week: grid.weeks[r.w!], prev: r.prevT! >= 0 ? data[r.prevT!].ti : -1, prevLen: r.prevLen!, causeT: data[r.causeT!].ti, causeIdx: r.causeIdx!, startIdx: r.startIdx })));
     });
@@ -434,7 +437,9 @@ const fnv = (s: string) => {
 };
 
 /** What a raw mine depends on: the payload's build time, the chips walked (count and a hash of their keys), the keep floor and the history depth. */
-export const MINE_STAMP = `payload ${P.builtAt} · chips ${NP.length}/${fnv(NP.map((c) => c.key).join(','))} · keep ${KEEP_FLOOR} · hist ${HIST_CHIPS}`;
+/** The mine's row shape; bump it when a reading gains a field, so an older file re-mines. */
+export const MINE_FORMAT = 2;
+export const MINE_STAMP = `payload ${P.builtAt} · chips ${NP.length}/${fnv(NP.map((c) => c.key).join(','))} · keep ${KEEP_FLOOR} · hist ${HIST_CHIPS} · v${MINE_FORMAT}`;
 
 export const encodeMined = (m: Mined): MinedFile => ({ stamp: MINE_STAMP, teams: m.teams, active: [...m.active], all: [...m.all], broken: [...m.broken], leaders: [...m.leaders] });
 

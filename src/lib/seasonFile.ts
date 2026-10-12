@@ -42,8 +42,8 @@ export const rowsOf = (s: Season | null, k: GameKey): GameRows => s?.games.get(k
 
 // a crown: [chips joined by '+', dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, chance, score, dup]
 type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
-// a broken run: [team, crown, since, ender game id, run start]
-type BrokenRow = [number, CrownRow, number, number, number];
+// a broken run: [team, crown, since, ender game id, run start, the longest ever under the definition, how many teams' longest it is]
+type BrokenRow = [number, CrownRow, number, number, number, number, number];
 // a new leader: [team, crown, since, previous leader or null, what it held, the old run ended (1) or the new one passed it (0)]
 type LeaderRow = [number, CrownRow, number, number | null, number, 0 | 1];
 export interface SeasonFile { v: 1; season: number; builtAt: string; complete?: boolean; games: Record<string, { ended: BrokenRow[]; leaders: LeaderRow[] }> }
@@ -56,10 +56,10 @@ const fromCrown = (scope: 'active' | 'all') => ([chips, dir, len, atEdge, field,
   ...(startSe != null ? { startSe } : {}), ...(endSe != null ? { endSe } : {}),
   live: !!live, also, chance, score, dup: !!dup,
 });
-const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run];
-const fromBroken = ([ti, c, since, enderI, run]: BrokenRow): BrokenStreak | null => {
+const toBroken = (b: BrokenStreak): BrokenRow => [b.ti, toCrown(b), b.since, b.ender.i, b.run, b.everLen, b.everN];
+const fromBroken = ([ti, c, since, enderI, run, everLen, everN]: BrokenRow): BrokenStreak | null => {
   const ender = gamesOf(ti).find((g) => g.i === enderI);
-  return ender ? { ...fromCrown('all')(c), scope: 'all', ti, since, run, ender } : null;
+  return ender ? { ...fromCrown('all')(c), scope: 'all', ti, since, run, ender, everLen: everLen ?? 0, everN: everN ?? 0 } : null;
 };
 const toLeader = (l: NewLeader): LeaderRow => [l.ti, toCrown(l), l.since, l.prev, l.prevLen, l.ended ? 1 : 0];
 const fromLeader = ([ti, c, since, prev, prevLen, ended]: LeaderRow): NewLeader => ({ ...fromCrown('active')(c), scope: 'active', ti, since, prev, prevLen, ended: !!ended });
