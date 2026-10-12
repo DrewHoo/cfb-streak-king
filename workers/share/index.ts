@@ -111,7 +111,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12e';
+const CARD_VERSION = '2026-10-12f';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -169,7 +169,7 @@ function loadWeekly(): Promise<Weekly> {
 
 /** dist/games/<season>.json: each game's rows, as seasonFile.ts encodes them (a crown row's fields by position). */
 type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
-interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number][]; leaders: [number, SeasonCrown, number, number | null][] }> }
+interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number, number?, number?][]; leaders: [number, SeasonCrown, number, number | null][] }> }
 const seasonCache = new Map<number, { day: string; data: Promise<SeasonFile | null> }>();
 function loadSeason(season: number): Promise<SeasonFile | null> {
   const day = dayKey();
@@ -192,9 +192,9 @@ async function gameRows(key: string, date: string): Promise<GameRowWords[]> {
     const file = await loadSeason(season);
     const g = file?.games[key];
     if (!g) continue;
-    const row = (team: number, c: SeasonCrown, since: number, leader: boolean): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], atEdge: !!c[3], rank: c[5], field: c[4], since, leader });
+    const row = (team: number, c: SeasonCrown, since: number, leader: boolean, everLen?: number, everN?: number): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], atEdge: !!c[3], rank: c[5], tied: c[6], field: c[4], since, leader, everLen, everN });
     // the full tellings only: a shorter telling (dup) stays off the head and the card
-    return [...g.ended.filter(([, c]) => !c[14]).map(([t, c, since]) => row(t, c, since, false)), ...g.leaders.filter(([, c]) => !c[14]).map(([t, c, since]) => row(t, c, since, true))];
+    return [...g.ended.filter(([, c]) => !c[14]).map(([t, c, since, , , everLen, everN]) => row(t, c, since, false, everLen, everN)), ...g.leaders.filter(([, c]) => !c[14]).map(([t, c, since]) => row(t, c, since, true))];
   }
   return [];
 }
@@ -260,12 +260,18 @@ async function breakerCard(id: string | null): Promise<Response> {
   return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
 }
 
+/** What an ended run was, as BrokenRow.jsx words it: the all-time longest, else the active field's leader. */
+const ledeOf = (r: GameRowWords) => (r.everLen != null && r.len >= r.everLen
+  ? ((r.everN ?? 1) > 1 ? 'now tied for the all-time longest' : 'now the all-time longest streak')
+  : (r.tied ?? 1) > 1 ? 'was tied for the longest active streak' : 'was the longest active streak');
+
 /** A game card: the streaks the game ended and the leaders it made, from the season file. */
 async function gameCard(key: string): Promise<Response> {
   const m = await loadModel();
   const g = gameFromShare(`/game/${key}/`, await loadMeta());
   if (!g) throw new Error(`no game at ${key}`);
   const rows = await gameRows(key, g.date);
+  const ended = rows.filter((r) => !r.leader).length;
   const byId = new Map(m.teams.map((t) => [t.id, t]));
   const score = gameScore(g, m);
   const meta = await loadMeta();
@@ -276,14 +282,14 @@ async function gameCard(key: string): Promise<Response> {
     const verb = r.leader ? 'now leads' : ({ W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' } as Record<string, string>)[r.dir[0]] ?? 'had won';
     cards.push({
       count: `${r.len}${r.atEdge ? '+' : ''}`, name: `${t?.name ?? r.team} ${verb}${r.leader ? ':' : ''} ${r.len}${r.atEdge ? '+' : ''} straight${w ? ` ${w}` : ''}`,
-      sub: r.leader ? `sole leader of ${r.field} · since ${r.since}` : `was ${r.rank === 1 ? '1st' : `${r.rank}th`} of ${r.field} · since ${r.since}`,
+      sub: r.leader ? `sole leader of ${r.field} · since ${r.since}` : `${ledeOf(r)} · since ${r.since}`,
       bad: r.dir[0] === 'L' || r.dir[0] === 'N', live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?',
     });
   }
   const away = meta.teams[g.away], home = meta.teams[g.home];
   const res = renderCard({
     heading: score ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`}` : `${away} ${g.neutral ? 'vs' : 'at'} ${home}`,
-    words: `${g.date} · ${rows.some((r) => !r.leader) ? 'the streaks it ended' : 'what it put on the line'}`,
+    words: `${g.date} · ${ended ? `${ended} streak${ended === 1 ? '' : 's'} broken` : 'what it put on the line'}`,
     rows: cards,
     dense: true,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,

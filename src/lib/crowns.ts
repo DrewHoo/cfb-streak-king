@@ -37,6 +37,7 @@ import { MINED_OUTCOMES } from './streaks.ts';
 import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { completedWeeks, weekIdx } from './weeks.ts';
 import { mineCore } from './mineCore.js';
+import { SHEET_DIRS } from './team.ts';
 
 /**
  * One team's games for the walks: per-chip masks, the result of each game
@@ -53,8 +54,6 @@ export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
 /** A run scoring under this is never kept; the cutoff is above it so a team with nothing past the cutoff still has its best few. */
 export const KEEP_FLOOR = RANK.cutoff - 6;
-/** How many of a team's runs a scope keeps after ranking: the page shows six and the rest behind "more". */
-export const ROWS_CAP = 60;
 /** Definitions of up to this many chips are read for every game since 1936; longer ones for the running season only. */
 export const HIST_CHIPS = 2;
 /**
@@ -479,12 +478,18 @@ export function mineRaw(): Promise<Mined> {
 
 const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };
 
-/** The runs worth showing per team, best first (crownRank.ts). */
+/**
+ * A team's streaks, best first (crownRank.ts): every run it leads its field
+ * with (rank 1, ties included: the longest active, or the all-time longest),
+ * under the outcomes a sheet shows, with no score floor past the miner's own,
+ * the same rule as the broken runs a game ends. The page pages through them.
+ */
 export async function mineCrowns(scope: Scope = 'active'): Promise<Map<number, Crown[]>> {
   if (!caches[scope]) {
     const m = await mineRaw();
     const cache = new Map<number, Crown[]>();
-    for (const [ti, list] of m[scope]) cache.set(ti, rankCrowns(list, { teams: m.teams }).slice(0, ROWS_CAP));
+    const w = { ...RANK, cutoff: -Infinity };
+    for (const [ti, list] of m[scope]) cache.set(ti, rankCrowns(list.filter((c) => c.rank === 1 && SHEET_DIRS.includes(c.dir)), { teams: m.teams }, w));
     caches[scope] = cache;
   }
   return caches[scope]!;

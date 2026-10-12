@@ -12,6 +12,8 @@ import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow, Tellings } from './StreakRow.jsx';
+import { useTeamCrowns } from '../hooks/useCrowns.ts';
+import { track } from '../lib/analytics.ts';
 import { breakOrder, breakRows, breakSummary } from '../lib/breakers.ts';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 import { SkrInfo } from './BreakersPage.jsx';
@@ -50,10 +52,11 @@ function NextCard({ ti, game, onLine, onGame }) {
   );
 }
 
-export function TeamPage({ ti, todayEp, crowns, breakers, focus, isMobile, copied, on }) {
+export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copied, on }) {
   const t = teams[ti];
-  const [all, setAll] = useState(false);
-  const [allBreaks, setAllBreaks] = useState(false);
+  // the streaks the team leads its field with: active (the default) or all-time
+  const [scope, setScope] = useState('active');
+  const crowns = useTeamCrowns(ti, scope, initial);
   // the streaks the team broke this season (breakers.ts), the all-time longest first; opened from the breakers page, the section scrolls into view
   const breaks = useMemo(() => (breakers ? breakRows(breakers.teams.get(ti) ?? []) : null), [breakers, ti]);
   const breakSum = useMemo(() => (breaks ? breakSummary(ti, breaks) : null), [breaks, ti]);
@@ -70,6 +73,9 @@ export function TeamPage({ ti, todayEp, crowns, breakers, focus, isMobile, copie
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
   const streaks = useMemo(() => teamStreaks(ti, todayEp, crowns.active), [ti, todayEp, crowns.active]);
+  // all-time: the runs it holds the record for, live or ended
+  const records = useMemo(() => (scope === 'all' && crowns.crowns ? crowns.crowns.map((c) => ({ ...c, since: c.startSe })) : null), [scope, crowns.crowns]);
+  const pickScope = (s) => { setScope(s); track('team streaks scope', { scope: s }); };
   const played = gamesOf(ti).filter((g) => g.se === P.currentSeason);
   const ahead = upcomingOf(ti);
   const meta = [confOf(ti, P.currentSeason), coachLine(ti)].filter(Boolean).join(' · ');
@@ -113,14 +119,27 @@ export function TeamPage({ ti, todayEp, crowns, breakers, focus, isMobile, copie
         </>
       )}
 
-      <h2>Streaks</h2>
-      <p className="tpg-note">{t.name}’s current runs and where each ranks, the ones furthest past chance first.</p>
+      <h2 className="tpg-h2-tabs">
+        Streaks
+        <span className="tpg-tabs" role="group" aria-label="Active or all-time streaks">
+          <button className={'pill' + (scope === 'active' ? ' on' : '')} aria-pressed={scope === 'active'} onClick={() => pickScope('active')}>active</button>
+          <button className={'pill' + (scope === 'all' ? ' on' : '')} aria-pressed={scope === 'all'} onClick={() => pickScope('all')}>all-time</button>
+        </span>
+      </h2>
+      <p className="tpg-note">
+        {scope === 'active'
+          ? <>Every definition under which {t.name}’s current run is the longest active one, the ones furthest past chance first.</>
+          : <>Every definition under which a run of {t.name}’s is the longest ever, the ones furthest past chance first.</>}
+      </p>
       <div className="tpg-streaks">
-        {crowns.active === null && <p className="empty">finding every streak {t.name} is on…</p>}
-        {crowns.active !== null && streaks.length === 0 && <p className="empty">No current run of {t.name}’s stands out from chance.</p>}
-        <Tellings rows={streaks} cap={STREAKS_CAP} all={all} setAll={setAll} keyOf={(s) => s.dir + s.chips.join()} render={(s) => (
-          <StreakRow s={s} next onClick={() => on.streak(s, ti)} />
-        )} />
+        {crowns.crowns === null && <p className="empty">finding every streak {t.name} leads…</p>}
+        {scope === 'active' && crowns.active !== null && streaks.length === 0 && <p className="empty">{t.name} doesn’t have the longest active streak under any definition.</p>}
+        {scope === 'all' && records !== null && records.length === 0 && <p className="empty">{t.name} doesn’t hold an all-time longest streak under any definition.</p>}
+        {scope === 'active'
+          ? <Tellings rows={streaks} cap={STREAKS_CAP} keyOf={(s) => s.dir + s.chips.join()} render={(s) => <StreakRow s={s} next onClick={() => on.streak(s, ti)} />} />
+          : records && <Tellings rows={records} cap={STREAKS_CAP} keyOf={(s) => `${s.dir}${s.chips.join()}|${s.startSe}`} render={(s) => (
+            <StreakRow s={s} tag={s.live ? 'still going' : `ended ${s.endSe}`} onClick={() => on.streak(s, ti)} />
+          )} />}
       </div>
 
       <h2 ref={breaksRef}>Streaks broken this season</h2>
@@ -132,7 +151,7 @@ export function TeamPage({ ti, todayEp, crowns, breakers, focus, isMobile, copie
       <div className="tpg-streaks">
         {breaks === null && <p className="empty">finding the streaks {t.name} broke…</p>}
         {breaks !== null && breakSum.n === 0 && <p className="empty">{t.name} hasn’t broken a streak this season.</p>}
-        {breaks !== null && <Tellings rows={breaks} cap={BREAKS_CAP} all={allBreaks} setAll={setAllBreaks} moreWord="broken" order={breakOrder} keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} render={(b) => (
+        {breaks !== null && <Tellings rows={breaks} cap={BREAKS_CAP} order={breakOrder} keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} render={(b) => (
           <BrokenRow b={b} onOpen={(x) => on.streak(x, x.ti)} onBoard={on.allTime} />
         )} />}
       </div>

@@ -18,7 +18,7 @@ import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../l
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Chevron, LinkIcon } from './Icons.jsx';
-import { streakWords, subsByParent, Subs } from './StreakRow.jsx';
+import { streakWords, subsByParent, Subs, MoreButton, PAGE } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 import { Picker } from './Picker.jsx';
 
@@ -62,12 +62,12 @@ export function brokenFromRows(seasonRows, week) {
 
 // the digest of the selected week's broken runs, above its results
 function Broken({ broken, onOpen, onBoard, onLink }) {
-  // "more" and the sub-streaks open per week, so flipping weeks folds them back up
-  const [moreWk, setMoreWk] = useState(null);
+  // "see more" pages and the sub-streaks open per week, so flipping weeks folds them back up
+  const [paged, setPaged] = useState({ wk: null, n: 0 });
   const [open, setOpen] = useState(() => new Set());
   if (!broken) return null;
-  const all = moreWk === broken.wk;
-  const rows = all ? [...broken.list, ...broken.more] : broken.list;
+  const n = paged.wk === broken.wk ? paged.n : 0;
+  const rows = [...broken.list, ...broken.more.slice(0, n)];
   const { subs } = subsByParent([...broken.list, ...broken.more, ...broken.dups]);
   const keyOf = (b) => `${broken.wk}|${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`;
   return (
@@ -86,11 +86,7 @@ function Broken({ broken, onOpen, onBoard, onLink }) {
             <Subs parent={b} subs={subs.get(b)} k={keyOf(b)} open={open} setOpen={setOpen} render={(x) => <BrokenRow key={keyOf(x)} b={x} onOpen={onOpen} onBoard={onBoard} />} />
           </Fragment>
         ))}
-        {broken.more.length > 0 && (
-          <button className="morebtn" onClick={() => setMoreWk(all ? null : broken.wk)}>
-            {all ? 'fewer' : `${broken.more.length} more broken`}
-          </button>
-        )}
+        <MoreButton shown={n} total={broken.more.length} onMore={() => setPaged({ wk: broken.wk, n: n + PAGE })} />
       </div>
     </section>
   );
@@ -122,13 +118,13 @@ function AtRiskRow({ r, onGame }) {
 // away (atRisk.ts, worked out by the build for the first scheduled week),
 // the most first, the rest behind "more"
 function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
-  const [all, setAll] = useState(false);
+  const [n, setN] = useState(0);
   const [open, setOpen] = useState(() => new Set());
   // its own address lands on it
   const ref = useRef(null);
   useEffect(() => { if (focus && risk) ref.current?.scrollIntoView({ block: 'start' }); }, [focus, risk]);
   if (!risk || !risk.list.length) return null;
-  const rows = all ? [...risk.list, ...risk.more] : risk.list;
+  const rows = [...risk.list, ...risk.more.slice(0, n)];
   // a row at risk carries its streak; the grouping reads the streak's fields
   const flat = (r) => ({ ...r, dir: r.s.dir, len: r.s.len, chips: r.s.chips, score: r.s.score });
   const { subs } = subsByParent([...risk.list, ...risk.more, ...risk.dups].map(flat));
@@ -150,9 +146,7 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
             <Subs parent={r} subs={subsOf(r)} k={keyOf(r)} open={open} setOpen={setOpen} render={(x) => <AtRiskRow key={keyOf(x)} r={x} onGame={onGame} />} />
           </Fragment>
         ))}
-        {risk.more.length > 0 && (
-          <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${risk.more.length} more at risk`}</button>
-        )}
+        <MoreButton shown={n} total={risk.more.length} onMore={() => setN(n + PAGE)} />
       </div>
     </section>
   );

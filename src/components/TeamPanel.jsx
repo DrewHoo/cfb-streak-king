@@ -1,25 +1,18 @@
-// The open streak: the claim in plain English, the ledger of the streak, and
-// every streak the team is on, with its place in the field. The team's name leads to its page, and
-// the next-game row to the matchup.
+// The open streak: the claim in plain English and the ledger of the streak.
+// The team's name leads to its page (its every streak is there), and the
+// next-game row to the matchup.
 
 import { useState } from 'react';
 import { teams, firstSeason } from '../lib/model.ts';
-import { chipLabel } from '../lib/minedChips.ts';
-import { rankText } from '../lib/team.ts';
-import { Tellings } from './StreakRow.jsx';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
-import { encodeChips } from '../lib/definition.ts';
-import { siteWord, shortDate, dayOf, kickOf, yearOf, count, dirWord, spreadText, oddsText } from '../lib/format.ts';
-import { MINED_MARGIN, baseDir } from '../lib/outcome.ts';
+import { siteWord, shortDate, dayOf, kickOf, yearOf, count, spreadText } from '../lib/format.ts';
 import { seasonRecord, recordText } from '../lib/team.ts';
 import { unplayedInRun, classOf, KIND_WORDS } from '../lib/unplayed.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, CloseIcon, Chevron } from './Icons.jsx';
-import { Picker } from './Picker.jsx';
 
 const LEDGER_CAP = 8;
-const CROWNS_CAP = 6;
 
 // the ledger reads like a schedule page: date, the team's own AP rank, the
 // opponent (site, result square, its rank, name), the score
@@ -131,59 +124,7 @@ function Ledger({ row, edge, cover, onGame }) {
   );
 }
 
-/**
- * "{Team}’s N [active|all-time] [winning|losing] Streaks", the two words
- * being selects, then the list: the team's runs under any mined definition
- * with their place in the field (crowns.ts). `crowns` is null while that
- * scope is still loading.
- */
-export function Crowns({ ti, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, dir, scope, active, onApply, onShare }) {
-  const [all, setAll] = useState(false);
-  const name = teams[ti].name;
-  const list0 = crowns ? crowns.filter((c) => c.dir === crownsDir) : [];
-  const full = list0.filter((c) => !c.dup);
-  const defC = encodeChips(active);
-  return (
-    <div className="leads">
-      <p className="leads-lead">
-        {name}’s{' '}
-        <b className={baseDir(crownsDir) === 'L' || crownsDir === 'N' ? 'l' : 'w'}>{crowns ? full.length : '…'}</b>{' '}
-        <Picker value={crownsScope} onChange={onCrownsScope} ariaLabel="Active or all-time" options={[{ value: 'active', label: 'Active' }, { value: 'all', label: 'All-time' }]} />{' '}
-        <Picker
-          value={crownsDir} onChange={onCrownsDir} ariaLabel="Winning or losing"
-          options={[
-            { value: 'W', label: 'Winning' }, { value: 'L', label: 'Losing' }, { value: 'U', label: 'Undefeated' },
-            { value: 'C', label: 'Covering' }, { value: 'N', label: 'Not covering' },
-            { value: `W${MINED_MARGIN}`, label: `Winning by ${MINED_MARGIN}+` }, { value: `L${MINED_MARGIN}`, label: `Losing by ${MINED_MARGIN}+` },
-          ]}
-        />{' '}
-        Streaks
-      </p>
-      {crowns === null && <p className="empty">finding every streak {name} is on…</p>}
-      {crowns !== null && list0.length === 0 && (
-        <p className="empty">No {crownsScope === 'all' ? 'all-time' : 'active'} {dirWord(crownsDir)} streak of {name}’s stands out from chance.</p>
-      )}
-      <Tellings rows={list0} cap={CROWNS_CAP} all={all} setAll={setAll} keyOf={(cr) => cr.dir + cr.chips.join()} render={(cr) => {
-        const here = cr.dir === dir && cr.scope === scope && encodeChips(cr.chips.map((key) => ({ key }))) === defC;
-        const span = cr.scope === 'all' && cr.startSe != null
-          ? (cr.live ? `since ${cr.startSe}` : cr.startSe === cr.endSe ? String(cr.startSe) : `${cr.startSe}–${cr.endSe}`)
-          : cr.startSe ? `since ${cr.startSe}` : '';
-        return (
-          <div className={'lead' + (here ? ' here' : '')}>
-            <button className="lead-apply" onClick={() => onApply(cr)}>
-              <span className={'lead-len' + (baseDir(cr.dir) === 'L' || cr.dir === 'N' ? ' l' : '')}>{cr.len}{cr.atEdge ? '+' : ''}</span>
-              <span className="lead-txt">{cr.chips.length ? cr.chips.map(chipLabel).join(' · ') : 'all games'}</span>
-              <span className="lead-meta"><b className={cr.rank === 1 && cr.tied === 1 ? 'k' : ''}>{rankText(cr)} of {cr.field}</b>{span ? ` · ${span}` : ''} · {oddsText(cr.chance)} by chance{here ? ' · shown above' : ''}</span>
-            </button>
-            <button className="ico lead-share" onClick={() => onShare(cr)} aria-label="Share this streak"><ShareIcon /></button>
-          </div>
-        );
-      }} />
-    </div>
-  );
-}
-
-export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crowns, crownsScope, crownsDir, onCrownsScope, onCrownsDir, onShare, onShareCrown, onClose, onApplyCrown, onTeam, onGame }) {
+export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, onShare, onClose, onTeam, onGame }) {
   const t = teams[ti];
   const sentence = row ? claim(row, active, dir) : noClaim(ti, active, dir);
   return (
@@ -212,10 +153,6 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, crow
         </p>
       )}
       {row && <Ledger row={row} edge={edge} cover={againstSpread(dir)} onGame={onGame} />}
-      <Crowns
-        ti={ti} crowns={crowns} crownsScope={crownsScope} crownsDir={crownsDir} onCrownsScope={onCrownsScope} onCrownsDir={onCrownsDir}
-        dir={dir} scope={scope} active={active} onApply={onApplyCrown} onShare={onShareCrown}
-      />
     </div>
   );
 }

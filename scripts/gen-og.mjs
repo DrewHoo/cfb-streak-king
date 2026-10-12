@@ -201,9 +201,9 @@ async function renderTeam(ti, W, H) {
   const t = teams[ti]
   const row = rows.find((r) => r.ti === ti)
   const held = crowns.get(ti) ?? []
-  // what the team is king of: its sole-leading runs
-  const w = held.filter((c) => c.dir === 'W' && c.rank === 1 && c.tied === 1).length
-  const l = held.filter((c) => c.dir === 'L' && c.rank === 1 && c.tied === 1).length
+  // what the team is king of: every active run it leads its field with (ties included), one telling per run, as its page lists them
+  const w = held.filter((c) => baseDir(c.dir) === 'W' && !c.dup).length
+  const l = held.filter((c) => baseDir(c.dir) === 'L' && !c.dup).length
   const color = t.espn && (await logoUri(t.espn, 'color'))
   const lines = row ? wrap(claim(row, DEFAULT_CHIPS, 'W'), 44) : [`No winning streak vs unranked opponents on record.`]
   const parts = []
@@ -289,7 +289,7 @@ async function renderWeek(broken, W, H) {
     const claim = `${t?.name} ${verb} ${count} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`
     const tx = L + 122
     parts.push(text(fit(claim, 'Serif', 23, R - tx), { x: tx, y: y + 21, font: 'Serif', size: 23, fill: INK }))
-    const tag = b.vs != null ? 'head-to-head' : `was ${b.tied > 1 ? 'T-' : ''}${b.rank} of ${b.field}`
+    const tag = b.vs != null ? 'head-to-head' : b.len >= b.everLen ? 'all-time longest' : 'longest active'
     const sub = `${tag} · since ${b.since} · ${enderWords(b)}`
     parts.push(text(fit(sub.toUpperCase(), 'Mono', 12.5, R - tx), { x: tx, y: y + 44, font: 'Mono', size: 12.5, spacing: 1, fill: FAINT }))
     y += 66

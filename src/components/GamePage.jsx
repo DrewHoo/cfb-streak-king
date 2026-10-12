@@ -37,15 +37,14 @@ function Side({ ti, rank, score, onTeam }) {
     : <span className="mu-side">{body}</span>;
 }
 
-// a list of six, the rest behind "more", the shorter tellings behind their own button
+// a list of six, the rest a page at a time behind "see more", the shorter tellings behind their own button
 function Rows({ title, rows, cap, empty, keyOf, render }) {
-  const [all, setAll] = useState(false);
   const full = rows.filter((r) => !r.dup);
   return (
     <section className="gp-sec">
       <h2>{title} <span>{full.length}</span></h2>
       {!rows.length && <p className="empty">{empty}</p>}
-      <Tellings rows={rows} cap={cap} all={all} setAll={setAll} moreWord="" keyOf={keyOf} render={render} />
+      <Tellings rows={rows} cap={cap} keyOf={keyOf} render={render} />
     </section>
   );
 }

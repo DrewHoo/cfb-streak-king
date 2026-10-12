@@ -1,47 +1,32 @@
 import { useEffect, useState } from 'react';
-import type { Crown, Dir, Scope } from '../lib/types.ts';
+import type { Crown, Scope } from '../lib/types.ts';
 import type { TeamCrowns } from '../lib/crownsFile.ts';
 import { loadCrowns } from '../lib/loadCrowns.ts';
-import { track } from '../lib/analytics.ts';
-import { minedDir } from '../lib/outcome.ts';
 
 /**
- * The open team's crowns (the panel's, or the team page's) and the two
- * selects over them. A team page arrives with its own crowns in `initial` (so
- * the prerender and the hydrate agree); any other team's load when it opens.
+ * One team's streaks for its page, a scope at a time. A team page arrives
+ * with its active list in `initial` (so the prerender and the hydrate
+ * agree); the all-time list loads when `scope` asks for it, another team's
+ * when it opens. Null while loading.
  */
-export function useCrowns(team: number | null, initial?: { page?: number | null; crowns?: TeamCrowns | null }) {
+export function useTeamCrowns(ti: number, scope: Scope, initial?: { page?: number | null; crowns?: TeamCrowns | null }): { active: Crown[] | null; crowns: Crown[] | null } {
   const [sets, setSets] = useState<Record<number, TeamCrowns>>(() => (
     initial?.crowns && initial.page != null ? { [initial.page]: initial.crowns } : {}
   ));
-  const [scope, setScope] = useState<Scope>('active');
-  const [dir, setDir] = useState<Dir>('W');
-
+  const have = sets[ti];
+  const enough = !!have && (scope === 'active' || have.all != null);
   useEffect(() => {
-    if (team == null || sets[team]) return;
+    if (enough) return;
     let live = true;
-    loadCrowns(team).then((c) => { if (live) setSets((cur) => ({ ...cur, [team]: c })); });
+    loadCrowns(ti).then((c) => { if (live) setSets((cur) => ({ ...cur, [ti]: c })); });
     return () => { live = false; };
-  }, [team, sets]);
-
-  return {
-    /** null while the team's crowns are loading */
-    crowns: team != null ? sets[team]?.[scope] ?? null : null,
-    /** The team's active crowns whatever the select says; null while loading. */
-    active: team != null ? sets[team]?.active ?? null : null,
-    scope,
-    dir,
-    // analytics event names predate "crowns"; kept so the history stays continuous
-    onScope: (s: Scope) => { setScope(s); track('leads scope', { scope: s }); },
-    onDir: (d: Dir) => { setDir(d); track('leads dir', { dir: d }); },
-    /** Follow the board's direction without an event (opening a team, loading a URL); a margin snaps to the mined one. */
-    followDir: (d: Dir) => setDir(minedDir(d)),
-  };
+  }, [ti, enough]);
+  return { active: have?.active ?? null, crowns: (scope === 'all' ? have?.all : have?.active) ?? null };
 }
 
 /**
- * One team's active crowns, for a list that isn't the panel's: a side of a
- * matchup. `seed` is the list when the caller already has it; otherwise the
+ * One team's active crowns, for a list that isn't the team page's: a side of
+ * a game. `seed` is the list when the caller already has it; otherwise the
  * team's file loads (once per team, loadCrowns caches). Null while loading.
  */
 export function useActiveCrowns(ti: number | null, seed: Crown[] | null = null): Crown[] | null {

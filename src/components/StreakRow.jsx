@@ -1,7 +1,7 @@
 // One streak as a row in a list: the length, the words, then rank, start,
 // odds. Shared by the team page, the game page and the schedule's digests.
 
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { teams } from '../lib/model.ts';
 import { chipLabel } from '../lib/minedChips.ts';
 import { rankText } from '../lib/team.ts';
@@ -86,14 +86,25 @@ export function Subs({ parent, subs, k, open, setOpen, render }) {
   );
 }
 
+/** How many more rows a "see more" adds. */
+export const PAGE = 25;
+
+/** "see 25 more · 340 left": the paging button under a long list. */
+export const MoreButton = ({ shown, total, onMore }) => (total > shown
+  ? <button className="morebtn" onClick={onMore}>see {Math.min(PAGE, total - shown)} more · {total - shown} left</button>
+  : null);
+
 /**
- * A list of streaks: the standing rows up to `cap`, then "all N" (or "N
- * more"); each row's sub-streaks folded beneath it. `keyOf` names a row.
+ * A list of streaks: the standing rows up to `cap`, then "see more" pages
+ * through the rest, PAGE at a time (a new list starts over); each row's
+ * sub-streaks folded beneath it. `keyOf` names a row.
  */
-export function Tellings({ rows, cap, all, setAll, render, keyOf, moreWord = 'all', order }) {
+export function Tellings({ rows, cap, render, keyOf, order }) {
   const [open, setOpen] = useState(() => new Set());
-  const { standing, subs } = subsByParent(rows, order);
-  const list = all ? standing : standing.slice(0, cap);
+  const [paged, setPaged] = useState({ rows, n: cap });
+  const n = paged.rows === rows ? paged.n : cap;
+  const { standing, subs } = useMemo(() => subsByParent(rows, order), [rows, order]);
+  const list = standing.slice(0, n);
   return (
     <Fragment>
       {list.map((r) => (
@@ -102,9 +113,7 @@ export function Tellings({ rows, cap, all, setAll, render, keyOf, moreWord = 'al
           <Subs parent={r} subs={subs.get(r)} k={keyOf(r)} open={open} setOpen={setOpen} render={(x) => <Fragment key={keyOf(x)}>{render(x)}</Fragment>} />
         </Fragment>
       ))}
-      {standing.length > cap && (
-        <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : moreWord === 'all' ? `all ${standing.length}` : `${standing.length - cap} more${moreWord ? ` ${moreWord}` : ''}`}</button>
-      )}
+      <MoreButton shown={n} total={standing.length} onMore={() => setPaged({ rows, n: n + PAGE })} />
     </Fragment>
   );
 }

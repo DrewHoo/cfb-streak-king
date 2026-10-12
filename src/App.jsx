@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { P, teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
-import { definitionPhrase, crownClaim } from './lib/sentence.ts';
+import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
-import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, breakersUrl } from './lib/url.ts';
+import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
@@ -10,7 +10,6 @@ import { dirWord, dayOf, rowKey } from './lib/format.ts';
 import { track } from './lib/analytics.ts';
 import { writeUrl, absoluteUrl } from './urlState.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
-import { useCrowns } from './hooks/useCrowns.ts';
 import { useDigests } from './hooks/useDigests.ts';
 import { useSeason } from './hooks/useSeason.ts';
 import { useBreakers } from './hooks/useBreakers.ts';
@@ -42,9 +41,6 @@ export default function App({ initial } = {}) {
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  // one team's crowns at a time: the page's, else the open panel's
-  const crownTeam = page ?? team;
-  const crowns = useCrowns(crownTeam, initial);
   // the schedule's digests: embedded on a games page, loaded when the schedule opens from the board
   const digests = useDigests(games, initial);
   // the open game, and its season's rows (what each game ended, who it made a
@@ -75,7 +71,6 @@ export default function App({ initial } = {}) {
     const load = () => parseUrl(window.location.pathname, window.location.search);
     const v = load();
     dispatch({ type: 'load', view: v });
-    crowns.followDir(v.dir);
     setTodayEp(todayEpochDay());
     setHydrated(true);
     try { window.history.scrollRestoration = 'manual'; } catch {}
@@ -143,7 +138,6 @@ export default function App({ initial } = {}) {
   };
   function pickRow(row) {
     if (isOpen(view, row)) { close({ type: 'close' }); return; }
-    crowns.followDir(dir);
     track('team open', { team: teams[row.ti].id, scope, len: row.s.len });
     dispatch({ type: 'pick', row });
   }
@@ -182,7 +176,6 @@ export default function App({ initial } = {}) {
   // with that team open. A mined key decodes to its chip and choice; a
   // broken run names its all-time row.
   function openStreak(s, ti, from) {
-    crowns.followDir(s.dir);
     const chips = refsOf(s.chips);
     dispatch({ type: 'streak', chips, dir: s.dir, scope: s.scope ?? 'active', team: ti, run: s.run ?? null });
     track('lead apply', { chips: s.chips.join(',') || 'overall', dir: s.dir, scope: s.scope ?? 'active', len: s.len, from });
@@ -199,11 +192,6 @@ export default function App({ initial } = {}) {
     const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active, dir)}`;
     track('share', { chips: encodeChips(active) || 'overall', dir, team: team != null ? teams[team].id : null });
     share(text, window.location.href);
-  }
-  // one streak a team is king of: its sentence and the board under its definition, the team open
-  function shareCrown(cr, ti = team) {
-    track('share', { chips: cr.chips.join(',') || 'overall', dir: cr.dir, team: teams[ti].id });
-    share(crownClaim(ti, cr), absoluteUrl(BASE, crownUrl(ti, cr)));
   }
   function shareTeam(ti) {
     track('share', { team: teams[ti].id, page: true });
@@ -232,9 +220,8 @@ export default function App({ initial } = {}) {
   const panel = team != null && (
     <TeamPanel
       ti={team} row={teamRow} rank={teamRow ? rows.indexOf(teamRow) + 1 : 0} field={rows.length}
-      active={active} dir={dir} scope={scope} edge={edgeFor(team)} crowns={crowns.crowns}
-      crownsScope={crowns.scope} crownsDir={crowns.dir} onCrownsScope={crowns.onScope} onCrownsDir={crowns.onDir}
-      onShare={shareView} onShareCrown={shareCrown} onClose={() => close({ type: 'close' })} onApplyCrown={(cr) => openStreak(cr, team, 'panel')}
+      active={active} dir={dir} scope={scope} edge={edgeFor(team)}
+      onShare={shareView} onClose={() => close({ type: 'close' })}
       onTeam={(ti) => openTeam(ti, 'panel')} onGame={(ti, g) => openGame(ti, g, 'panel')}
     />
   );
@@ -243,7 +230,7 @@ export default function App({ initial } = {}) {
     <main>
       {page != null ? (
         <TeamPage
-          ti={page} todayEp={todayEp} crowns={crowns} breakers={breaks} focus={teamFocus} isMobile={isMobile} copied={copied}
+          ti={page} todayEp={todayEp} initial={initial} breakers={breaks} focus={teamFocus} isMobile={isMobile} copied={copied}
           on={{
             board: () => dispatch({ type: 'board' }),
             team: (ti) => openTeam(ti, 'picker'),

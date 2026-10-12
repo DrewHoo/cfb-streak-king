@@ -654,3 +654,19 @@ from the miner's broken runs over the full four-chip space.
   season-file broken-row shape, plus each breaker's rank) and embeds it in the prerendered
   page; a team page embeds a slice (its own rows, `complete: false`) and fetches the file only
   when a page needs another team.
+
+## One floor for every list (2026-10-12)
+
+Every list of streaks uses one rule: a run counts when it leads its field (rank 1, ties
+included), the longest active or the all-time longest, with no score floor past the miner's
+keep floor. That covers the broken digest, the at-risk digest (its stake floor is gone), the
+on-the-line counts, the game page, the streak-breakers page and a team page.
+
+- A team page's Streaks section has an active / all-time switch, active by default: every
+  definition under which the team's current run is the longest active one, or under which a run
+  of its is the longest ever. The crowns file carries both lists (no cutoff, no cap); the page
+  embeds the active list and fetches the file for all-time.
+- Long lists page: the first rows, then "see 25 more · N left".
+- The board's team panel no longer lists the team's streaks ("{Team}'s N active streaks"); the
+  team page is where they live.
+

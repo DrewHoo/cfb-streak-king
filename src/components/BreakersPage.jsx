@@ -74,13 +74,12 @@ function Row({ s, skr, onBreaker }) {
 /** One team's broken streaks: whose they were (a tap filters), then the list, the all-time longest first. */
 export function BreakerPage({ ti, breakers, copied, on }) {
   const t = teams[ti];
-  const [all, setAll] = useState(false);
   const [victim, setVictim] = useState(null);
   const rows = useMemo(() => (breakers ? breakRows(breakers.teams.get(ti) ?? []) : null), [breakers, ti]);
   const sum = useMemo(() => (rows ? breakSummary(ti, rows) : null), [rows, ti]);
   const rank = breakers?.ranks.get(ti) ?? null;
   const victims = sum?.victims ?? [];
-  const shown = rows && victim != null ? rows.filter((b) => b.ti === victim) : rows;
+  const shown = useMemo(() => (rows && victim != null ? rows.filter((b) => b.ti === victim) : rows), [rows, victim]);
   return (
     <div className="bkr">
       <div className="tpg-bar">
@@ -108,7 +107,7 @@ export function BreakerPage({ ti, breakers, copied, on }) {
       )}
       <div className="tpg-streaks">
         {rows === null && <p className="empty">finding the streaks {t.name} broke…</p>}
-        {shown !== null && <Tellings rows={shown} cap={BREAKS_CAP} all={all} setAll={setAll} moreWord="broken" order={breakOrder} keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} render={(b) => (
+        {shown !== null && <Tellings rows={shown} cap={BREAKS_CAP} order={breakOrder} keyOf={(b) => `${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`} render={(b) => (
           <BrokenRow b={b} onOpen={(x) => on.streak(x, x.ti)} onBoard={on.allTime} />
         )} />}
       </div>

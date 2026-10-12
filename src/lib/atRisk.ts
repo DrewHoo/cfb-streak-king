@@ -18,8 +18,6 @@ import { digestOf } from './broken.ts';
 
 export const SPREAD_SIGMA = 13.5;
 export const AT_RISK_CAP = 6;
-/** Below this many expected bits a streak isn't news when it falls. */
-export const AT_RISK_FLOOR = 0.25;
 
 // Abramowitz–Stegun 7.1.26, good to 1.5e-7
 const erf = (x: number) => {
@@ -73,7 +71,8 @@ export interface AtRiskWeek {
 /**
  * The streaks on the line in these games, the most at stake first: one row
  * per streak (a team's run appears once, with its game), the top AT_RISK_CAP
- * in `list`, one per team, and the rest above AT_RISK_FLOOR in `more`.
+ * in `list`, one per team, and the rest in `more` (no floor: every longest
+ * active streak a lined game puts on the line).
  * Streaks are the team page's: `crownsOf` gives each team's active crowns.
  */
 export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf: (ti: number) => Crown[] | null): AtRiskWeek {
@@ -94,7 +93,7 @@ export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf: (t
     const k = `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}`;
     if (seen.has(k)) return false;
     seen.add(k);
-    return r.stake >= AT_RISK_FLOOR;
+    return true;
   });
   return digestOf(kept, () => true, AT_RISK_CAP);
 }

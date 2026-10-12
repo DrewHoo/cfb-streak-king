@@ -43,7 +43,7 @@ const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts'
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
-const { buildBreakers, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows, breakCat, BREAK_WORDS } = await vite.ssrLoadModule('/src/lib/breakers.ts')
+const { buildBreakers, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows } = await vite.ssrLoadModule('/src/lib/breakers.ts')
 const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
@@ -133,6 +133,8 @@ console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root
 const t0 = Date.now()
 const [crownsActive, crownsAll, minedBroken] = await Promise.all([mineCrowns('active'), mineCrowns('all'), mineBroken()])
 const crownsOf = (ti) => encodeCrowns({ active: crownsActive.get(ti) ?? [], all: crownsAll.get(ti) ?? [] })
+// what a team page embeds: the active list only; the all-time list is fetched when the switch asks for it
+const activeOf = (ti) => encodeCrowns({ active: crownsActive.get(ti) ?? [], all: null })
 fs.mkdirSync(path.join(ROOT, 'dist', 'crowns'), { recursive: true })
 let crownBytes = 0
 for (const ti of fbsNow) {
@@ -222,6 +224,8 @@ const weekly = { builtAt: P.builtAt, broken: {}, atRisk: null }
 const wordsOf = (chips) => chips.map(chipLabel).join(' · ')
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
 const PRESENT = { W: 'has won', L: 'has lost', C: 'has covered', N: 'has missed' }
+// a broken run's small print, as BrokenRow.jsx words it: what it was, since when, the game that ended it
+const brokenSub = (b) => `${everText(b) ?? (b.tied > 1 ? 'was tied for the longest active streak' : 'was the longest active streak')} · since ${b.since} · ${enderWords(b)}`
 const enderWords = (b) => {
   const g = b.ender
   const opp = teams[g.oppIdx]?.name ?? '?'
@@ -241,7 +245,7 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
     rows: broken.list.map((b) => ({
       count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
       claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`,
-      sub: `${everText(b) ?? (b.tied > 1 ? 'was tied for the longest active streak' : 'was the longest active streak')} · since ${b.since} · ${enderWords(b)}`,
+      sub: brokenSub(b),
     })),
   }
   const url = `${SITE}games/week/${n}/`
@@ -426,7 +430,6 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
   })
   fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', 'index.html'), html)
   // the cards' rows: the leaderboard's top, and each breaker's own top breaks (the worker's og.png?breakers= and ?breaker=)
-  const breakWords = (b) => `${BREAK_WORDS[breakCat(b)]} · ${enderWords(b)}`
   weekly.breakers = {
     season: P.currentSeason,
     rows: ranking.slice(0, 7).map((s, i) => ({
@@ -442,7 +445,7 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
     const rows = breakRows(breakers.teams.get(s.ti) ?? []).filter((b) => !b.dup)
     weekly.breaker[t.id] = {
       season: P.currentSeason, name: t.name, n: s.n, rank: breakers.ranks.get(s.ti) ?? 0,
-      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: breakWords(b) })),
+      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: brokenSub(b) })),
     }
     const url = `${SITE}breakers/${t.id}/`
     const title = `Streaks ${t.name} broke in ${P.currentSeason} · ${config.title}`
@@ -477,13 +480,13 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const url = `${SITE}team/${t.id}/`
   const title = `${t.name} streaks · ${config.title}`
   const since = windowStartOf(ti)
-  const tail = `${t.name}'s record, next game, and every streak it's on or king of, under any definition, since ${since}.`
+  const tail = `${t.name}'s record, next game, and every streak it leads, active or all-time, under any definition, since ${since}.`
   const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)), breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
-    embed: crownsOf(ti),
+    initial: { page: ti, crowns: decodeCrowns(activeOf(ti)), breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
+    embed: activeOf(ti),
     breakers: encodeBreakers(breakersSlice(breakers, ti)),
     url,
     title,

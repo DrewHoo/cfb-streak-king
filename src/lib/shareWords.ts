@@ -118,7 +118,7 @@ export function gameFromShare(pathname: string, meta: ShareMeta): { date: string
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed', U: 'was undefeated in' } as Record<string, string>;
 const marginOfDir = (dir: string) => { const by = Number(dir.slice(1)); return by ? ` by ${by}+ points` : ''; };
 /** One row of a season file's game: the fields the words need. */
-export interface GameRowWords { team: string; chips: string; dir: string; len: number; atEdge: boolean; rank: number; field: number; since: number; leader?: boolean }
+export interface GameRowWords { team: string; chips: string; dir: string; len: number; atEdge: boolean; rank: number; tied?: number; field: number; since: number; leader?: boolean; everLen?: number; everN?: number }
 
 /**
  * Title and description for a game's page, from the season file's rows for

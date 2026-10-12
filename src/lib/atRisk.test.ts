@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { P } from './model.ts';
 import { mineCrowns } from './crowns.ts';
 import { scheduledGames, streaksOn, teamStreaks } from './team.ts';
-import { Phi, pBreak, atRiskWeek, AT_RISK_CAP, AT_RISK_FLOOR } from './atRisk.ts';
+import { Phi, pBreak, atRiskWeek, AT_RISK_CAP } from './atRisk.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
 
@@ -37,7 +37,7 @@ describe('atRiskWeek', () => {
   const games = scheduledGames();
   const wk = games[0]?.wk;
   const week = games.filter((g) => g.wk === wk);
-  test('ranks every lined streak on the line by score × chance, once each, a team once in the list, with the cap and floor', async () => {
+  test('ranks every lined streak on the line by score × chance, once each, a team once in the list, with the cap', async () => {
     if (!week.length) return;
     const crowns = await mineCrowns('active');
     const crownsOf = (ti: number) => crowns.get(ti) ?? [];
@@ -53,7 +53,6 @@ describe('atRiskWeek', () => {
     for (const r of all) {
       expect(r.stake).toBeCloseTo(r.s.score * r.p, 9);
       expect(r.s.rank).toBe(1); // only the longest active
-      expect(r.stake).toBeGreaterThanOrEqual(AT_RISK_FLOOR);
       expect(r.row.sp).not.toBeNull();
       expect(r.game.sides.some((x) => x.ti === r.ti && x.row === r.row)).toBe(true);
       // the streak really is on the line in that game
