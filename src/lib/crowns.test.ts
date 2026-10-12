@@ -1,0 +1,34 @@
+// The raw mine as a file: a round trip keeps the Maps, and a file stamped for
+// another payload, chip list or floor is refused. No mining here.
+import { describe, expect, test, vi } from 'vitest';
+import { MINE_STAMP, decodeMined, encodeMined } from './crowns.ts';
+import type { Mined } from './crowns.ts';
+import type { MinedCrown } from './crownRank.ts';
+
+const row: MinedCrown = { chips: ['home'], dir: 'W', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, startSe: 2024, endSe: 2025, live: true, also: 2, p: 0.5, n: 100 };
+const small: Mined = {
+  active: new Map([[7, [row]]]),
+  all: new Map([[7, [{ ...row, scope: 'all' }]]]),
+  broken: new Map([[7, [{ ...row, ti: 7, enderIdx: 9, w: 0, startIdx: 4, live: false }]]]),
+  teams: 136,
+};
+
+describe('the raw mine as a file', () => {
+  test('round-trips through JSON', () => {
+    const back = decodeMined(JSON.parse(JSON.stringify(encodeMined(small))), 'test');
+    expect(back).toEqual(small);
+  });
+
+  test('the stamp names the payload, the chips and the floor', () => {
+    expect(MINE_STAMP).toMatch(/^payload \d{4}-.* · chips \d+\/[0-9a-f]{8} · keep -?\d+(\.\d+)?$/);
+  });
+
+  test('a file with another stamp is refused with a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const f = { ...encodeMined(small), stamp: 'payload 1999-01-01 · chips 1/00000000 · keep 0' };
+    expect(decodeMined(f, 'STREAK_MINED=x.json')).toBeNull();
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain('STREAK_MINED=x.json');
+    warn.mockRestore();
+  });
+});

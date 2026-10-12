@@ -36,7 +36,7 @@ const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
 const { P, teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
-const { mineCrowns, mineBroken } = await vite.ssrLoadModule('/src/lib/crowns.ts')
+const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
 const { completedWeeks, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
@@ -136,6 +136,19 @@ for (const ti of fbsNow) {
   fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.json`), json)
 }
 console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
+
+// --- the raw mine, for the tests: mineRaw() reads this file instead of
+// mining when STREAK_MINED names it (CI sets it for the build and the tests
+// alike, so the suite reuses this build's mine). Stamped, so a file from
+// another payload is ignored ---
+{
+  const t1 = Date.now()
+  const file = path.resolve(process.env.STREAK_MINED ?? path.join(ROOT, 'data/build/mined.json'))
+  const json = JSON.stringify(encodeMined(await mineRaw()))
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  fs.writeFileSync(file, json)
+  console.log(`raw mine written to ${path.relative(ROOT, file)} in ${Date.now() - t1}ms: ${(json.length / 1e6).toFixed(0)} MB`)
+}
 
 // --- the schedule's digests: every completed week's broken streaks, the
 // coming week's at-risk ones, the streak on the line in each game; one

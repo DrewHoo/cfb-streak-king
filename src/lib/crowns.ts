@@ -6,8 +6,9 @@
 // mask and the floors are monotone, so the walk goes depth-first carrying
 // each prefix's AND and drops a prefix the moment fewer than FIELD_FLOOR
 // teams keep any qualifying game or none keeps LEN_FLOOR; about a million
-// definitions survive. The build mines it once (scripts/prerender.mjs); the
-// dev server mines it in the page.
+// definitions survive. The build mines it once (scripts/prerender.mjs) and
+// writes the raw result to a file the tests can read in its place
+// (STREAK_MINED, at the end of this file); the dev server mines it in the page.
 //
 // Three readings of each definition, from one walk:
 //   'active'  every team's current run, with its place in the field
@@ -26,7 +27,7 @@ import { conflicts, fitsDir, qualifies } from './chips.ts';
 import { MINED_CHIPS } from './minedChips.ts';
 import { RANK, crownScore, rankCrowns } from './crownRank.ts';
 import type { MinedCrown } from './crownRank.ts';
-import { fbsNow, gamesOf } from './model.ts';
+import { P, fbsNow, gamesOf } from './model.ts';
 import { MINED_OUTCOMES } from './streaks.ts';
 import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { completedWeeks, weekIdx, weekStart } from './weeks.ts';
@@ -502,12 +503,70 @@ function andLined(td: TeamData, q: Uint32Array): Uint32Array {
   for (let w = 0; w < td.words; w++) o[w] = q[w] & td.lined[w];
   return o;
 }
-let mining: Promise<Mined> | null = null;
-let mined: Mined | null = null;
 
-/** Every team's runs under every definition, in every scope, unfiltered. Mined once. */
+// --- the raw mine as a file, so one build's mine can feed the test suite ---
+//
+// A mine is pure in the payload, the chips walked and the keep floor, so a
+// file stamped with those three is the mine of the same code over the same
+// data. The build writes it (scripts/prerender.mjs) and, with STREAK_MINED
+// naming it, mineRaw() in Node reads it instead of mining; CI sets the
+// variable so the build's mine serves the tests. The file is only read when
+// the variable is set, so a stale local file never feeds a run by accident,
+// and a file whose stamp differs is ignored with a warning.
+
+/** The raw mine as JSON: the Maps as arrays of [team, rows] pairs, under the stamp. */
+export interface MinedFile {
+  stamp: string;
+  teams: number;
+  active: [number, MinedCrown[]][];
+  all: [number, MinedCrown[]][];
+  broken: [number, BrokenRun[]][];
+}
+
+// FNV-1a over a string, as 8 hex digits: enough to tell one chip list from another
+const fnv = (s: string) => {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(16).padStart(8, '0');
+};
+
+/** What a raw mine depends on: the payload's build time, the chips walked (count and a hash of their keys) and the keep floor. */
+export const MINE_STAMP = `payload ${P.builtAt} · chips ${NP.length}/${fnv(NP.map((c) => c.key).join(','))} · keep ${KEEP_FLOOR}`;
+
+export const encodeMined = (m: Mined): MinedFile => ({ stamp: MINE_STAMP, teams: m.teams, active: [...m.active], all: [...m.all], broken: [...m.broken] });
+
+/** The mine a file holds, or null (with a warning naming `source`) when the file was mined for another payload, chip list or floor. */
+export function decodeMined(f: MinedFile, source: string): Mined | null {
+  if (f.stamp !== MINE_STAMP) {
+    console.warn(`${source} was mined for another payload, chip list or floor (${f.stamp}; this build is ${MINE_STAMP}); mining instead`);
+    return null;
+  }
+  return { active: new Map(f.active), all: new Map(f.all), broken: new Map(f.broken), teams: f.teams };
+}
+
+// the file STREAK_MINED names, read in Node only: the browser has no
+// process (the project carries no node types, hence globalThis), so the
+// bundle never runs this branch, and the import is hidden from the bundler
+// so it never tries to resolve node:fs for the page
+async function readMined(): Promise<Mined | null> {
+  const file = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.STREAK_MINED;
+  if (!file) return null;
+  const fs: { existsSync(p: string): boolean; readFileSync(p: string, enc: 'utf8'): string } = await import(/* @vite-ignore */ 'node:' + 'fs');
+  if (!fs.existsSync(file)) {
+    console.warn(`STREAK_MINED=${file}: no such file; mining instead`);
+    return null;
+  }
+  const t0 = Date.now();
+  const m = decodeMined(JSON.parse(fs.readFileSync(file, 'utf8')) as MinedFile, `STREAK_MINED=${file}`);
+  if (m) console.log(`read the mine from ${file} in ${Date.now() - t0}ms (${MINE_STAMP})`);
+  return m;
+}
+
+let mining: Promise<Mined> | null = null;
+
+/** Every team's runs under every definition, in every scope, unfiltered. Mined once, or read from the file STREAK_MINED names. */
 export function mineRaw(): Promise<Mined> {
-  return (mining ??= mineAll().then((m) => (mined = m)));
+  return (mining ??= readMined().then((m) => m ?? mineAll()));
 }
 
 const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };

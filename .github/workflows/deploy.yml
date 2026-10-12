@@ -22,6 +22,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # The build's prerender mines every team's streaks (the slow part, about
+      # ten minutes here) and writes the raw result to this file; the tests
+      # read it instead of mining again, so the mine runs once per push.
+      STREAK_MINED: data/build/mined.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,12 +40,14 @@ jobs:
         continue-on-error: true
         env:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
-      # Test the payload that ships, whichever one the step above left.
+      # Check and test the payload that ships, whichever one the step above left.
       - run: npm run typecheck
       # Every ruling-file receipt against its committed page (data/research/pages)
       - run: npm run check:receipts
-      - run: npm test
+      # The build first, since its mine feeds the tests (STREAK_MINED above);
+      # a failing test still stops the upload.
       - run: npm run build
+      - run: npm test
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
