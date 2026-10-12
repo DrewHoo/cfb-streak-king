@@ -124,7 +124,8 @@ export function brokenWeeks(mined: { broken: Map<number, BrokenRun[]>; teams: nu
     if (win.wk == null) continue;
     const mine = byWeek.get(win.w)!;
     const retold = marginRetold(mine);
-    const all = markDupsByTeam(mine.filter((b) => !retold(b) && b.score >= BROKEN_FLOOR))
+    // only a run that led the active field as the week began, or was the all-time longest
+    const all = markDupsByTeam(mine.filter((b) => (b.rank === 1 || b.len >= b.everLen) && !retold(b) && b.score >= BROKEN_FLOOR))
       .sort((a, b) => b.score - a.score || b.len - a.len);
     const { list, more, dups } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
     out.set(win.wk, { wk: win.wk, lo: win.lo, hi: win.hi, list, more, dups });

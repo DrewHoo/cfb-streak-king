@@ -535,9 +535,18 @@ all-time row).
 Year picker (seasons 1936 to now) beside the week picker; the week options are the season's.
 Default: the current season, the first scheduled week. For the selected week: its broken
 digest once it has been played, the at-risk digest when it's the running week, then that week's
-games: a results ledger for a played week (score, with the game's top broken run in the claim
-line in place of the streak on the line), the schedule for a scheduled week. A past season's
-week shows its broken digest from the two-chip rows; its games are all results.
+games: a results ledger for a played week (score, how many streaks the game broke, with the
+game's top broken run in the claim line in place of the streak on the line), the games that
+broke the most first and no day dividers; the schedule for a scheduled week, by day, each game
+with how many streaks it puts on the line. A past season's week shows its broken digest from
+the two-chip rows; its games are all results.
+
+Only streaks that led the active field (ties included) or were the all-time longest show
+anywhere on the schedule: the broken digest, the at-risk digest, the streak on the line and the
+counts. A broken row's small print leads with what the run was ("now the all-time longest
+streak", a link to that definition's all-time board with no team open, else "was the longest
+active streak"), then since when, then the game that ended it without its date
+("lost to Georgia 20–17"); the row itself opens the all-time board at the team.
 
 ### Rules
 

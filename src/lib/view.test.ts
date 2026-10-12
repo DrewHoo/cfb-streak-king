@@ -50,6 +50,8 @@ describe('view', () => {
   test('applying a streak takes its definition, direction and scope, and keeps the open team', () => {
     const v = viewReducer({ ...initialView(), team: 7 }, { type: 'streak', chips: ['road', 'ranked'], dir: 'L', scope: 'active' });
     expect([v.active, v.dir, v.scope, v.team]).toEqual([[{ key: 'road' }, { key: 'ranked' }], 'L', 'active', 7]);
+    // a streak with no team (a broken digest's all-time link) closes the panel
+    expect(viewReducer({ ...initialView(), team: 7 }, { type: 'streak', chips: ['road'], dir: 'W', scope: 'all', team: null }).team).toBeNull();
   });
 
   test('picking a broken-streaks week stays on the schedule; the board or a streak clears it', () => {

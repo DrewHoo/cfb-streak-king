@@ -1,7 +1,9 @@
 // The schedule's digests, built once at build time from the mined crowns
 // and shipped as dist/games/digests.json: every completed week's broken
 // streaks (broken.ts), the first scheduled week's at-risk streaks
-// (atRisk.ts), and the streak most on the line in each scheduled game. The
+// (atRisk.ts), and the longest active streak most on the line in each
+// scheduled game, with how many it puts on the line. Only runs that led the
+// active field (or were the all-time longest) are in any of them. The
 // games pages embed the file so the first render has it; opening the
 // schedule from the board fetches it. The dev server has no build output,
 // so there it falls back to mining in the page. This is the file's encoding.
@@ -21,8 +23,8 @@ export interface Digests {
   broken: Record<number, BrokenWeek>;
   /** The first scheduled week's at-risk streaks; null when no game has a line. */
   atRisk: (AtRiskWeek & { wk: number; lo: number; hi: number }) | null;
-  /** The streak most on the line in each scheduled game, by the game's id. */
-  onLine: Record<number, { ti: number; s: TeamStreak }>;
+  /** The longest active streak most on the line in each scheduled game, and how many it puts on the line, by the game's id. */
+  onLine: Record<number, { ti: number; s: TeamStreak; n: number }>;
 }
 
 /** Each team's active crowns, as the build has them. */
@@ -60,7 +62,7 @@ export interface DigestsFile {
   builtAt: string;
   broken: Record<number, { wk: number | null; lo: number; hi: number; list: BrokenRow[]; more: BrokenRow[]; dups: BrokenRow[] }>;
   atRisk: { wk: number; lo: number; hi: number; list: RiskRow[]; more: RiskRow[]; dups: RiskRow[] } | null;
-  onLine: Record<number, [number, CrownRow]>;
+  onLine: Record<number, [number, CrownRow, number]>;
 }
 
 const toCrown = (c: Crown): CrownRow => [
@@ -96,7 +98,7 @@ export function encodeDigests(d: Digests): DigestsFile {
     builtAt: d.builtAt,
     broken: Object.fromEntries(Object.entries(d.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, list: w.list.map(toBroken), more: w.more.map(toBroken), dups: w.dups.map(toBroken) }])),
     atRisk: d.atRisk ? { wk: d.atRisk.wk, lo: d.atRisk.lo, hi: d.atRisk.hi, list: d.atRisk.list.map(toRisk), more: d.atRisk.more.map(toRisk), dups: d.atRisk.dups.map(toRisk) } : null,
-    onLine: Object.fromEntries(Object.entries(d.onLine).map(([i, { ti, s }]) => [i, [ti, toCrown(s)]])),
+    onLine: Object.fromEntries(Object.entries(d.onLine).map(([i, { ti, s, n }]) => [i, [ti, toCrown(s), n]])),
   };
 }
 
@@ -106,7 +108,7 @@ export function decodeDigests(f: DigestsFile): Digests {
     builtAt: f.builtAt,
     broken: Object.fromEntries(Object.entries(f.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, list: w.list.map(fromBroken), more: w.more.map(fromBroken), dups: (w.dups ?? []).map(fromBroken) }])),
     atRisk: f.atRisk ? { wk: f.atRisk.wk, lo: f.atRisk.lo, hi: f.atRisk.hi, list: risks(f.atRisk.list), more: risks(f.atRisk.more), dups: risks(f.atRisk.dups ?? []) } : null,
-    onLine: Object.fromEntries(Object.entries(f.onLine).map(([i, [ti, c]]) => [i, { ti, s: fromStreak(ti, c, Number(i)) }])),
+    onLine: Object.fromEntries(Object.entries(f.onLine).map(([i, [ti, c, n]]) => [i, { ti, s: fromStreak(ti, c, Number(i)), n: n ?? 1 }])),
   };
 }
 

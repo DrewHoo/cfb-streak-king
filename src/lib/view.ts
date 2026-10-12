@@ -26,7 +26,7 @@ export type ViewAction =
   | { type: 'scope'; scope: Scope }
   | { type: 'dir'; dir: Dir }
   | { type: 'week'; on: boolean }
-  | { type: 'streak'; chips: (string | ChipRef)[]; dir: Dir; scope: Scope; team?: number; run?: number | null }
+  | { type: 'streak'; chips: (string | ChipRef)[]; dir: Dir; scope: Scope; team?: number | null; run?: number | null }
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
   | { type: 'page'; team: number }
@@ -74,7 +74,7 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       return {
         ...v, active: a.chips.map((c) => (typeof c === 'string' ? { key: c } : c)), dir: a.dir, scope: a.scope,
         run: (a.scope === 'all' ? a.run : null) ?? null, limit: DESKTOP_CAP,
-        team: a.team ?? v.team, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, week: a.scope === 'all' ? false : v.week,
+        team: a.team === undefined ? v.team : a.team, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, week: a.scope === 'all' ? false : v.week,
       };
     case 'pick': {
       // picking the open row closes it; in all-time mode a team has one row per run

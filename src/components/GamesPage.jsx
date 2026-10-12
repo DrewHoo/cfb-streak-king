@@ -1,14 +1,17 @@
 // The schedule: one week of one season at a time. A year picker and a week
 // picker in the title select it; above the week's games sit its broken-
 // streaks digest (a completed week) or its at-risk streaks (the running
-// week). A played week is a results ledger (score, and the game's top
-// broken run beneath), a scheduled week the schedule (kickoff, the line as
-// of the build, and the streak most on the line beneath). A row opens the
-// game's page.
+// week), only runs that led the active field or were the all-time longest.
+// A played week is a results ledger, the games that broke the most streaks
+// first (score, the count, and the game's top broken run beneath); a
+// scheduled week the schedule by day (kickoff, the line as of the build,
+// how many streaks it puts on the line, and the one most on the line
+// beneath). A row opens the game's page.
 
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
-import { lineText, rankText } from '../lib/team.ts';
+import { lineText } from '../lib/team.ts';
+import { boardUrl, hrefOf } from '../lib/url.ts';
 import { seasons, seasonWeeks, scoreOf, keyString } from '../lib/game.ts';
 import { digestOf, everText, BROKEN_CAP, BROKEN_CUTOFF } from '../lib/broken.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
@@ -48,32 +51,38 @@ const PAST = (dir) => PASTS[baseDir(dir)];
 function enderWords(b) {
   const g = b.ender;
   const opp = teams[g.oppIdx]?.name ?? '?';
-  const when = `${dayOf(g.ep)} ${monthDay(g.ep)}`;
-  if (b.dir === 'C' || b.dir === 'N') {
-    const did = g.cover === 'P' ? 'pushed' : g.cover === 'W' ? 'covered' : 'didn’t cover';
-    return `${did} vs ${opp} ${when}`;
-  }
-  if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them} ${when}`;
-  return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them} ${when}` : `lost to ${opp} ${g.them}–${g.us} ${when}`;
+  if (b.dir === 'C' || b.dir === 'N') return `${g.cover === 'P' ? 'pushed' : g.cover === 'W' ? 'covered' : 'didn’t cover'} vs ${opp}`;
+  if (g.r === 'T') return `tied ${opp} ${g.us}–${g.them}`;
+  return g.r === 'W' ? `beat ${opp} ${g.us}–${g.them}` : `lost to ${opp} ${g.them}–${g.us}`;
 }
 
-// one broken run: the length, the claim in past tense, where it ranked as
-// the week began, and the game that ended it; opens the run's all-time board
-function BrokenRow({ b, onOpen }) {
+const BASE = import.meta.env.BASE_URL;
+/** What the run was, as the week began: the all-time longest, else the active field's leader. */
+const leadWords = (b) => everText(b) ?? (b.tied > 1 ? 'was tied for the longest active streak' : 'was the longest active streak');
+
+// one broken run: the length, the claim in past tense, then what it was (the
+// all-time longest a link to its all-time board, no team open), since when,
+// and the game that ended it; the row opens the run's all-time board at the team
+function BrokenRow({ b, onOpen, onBoard }) {
   const t = teams[b.ti];
+  const claim = `${t?.name} ${PAST(b.dir)} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
+  const ever = everText(b);
   return (
-    <button className="bk" onClick={() => onOpen(b)}>
+    <div className="bk">
+      <button className="bk-hit" onClick={() => onOpen(b)} aria-label={claim} />
       <span className={'bk-len' + (baseDir(b.dir) === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
       {t?.espn ? <TeamMark ti={b.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
       <span className="bk-txt">
-        <span>{t?.name} {PAST(b.dir)} {b.len}{b.atEdge ? '+' : ''} straight{marginWords(b.dir)}{b.chips.length ? ` ${streakWords(b.chips)}` : ''}</span>
+        <span>{claim}</span>
         <small>
-          <b className={b.rank === 1 && b.tied === 1 ? 'k' : ''}>was {rankText(b)} of {b.field}</b>
-          {' · since '}{b.since}{' · '}{enderWords(b)}{everText(b) ? ` · ${everText(b)}` : ''}
+          {ever
+            ? <a className="bk-lede" href={hrefOf(BASE, boardUrl(b.chips, b.dir, 'all'))} onClick={(e) => { e.preventDefault(); onBoard(b); }}>{ever}</a>
+            : <b className="k">{leadWords(b)}</b>}
+          {' · since '}{b.since}{' · '}{enderWords(b)}
         </small>
       </span>
       <Chevron />
-    </button>
+    </div>
   );
 }
 
@@ -90,7 +99,7 @@ export function brokenFromRows(seasonRows, week) {
 }
 
 // the digest of the selected week's broken runs, above its results
-function Broken({ broken, onOpen, onLink }) {
+function Broken({ broken, onOpen, onBoard, onLink }) {
   // "more" and the sub-streaks open per week, so flipping weeks folds them back up
   const [moreWk, setMoreWk] = useState(null);
   const [open, setOpen] = useState(() => new Set());
@@ -111,8 +120,8 @@ function Broken({ broken, onOpen, onLink }) {
       <div className="gbk-list">
         {rows.map((b) => (
           <Fragment key={keyOf(b)}>
-            <BrokenRow b={b} onOpen={onOpen} />
-            <Subs parent={b} subs={subs.get(b)} k={keyOf(b)} open={open} setOpen={setOpen} render={(x) => <BrokenRow key={keyOf(x)} b={x} onOpen={onOpen} />} />
+            <BrokenRow b={b} onOpen={onOpen} onBoard={onBoard} />
+            <Subs parent={b} subs={subs.get(b)} k={keyOf(b)} open={open} setOpen={setOpen} render={(x) => <BrokenRow key={keyOf(x)} b={x} onOpen={onOpen} onBoard={onBoard} />} />
           </Fragment>
         ))}
         {broken.more.length > 0 && (
@@ -140,7 +149,6 @@ function AtRiskRow({ r, onGame }) {
         <small>
           <b className="k">{Math.round(100 * r.p)}% to end</b>
           {' · '}{dayOf(r.row.ep)} {monthDay(r.row.ep)} {siteWord(r.row)} {opp?.name} {spreadText(r.row.sp)}
-          {' · '}{rankText(r.s)} of {r.s.field}
         </small>
       </span>
       <Chevron />
@@ -189,7 +197,8 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
 }
 
 // a scheduled game's row: kickoff, away, home, the line; beneath it the most
-// interesting streak either side puts on the line, as a compressed claim
+// interesting streak either side puts on the line, as a compressed claim, and
+// how many longest active streaks the game puts on the line
 function ScheduledRow({ g, top, onGame }) {
   const line = lineText(g);
   return (
@@ -202,15 +211,18 @@ function ScheduledRow({ g, top, onGame }) {
       {top && (
         <span className="gm-claim">
           {teams[top.ti].name} {VERB(top.s.dir)} <b className={baseDir(top.s.dir) === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.atEdge ? '+' : ''}</b> straight{marginWords(top.s.dir)}{top.s.chips.length ? ` ${streakWords(top.s.chips)}` : ''}
-          <small> · {rankText(top.s)} of {top.s.field}</small>
         </span>
       )}
+      {top && <span className="gm-n">{top.n} on the line</span>}
     </button>
   );
 }
 
-// a played game's row: the score, away, home; beneath it the game's top
-// broken run, when the season's rows have one
+/** How many streaks a played game broke: one telling per run. */
+const brokenCount = (rows) => rows.ended.reduce((a, b) => a + (b.dup ? 0 : 1), 0);
+
+// a played game's row: the score, away, home, how many streaks it broke;
+// beneath it the game's top broken run, when the season's rows have one
 function PlayedRow({ item, rows, onGame }) {
   const { key, played } = item;
   const [hs, as] = scoreOf(played);
@@ -218,17 +230,18 @@ function PlayedRow({ item, rows, onGame }) {
   const homeRank = played.ti === key.home ? r.ownRank : r.oppRank;
   const awayRank = played.ti === key.away ? r.ownRank : r.oppRank;
   const top = rows?.ended[0];
+  const n = rows ? brokenCount(rows) : null;
   return (
     <button className={'gm played' + (hs === as ? '' : hs > as ? ' home-won' : ' away-won')} onClick={() => onGame(key)} aria-label={`${teams[key.away].name} ${key.neutral ? 'vs' : 'at'} ${teams[key.home].name}: the game`}>
       <span className="gm-kick gm-score"><b className="as">{as}</b>–<b className="hs">{hs}</b></span>
       <Side ti={key.away} rank={awayRank} />
       <i className="gm-at">{key.neutral ? 'vs' : '@'}</i>
       <Side ti={key.home} rank={homeRank} />
-      <span className="gm-line">{rows ? `${rows.ended.length} ended` : ''}</span>
+      <span className="gm-line">{n != null ? `${n} broken` : ''}</span>
       {top && (
         <span className="gm-claim">
           {teams[top.ti].name} {PAST(top.dir)} <b className={baseDir(top.dir) === 'L' || top.dir === 'N' ? 'l' : ''}>{top.len}{top.atEdge ? '+' : ''}</b> straight{marginWords(top.dir)}{top.chips.length ? ` ${streakWords(top.chips)}` : ''}
-          <small> · was {rankText(top)} of {top.field}</small>
+          <small> · {top.len >= top.everLen ? 'all-time longest' : 'longest active'}</small>
         </span>
       )}
     </button>
@@ -242,23 +255,26 @@ export function matchingGames(games, q) {
   return want ? games.filter((g) => plain(teams[g.key.home]?.name ?? '').includes(want) || plain(teams[g.key.away]?.name ?? '').includes(want)) : games;
 }
 
-// a week's games under day dividers
+// a week's games: the played ones, the most streaks broken first; the
+// scheduled ones under day dividers
 function Week({ week, games, digests, seasonRows, onGame }) {
   const out = [];
+  const rowsOf = (k) => seasonRows?.games.get(k) ?? (seasonRows ? { ended: [], leaders: [] } : null);
+  const played = games.filter((g) => !g.scheduled).map((item) => ({ item, k: keyString(item.key) })).map((x) => ({ ...x, rows: rowsOf(x.k) }));
+  played.sort((a, b) => (b.rows ? brokenCount(b.rows) : 0) - (a.rows ? brokenCount(a.rows) : 0)); // stable: kickoff order within a count
+  for (const { item, k, rows } of played) out.push(<PlayedRow key={k} item={item} rows={rows} onGame={onGame} />);
   let last = null;
   for (const item of games) {
+    if (!item.scheduled) continue;
     const ep = item.key.ep;
     if (ep !== last) { out.push(<div key={'d' + ep} className="gm-day">{dayOf(ep)} {monthDay(ep)}</div>); last = ep; }
-    const k = keyString(item.key);
-    out.push(item.scheduled
-      ? <ScheduledRow key={k} g={item.scheduled} top={digests?.onLine[item.scheduled.i]} onGame={onGame} />
-      : <PlayedRow key={k} item={item} rows={seasonRows?.games.get(k) ?? (seasonRows ? { ended: [], leaders: [] } : null)} onGame={onGame} />);
+    out.push(<ScheduledRow key={keyString(item.key)} g={item.scheduled} top={digests?.onLine[item.scheduled.i]} onGame={onGame} />);
   }
-  const played = week.games.some((g) => g.played);
+  const anyPlayed = week.games.some((g) => g.played);
   if (!games.length) return <p className="empty">No game this week has a team by that name.</p>;
   return (
     <div className="gwk-list">
-      <div className="gm gm-head" aria-hidden="true"><span>{played ? 'final' : 'kick'}</span><span>away</span><span /><span>home</span><span className="gm-line">{played ? 'streaks' : 'line'}</span></div>
+      <div className="gm gm-head" aria-hidden="true"><span>{anyPlayed ? 'final' : 'kick'}</span><span>away</span><span /><span>home</span><span className="gm-line">{anyPlayed ? 'streaks' : 'line'}</span></div>
       {out}
     </div>
   );
@@ -307,7 +323,7 @@ export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on }
           : <>Every game with a current FBS team, and the streaks it ended: the runs of up to two conditions whose team led the field.</>}
       </p>
       {loading && <p className="empty">finding the week’s streaks…</p>}
-      <Broken broken={broken} onOpen={on.streak} onLink={current ? on.link : null} />
+      <Broken broken={broken} onOpen={on.streak} onBoard={on.allTime} onLink={current ? on.link : null} />
       {week && atRisk && <AtRisk wk={sel} lo={week.lo} hi={week.hi} risk={atRisk} onGame={on.game} onLink={on.link} focus={risk} />}
       {!week && <p className="empty">No games in this week.</p>}
       {week && (

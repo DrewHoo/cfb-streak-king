@@ -52,6 +52,7 @@ describe('atRiskWeek', () => {
     for (const r of more) expect(list.length === AT_RISK_CAP || listed.has(r.ti)).toBe(true);
     for (const r of all) {
       expect(r.stake).toBeCloseTo(r.s.score * r.p, 9);
+      expect(r.s.rank).toBe(1); // only the longest active
       expect(r.stake).toBeGreaterThanOrEqual(AT_RISK_FLOOR);
       expect(r.row.sp).not.toBeNull();
       expect(r.game.sides.some((x) => x.ti === r.ti && x.row === r.row)).toBe(true);

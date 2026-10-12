@@ -150,6 +150,17 @@ export function crownUrl(ti: number, cr: Crown): UrlParts {
   return toUrl({ ...DEFAULT_VIEW, active: refsOf(cr.chips), dir: cr.dir, scope: cr.scope, team: ti });
 }
 
+/** The board under a definition, no team open (a broken digest's "now the all-time longest" link). */
+export const boardUrl = (chips: string[], dir: Dir, scope: Scope): UrlParts => toUrl({ ...DEFAULT_VIEW, active: refsOf(chips), dir, scope });
+
+/** A link's href under the site base: the path and the non-empty params. Pure, so a render can use it. */
+export function hrefOf(base: string, { path, params }: UrlParts): string {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v != null && v !== '') q.set(k, v);
+  const s = q.toString();
+  return `${base}${path}${s ? `?${s}` : ''}`;
+}
+
 /** The link to the schedule; with a week, to that week (of a past season when given); `risk`, to the week's at-risk streaks. */
 export const gamesUrl = (bwk: number | null = null, risk = false, season: number | null = null): UrlParts => toUrl({ ...DEFAULT_VIEW, games: true, bwk, risk, season });
 

@@ -111,7 +111,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12d';
+const CARD_VERSION = '2026-10-12e';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a

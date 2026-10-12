@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -123,5 +123,13 @@ describe('url', () => {
     const u = crownUrl(idx('alabama'), { chips: ['road'], dir: 'U', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, live: true, also: 0, chance: 0, score: 0, dup: false });
     expect(u.path).toBe('');
     expect(search(u.params)).toBe('t=alabama&c=road&dir=U&scope=active');
+  });
+
+  test('a broken run’s all-time link is the board under its definition, no team open', () => {
+    const u = boardUrl(['road'], 'W', 'all');
+    expect(u.params.t ?? null).toBeNull();
+    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/?c=road');
+    expect(parseUrl('/cfb-streak-king/', '?c=road')).toMatchObject({ scope: 'all', team: null });
+    expect(hrefOf('/x/', { path: 'games/', params: { a: null, b: '' } })).toBe('/x/games/');
   });
 });

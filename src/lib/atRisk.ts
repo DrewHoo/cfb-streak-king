@@ -81,6 +81,7 @@ export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf: (t
   for (const game of games) {
     for (const { ti, row } of game.sides) {
       for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
+        if (s.rank !== 1) continue; // only the longest active (the all-time longest leads the field too)
         const p = pBreak(s.dir, row.sp);
         if (p == null) continue;
         rows.push({ ti, s, game, row, p, stake: s.score * p, dup: s.dup });

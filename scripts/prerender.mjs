@@ -38,7 +38,7 @@ const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
-const { completedWeeks, brokenClaim } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { completedWeeks, brokenClaim, everText } = await vite.ssrLoadModule('/src/lib/broken.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
@@ -241,7 +241,7 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
     rows: broken.list.map((b) => ({
       count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
       claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`,
-      sub: `was ${rankText(b)} of ${b.field} · since ${b.since} · ${enderWords(b)}`,
+      sub: `${everText(b) ?? (b.tied > 1 ? 'was tied for the longest active streak' : 'was the longest active streak')} · since ${b.since} · ${enderWords(b)}`,
     })),
   }
   const url = `${SITE}games/week/${n}/`
@@ -282,7 +282,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
     const rows = risk.list.map((r) => ({
       count: `${r.s.len}${r.s.atEdge ? '+' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N',
       claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips)}` : ''}`,
-      sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)} · ${rankText(r.s)} of ${r.s.field}`,
+      sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)}`,
     }))
     weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows }
     const top = rows.slice(0, 3).map((r) => `${r.claim}, ${r.sub.split(' · ')[0]}`)

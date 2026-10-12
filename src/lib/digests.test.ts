@@ -44,5 +44,9 @@ test('the schedule’s digests survive the file encoding', async () => {
     expect(y.ti).toBe(top.ti);
     expect(y.s).toMatchObject({ chips: top.s.chips, dir: top.s.dir, len: top.s.len, rank: top.s.rank, field: top.s.field });
     expect(y.s.next?.i).toBe(Number(i));
+    // the top is a longest active streak, and the count holds it
+    expect(top.s.rank).toBe(1);
+    expect(top.n).toBeGreaterThanOrEqual(1);
+    expect(y.n).toBe(top.n);
   }
 }, 600000);

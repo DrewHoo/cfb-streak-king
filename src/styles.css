@@ -619,21 +619,27 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .gbk-h .lnk svg { margin: 0; transform: none; color: inherit; }
 .gbk-list { display: flex; flex-direction: column; }
 .bk {
-  display: grid; grid-template-columns: 34px 18px minmax(0, 1fr) auto; gap: 0 8px; align-items: center; width: 100%;
+  position: relative; display: grid; grid-template-columns: 34px 26px minmax(0, 1fr) auto; gap: 0 8px; align-items: center; width: 100%;
   padding: 5px 0; background: transparent; border: none; border-bottom: 1px dotted var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
-.bk:hover, .bk:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
+.bk:hover, .bk:focus-visible, .bk:has(.bk-hit:focus-visible) { background: rgba(243, 226, 188, 0.05); outline: none; }
+/* a broken run's row is one button under the text, so its "now the all-time longest" can be a link of its own */
+.bk-hit { position: absolute; inset: 0; z-index: 1; width: 100%; padding: 0; background: none; border: 0; cursor: pointer; }
+.bk-hit:focus-visible { outline: none; }
+.bk-txt small a.bk-lede { position: relative; z-index: 2; color: var(--cream); font-weight: 600; text-decoration: underline dotted; text-underline-offset: 2px; }
+.bk-txt small a.bk-lede:hover, .bk-txt small a.bk-lede:focus-visible { color: var(--rust); outline: none; }
 .bk > svg { color: var(--ink-faint); flex: none; }
 .bk-len { font-family: 'Graduate', serif; font-size: 16px; color: var(--cream); text-align: right; white-space: nowrap; }
 .bk-len.l { color: var(--rust); }
-.bk-logo { width: 18px; height: 18px; margin: 0; }
+.bk-logo { width: 26px; height: 26px; margin: 0; object-fit: contain; }
 .bk-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 13px; line-height: 1.35; }
 .bk-txt > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bk-txt small { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bk-txt small b { font-weight: 400; color: var(--ink-muted); }
 .bk-txt small b.k { color: var(--cream); font-weight: 600; }
 @media (max-width: 640px) {
-  .bk { grid-template-columns: 28px 18px minmax(0, 1fr) auto; gap: 0 6px; }
+  .bk { grid-template-columns: 28px 24px minmax(0, 1fr) auto; gap: 0 6px; }
+  .bk-logo { width: 24px; height: 24px; }
   .bk-txt { font-size: 12px; }
 }
 .gm-day { font-family: 'Graduate', serif; font-size: 12.5px; letter-spacing: 0.04em; color: var(--cream); padding: 12px 0 2px; }
@@ -647,16 +653,19 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .gm-head:hover { background: transparent; }
 .gm-kick { font-size: 10px; color: var(--ink-faint); white-space: nowrap; }
 .gm-team { display: flex; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; overflow: hidden; }
-.gm-logo { width: 16px; height: 16px; margin: 0; flex: none; }
+.gm-logo { width: 22px; height: 22px; margin: 0; flex: none; object-fit: contain; }
 .gm-ini { display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: var(--ink-muted); }
 .gm-rank { font-style: normal; font-size: 9.5px; color: var(--rust); flex: none; }
 .gm-nm { font-family: 'Source Serif 4', Georgia, serif; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .gm-at { font-style: normal; font-size: 9.5px; color: var(--rust); text-align: center; }
 .gm-line { font-size: 10px; font-weight: 600; color: var(--cream); white-space: nowrap; text-align: right; }
 /* the most interesting streak on the line, as a line: the panel's claim with the fat trimmed */
-.gm-claim { grid-column: 2 / -1; font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; line-height: 15px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gm-claim { grid-column: 2 / 5; font-family: 'Source Serif 4', Georgia, serif; font-size: 11px; line-height: 15px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* a row with nothing on the line keeps the claim's height, so the rows all stand the same */
-.gm:not(.gm-head) { grid-template-rows: 20px 15px; }
+.gm:not(.gm-head) { grid-template-rows: 24px 15px; }
+/* how many longest active streaks a scheduled game puts on the line, under its line */
+.gm-n { grid-column: 5; grid-row: 2; font-size: 9.5px; color: var(--ink-muted); white-space: nowrap; text-align: right; }
+.gm.played .gm-claim { grid-column: 2 / -1; }
 .gm-claim b { font-family: 'Graduate', serif; font-weight: 400; font-size: 12px; color: var(--cream); }
 .gm-claim b.l { color: var(--rust); }
 .gm-claim small { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); }
@@ -664,7 +673,7 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
   /* the two teams stay on one line: a marked team is its mark and rank */
   .gm { grid-template-columns: 40px auto 14px auto minmax(0, 1fr); gap: 1px 6px; }
   .gm-team.marked .gm-nm { display: none; }
-  .gm-logo { width: 20px; height: 20px; }
+  .gm-logo { width: 24px; height: 24px; }
   .gm-line { font-size: 9.5px; overflow: hidden; text-overflow: ellipsis; }
   .gm-claim { font-size: 10.5px; }
 }

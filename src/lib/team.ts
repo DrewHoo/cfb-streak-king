@@ -146,14 +146,21 @@ export function lineText(g: Pick<ScheduledGame, 'home' | 'away' | 'sp'>): string
   return `${teams[g.sp < 0 ? g.home : g.away].name} ${spreadText(-Math.abs(g.sp))}`;
 }
 
-/** The streak either side puts most on the line in the game: the highest score among them, with its team. `crownsOf` is each team's active crowns. */
-export function topOnLine(g: ScheduledGame, todayEp: number, crownsOf: (ti: number) => Crown[] | null): { ti: number; s: TeamStreak } | null {
+/**
+ * The longest active streaks either side puts on the line in the game: the
+ * one with the highest score, with its team, and `n`, how many there are (one
+ * telling per run). Null when the game puts none on the line. `crownsOf` is
+ * each team's active crowns.
+ */
+export function topOnLine(g: ScheduledGame, todayEp: number, crownsOf: (ti: number) => Crown[] | null): { ti: number; s: TeamStreak; n: number } | null {
   let best: { ti: number; s: TeamStreak } | null = null;
+  let n = 0;
   for (const { ti, row } of g.sides) {
     for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
-      if (s.dup) continue;
+      if (s.dup || s.rank !== 1) continue;
+      n++;
       if (!best || s.score > best.s.score) best = { ti, s };
     }
   }
-  return best;
+  return best && { ...best, n };
 }

@@ -278,6 +278,7 @@ export default function App({ initial } = {}) {
             board: () => dispatch({ type: 'board' }),
             game: (key) => openGameKey(key, 'games'),
             streak: (b) => openStreak(b, b.ti, 'broken'),
+            allTime: (b) => openStreak({ ...b, scope: 'all', run: null }, null, 'broken all-time'),
             week: (wk) => { dispatch({ type: 'bweek', wk, season }); track('broken week', { wk, season }); },
             year: (se) => { dispatch({ type: 'bweek', wk: null, season: se === P.currentSeason ? null : se }); track('games year', { season: se }); },
             link: linkSection,

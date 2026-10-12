@@ -30,6 +30,10 @@ describe('brokenWeeks', () => {
     }
   });
 
+  test('only a run that led the active field as the week began, or was the all-time longest, is in a digest', () => {
+    for (const w of weeks.values()) for (const b of [...w.list, ...w.more, ...w.dups]) expect(b.rank === 1 || b.len >= b.everLen).toBe(true);
+  });
+
   test('the digest is capped, cut off, sorted best first, and names a team once', () => {
     if (!broken) return;
     expect(broken.list.length).toBeLessThanOrEqual(BROKEN_CAP);
