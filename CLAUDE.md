@@ -1,5 +1,10 @@
 # Project notes for the agent
 
+- Product rules every view follows (Drew's, settled 2026-10-12):
+  - One floor: a streak counts when it leads its field (rank 1, ties included), meaning the longest active or the all-time longest. There's no score floor past the miner's keep floor, and that applies to team pages, streaks broken, the schedule's digests and counts, game pages and Top Streak-Breakers alike. A long list pages with "see more"; it isn't cut. Don't add a score cutoff, a cap or an "of note" filter to a list without asking.
+  - Numbers nest: when two views show related counts, one must be explainable from the other. For example, a game's "N broken" holds every break the streak-breakers page credits the winner for that game (`breakers.test` pins it). Before changing either side of a mismatch, explain why it's there.
+  - Ranks, not scores: the crown score orders lists but is never shown. A ranking shows a place, like SKR (Streak King Rank, with an ⓘ), not points; readers take a method on trust when they can eyeball the result.
+  - Words: a team that ended a streak by winning *broke* it and is a *breaker*, never "stopped"/"stopper".
 - This is a Vite + React static site deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`. It serves at `https://<domain>/<repo-name>/`.
 - `package.json` "name" must equal the GitHub repo name. `vite.config.js` derives the `base` path from it.
 - `site.config.js` holds the domain, title, description, and OG copy. `scripts/prerender.mjs` reads it at build time and writes the meta tags, JSON-LD, sitemap, and the index-site embed script tags into `dist/index.html`, plus one prerendered page per current FBS team at `dist/team/<id>/index.html` with its own OG image.
