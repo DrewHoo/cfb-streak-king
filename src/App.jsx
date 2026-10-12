@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { P, teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase, crownClaim } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
-import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, stoppersUrl } from './lib/url.ts';
+import { parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, breakersUrl } from './lib/url.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
@@ -13,8 +13,8 @@ import { useIsMobile } from './hooks/useIsMobile.js';
 import { useCrowns } from './hooks/useCrowns.ts';
 import { useDigests } from './hooks/useDigests.ts';
 import { useSeason } from './hooks/useSeason.ts';
-import { useStoppers } from './hooks/useStoppers.ts';
-import { StoppersPage, StopperPage } from './components/StoppersPage.jsx';
+import { useBreakers } from './hooks/useBreakers.ts';
+import { BreakersPage, BreakerPage } from './components/BreakersPage.jsx';
 import { useStarred } from './hooks/useStarred.ts';
 import { useShare } from './hooks/useShare.ts';
 import { Dateline } from './components/Dateline.jsx';
@@ -31,14 +31,14 @@ import { Notes, KOFI_URL } from './components/Notes.jsx';
 const BASE = import.meta.env.BASE_URL;
 
 // `initial` seeds state the prerender and the hydrate must agree on (the
-// data keys are not the view's: `crowns`, `seasonRows`, `digests`, `stops`): a
+// data keys are not the view's: `crowns`, `seasonRows`, `digests`, `breaks`): a
 // per-team page (/team/<id>/) starts on that team's page with its crowns
 // ({ active, all }) already loaded; a game page (/game/<date>/<teams>/) on
 // that game with its season's rows; /games/ starts on the schedule, and
 // /games/week/<n>/ on that week.
 export default function App({ initial } = {}) {
-  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.stoppers, i?.stopper ?? null));
-  const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk, stoppers, stopper } = view;
+  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null));
+  const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk, breakers, breaker } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -61,9 +61,9 @@ export default function App({ initial } = {}) {
     return (weeks.find((w) => w.wk === wk)?.games ?? []).map((g) => keyString(g.key));
   }, [game, games, season, bwk]);
   const seasonRows = useSeason(gameSeason, need, initial);
-  // the season's streak-stoppers: all of them on the leaderboard, a team page's own rows on it
-  const stops = useStoppers(stopper != null ? [stopper] : stoppers ? 'all' : page != null ? [page] : [], initial);
-  // a team page opened from the stoppers leaderboard scrolls to its breaks
+  // the season's streak-breakers: all of them on the leaderboard, a team page's own rows on it
+  const breaks = useBreakers(breaker != null ? [breaker] : breakers ? 'all' : page != null ? [page] : [], initial);
+  // a team page opened from the breakers leaderboard scrolls to its breaks
   const [teamFocus, setTeamFocus] = useState(null);
   const star = useStarred(active, dir);
   const { copied, share } = useShare();
@@ -99,14 +99,14 @@ export default function App({ initial } = {}) {
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.stoppers !== stoppers || was.stopper !== stopper);
+    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.breakers !== breakers || was.breaker !== breaker);
     const opened = !!was && (page == null && game == null && team != null && was.team == null);
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
     if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
     if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, run, page, game, games, bwk, season, risk, stoppers, stopper, hydrated]);
+  }, [active, dir, scope, week, team, run, page, game, games, bwk, season, risk, breakers, breaker, hydrated]);
 
   // Closing a panel: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -149,25 +149,25 @@ export default function App({ initial } = {}) {
   }
   function openTeam(ti, from) {
     track('team page', { team: teams[ti].id, from });
-    setTeamFocus(from === 'stoppers' ? 'stops' : null);
+    setTeamFocus(from === 'breakers' ? 'breaks' : null);
     dispatch({ type: 'page', team: ti });
   }
-  function openStoppers(from) {
-    track('stoppers', { from });
-    dispatch({ type: 'stoppers' });
+  function openBreakers(from) {
+    track('breakers', { from });
+    dispatch({ type: 'breakers' });
   }
-  // one team's stopped streaks, their own address
-  function openStopper(ti, from) {
-    track('stoppers', { from, team: teams[ti].id });
-    dispatch({ type: 'stoppers', team: ti });
+  // one team's broken streaks, their own address
+  function openBreaker(ti, from) {
+    track('breakers', { from, team: teams[ti].id });
+    dispatch({ type: 'breakers', team: ti });
   }
-  function shareStopper(ti) {
-    track('share', { stoppers: true, team: teams[ti].id });
-    share(`The streaks ${teams[ti].name} stopped this season`, absoluteUrl(BASE, stoppersUrl(ti)));
+  function shareBreaker(ti) {
+    track('share', { breakers: true, team: teams[ti].id });
+    share(`The streaks ${teams[ti].name} broke this season`, absoluteUrl(BASE, breakersUrl(ti)));
   }
-  function shareStoppers() {
-    track('share', { stoppers: true });
-    share(`Top Streak-Stoppers: the college football teams that broke the most streaks this season`, absoluteUrl(BASE, stoppersUrl()));
+  function shareBreakers() {
+    track('share', { breakers: true });
+    share(`Top Streak-Breakers: the college football teams that broke the most streaks this season`, absoluteUrl(BASE, breakersUrl()));
   }
   // a game's page, from a row that describes it from one team's side
   function openGame(ti, g, from) {
@@ -239,12 +239,12 @@ export default function App({ initial } = {}) {
     <main>
       {page != null ? (
         <TeamPage
-          ti={page} todayEp={todayEp} crowns={crowns} stoppers={stops} focus={teamFocus} isMobile={isMobile} copied={copied}
+          ti={page} todayEp={todayEp} crowns={crowns} breakers={breaks} focus={teamFocus} isMobile={isMobile} copied={copied}
           on={{
             board: () => dispatch({ type: 'board' }),
             team: (ti) => openTeam(ti, 'picker'),
-            stoppers: () => openStoppers('team page'),
-            stopper: (ti) => openStopper(ti, 'team page'),
+            breakers: () => openBreakers('team page'),
+            breaker: (ti) => openBreaker(ti, 'team page'),
             game: (ti, g) => openGame(ti, g, 'team page'),
             streak: (s, ti) => openStreak(s, ti, 'team page'),
             share: shareTeam,
@@ -261,15 +261,15 @@ export default function App({ initial } = {}) {
             share: shareGame,
           }}
         />
-      ) : stopper != null ? (
-        <StopperPage
-          ti={stopper} stoppers={stops} copied={copied}
-          on={{ stoppers: () => openStoppers('stopper'), team: (ti) => openTeam(ti, 'stopper'), streak: (s, ti) => openStreak(s, ti, 'stopper'), share: shareStopper }}
+      ) : breaker != null ? (
+        <BreakerPage
+          ti={breaker} breakers={breaks} copied={copied}
+          on={{ breakers: () => openBreakers('breaker'), team: (ti) => openTeam(ti, 'breaker'), streak: (s, ti) => openStreak(s, ti, 'breaker'), share: shareBreaker }}
         />
-      ) : stoppers ? (
-        <StoppersPage
-          stoppers={stops} copied={copied}
-          on={{ board: () => dispatch({ type: 'board' }), stopper: (ti) => openStopper(ti, 'stoppers'), share: shareStoppers }}
+      ) : breakers ? (
+        <BreakersPage
+          breakers={breaks} copied={copied}
+          on={{ board: () => dispatch({ type: 'board' }), breaker: (ti) => openBreaker(ti, 'breakers'), share: shareBreakers }}
         />
       ) : games ? (
         <GamesPage
@@ -286,7 +286,7 @@ export default function App({ initial } = {}) {
         />
       ) : (
         <>
-          <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} onGames={openGames} onStoppers={() => openStoppers('board')} isMobile={isMobile} />
+          <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} onGames={openGames} onBreakers={() => openBreakers('board')} isMobile={isMobile} />
           <h1>Streak King</h1>
 
           <Sentence

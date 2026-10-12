@@ -610,28 +610,36 @@ tellings" button.
 on its own ("at home at night, 5 since 2019" beside "at night, 10 since 2022"). Drew isn't
 sure it's the right behavior, hence the switch.
 
-## Top Streak-Stoppers
+## Top Streak-Breakers
 
-`/stoppers/`, in the board's place (the trophy button on the board; a team page's breaks section
+`/breakers/`, in the board's place (the trophy button on the board; a team page's breaks section
 links to it). Every team by the streaks it ended by beating their owner in the running season,
 from the miner's broken runs over the full four-chip space.
 
-- A break is a winning run (any margin) ended by a loss to the stopper. A losing streak is its
+- A break is a winning run (any margin) ended by a loss to the breaker. A losing streak is its
   owner's own story: ending one by losing earns nothing. A covering run ended by a miss counts
-  only under the `STOP.covers` flag (off).
+  only under the `BREAK.covers` flag (off).
 - One telling per run: rows are dup-marked per (owner, ender game) the way the game page marks
   them; a sub-streak is in the file and folds under its run, and doesn't count.
-- Category: all-time longest (the run was as long as the longest ever under its definition,
-  `everLen`), led the field (rank 1 as the week began, ties included), other active.
-- Points per break: `STOP.points[category] / (1 + STOP.discount × conditions)`, 10 / 4 / 1 and
-  0.5. The ranking is by points, then breaks; pills re-sort by breaks or all-time breaks.
-- A row opens `/stoppers/<id>/`, the team's stopped streaks: a strip of whose they were (logo and
+- Only two kinds of run count: the all-time longest (as long as the longest ever under its
+  definition, `everLen`) and the longest active (rank 1 as the week began, ties included). Any
+  other live run isn't a break here; it is dropped before the sub-streaks fold, so a leading
+  sub-streak of a run that didn't lead stands on its own.
+- Points per break: `BREAK.points[category] / (1 + BREAK.discount × conditions)`, 10 / 4 and
+  0.5. The page never shows points, only the order they make: SKR, Streak King Rank (an ⓘ says
+  it "measures a team's season by the rarity of the streaks they broke by beating other teams").
+- The leaderboard is dense: a row is the team's logo (no name), its SKR, its streaks broken (the
+  all-time and longest-active counts beneath), a pill per team whose streaks it broke (logo and count), and
+  its biggest break with "all-time longest" or "was longest active streak". Team, SKR and streaks
+  broken are sortable column heads (a second tap reverses).
+- A row opens `/breakers/<id>/`, the team's broken streaks: a strip of whose they were (logo and
   count each, a tap filters the list), then the rows, all-time first then by score (12, the rest
   behind "more"), each with the owner's mark. A team page shows its first six under "Streaks broken
-  this season" with its count, points, rank and a link to the full list.
-- Cards: `share/og.png?stoppers=<season>` (the leaderboard's top seven) and `?stopper=<id>` (a
+  this season" with its count, its SKR and a link to the full list.
+- The page's first address, `/stoppers/` (and `/stoppers/<id>/`), still opens it.
+- Cards: `share/og.png?breakers=<season>` (the leaderboard's top seven) and `?breaker=<id>` (a
   team's top seven breaks), from rows the prerender writes to `dist/share/weekly.json`.
-- The build writes `dist/stoppers/<season>.json` (`StoppersFile`: rows per stopper in the
-  season-file broken-row shape, plus each stopper's rank) and embeds it in the prerendered
+- The build writes `dist/breakers/<season>.json` (`BreakersFile`: rows per breaker in the
+  season-file broken-row shape, plus each breaker's rank) and embeds it in the prerendered
   page; a team page embeds a slice (its own rows, `complete: false`) and fetches the file only
   when a page needs another team.

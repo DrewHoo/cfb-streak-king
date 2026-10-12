@@ -695,55 +695,60 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .subs { margin-left: 28px; padding-left: 10px; border-left: 2px dotted var(--line, rgba(239,230,217,0.12)); }
 .subs .srow-len, .subs .bk-len { color: var(--ink-muted); }
 
-/* Top Streak-Stoppers: the leaderboard of breaks, points first */
-.stp-se { color: var(--ink); }
-.stp-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 18px; padding: 10px 0; border-block: 1px dotted var(--line); }
-.stp-stats span { display: flex; flex-direction: column; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
-.stp-stats b { font-family: 'Graduate', serif; font-weight: 400; font-size: 24px; letter-spacing: 0; line-height: 1.15; color: var(--ink); }
-.stp-alltime-t { color: var(--cream) !important; }
-.stp-leading-t { color: var(--rust) !important; }
-.stp-active-t { color: var(--ink-muted) !important; }
-.stp-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px 0 10px; }
-.stp-sort > span { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-right: 4px; }
+/* Top Streak-Breakers: the leaderboard of breaks, by Streak King Rank */
+.bkr-se { color: var(--ink); }
+.bkr-alltime-t { color: var(--cream) !important; }
+.bkr-leading-t { color: var(--rust) !important; }
 .pill { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; background: transparent; border: 1px solid var(--line); color: var(--ink-muted); padding: 7px 12px; border-radius: 999px; cursor: pointer; }
 .pill:hover { border-color: var(--ink-faint); color: var(--ink); }
 .pill.on { border-color: var(--cream); color: var(--cream); }
-.stp-wrap { overflow-x: auto; }
-.stp-list { display: flex; flex-direction: column; min-width: 760px; }
-.stp-row {
-  display: grid; grid-template-columns: 28px minmax(150px, 1fr) 64px 48px 150px minmax(220px, 2fr) 16px; gap: 0 12px; align-items: center; width: 100%;
-  padding: 9px 0; background: transparent; border: none; border-bottom: 1px dotted var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer;
+/* a row: the logo, SKR, the count (its split beneath), whose streaks, the biggest break */
+.bkr-list { display: flex; flex-direction: column; margin-top: 18px; }
+.bkr-row {
+  display: grid; grid-template-columns: 40px 52px 116px minmax(140px, 1fr) minmax(0, 1.7fr) 8px; gap: 0 12px; align-items: center; width: 100%;
+  padding: 5px 0; background: transparent; border: none; border-bottom: 1px dotted var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
-.stp-row:hover, .stp-row:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
-.stp-row > svg { color: var(--ink-faint); }
-.stp-head { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); border-bottom: 1px solid var(--ink-faint); cursor: default; }
-.stp-head:hover { background: transparent; }
-.stp-rank { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-faint); }
-.stp-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.stp-logo { width: 22px; height: 22px; flex: none; }
-.stp-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stp-pts { font-family: 'Graduate', serif; font-size: 18px; color: var(--cream); text-align: right; }
-.stp-n { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-muted); text-align: right; }
-.stp-split { display: flex; flex-direction: column; gap: 3px; }
-.stp-split small { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.04em; color: var(--ink-faint); }
-.stp-stack { display: flex; height: 8px; border-radius: 2px; overflow: hidden; background: var(--line); }
-.stp-stack i { display: block; height: 100%; }
-.stp-stack .stp-alltime { background: var(--cream); }
-.stp-stack .stp-leading { background: var(--rust); }
-.stp-stack .stp-active { background: var(--ink-faint); }
-.stp-best { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 13.5px; line-height: 1.35; }
-.stp-best small { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.04em; color: var(--ink-faint); }
-.stp-weights { border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; min-width: 420px; }
-.stp-weights th, .stp-weights td { padding: 7px 10px; border-bottom: 1px dotted var(--line); text-align: right; font-weight: 400; }
-.stp-weights thead th { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); border-bottom-style: solid; border-bottom-color: var(--ink-faint); }
-.stp-weights tbody th { text-align: left; font-family: 'Source Serif 4', Georgia, serif; font-size: 13.5px; }
-/* one team's stopped streaks: whose they were, with a count each; a tap filters the list */
-.stp-h1 { display: flex; align-items: center; gap: 12px; }
-.stp-h1 .stp-logo { width: 34px; height: 34px; }
-.stp-vict { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
-.stp-v { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px 4px 5px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; cursor: pointer; }
-.stp-v:hover { border-color: var(--ink-faint); color: var(--ink); }
-.stp-v.on { border-color: var(--cream); color: var(--cream); }
-.stp-v .stp-logo { width: 18px; height: 18px; }
-.stp-v b { font-weight: 600; }
-@media (max-width: 520px) { .stp-stats { grid-template-columns: repeat(3, 1fr); row-gap: 12px; } }
+.bkr-row:hover, .bkr-row:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
+.bkr-row > svg { color: var(--ink-faint); }
+.bkr-head { position: relative; padding: 4px 0 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); border-bottom: 1px solid var(--ink-faint); cursor: default; align-items: end; }
+.bkr-head:hover { background: transparent; }
+.bkr-sort { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.bkr-sort:hover, .bkr-sort:focus-visible { color: var(--ink); outline: none; }
+.bkr-sort.on { color: var(--cream); }
+.bkr-sort i { font-style: normal; margin-left: 3px; }
+.bkr-skrh { display: inline-flex; align-items: center; gap: 4px; }
+.bkr-team { display: flex; align-items: center; }
+.bkr-logo { width: 34px; height: 34px; flex: none; object-fit: contain; }
+.bkr-skr { font-family: 'Graduate', serif; font-size: 20px; color: var(--cream); }
+.bkr-n { display: flex; flex-direction: column; line-height: 1.2; }
+.bkr-n b { font-family: 'IBM Plex Mono', monospace; font-weight: 400; font-size: 15px; color: var(--ink); }
+.bkr-n small, .bkr-best small { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.04em; color: var(--ink-faint); white-space: nowrap; }
+.bkr-vs { display: flex; flex-wrap: wrap; gap: 3px; }
+.bkr-best { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 13.5px; line-height: 1.3; }
+/* whose streaks: a logo and a count each (on a breaker's page, a tap filters the list) */
+.bkr-v { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px 1px 3px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink-muted); font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 1.3; }
+.bkr-v .bkr-vlogo { width: 16px; height: 16px; flex: none; object-fit: contain; }
+.bkr-v b { font-weight: 600; }
+.bkr-vict { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 4px; }
+.bkr-vict .bkr-v { gap: 5px; padding: 4px 8px 4px 5px; font-size: 12px; cursor: pointer; }
+.bkr-vict .bkr-v .bkr-vlogo { width: 18px; height: 18px; }
+.bkr-vict .bkr-v:hover { border-color: var(--ink-faint); color: var(--ink); }
+.bkr-vict .bkr-v.on { border-color: var(--cream); color: var(--cream); }
+.bkr-h1 { display: flex; align-items: center; gap: 12px; }
+.bkr-h1 .bkr-logo { width: 34px; height: 34px; }
+.bkr-note { position: relative; }
+/* an ⓘ: its words on hover, or on a tap; placed against the row or note it sits in */
+.tip { display: inline-flex; vertical-align: middle; }
+.tip-i { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid currentColor; border-radius: 50%; background: none; color: var(--ink-faint); font: italic 600 9px/1 'Source Serif 4', Georgia, serif; letter-spacing: 0; text-transform: none; cursor: pointer; }
+.tip-i:hover, .tip.open .tip-i, .tip-i:focus-visible { color: var(--cream); outline: none; }
+.tip-body { display: none; position: absolute; z-index: 5; left: 0; top: calc(100% + 4px); width: max-content; max-width: min(320px, 100%); padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg-lift); color: var(--ink); font: 13px/1.4 'Source Serif 4', Georgia, serif; letter-spacing: 0; text-transform: none; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.tip.open .tip-body { display: block; }
+@media (hover: hover) { .tip:hover .tip-body { display: block; } }
+@media (max-width: 700px) {
+  .bkr-row { grid-template-columns: 40px 56px 1fr 8px; grid-template-areas: "logo skr n chev" "logo skr vs chev" "best best best chev"; gap: 3px 10px; padding: 7px 0; }
+  .bkr-row > :nth-child(1) { grid-area: logo; } .bkr-row > :nth-child(2) { grid-area: skr; } .bkr-row > :nth-child(3) { grid-area: n; }
+  .bkr-row > :nth-child(4) { grid-area: vs; } .bkr-row > :nth-child(5) { grid-area: best; } .bkr-row > :nth-child(6) { grid-area: chev; }
+  .bkr-n { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+  .bkr-head { grid-template-areas: "logo skr n chev"; }
+  .bkr-head .bkr-vsh, .bkr-head .bkr-besth { display: none; }
+  }

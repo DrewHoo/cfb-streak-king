@@ -43,7 +43,7 @@ const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts'
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
-const { buildStoppers, encodeStoppers, decodeStoppers, stoppersSlice, stopRanking, stopRows, stopCat, stopPoints, STOP_WORDS } = await vite.ssrLoadModule('/src/lib/stoppers.ts')
+const { buildBreakers, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows, breakCat, BREAK_WORDS } = await vite.ssrLoadModule('/src/lib/breakers.ts')
 const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
@@ -65,7 +65,7 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
  * One page: the app rendered with `initial`, and a head whose title,
  * description, canonical and image are the page's own.
  */
-function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests, season, stoppers, shell = false }) {
+function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, shell = false }) {
   // the shell (dist/404.html) carries no markup: the app boots from an empty root on whatever address reached it
   const appHtml = shell ? '' : renderToString(React.createElement(App, { initial }))
   const head = `
@@ -99,7 +99,7 @@ function page({ initial, url, title, description, image, imageAlt, jsonLd, embed
   html = html.replace('</head>', head)
   // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
   const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('stoppers-data', stoppers)}`)
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('breakers-data', breakers)}`)
   return { html, appHtml }
 }
 
@@ -397,79 +397,79 @@ const gameUrls = []
   }
   fs.mkdirSync(path.join(ROOT, 'dist', 'share'), { recursive: true })
   fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'meta.json'), JSON.stringify(meta))
-  // the cards' rows (broken, at-risk, the stoppers) go to dist/share/weekly.json once the stoppers' are in (below)
+  // the cards' rows (broken, at-risk, the breakers) go to dist/share/weekly.json once the breakers' are in (below)
   // the worker's og.png route runs the site's own model; publish the payload it reads
   fs.copyFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), path.join(ROOT, 'dist', 'share', 'payload.json'))
   console.log(`share meta: ${Object.keys(meta.teams).length} teams, ${meta.mascots.length} mascot kinds; payload copied for the og worker`)
 }
 
-// --- the streak-stoppers: the running season's breaks by the team that made them, one file and one page ---
-const stoppers = buildStoppers(minedBroken)
-const stoppersFile = encodeStoppers(stoppers)
-const stopperUrls = []
-fs.mkdirSync(path.join(ROOT, 'dist', 'stoppers'), { recursive: true })
-fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', `${P.currentSeason}.json`), JSON.stringify(stoppersFile))
+// --- the streak-breakers: the running season's breaks by the team that made them, one file and one page ---
+const breakers = buildBreakers(minedBroken)
+const breakersFile = encodeBreakers(breakers)
+const breakerUrls = []
+fs.mkdirSync(path.join(ROOT, 'dist', 'breakers'), { recursive: true })
+fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`), JSON.stringify(breakersFile))
 {
-  const ranking = stopRanking(stoppers)
-  const url = `${SITE}stoppers/`
-  const title = `Top Streak-Stoppers ${P.currentSeason} · ${config.title}`
+  const ranking = breakRanking(breakers)
+  const url = `${SITE}breakers/`
+  const title = `Top Streak-Breakers ${P.currentSeason} · ${config.title}`
   const top = ranking.slice(0, 3).map((s, i) => `${i + 1}. ${teams[s.ti].name} (${s.n})`).join(', ')
   const description = ranking.length
-    ? `The college football teams that broke the most streaks in ${P.currentSeason}: ${top}. Every streak a team ended by beating its owner, weighed by what the run was.`
-    : `The college football teams that break the most streaks: every streak a team ended by beating its owner, weighed by what the run was.`
+    ? `The college football teams that broke the biggest streaks in ${P.currentSeason}, by Streak King Rank: ${top}. Every all-time longest and longest active streak a team ended by beating its owner.`
+    : `The college football teams that break the biggest streaks: every all-time longest and longest active streak a team ended by beating its owner.`
   const { html } = page({
-    initial: { stoppers: true, stops: decodeStoppers(stoppersFile) },
-    stoppers: stoppersFile,
+    initial: { breakers: true, breaks: decodeBreakers(breakersFile) },
+    breakers: breakersFile,
     url, title, description,
-    image: `${SITE}share/og.png?stoppers=${P.currentSeason}`, imageAlt: `The ${P.currentSeason} streak-stoppers, on a dark leaderboard.`,
-    jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-stoppers', url]])] },
+    image: `${SITE}share/og.png?breakers=${P.currentSeason}`, imageAlt: `The ${P.currentSeason} streak-breakers, on a dark leaderboard.`,
+    jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-breakers', url]])] },
   })
-  fs.writeFileSync(path.join(ROOT, 'dist', 'stoppers', 'index.html'), html)
-  // the cards' rows: the leaderboard's top, and each stopper's own top breaks (the worker's og.png?stoppers= and ?stopper=)
-  const stopWords = (b) => `${STOP_WORDS[stopCat(b)]} · was ${rankText(b)} of ${b.field} · ${enderWords(b)}`
-  weekly.stoppers = {
+  fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', 'index.html'), html)
+  // the cards' rows: the leaderboard's top, and each breaker's own top breaks (the worker's og.png?breakers= and ?breaker=)
+  const breakWords = (b) => `${BREAK_WORDS[breakCat(b)]} · ${enderWords(b)}`
+  weekly.breakers = {
     season: P.currentSeason,
     rows: ranking.slice(0, 7).map((s, i) => ({
       count: String(s.n), team: teams[s.ti].id, bad: false,
-      claim: `${i + 1}. ${teams[s.ti].name} · ${(Math.round(s.points * 10) / 10).toFixed(1)} points`,
-      sub: `${s.by.alltime} all-time · ${s.by.leading} led the field · ${s.by.active} other`,
+      claim: `${i + 1}. ${teams[s.ti].name}`,
+      sub: `${s.by.alltime} all-time longest · ${s.by.leading} longest active`,
     })),
   }
-  weekly.stopper = {}
-  // one page per stopper: its stopped streaks, at /stoppers/<id>/, with its own card
+  weekly.breaker = {}
+  // one page per breaker: its broken streaks, at /breakers/<id>/, with its own card
   for (const s of ranking) {
     const t = teams[s.ti]
-    const rows = stopRows(stoppers.teams.get(s.ti) ?? []).filter((b) => !b.dup)
-    weekly.stopper[t.id] = {
-      season: P.currentSeason, name: t.name, n: s.n, points: Math.round(s.points * 10) / 10, rank: stoppers.ranks.get(s.ti) ?? 0,
-      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: stopWords(b) })),
+    const rows = breakRows(breakers.teams.get(s.ti) ?? []).filter((b) => !b.dup)
+    weekly.breaker[t.id] = {
+      season: P.currentSeason, name: t.name, n: s.n, rank: breakers.ranks.get(s.ti) ?? 0,
+      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: breakWords(b) })),
     }
-    const url = `${SITE}stoppers/${t.id}/`
-    const title = `Streaks ${t.name} stopped in ${P.currentSeason} · ${config.title}`
+    const url = `${SITE}breakers/${t.id}/`
+    const title = `Streaks ${t.name} broke in ${P.currentSeason} · ${config.title}`
     const top = rows.slice(0, 3).map((b) => brokenClaim(b))
-    const description = `${t.name} ended ${s.n} streak${s.n === 1 ? '' : 's'} by winning this season, #${stoppers.ranks.get(s.ti)} among streak-stoppers: ${top.join('. ')}.`
+    const description = `${t.name} ended ${s.n} all-time longest or longest active streak${s.n === 1 ? '' : 's'} by winning this season, Streak King Rank #${breakers.ranks.get(s.ti)}: ${top.join('. ')}.`
     // rendered from the decoded file the page embeds (rounded scores and odds), so the hydrate matches
-    const sliceFile = encodeStoppers(stoppersSlice(stoppers, s.ti))
+    const sliceFile = encodeBreakers(breakersSlice(breakers, s.ti))
     const { html } = page({
-      initial: { stoppers: true, stopper: s.ti, stops: decodeStoppers(sliceFile) },
-      stoppers: sliceFile,
+      initial: { breakers: true, breaker: s.ti, breaks: decodeBreakers(sliceFile) },
+      breakers: sliceFile,
       url, title, description,
-      image: `${SITE}share/og.png?stopper=${t.id}`, imageAlt: `The streaks ${t.name} stopped in ${P.currentSeason}, on a dark leaderboard.`,
-      jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-stoppers', `${SITE}stoppers/`], [t.name, url]])] },
+      image: `${SITE}share/og.png?breaker=${t.id}`, imageAlt: `The streaks ${t.name} broke in ${P.currentSeason}, on a dark leaderboard.`,
+      jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-breakers', `${SITE}breakers/`], [t.name, url]])] },
     })
-    const dir = path.join(ROOT, 'dist', 'stoppers', t.id)
+    const dir = path.join(ROOT, 'dist', 'breakers', t.id)
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(path.join(dir, 'index.html'), html)
-    stopperUrls.push(url)
+    breakerUrls.push(url)
   }
   fs.writeFileSync(path.join(ROOT, 'dist', 'share', 'weekly.json'), JSON.stringify(weekly))
-  console.log(`stoppers: ${ranking.length} teams broke a streak in ${P.currentSeason}, ${ranking.reduce((a, s) => a + s.n, 0)} breaks; the page, ${stopperUrls.length} team pages and the file under dist/stoppers/`)
+  console.log(`breakers: ${ranking.length} teams broke a streak in ${P.currentSeason}, ${ranking.reduce((a, s) => a + s.n, 0)} breaks; the page, ${breakerUrls.length} team pages and the file under dist/breakers/`)
 }
 
 // --- one page per current FBS team ---
 const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE, `${SITE}games/`, `${SITE}stoppers/`, ...stopperUrls, ...weekUrls, ...gameUrls]
+const urls = [SITE, `${SITE}games/`, `${SITE}breakers/`, ...breakerUrls, ...weekUrls, ...gameUrls]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]
@@ -482,9 +482,9 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)), stops: decodeStoppers(encodeStoppers(stoppersSlice(stoppers, ti))) },
+    initial: { page: ti, crowns: decodeCrowns(crownsOf(ti)), breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
     embed: crownsOf(ti),
-    stoppers: encodeStoppers(stoppersSlice(stoppers, ti)),
+    breakers: encodeBreakers(breakersSlice(breakers, ti)),
     url,
     title,
     description,

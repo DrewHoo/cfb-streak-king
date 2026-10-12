@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { teams, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, stoppersUrl } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, crownUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl } from './url.ts';
 import type { View } from './url.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -76,16 +76,19 @@ describe('url', () => {
     expect(toUrl({ ...DEFAULT_VIEW, games: true, page: idx('byu') }).path).toBe('team/byu/');
   });
 
-  test('the streak-stoppers leaderboard is /stoppers/, in the board’s place', () => {
-    expect(stoppersUrl()).toMatchObject({ path: 'stoppers/', params: { c: null, t: null } });
-    expect(parseUrl('/cfb-streak-king/stoppers/', '')).toMatchObject({ stoppers: true, games: false, page: null, team: null });
-    expect(parseUrl('/cfb-streak-king/stoppers', '').stoppers).toBe(true);
-    expect(parseUrl('/cfb-streak-king/games/', '').stoppers).toBe(false);
-    expect(toUrl({ ...DEFAULT_VIEW, stoppers: true, page: idx('byu') }).path).toBe('team/byu/');
-    // one team's stopped streaks, its own address
-    expect(stoppersUrl(idx('georgia')).path).toBe('stoppers/georgia/');
-    expect(parseUrl('/cfb-streak-king/stoppers/georgia/', '')).toMatchObject({ stoppers: true, stopper: idx('georgia'), page: null });
-    expect(parseUrl('/cfb-streak-king/stoppers/not-a-team/', '')).toMatchObject({ stoppers: false, stopper: null });
+  test('the streak-breakers leaderboard is /breakers/, in the board’s place', () => {
+    expect(breakersUrl()).toMatchObject({ path: 'breakers/', params: { c: null, t: null } });
+    expect(parseUrl('/cfb-streak-king/breakers/', '')).toMatchObject({ breakers: true, games: false, page: null, team: null });
+    expect(parseUrl('/cfb-streak-king/breakers', '').breakers).toBe(true);
+    expect(parseUrl('/cfb-streak-king/games/', '').breakers).toBe(false);
+    expect(toUrl({ ...DEFAULT_VIEW, breakers: true, page: idx('byu') }).path).toBe('team/byu/');
+    // one team's broken streaks, its own address
+    expect(breakersUrl(idx('georgia')).path).toBe('breakers/georgia/');
+    expect(parseUrl('/cfb-streak-king/breakers/georgia/', '')).toMatchObject({ breakers: true, breaker: idx('georgia'), page: null });
+    expect(parseUrl('/cfb-streak-king/breakers/not-a-team/', '')).toMatchObject({ breakers: false, breaker: null });
+    // the page's first address still opens it
+    expect(parseUrl('/cfb-streak-king/stoppers/', '')).toMatchObject({ breakers: true, breaker: null });
+    expect(parseUrl('/cfb-streak-king/stoppers/georgia/', '')).toMatchObject({ breakers: true, breaker: idx('georgia') });
   });
 
   test('a week of broken streaks is /games/week/<n>/, and round-trips', () => {

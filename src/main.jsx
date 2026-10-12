@@ -1,12 +1,12 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath, gamesFromPath, weekFromPath, riskFromPath, stoppersFromPath, stopperFromPath } from './lib/url.ts'
+import { teamFromPath, gamesFromPath, weekFromPath, riskFromPath, breakersFromPath, breakerFromPath } from './lib/url.ts'
 import { gameFromPath } from './lib/game.ts'
 import { decodeSeason } from './lib/seasonFile.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
 import { decodeDigests } from './lib/digests.ts'
-import { decodeStoppers } from './lib/stoppers.ts'
+import { decodeBreakers } from './lib/breakers.ts'
 import './styles.css'
 
 // The markup is already in the HTML: scripts/prerender.mjs bakes it in at
@@ -22,19 +22,19 @@ const page = game ? null : teamFromPath(window.location.pathname)
 const embedded = document.getElementById('crowns-data')
 const digests = document.getElementById('digests-data')
 const seasonRows = document.getElementById('season-data')
-const stoppers = document.getElementById('stoppers-data')
+const breakers = document.getElementById('breakers-data')
 const initial = {
   page,
   game,
   games: page == null && !game && gamesFromPath(window.location.pathname),
   bwk: page == null && !game ? weekFromPath(window.location.pathname) : null,
   risk: page == null && !game && riskFromPath(window.location.pathname),
-  stoppers: page == null && !game && stoppersFromPath(window.location.pathname),
-  stopper: page == null && !game ? stopperFromPath(window.location.pathname) : null,
+  breakers: page == null && !game && breakersFromPath(window.location.pathname),
+  breaker: page == null && !game ? breakerFromPath(window.location.pathname) : null,
   crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
   seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,
-  stops: stoppers ? decodeStoppers(JSON.parse(stoppers.textContent)) : null,
+  breaks: breakers ? decodeBreakers(JSON.parse(breakers.textContent)) : null,
 }
 
 const root = document.getElementById('root')

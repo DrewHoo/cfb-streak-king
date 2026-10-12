@@ -19,7 +19,7 @@ export const streakWords = (chips) => (chips.length ? chips.map(chipLabel).join(
  * list: the length, the words, then rank, start, odds. `next` adds its next
  * qualifying game, `tag` a word after the field, `lead` a line of its own
  * before the small print (a game page's "passed Georgia's 12"), `mark` a
- * team's logo before the words (whose streak it was, in a list of stops).
+ * team's logo before the words (whose streak it was, in a list of breaks).
  */
 export function StreakRow({ s, onClick, next, tag, lead, mark }) {
   const n = next ? s.next : null;
@@ -44,14 +44,17 @@ export function StreakRow({ s, onClick, next, tag, lead, mark }) {
   );
 }
 
+const byScore = (a, b) => b.score - a.score || b.len - a.len;
+
 /**
  * Each sub-streak (a row flagged dup: a run the team tells at least as long
  * under fewer conditions) under the run it is a sub-streak of: the standing
  * row of the same team and outcome whose conditions are a subset of its own
  * and whose run is no shorter, the nearest one (most conditions, then best
  * score). A sub-streak with no standing ancestor in the list stands itself.
+ * The standing rows come back best score first, or in the caller's `order`.
  */
-export function subsByParent(rows) {
+export function subsByParent(rows, order = byScore) {
   const standing = rows.filter((r) => !r.dup);
   const subs = new Map();
   const loose = [];
@@ -63,7 +66,7 @@ export function subsByParent(rows) {
     if (parent) (subs.get(parent) ?? subs.set(parent, []).get(parent)).push(r);
     else loose.push(r);
   }
-  return { standing: [...standing, ...loose].sort((a, b) => b.score - a.score || b.len - a.len), subs };
+  return { standing: [...standing, ...loose].sort(order), subs };
 }
 
 /**
@@ -87,9 +90,9 @@ export function Subs({ parent, subs, k, open, setOpen, render }) {
  * A list of streaks: the standing rows up to `cap`, then "all N" (or "N
  * more"); each row's sub-streaks folded beneath it. `keyOf` names a row.
  */
-export function Tellings({ rows, cap, all, setAll, render, keyOf, moreWord = 'all' }) {
+export function Tellings({ rows, cap, all, setAll, render, keyOf, moreWord = 'all', order }) {
   const [open, setOpen] = useState(() => new Set());
-  const { standing, subs } = subsByParent(rows);
+  const { standing, subs } = subsByParent(rows, order);
   const list = all ? standing : standing.slice(0, cap);
   return (
     <Fragment>
