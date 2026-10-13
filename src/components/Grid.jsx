@@ -1,17 +1,23 @@
 // The grid: teams as columns, one square per game, newest on top. A column
 // opens its streak's panel; when the run has a qualifying game scheduled,
 // everything above the settled games (count, mark, next opponent) is a second
-// button that opens that game's matchup. When a team is open, desktop splits
-// into panel | grid and a phone puts the panel in the team's slot of the
-// rail, grown to the rail's full width.
+// button that opens that game's matchup. When a team is open, desktop joins
+// its column and the panel in one card in the row, the panel to the column's
+// right (the detail where the eye already is; the later columns wrap on), and
+// ← → move the card to the previous or next column, Escape closes it. A
+// phone keeps the rail as it is, the open column lit and scrolled into view,
+// and puts the panel in a bottom sheet (vaul, the + menu's) over it, so the
+// board stays in sight behind the streak: a shared link lands on the board
+// with the streak rising over it, and a drag down or the × is the way back.
 //
 // Opening and closing animate. On desktop the columns glide from where they
-// were to where the new layout puts them (FLIP, below). On a phone the slot
-// grows out of the 40px column and shrinks back into it while the rail scrolls
-// to it and back, so the neighbours slide away and return rather than snap.
-// The panel stays mounted through the exit (phase machine below).
+// were to where the new layout puts them (FLIP, below), and the card's panel
+// fades in beside its column and out again before the card goes (phase
+// machine below). On a phone the sheet slides; the panel it shows is kept
+// through the slide out.
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Drawer } from 'vaul';
 import { teams } from '../lib/model.ts';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { count, yy, yyOfYear, dirWord, rowKey, dayOf, monthDay, siteWord, kickOf } from '../lib/format.ts';
@@ -24,8 +30,8 @@ const MOBILE_ALLTIME_CAP = 40;
 const EXIT_MS = 280;
 
 // how many columns the rail fits per row: the children sharing the first
-// column's offsetTop. Measured at click time, so the split view's narrower
-// rail counts too.
+// column's offsetTop. Measured at click time, so a row holding a card
+// counts as it is.
 function columnsPerRow(rail) {
   const kids = rail ? [...rail.children].filter((el) => el.classList.contains('colbtn')) : [];
   if (!kids.length) return DESKTOP_CAP;
@@ -104,10 +110,10 @@ function pagePos(el) {
 const measure = (root) => new Map([...root.querySelectorAll('[data-flip]')].map((el) => [el.dataset.flip, pagePos(el)]));
 
 /**
- * Desktop: when the layout changes between the plain grid and panel | grid,
- * every column glides from its old place to its new one. Positions are kept
- * current after each render and on resize, so a later switch starts from the
- * truth.
+ * Desktop: when the layout changes (a card opens, closes or moves to another
+ * column), every column glides from its old place to its new one. Positions
+ * are kept current after each render and on resize, so a later switch starts
+ * from the truth.
  */
 function useColumnGlide(ref, mode) {
   const last = useRef({ pos: null, mode: null });
@@ -164,40 +170,61 @@ function usePanelPhase(curTeam) {
   return [shown, phase];
 }
 
-export function Grid({ rows, curTeam, openKey, onPick, onGame, edgeFor, isMobile, limit, setLimit, week, scope, dir, panel }) {
+export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor, isMobile, limit, setLimit, week, scope, dir, panel }) {
   // a phone shows every active streak; the all-time list runs to thousands,
   // so it grows a chunk at a time there and a full row at a time on desktop
   const cap = isMobile ? (scope === 'all' ? Math.max(limit, MOBILE_ALLTIME_CAP) : rows.length) : limit;
   const visible = rows.slice(0, cap);
   const [shownKey, phase] = usePanelPhase(openKey);
-  const shownTeam = shownKey == null ? null : curTeam;
+  const lastPanel = useRef(null);
+  // the lit column: on desktop the one the panel shows, through its exit; on
+  // a phone the open one, the sheet does its own exit
+  const litKey = isMobile ? openKey : shownKey;
   const railRef = useRef(null);
-  const slotRef = useRef(null);
   const wrapRef = useRef(null);
-  // where the rail was scrolled before a team opened, to return to on close
-  const railHome = useRef(null);
-  useColumnGlide(wrapRef, isMobile ? 'rail' : shownKey == null ? 'grid' : 'split');
+  useColumnGlide(wrapRef, isMobile ? 'rail' : shownKey ?? 'grid');
 
-  // a phone: slide the rail sideways (never the page) so the slot sits at the
-  // left edge with the next columns peeking
+  // desktop: ← → open the previous or next column's streak, Escape closes.
+  // Not while a menu or a field has the keys (a Radix menu claims them first).
+  const viaKey = useRef(false);
   useEffect(() => {
-    // keyed on the shown team, not the phase: the phase flips enter -> open
-    // within two frames and re-running here would cancel the pending slide
-    if (!isMobile || shownKey == null) return;
+    if (isMobile || openKey == null) return;
+    const onKey = (e) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName) || e.target?.isContentEditable) return;
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const i = visible.findIndex((r) => rowKey(r) === openKey);
+      if (i < 0) return;
+      const next = visible[i + (e.key === 'ArrowRight' ? 1 : -1)];
+      if (!next) return;
+      e.preventDefault();
+      viaKey.current = true;
+      onPick(next);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isMobile, openKey, visible, onPick, onClose]);
+
+  // a card reached by the keys is brought into view; a clicked one is already there
+  useEffect(() => {
+    if (isMobile || openKey == null || !viaKey.current) return;
+    viaKey.current = false;
+    wrapRef.current?.querySelector('.card')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [isMobile, openKey]);
+
+  // a phone: bring the open column to the middle of the rail (never the
+  // page), so what the sheet is about shows above it
+  useEffect(() => {
+    if (!isMobile || openKey == null) return;
     const rail = railRef.current;
-    const slot = slotRef.current;
-    if (!rail || !slot) return;
-    railHome.current ??= rail.scrollLeft;
-    return tweenScroll(rail, slot.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft);
-  }, [isMobile, shownKey]);
-
-  // closing on a phone: scroll back to where the rail was as the slot shrinks
-  useEffect(() => {
-    if (!isMobile || phase !== 'exit' || !railRef.current) return;
-    const home = railHome.current ?? 0;
-    railHome.current = null;
-    return tweenScroll(railRef.current, home);
-  }, [isMobile, phase]);
+    const el = rail?.querySelector('.colbtn.hi');
+    if (!rail || !el) return;
+    const left = el.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft - (rail.clientWidth - el.offsetWidth) / 2;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // (optional-chained for jsdom, which has no element scrollTo)
+    rail.scrollTo?.({ left: Math.max(0, left), behavior: reduce ? 'auto' : 'smooth' });
+  }, [isMobile, openKey]);
 
   // the top slot: always on the all-time board, where ended runs fill it with
   // their breaker; on the active board only when some run has a game coming
@@ -205,7 +232,7 @@ export function Grid({ rows, curTeam, openKey, onPick, onGame, edgeFor, isMobile
   // the all-time board marks a live run that's on the line this week with a
   // rust count; on the active board the next-game chip already says so
   const col = (row) => (
-    <Column key={rowKey(row)} flipKey={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === shownKey} onOpen={() => onPick(row)} onGame={onGame} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
+    <Column key={rowKey(row)} flipKey={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === litKey} onOpen={() => onPick(row)} onGame={onGame} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} />
   );
   const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
   const what = scope === 'all' ? 'streaks' : 'teams';
@@ -229,63 +256,65 @@ export function Grid({ rows, curTeam, openKey, onPick, onGame, edgeFor, isMobile
   );
 
   if (isMobile) {
-    // One rail whether or not a team is open, every column in its own cell,
-    // so nothing remounts (and no logo re-decodes) when the panel closes.
-    // The open team's cell is the slot: its column stays under the panel and
-    // cross-fades with it, so it's in place as the slot shrinks back to its
-    // width rather than popping in after.
-    const cell = (row) => {
-      const open = rowKey(row) === shownKey;
-      return (
-        <div key={rowKey(row)} className={open ? 'railslot ' + phase : 'railcell'} ref={open ? slotRef : null}>
-          <div className="railslot-col" inert={open}>{col(row)}</div>
-          {open && <div className="railslot-panel">{panel}</div>}
-        </div>
-      );
-    };
-    // a team opened from elsewhere than the rail (the + menu's kings) gets a
-    // slot of its own at the front; the position is kept so the cells don't move
-    const floating = shownKey != null && !visible.some((r) => rowKey(r) === shownKey)
-      ? <div key="panel" className={'railslot ' + phase} ref={slotRef}><div className="railslot-panel">{panel}</div></div>
-      : null;
     return (
       <div ref={wrapRef}>
-        <div className={'colwrap' + (shownKey != null ? ' is-open' : '')} ref={railRef}>
-          {empty}
-          {floating}
-          {visible.map(cell)}
-          {railMore}
-        </div>
+        <div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>
+        <StreakSheet open={curTeam != null} name={curTeam != null ? teams[curTeam].name : ''} onClose={onClose}>{panel}</StreakSheet>
       </div>
     );
   }
 
-  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>{more}</div>;
+  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}</div>{more}</div>;
 
+  // the open column and the panel, one card in the row; the panel last shown
+  // stays in it through the exit, so it has something to fade out
+  if (panel) lastPanel.current = panel;
+  const card = (row) => (
+    <div key={'card:' + rowKey(row)} className={'card ' + phase}>
+      {col(row)}
+      <div className="card-panel">{panel ?? lastPanel.current}</div>
+    </div>
+  );
+  // a streak opened from elsewhere than the grid (the + menu's kings, a link)
+  // whose column is past "more": its card leads the grid, the column with it
+  const shownRow = rows.find((r) => rowKey(r) === shownKey);
+  const floating = shownRow && !visible.some((r) => rowKey(r) === shownKey) ? card(shownRow) : null;
   return (
-    <div ref={wrapRef} className={'split ' + phase}>
-      <div className="split-panel">{panel}</div>
-      <div className="split-grid">
-        <div className="colwrap" ref={railRef}>{empty}{visible.map(col)}</div>
-        {more}
+    <div ref={wrapRef}>
+      <div className="colwrap" ref={railRef}>
+        {empty}
+        {floating}
+        {visible.map((row) => (rowKey(row) === shownKey ? card(row) : col(row)))}
       </div>
+      {more}
     </div>
   );
 }
 
-// scroll the rail by hand, in step with the slot's width transition: a smooth
-// scrollTo would be clamped by the rail's not-yet-resized content and restart
-// on every call. Returns the cancel.
-function tweenScroll(rail, to) {
-  const from = rail.scrollLeft;
-  const t0 = performance.now();
-  let raf = 0;
-  const step = () => {
-    const t = Math.min(1, (performance.now() - t0) / 320);
-    const eased = 1 - (1 - t) ** 3;
-    rail.scrollLeft = Math.min(from + (to - from) * eased, rail.scrollWidth - rail.clientWidth);
-    if (t < 1) raf = requestAnimationFrame(step);
-  };
-  raf = requestAnimationFrame(step);
-  return () => cancelAnimationFrame(raf);
+// the sheet's two heights: open at the first, the rail's heads still showing
+// above it; dragged up to the second to read a long ledger
+const SHEET_SNAPS = [0.62, 0.94];
+
+/**
+ * A phone's streak panel: a bottom sheet over the board. Closing (a drag
+ * down, the overlay, the panel's ×, Escape) goes through `onClose`, so Back
+ * and the sheet agree; the panel last shown stays in the sheet while it
+ * slides out. Each opening starts at the lower height.
+ */
+function StreakSheet({ open, name, onClose, children }) {
+  const last = useRef(null);
+  if (children) last.current = children;
+  const [snap, setSnap] = useState(SHEET_SNAPS[0]);
+  useEffect(() => { if (open) setSnap(SHEET_SNAPS[0]); }, [open]);
+  return (
+    <Drawer.Root open={open} onOpenChange={(o) => { if (!o) onClose(); }} snapPoints={SHEET_SNAPS} activeSnapPoint={snap} setActiveSnapPoint={setSnap} fadeFromIndex={0}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="sheet-ov" />
+        <Drawer.Content className="sheet streak" aria-describedby={undefined}>
+          <Drawer.Title className="sr-only">{name ? `${name}'s streak` : 'Streak'}</Drawer.Title>
+          <div className="sheet-body">{children ?? last.current}</div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  );
 }

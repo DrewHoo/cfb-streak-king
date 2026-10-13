@@ -292,7 +292,7 @@ export default function App({ initial } = {}) {
           <BaseRate active={active} dir={dir} />
 
           <Grid
-            rows={shown} curTeam={team} openKey={teamRow ? rowKey(teamRow) : null} onPick={pickRow} onGame={(ti, g) => openGame(ti, g, 'column')} edgeFor={edgeFor} isMobile={isMobile}
+            rows={shown} curTeam={team} openKey={teamRow ? rowKey(teamRow) : null} onPick={pickRow} onGame={(ti, g) => openGame(ti, g, 'column')} onClose={() => close({ type: 'close' })} edgeFor={edgeFor} isMobile={isMobile}
             limit={limit} setLimit={(l) => dispatch({ type: 'limit', limit: l })} week={week} scope={scope} dir={dir} panel={panel}
           />
 

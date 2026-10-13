@@ -166,6 +166,47 @@ describe('prerender + hydrate', () => {
     await unmount();
   });
 
+  test('on desktop the open streak is a card in the grid; ← → move it along the columns and Escape closes it', async () => {
+    const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?t=alabama');
+    expect(errors).toEqual([]);
+    const card = root.querySelector('.colwrap .card');
+    expect(card).not.toBeNull();
+    expect(card.querySelector('.colbtn.hi')).not.toBeNull();
+    expect(card.querySelector('.card-panel .panel-name').textContent).toBe('Alabama');
+    const cols = [...root.querySelectorAll('.colwrap > .colbtn, .colwrap > .card')];
+    const at = cols.findIndex((el) => el.classList.contains('card'));
+    const nextName = cols[at + 1].querySelector('.colteam')?.getAttribute('alt');
+    const key = (k) => act(async () => { window.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true })); });
+    await key('ArrowRight');
+    expect(root.querySelector('.card .panel-name').textContent).toBe(nextName);
+    await key('ArrowLeft');
+    expect(root.querySelector('.card .panel-name').textContent).toBe('Alabama');
+    await key('Escape');
+    expect(window.location.search).toBe('');
+    // the card stays for its exit animation, then goes
+    expect(root.querySelector('.card.exit')).not.toBeNull();
+    await act(() => new Promise((r) => setTimeout(r, 350)));
+    expect(root.querySelector('.card')).toBeNull();
+    await unmount();
+  });
+
+  test("on a phone the board hydrates as the board, then a shared streak link opens its sheet over it", async () => {
+    const wide = window.matchMedia;
+    window.matchMedia = (query) => ({ matches: /max-width: 640px/.test(query), media: query, addEventListener() {}, removeEventListener() {} });
+    try {
+      const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?t=alabama');
+      expect(errors).toEqual([]);
+      // the board stays in the page, its column lit; the panel is in the sheet (a portal), not the rail
+      expect(root.querySelector('.colwrap')).not.toBeNull();
+      expect(root.querySelector('.colbtn.hi')).not.toBeNull();
+      expect(root.querySelector('.panel')).toBeNull();
+      expect(document.querySelector('.sheet.streak .panel-name').textContent).toBe('Alabama');
+      await unmount();
+    } finally {
+      window.matchMedia = wide;
+    }
+  });
+
   test('a game page hydrates without a mismatch, played or scheduled, and an old matchup link lands on the game', async () => {
     const played = { ep: 20736, home: teams.findIndex((t) => t.id === 'alabama'), away: teams.findIndex((t) => t.id === 'georgia'), neutral: false };
     const a = await hydrate({ game: played, seasonRows: null }, '/cfb-streak-king/game/2026-10-10/georgia-at-alabama/');

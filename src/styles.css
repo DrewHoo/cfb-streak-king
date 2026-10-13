@@ -175,7 +175,8 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
   border-radius: 4px; cursor: pointer; font: inherit; color: inherit;
 }
 .colbtn:hover, .colbtn:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
-.colbtn.hi { background: rgba(243, 226, 188, 0.08); }
+/* the open column: a lighter fill and a rust ring, the active state the keys move */
+.colbtn.hi { background: rgba(243, 226, 188, 0.1); box-shadow: 0 0 0 1px var(--rust); }
 .colcount { font-family: 'Graduate', serif; font-size: 20px; color: var(--cream); line-height: 1; letter-spacing: -0.02em; }
 .colcount.is-otl { color: var(--rust); }
 .colcount.is-ended { color: var(--ink-muted); }
@@ -240,14 +241,14 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
 .claim { margin: 10px 0 2px; font-size: 15.5px; line-height: 1.45; color: var(--ink); max-width: 420px; }
 .claim-meta { margin: 0 0 4px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); min-height: 15px; }
 .claim-meta .otl { color: var(--rust); }
-/* desktop, a team open: the panel on the left, whatever grid fits on the right */
-.split { display: grid; grid-template-columns: 420px minmax(0, 1fr); gap: 0 36px; margin-top: 18px; border-top: 1px dotted var(--line); padding-top: 14px; align-items: start; }
-.split .panel { margin-top: 0; padding-top: 0; border-top: none; }
-/* the panel fades and slides in from the left, and back out on close */
-.split-panel { transition: opacity 0.26s ease, transform 0.26s ease; }
-.split.enter .split-panel, .split.exit .split-panel { opacity: 0; transform: translateX(-14px); }
-@media (prefers-reduced-motion: reduce) { .split-panel, .railslot, .railslot-col, .railslot-panel { transition: none !important; } }
-.split .colwrap { margin-top: 0; border-top: none; padding-top: 0; }
+/* desktop, a team open: its column and the panel share one card in the row,
+   the panel to the column's right, the later columns wrapping on after it */
+.card { display: flex; align-items: flex-start; gap: 14px; padding: 0 14px 10px 0; border-radius: 6px; background: rgba(243, 226, 188, 0.04); box-shadow: 0 0 0 1px var(--line); }
+.card .panel { margin-top: 0; padding-top: 6px; border-top: none; }
+/* the panel fades and slides out of its column, and back into it on close */
+.card-panel { width: 400px; transition: opacity 0.26s ease, transform 0.26s ease; }
+.card.enter .card-panel, .card.exit .card-panel { opacity: 0; transform: translateX(-14px); }
+@media (prefers-reduced-motion: reduce) { .card-panel { transition: none !important; } }
 .panel-head { display: flex; align-items: center; gap: 9px; }
 .panel-head .colteam { margin-bottom: 0; width: 30px; height: 30px; }
 .panel-id { display: flex; flex-direction: column; line-height: 1.2; }
@@ -304,36 +305,14 @@ footer a { color: var(--ink-muted); }
   .grp { width: 100%; }
   .ledger { max-width: none; }
   /* the grid is a sideways rail: rank order stays left-to-right, the cut-off
-     column at the screen edge is the scroll affordance. The panel renders
-     full-width ABOVE the rail, outside the swipe. */
+     column at the screen edge is the scroll affordance. A team open lights its
+     column; the panel is a sheet over the page (below), not in the rail */
   .colwrap {
     flex-wrap: nowrap; overflow-x: auto; gap: 16px 6px;
     justify-content: flex-start; padding-bottom: 10px;
     scrollbar-width: thin; -webkit-overflow-scrolling: touch;
   }
   .colbtn { flex: none; }
-  /* a team open: the panel takes its slot in the rail at the rail's full
-     width, and the rail can't be swiped until it closes. The slot grows out of
-     the 40px column and shrinks back into it; the panel inside keeps its final
-     width so its text never reflows mid-motion */
-  .colwrap.is-open { overflow-x: hidden; }
-  /* a closed cell is no box at all: its column is the rail's item */
-  .railcell { display: contents; }
-  .railslot-col { flex: none; }
-  .railslot {
-    --slot-w: calc(100vw - 32px);
-    position: relative; flex: none; width: var(--slot-w); overflow: hidden;
-    transition: width 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .railslot.enter, .railslot.exit { width: 40px; }
-  /* the team's own column under the panel: shown while the slot is column-wide */
-  .railslot .railslot-col { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.22s ease; }
-  .railslot-panel { transition: opacity 0.22s ease; }
-  .railslot.enter .railslot-col, .railslot.exit .railslot-col { opacity: 1; }
-  /* closing unmounts the panel, so the column is what gives the slot a height */
-  .railslot.exit .railslot-col { position: static; }
-  .railslot.enter .railslot-panel, .railslot.exit .railslot-panel { opacity: 0; }
-  .railslot .panel { margin-top: 0; padding-top: 0; border-top: none; width: var(--slot-w); }
 }
 
 /* the + menu on a phone: a bottom sheet (vaul) */
@@ -351,6 +330,12 @@ footer a { color: var(--ink-muted); }
 .sheet-body .menu-grp.wrap { padding: 0 14px 6px; gap: 5px; }
 .sheet-body .menu-grp.wrap .menu-h { padding: 10px 4px 2px; }
 .sheet-body .mi.pill { padding: 5px 10px; min-height: 36px; font-size: 12px; }
+/* a streak on a phone: the panel in a taller sheet, the board dimmed behind it */
+/* its height is the top snap point (SHEET_SNAPS in Grid.jsx); vaul slides it to the lower one */
+.sheet.streak { height: 94vh; }
+.sheet.streak .sheet-body { padding: 4px 16px 28px; }
+.sheet.streak .panel { margin-top: 0; padding-top: 0; border-top: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* starred definitions: in the right margin on a wide screen, in the flow above
    What to read next otherwise */
