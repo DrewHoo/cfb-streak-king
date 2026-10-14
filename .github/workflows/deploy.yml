@@ -4,11 +4,13 @@ on:
   push:
     branches: ['main']
   workflow_dispatch:
-  # In-season weekly refresh: Sunday and Friday mornings ET, after Saturday
-  # slates and MACtion. build-current.mjs fetches the current schedules and
-  # AP poll and layers them onto the committed payload base.
+  # In-season refresh: Sunday morning ET after the Saturday slate, Thursday
+  # morning so the at-risk page and its post draft from that morning's lines,
+  # and Friday after MACtion. build-current.mjs fetches the current schedules
+  # and AP poll and layers them onto the committed payload base.
   schedule:
     - cron: '0 14 * * 0,5'
+    - cron: '0 13 * * 4'
 
 permissions:
   contents: read

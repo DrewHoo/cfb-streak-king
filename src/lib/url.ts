@@ -13,6 +13,8 @@
 //   /games/week/<n>/            one week of the running season
 //   /games/<season>/week/<n>/   one week of a past season
 //   /games/at-risk/ the schedule, opened on the week's at-risk streaks
+//   /<slug>/        a named definition's board (landing.ts): the definition's
+//                   canonical address, written whenever the board is on it
 //   ?t=<id>         the board: the team whose streak is open in the panel
 //   ?c=             chips (definition.ts: absent = default, "all" = none)
 //   ?dir=L|U|C|N    losing, undefeated, covering or not covering; winning is
@@ -25,12 +27,14 @@
 
 import type { ChipRef, Dir, Scope } from './types.ts';
 import { P, teams, fbsNow } from './model.ts';
-import { DEFAULT_CHIPS, DEFAULT_SCOPE, chipsFromParam, chipsToParam } from './definition.ts';
+import { DEFAULT_CHIPS, DEFAULT_SCOPE, chipsFromParam, chipsToParam, encodeChips } from './definition.ts';
 import { parseDir } from './outcome.ts';
 import { refsOf } from './minedChips.ts';
 import { gameVs } from './team.ts';
 import { gameFromPath, gamePath, keyOf, seasons } from './game.ts';
 import type { GameKey } from './game.ts';
+import { landingFromPath as landingAt, landingFor } from './landing.ts';
+import type { Landing } from './landing.ts';
 
 export interface View {
   active: ChipRef[];
@@ -106,6 +110,12 @@ export const breakersFromPath = (pathname: string) => {
 };
 /** Whether a path is the schedule, /cfb-streak-king/games/, a season or week of it, or its at-risk streaks. */
 export const gamesFromPath = (pathname: string) => /\/games\/?$/.test(pathname) || weekFromPath(pathname) != null || seasonFromPath(pathname) != null || riskFromPath(pathname);
+/** The named definition at a path like /cfb-streak-king/longest-home-win-streaks/ (landing.ts); null for every other address. */
+export const landingFromPath = (pathname: string): Landing | null => (teamFromPath(pathname) != null || gameFromPath(pathname) || gamesFromPath(pathname) || breakersFromPath(pathname) ? null : landingAt(pathname));
+/** The definition a landing opens on. */
+export const landingView = (l: Landing): Pick<View, 'active' | 'dir' | 'scope'> => ({ active: chipsFromParam(l.c), dir: l.dir, scope: l.scope });
+/** The landing a board is on, when its definition has one. */
+export const landingOf = (v: Pick<View, 'active' | 'dir' | 'scope'>): Landing | null => landingFor(encodeChips(v.active) || 'all', v.dir, v.scope);
 
 // the old matchup address names a game by one team and its opponent: that
 // team's scheduled game against the opponent, else its next game
@@ -125,10 +135,12 @@ export function parseUrl(pathname: string, search: string): View {
   // a link that carries a definition still opens the panel
   const oldPanel = inPath != null && !matchup && ['c', 'dir', 'scope', 'run', 'week'].some((k) => q.has(k));
   const page = oldPanel || game ? null : inPath;
+  // a named definition's path is its definition; a param on it still wins
+  const landing = inPath == null && !game ? landingFromPath(pathname) : null;
   return {
-    active: chipsFromParam(q.get('c')),
-    dir: parseDir(q.get('dir')) ?? 'W',
-    scope: q.get('scope') === 'active' ? 'active' : 'all',
+    active: chipsFromParam(q.get('c') ?? landing?.c ?? null),
+    dir: parseDir(q.get('dir')) ?? landing?.dir ?? 'W',
+    scope: q.get('scope') === 'active' ? 'active' : q.has('scope') ? 'all' : landing?.scope ?? 'all',
     week: q.get('week') === '1',
     // ?team= is from older links still
     team: oldPanel ? inPath : inPath == null ? teamById(q.get('t')) ?? teamById(q.get('team')) : null,
@@ -150,14 +162,16 @@ export interface UrlParts { path: string; params: Record<string, string | null> 
 export function toUrl(v: View): UrlParts {
   // a team page or a game page is its own address; the board's definition stays in memory
   const board = v.page == null && v.game == null && !v.games && !v.breakers;
+  // a board on a named definition is at that definition's path, which says the definition
+  const landing = board ? landingOf(v) : null;
   return {
-    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : '',
+    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : landing ? `${landing.slug}/` : '',
     params: {
       vs: null, // the old matchup param
       t: board && v.team != null ? teams[v.team].id : null,
-      c: board ? chipsToParam(v.active) : null,
-      dir: !board || v.dir === 'W' ? null : v.dir,
-      scope: !board || v.scope === DEFAULT_SCOPE ? null : v.scope,
+      c: board && !landing ? chipsToParam(v.active) : null,
+      dir: !board || landing || v.dir === 'W' ? null : v.dir,
+      scope: !board || landing || v.scope === DEFAULT_SCOPE ? null : v.scope,
       week: board && v.week ? '1' : null,
       run: board && v.scope === 'all' && v.run != null ? String(v.run) : null,
       team: null, // retired params from old links

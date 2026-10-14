@@ -12,15 +12,20 @@ import { chipByKey } from './chips.ts';
 import type { Chip } from './chips.ts';
 import { dirWord, stateName } from './format.ts';
 import { parseDir } from './outcome.ts';
+import { landingFromPath } from './landing.ts';
 
 /** dist/share/meta.json, as the prerender writes it. */
 export interface ShareMeta {
   site: string;
   /** Every ever-major team, id -> name: the "vs [team]" choices and matchup names. */
   teams: Record<string, string>;
+  /** Every other team the payload knows (a never-major opponent), id -> name: a game address can name one. */
+  others?: Record<string, string>;
   mascots: string[];
   colors: string[];
 }
+/** A team's name by id, major or not; null for an id the meta doesn't know. */
+export const teamName = (meta: ShareMeta, id: string): string | null => meta.teams[id] ?? meta.others?.[id] ?? null;
 
 export interface ShareText {
   title: string;
@@ -102,15 +107,15 @@ export function decodeRefs(c: string | null, t: RefTables): { key: string; param
   return out.slice(0, 4);
 }
 
-/** A game's address, /game/<date>/<away>-at-<home>/ (-vs- neutral), as the ids it names; null when it names no two teams the meta knows. */
+/** A game's address, /game/<date>/<away>-at-<home>/ (-vs- neutral), as the ids it names; null when it names no two teams the meta knows (either side may be a never-major team). */
 export function gameFromShare(pathname: string, meta: ShareMeta): { date: string; away: string; home: string; neutral: boolean; key: string } | null {
-  const m = /\/game\/(\d{4}-\d{2}-\d{2})\/([a-z0-9-]+)\/?$/.exec(pathname);
+  const m = /\/game\/(\d{4}-\d{2}-\d{2})\/([a-z0-9:-]+)\/?$/.exec(pathname);
   if (!m) return null;
   const re = /-(at|vs)-/g;
   let x: RegExpExecArray | null;
   while ((x = re.exec(m[2]))) {
     const away = m[2].slice(0, x.index), home = m[2].slice(x.index + x[0].length);
-    if (meta.teams[away] && meta.teams[home]) return { date: m[1], away, home, neutral: x[1] === 'vs', key: `${m[1]}/${m[2]}` };
+    if (teamName(meta, away) && teamName(meta, home)) return { date: m[1], away, home, neutral: x[1] === 'vs', key: `${m[1]}/${m[2]}` };
   }
   return null;
 }
@@ -131,19 +136,34 @@ export function rowWords(r: GameRowWords, meta: ShareMeta): string {
  * it: the score when played, the top runs it ended and the leaders it made.
  */
 export function gameText(g: NonNullable<ReturnType<typeof gameFromShare>>, meta: ShareMeta, score: { home: number; away: number } | null, rows: GameRowWords[]): ShareText {
-  const away = meta.teams[g.away], home = meta.teams[g.home];
+  const away = teamName(meta, g.away) ?? g.away, home = teamName(meta, g.home) ?? g.home;
   const at = g.neutral ? 'vs' : 'at';
+  const when = longDate(g.date);
   const title = score
-    ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`} · ${meta.site}`
-    : `${away} ${at} ${home}, ${g.date} · ${meta.site}`;
+    ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`} (${when}) · ${meta.site}`
+    : `${away} ${at} ${home}, ${when}: streaks on the line · ${meta.site}`;
   const words = (r: GameRowWords) => rowWords(r, meta);
-  const ended = rows.filter((r) => !r.leader).slice(0, 3).map((r) => `${meta.teams[r.team] ?? r.team} ${PAST[r.dir[0]] ?? 'had won'} ${words(r)}`);
-  const led = rows.filter((r) => r.leader).slice(0, 2).map((r) => `${meta.teams[r.team] ?? r.team} now leads: ${words(r)}`);
+  const ended = rows.filter((r) => !r.leader).slice(0, 3).map((r) => `${teamName(meta, r.team) ?? r.team} ${PAST[r.dir[0]] ?? 'had won'} ${words(r)}`);
+  const led = rows.filter((r) => r.leader).slice(0, 2).map((r) => `${teamName(meta, r.team) ?? r.team} now leads: ${words(r)}`);
   const parts = [...ended, ...led];
   const description = score
-    ? (parts.length ? `${parts.join('. ')}. Every streak this game ended, and every field it handed a new leader.` : `${away} ${at} ${home}: no streak that led its field ended here.`)
-    : `Every streak on the line when ${away} play ${at} ${home}, ${g.date}.`;
+    ? (parts.length ? `${parts.join('. ')}. Every streak this college football game ended, and every field it handed a new leader.` : `${away} ${at} ${home}, ${when}: no streak that led its field ended in this college football game.`)
+    : `Every streak on the line when ${away} play ${at} ${home}, ${when}.`;
   return { title, description };
+}
+
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** "Oct 28, 2023" from "2023-10-28". */
+export const longDate = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${MONTHS_SHORT[m - 1] ?? m} ${d}, ${y}`;
+};
+
+/** A past season's schedule head, /games/<season>/ or /games/<season>/week/<n>/ (the prerender writes these pages; this words one the origin lacks). */
+export function pastWeekText(season: number, wk: number | null, meta: ShareMeta): ShareText {
+  return wk != null
+    ? { title: `Week ${wk}, ${season} college football: the games and the streaks they broke · ${meta.site}`, description: `Every Week ${wk} game of the ${season} college football season with a current FBS team, and every streak each one ended.` }
+    : { title: `${season} college football season: every week's games and the streaks they broke · ${meta.site}`, description: `The ${season} college football season week by week: every game with a current FBS team, and the streaks each one ended.` };
 }
 
 const SCOPE = (q: URLSearchParams) => (q.get('scope') === 'active' ? 'active' : 'all-time');
@@ -169,6 +189,15 @@ export function shareText(pathname: string, q: URLSearchParams, meta: ShareMeta)
 
   // the board: only its base path, and only when the URL says something
   if (!/\/$/.test(pathname) || /\/(team|games)\//.test(pathname) || /\/games\/?$/.test(pathname)) return null;
+  // a named definition's page (landing.ts) is prerendered with its own head; a panel open on it reads from its definition
+  const landing = landingFromPath(pathname);
+  if (landing) {
+    if (!['t', 'run', 'week'].some((k) => q.has(k))) return null;
+    q = new URLSearchParams(q);
+    q.set('c', landing.c);
+    q.set('dir', landing.dir);
+    q.set('scope', landing.scope);
+  }
   if (!['c', 'dir', 'scope', 't', 'run', 'week'].some((k) => q.has(k))) return null;
   const words = defWords(q.get('c'), meta) ?? DEFAULT_WORDS;
   const t = q.get('t');

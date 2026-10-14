@@ -714,3 +714,52 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
   .bkr-head { grid-template-areas: "logo skr n chev"; }
   .bkr-head .bkr-vsh, .bkr-head .bkr-besth { display: none; }
   }
+
+/* a named definition's board (landing.ts): a longer h1, and the line under it */
+.landing-h1 { font-size: clamp(26px, 4.6vw, 40px); max-width: 760px; margin-inline: auto; }
+.landing-line { max-width: 640px; margin: 10px auto 0; text-align: center; font-size: 14px; color: var(--ink-muted); }
+
+/* the named definition boards, listed under the grid: real links, so a crawler reaches every one */
+.landings { max-width: 700px; margin: 36px auto 0; }
+.landings h2 { margin-top: 0; }
+.landings-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; margin-top: 10px; }
+.landings-h { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; }
+.landings ul { list-style: none; margin: 0; padding: 0; }
+.landings li { border-bottom: 1px dotted var(--line); }
+.landings a { display: block; padding: 6px 2px; font-size: 13.5px; color: var(--ink-muted); text-decoration: none; }
+.landings a:hover { color: var(--cream); }
+.landings a[aria-current='page'] { color: var(--cream); }
+.landings a[aria-current='page']::before { content: '· '; color: var(--rust); }
+.landings-more { font-size: 13.5px; color: var(--ink-muted); margin: 14px 0 0; }
+.landings-more a { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
+@media (max-width: 640px) { .landings-cols { grid-template-columns: 1fr; } }
+
+/* the weekly posts (/blog/): static pages the prerender writes, no app on them */
+.post { max-width: 640px; margin: 0 auto; }
+.post .tpg-bar { gap: 14px; justify-content: flex-start; }
+.post .crumb { text-decoration: none; }
+.post-h1 { text-align: left; font-size: clamp(28px, 6vw, 42px); margin: 18px 0 6px; }
+.post-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 22px; }
+.post-body { font-size: 16px; line-height: 1.6; color: var(--ink); }
+.post-body p, .post-body ul, .post-body ol, .post-body blockquote { margin: 0 0 16px; }
+.post-body h2 { margin: 32px 0 8px; }
+.post-body h3 { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-muted); margin: 26px 0 6px; }
+.post-body a { color: var(--cream); text-decoration: underline dotted; text-underline-offset: 3px; }
+.post-body a:hover { text-decoration-style: solid; }
+.post-body img { max-width: 100%; height: auto; border-radius: 4px; }
+.post-body blockquote { border-left: 2px solid var(--line); margin-left: 0; padding-left: 14px; color: var(--ink-muted); }
+.post-body code { font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: var(--bg-lift); padding: 1px 5px; border-radius: 3px; }
+.post-body pre { background: var(--bg-lift); padding: 12px 14px; border-radius: 4px; overflow-x: auto; }
+.post-body pre code { background: none; padding: 0; }
+.post-body table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.post-body th, .post-body td { border-bottom: 1px dotted var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.post-body th { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.post-nav { display: flex; justify-content: space-between; gap: 20px; margin-top: 36px; padding-top: 14px; border-top: 1px dotted var(--line); font-size: 13.5px; }
+.post-nav a { color: var(--ink-muted); text-decoration: none; }
+.post-nav a:hover { color: var(--cream); }
+.post-list { list-style: none; margin: 18px 0 0; padding: 0; }
+.post-list li { padding: 12px 0; border-bottom: 1px dotted var(--line); }
+.post-list a { font-size: 18px; color: var(--cream); text-decoration: none; }
+.post-list a:hover { text-decoration: underline dotted; text-underline-offset: 3px; }
+.post-list .post-meta { margin: 2px 0 4px; }
+.post-list p { margin: 0; font-size: 14.5px; color: var(--ink-muted); }

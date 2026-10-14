@@ -158,12 +158,32 @@ describe('prerender + hydrate', () => {
 
   test("an old team link with a definition hydrates as the page, then opens that team's panel on the board", async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
-    const { root, errors, unmount } = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/cfb-streak-king/team/alabama/?c=road');
+    const { root, errors, unmount } = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/cfb-streak-king/team/alabama/?c=night');
     expect(errors).toEqual([]);
     expect(root.querySelector('h1').textContent).toBe('Streak King');
     expect(root.querySelector('.panel-name').textContent).toBe('Alabama');
-    expect(window.location.pathname + window.location.search).toBe('/?c=road&t=alabama');
+    expect(window.location.pathname + window.location.search).toBe('/?c=night&t=alabama');
     await unmount();
+  });
+
+  test("a named definition's page hydrates on its definition, with its own h1, and a panel on it keeps its path", async () => {
+    // the test's base is "/" (vitest's BASE_URL), so the written address has no site prefix
+    const { root, errors, unmount } = await hydrate({ landing: 'longest-home-win-streaks' }, '/longest-home-win-streaks/');
+    expect(errors).toEqual([]);
+    expect(root.querySelector('h1').textContent).toBe('Longest active home win streaks in college football');
+    expect(root.querySelector('.landing-line')).not.toBeNull();
+    expect(root.textContent).toContain('at home');
+    // the list under the grid links every named definition by its address, this one marked
+    expect(root.querySelector('.landings a[aria-current="page"]').getAttribute('href')).toBe('/longest-home-win-streaks/');
+    expect(root.querySelectorAll('.landings a[href^="/longest-"]').length).toBeGreaterThan(20);
+    expect(window.location.pathname + window.location.search).toBe('/longest-home-win-streaks/');
+    // the board arriving at a named definition by an old link lands on its path
+    await unmount();
+    const old = await hydrate({ page: null }, '/?c=road&scope=active&t=alabama');
+    expect(old.errors).toEqual([]);
+    expect(old.root.querySelector('h1').textContent).toBe('Longest active road win streaks in college football');
+    expect(window.location.pathname + window.location.search).toBe('/longest-road-win-streaks/?t=alabama');
+    await old.unmount();
   });
 
   test('on desktop the open streak is a card in the grid; ← → move it along the columns and Escape closes it', async () => {

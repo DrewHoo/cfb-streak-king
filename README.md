@@ -153,7 +153,7 @@ node scripts/data/build-current.mjs    # + in-progress season -> src/data/payloa
 node scripts/data/export-errata.mjs <dir>  # -> the DrewHoo/repole-errata checkout
 node scripts/gen-logos.mjs             # one-color marks -> public/logos/<espnId>.png, color -> public/logos-color/ (then build-current again)
 npm run gen:og                         # og.png, card.png, public/og/team/<id>.png (committed)
-npm run build                          # vite build + prerender (root, 136 team pages, sitemap)
+npm run build                          # vite build + prerender: the board, 24 named definition pages, 136 team pages, every running-season game and week, every past season's weeks, the posts (content/posts/), the sitemap
 ```
 
 The window's first season is `FIRST_SEASON` in `scripts/lib/window.mjs`; the
@@ -161,7 +161,11 @@ client reads it from the payload.
 
 CI runs only `build-current.mjs` (it fetches the current schedule CSV, AP
 poll pages, and CFBD lines, coaches and box scores) before `npm run build`,
-on push and on a twice-weekly cron.
+on push and on a cron three mornings a week in season (Thursday, Friday, Sunday).
+
+Search: `dist/sitemap.xml` lists every prerendered page, and the index site's
+`sitemap-index.xml` (the one registered in Search Console) lists it, from the
+`sitemapUrl` field on this project's card there. `specs/seo.spec.md` is the plan.
 
 ## Not here yet
 

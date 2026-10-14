@@ -38,7 +38,8 @@ export type ViewAction =
   | { type: 'game'; key: GameKey }
   | { type: 'limit'; limit: number | ((l: number) => number) };
 
-export const initialView = (page: number | null = null, games = false, bwk: number | null = null, risk = false, game: GameKey | null = null, season: number | null = null, breakers = false, breaker: number | null = null): ViewState => ({ ...DEFAULT_VIEW, page, game, games, bwk, season, risk, breakers, breaker, limit: DESKTOP_CAP });
+/** The view a page starts on; `def` is a named definition's board (a landing page), else the default definition. */
+export const initialView = (page: number | null = null, games = false, bwk: number | null = null, risk = false, game: GameKey | null = null, season: number | null = null, breakers = false, breaker: number | null = null, def: Partial<Pick<View, 'active' | 'dir' | 'scope'>> = {}): ViewState => ({ ...DEFAULT_VIEW, ...def, page, game, games, bwk, season, risk, breakers, breaker, limit: DESKTOP_CAP });
 
 /** Whether a board row is the one already open. */
 export const isOpen = (v: View, row: BoardRow) => v.team === row.ti && (v.scope !== 'all' || v.run === row.s.start?.ep);

@@ -9,11 +9,15 @@
 //                   dist/share/meta.json, published by the prerender.
 //   /game/<date>/<teams>/, /games/<season>/..., /breakers/<season>/...
 //                   an address the origin has no file for (a past season's
-//                   game, schedule or streak-breakers) is answered with the
-//                   app shell (dist/404.html) as a 200 and, for a game or a
-//                   season's streak-breakers, its own head and card from the
-//                   season file (dist/games/<season>.json); a prerendered
-//                   page passes through with its card.
+//                   game or streak-breakers; a past season's schedule is
+//                   prerendered, so that branch is a fallback) is answered
+//                   with the app shell (dist/404.html) as a 200 and its own
+//                   head, JSON-LD and, for a game or a season's
+//                   streak-breakers, card from the season file
+//                   (dist/games/<season>.json); a prerendered page passes
+//                   through with its card. A named definition's page
+//                   (/longest-home-win-streaks/, landing.ts) is prerendered;
+//                   a panel open on one (?t=) is worded from its definition.
 //   /share/og.png   the definition's board drawn on demand (card.ts): the
 //                   worker fetches the payload the prerender publishes,
 //                   runs the site's own createModel/boards, and renders the
@@ -22,7 +26,8 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords } from '../../src/lib/shareWords.ts';
+import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords, teamName, pastWeekText } from '../../src/lib/shareWords.ts';
+import { landingFromPath } from '../../src/lib/landing.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
 import type { ShareMeta } from '../../src/lib/shareWords.ts';
 import { createModel } from '../../src/lib/createModel.ts';
@@ -101,13 +106,15 @@ function report(ctx: ExecutionContext, request: Request, event: string, props: R
 const urlProps = (url: URL) => {
   const q = url.searchParams;
   const team = /\/team\/([a-z0-9-]+)\/?$/.exec(url.pathname)?.[1] ?? null;
+  // a named definition's path says the definition
+  const landing = landingFromPath(url.pathname);
   return {
     // the shared link as one string, and under Mixpanel's own name so its UI
     // treats it as the event's URL
     url: url.href,
     $current_url: url.href,
     path: url.pathname.replace(BASE, '') || '/',
-    chips: q.get('c'), dir: q.get('dir') ?? 'W', scope: q.get('scope') ?? 'all',
+    chips: q.get('c') ?? landing?.c ?? null, dir: q.get('dir') ?? landing?.dir ?? 'W', scope: q.get('scope') ?? landing?.scope ?? 'all',
     team: q.get('t') ?? team, vs: q.get('vs'),
   };
 };
@@ -425,7 +432,7 @@ async function gameCard(key: string): Promise<Response> {
       bad: r.dir[0] === 'L' || r.dir[0] === 'N', live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?',
     });
   }
-  const away = meta.teams[g.away], home = meta.teams[g.home];
+  const away = teamName(meta, g.away) ?? g.away, home = teamName(meta, g.home) ?? g.home;
   const res = renderCard({
     heading: score ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`}` : `${away} ${g.neutral ? 'vs' : 'at'} ${home}`,
     words: `${g.date} · ${ended ? `${fmtN(ended)} streak${ended === 1 ? '' : 's'} broken` : 'what it put on the line'}`,
@@ -555,7 +562,8 @@ export default {
       // shell, as a 200, and for a game its own head and card
       const meta = await loadMeta();
       const game = gameFromShare(url.pathname, meta);
-      const pastSeason = /\/games\/\d{4}(\/week\/\d{1,2})?\/?$/.test(url.pathname);
+      // a past season's schedule the prerender didn't write (every season since 1936 has pages; this is the fallback)
+      const pastSeason = /\/games\/(\d{4})(?:\/week\/(\d{1,2}))?\/?$/.exec(url.pathname);
       // a past season's streak-breakers (/breakers/<season>/, /breakers/<season>/<id>/), or the page's first address (/stoppers/)
       const bk = /\/(breakers|stoppers)(?:\/(\d{4}))?(?:\/([a-z0-9-]+))?\/?$/.exec(url.pathname);
       if (res.status === 404 && (game || pastSeason || bk)) {
@@ -570,19 +578,23 @@ export default {
           ? gameText(game, meta, gameScore(game, await loadModel()), await gameRows(game.key, game.date))
           : bk
             ? await pastBreakersText(bkSe!, bkId, meta)
-            : { title: `${/\d{4}/.exec(url.pathname)![0]} games · ${meta.site}`, description: `Every game with a current FBS team that season, and the streaks each ended.` };
+            : pastWeekText(Number(pastSeason![1]), pastSeason![2] ? Number(pastSeason![2]) : null, meta);
         const img = game
           ? `${ORIGIN}${BASE}/share/og.png?game=${encodeURIComponent(game.key)}`
           : bk
             ? `${ORIGIN}${BASE}/share/og.png?${bkId ? `breaker=${bkId}&season=${bkSe}` : `breakers=${bkSe}`}`
             : `${ORIGIN}${BASE}/og.png`;
+        const pageUrl = `${ORIGIN}${url.pathname}`;
+        // the shell's JSON-LD describes the root; this page's describes itself
+        const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage', '@id': pageUrl, url: pageUrl, name: text.title, description: text.description, isPartOf: { '@type': 'WebSite', url: `${ORIGIN}/`, name: 'drewhoover.com' } });
         return new HTMLRewriter()
           .on('title', { element(e) { e.setInnerContent(text.title); } })
           .on('meta[name="description"]', content(text.description))
           .on('meta[property="og:title"]', content(text.title))
           .on('meta[property="og:description"]', content(text.description))
-          .on('meta[property="og:url"]', content(`${ORIGIN}${url.pathname}`))
-          .on('link[rel="canonical"]', { element(e) { e.setAttribute('href', `${ORIGIN}${url.pathname}`); } })
+          .on('meta[property="og:url"]', content(pageUrl))
+          .on('link[rel="canonical"]', { element(e) { e.setAttribute('href', pageUrl); } })
+          .on('script[type="application/ld+json"]', { element(e) { e.setInnerContent(jsonLd); } })
           .on('meta[property="og:image"]', content(img))
           .on('meta[name="twitter:image"]', content(img))
           .on('meta[name="twitter:title"]', content(text.title))

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { P, teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
-import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl } from './lib/url.ts';
+import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
+import { landingBySlug } from './lib/landing.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
@@ -25,6 +26,7 @@ import { TeamPage } from './components/TeamPage.jsx';
 import { GamesPage, defaultWeek } from './components/GamesPage.jsx';
 import { GamePage } from './components/GamePage.jsx';
 import { Starred } from './components/Starred.jsx';
+import { Landings } from './components/Landings.jsx';
 import { Notes, KOFI_URL } from './components/Notes.jsx';
 
 const BASE = import.meta.env.BASE_URL;
@@ -34,9 +36,13 @@ const BASE = import.meta.env.BASE_URL;
 // per-team page (/team/<id>/) starts on that team's page with its crowns
 // ({ active, all }) already loaded; a game page (/game/<date>/<teams>/) on
 // that game with its season's rows; /games/ starts on the schedule, and
-// /games/week/<n>/ on that week.
+// /games/week/<n>/ on that week; a landing page (/<slug>/, `landing`) on
+// that named definition's board.
 export default function App({ initial } = {}) {
-  const [view, dispatch] = useReducer(viewReducer, initial, (i) => initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null));
+  const [view, dispatch] = useReducer(viewReducer, initial, (i) => {
+    const l = i?.landing ? landingBySlug.get(i.landing) : null;
+    return initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null, l ? landingView(l) : {});
+  });
   const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk, breakers, breaker } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
@@ -124,6 +130,8 @@ export default function App({ initial } = {}) {
     : null;
   const nextUp = rows.find((r) => r.onTheLine)?.next;
   const weekDay = nextUp ? dayOf(nextUp.ep) : 'Saturday';
+  // the named definition the board is on, when it has a page of its own: its h1 and line
+  const landing = useMemo(() => landingOf({ active, dir, scope }), [active, dir, scope]);
 
   const define = (chips, d) => dispatch({ type: 'define', active: chips, dir: d });
   const on = {
@@ -190,6 +198,12 @@ export default function App({ initial } = {}) {
   function applyStarred(f) {
     define(decodeChips(f.c), f.dir);
     track('apply saved streak', { chips: f.c || 'overall', dir: f.dir });
+  }
+  // a named definition's board, from the list under the grid (its link is the page's address, so a crawler follows it)
+  function openLanding(l) {
+    const v = landingView(l);
+    dispatch({ type: 'streak', chips: v.active, dir: v.dir, scope: v.scope, team: null });
+    track('lead apply', { chips: l.c, dir: l.dir, scope: l.scope, from: 'landing' });
   }
   function shareView(sentence) {
     const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active, dir)}`;
@@ -283,7 +297,8 @@ export default function App({ initial } = {}) {
       ) : (
         <>
           <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} onGames={openGames} onBreakers={() => openBreakers('board')} isMobile={isMobile} />
-          <h1>Streak King</h1>
+          <h1 className={landing ? 'landing-h1' : undefined}>{landing ? landing.h1 : 'Streak King'}</h1>
+          {landing && <p className="landing-line">{landing.description}</p>}
 
           <Sentence
             active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay}
@@ -297,13 +312,14 @@ export default function App({ initial } = {}) {
           />
 
           <Starred starred={star.starred} todayEp={todayEp} onApply={applyStarred} onRemove={star.remove} />
+          <Landings current={landing} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), team: null, run: null, week: false }))} onOpen={openLanding} />
         </>
       )}
 
       <Notes />
 
       <footer>
-        <a href="https://drewhoover.com/">drewhoover.com</a> · data rebuilt weekly in season ·{' '}
+        <a href="https://drewhoover.com/">drewhoover.com</a> · <a href={`${BASE}blog/`}>weekly posts</a> · data rebuilt weekly in season ·{' '}
         <a href="https://github.com/DrewHoo/cfb-streak-king">source & receipts</a> ·{' '}
         <a href={KOFI_URL} onClick={() => track('kofi', { from: 'footer' })}>buy me a coffee</a>
       </footer>

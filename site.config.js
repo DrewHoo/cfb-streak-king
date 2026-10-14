@@ -12,7 +12,7 @@ export default {
   // Meta description and og:description. The first ~155 characters are the
   // search snippet, so the payoff goes first.
   description:
-    'Build your own streak definition — road games, vs ranked, as an underdog — and rank every FBS team by its active winning or losing streak since 1978.',
+    'The longest active and all-time win streaks and losing streaks in college football, under any definition: at home, on the road, vs ranked teams, as an underdog. Every FBS team, every game since 1936, updated weekly.',
 
   // Second line on the OG image. Short.
   ogSubtitle: 'Design a streak. Crown a king.',

@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { P, teams, fbsNow, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf, landingFromPath, landingOf } from './url.ts';
 import type { View } from './url.ts';
+import { LANDINGS } from './landing.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const search = (params: Record<string, string | null>) =>
@@ -131,10 +132,37 @@ describe('url', () => {
   });
 
   test('a broken run’s all-time link is the board under its definition, no team open', () => {
-    const u = boardUrl(['road'], 'W', 'all');
+    const u = boardUrl(['night'], 'W', 'all');
     expect(u.params.t ?? null).toBeNull();
-    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/?c=road');
-    expect(parseUrl('/cfb-streak-king/', '?c=road')).toMatchObject({ scope: 'all', team: null });
+    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/?c=night');
+    expect(parseUrl('/cfb-streak-king/', '?c=night')).toMatchObject({ scope: 'all', team: null });
     expect(hrefOf('/x/', { path: 'games/', params: { a: null, b: '' } })).toBe('/x/games/');
+  });
+
+  test('a named definition is at its own path, and the path is the definition', () => {
+    // the board on a landing's definition writes the landing's path, with no definition params
+    const u = boardUrl(['road'], 'W', 'all');
+    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/longest-road-win-streaks-ever/');
+    expect(hrefOf('/cfb-streak-king/', toUrl({ ...DEFAULT_VIEW, active: [{ key: 'home' }], scope: 'active' }))).toBe('/cfb-streak-king/longest-home-win-streaks/');
+    expect(hrefOf('/cfb-streak-king/', toUrl({ ...DEFAULT_VIEW, active: [], dir: 'L', scope: 'active' }))).toBe('/cfb-streak-king/longest-active-losing-streaks/');
+    // a panel open on one keeps the path and adds the team
+    expect(hrefOf('/cfb-streak-king/', toUrl({ ...DEFAULT_VIEW, active: [{ key: 'home' }], scope: 'active', team: idx('alabama') }))).toBe('/cfb-streak-king/longest-home-win-streaks/?t=alabama');
+    // the path reads back as the definition; a param on it still wins
+    expect(parseUrl('/cfb-streak-king/longest-home-win-streaks/', '')).toMatchObject({ active: [{ key: 'home' }], dir: 'W', scope: 'active', page: null, games: false, breakers: false });
+    expect(parseUrl('/cfb-streak-king/longest-active-losing-streaks/', '?t=alabama')).toMatchObject({ active: [], dir: 'L', scope: 'active', team: idx('alabama') });
+    expect(parseUrl('/cfb-streak-king/longest-active-losing-streaks/', '?dir=W')).toMatchObject({ active: [], dir: 'W', scope: 'active' });
+    expect(landingFromPath('/cfb-streak-king/longest-home-win-streaks/')?.slug).toBe('longest-home-win-streaks');
+    expect(landingFromPath('/cfb-streak-king/team/alabama/')).toBeNull();
+    expect(landingFromPath('/cfb-streak-king/games/')).toBeNull();
+    expect(landingFromPath('/cfb-streak-king/not-a-page/')).toBeNull();
+    // the default definition is the root, not a landing
+    expect(hrefOf('/cfb-streak-king/', toUrl(DEFAULT_VIEW))).toBe('/cfb-streak-king/');
+    expect(landingOf(DEFAULT_VIEW)).toBeNull();
+    // every landing round-trips
+    for (const l of LANDINGS) {
+      const v = parseUrl(`/cfb-streak-king/${l.slug}/`, '');
+      expect(hrefOf('/cfb-streak-king/', toUrl(v))).toBe(`/cfb-streak-king/${l.slug}/`);
+      expect(landingOf(v)?.slug).toBe(l.slug);
+    }
   });
 });

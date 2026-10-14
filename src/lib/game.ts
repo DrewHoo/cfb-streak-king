@@ -30,7 +30,8 @@ export const gamePath = (k: GameKey) => `game/${keyString(k)}/`;
 
 /** The key in a path like /cfb-streak-king/game/2026-10-10/georgia-at-alabama/; null when it doesn't name two teams and a date. */
 export function gameFromPath(pathname: string): GameKey | null {
-  const m = /\/game\/(\d{4}-\d{2}-\d{2})\/([a-z0-9-]+)\/?$/.exec(pathname);
+  // a placeholder team's id carries a colon ("x:sacramentostate"), and its games have pages too
+  const m = /\/game\/(\d{4}-\d{2}-\d{2})\/([a-z0-9:-]+)\/?$/.exec(pathname);
   if (!m) return null;
   const ep = Math.floor(Date.parse(m[1] + 'T00:00:00Z') / 86400000);
   if (!Number.isFinite(ep)) return null;

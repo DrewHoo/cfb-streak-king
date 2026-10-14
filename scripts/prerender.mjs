@@ -15,6 +15,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import config from '../site.config.js'
 import pkg from '../package.json' with { type: 'json' }
+import { readPosts, longDate, rfc822 } from './lib/posts.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SLUG = pkg.name
@@ -48,8 +49,18 @@ const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoa
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
 const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
+const { LANDINGS } = await vite.ssrLoadModule('/src/lib/landing.ts')
+const { landingView } = await vite.ssrLoadModule('/src/lib/url.ts')
+const { activeBoard } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { seasons } = await vite.ssrLoadModule('/src/lib/game.ts')
+const { brokenFromRows } = await vite.ssrLoadModule('/src/components/GamesPage.jsx')
+const { longDate: longIso } = await vite.ssrLoadModule('/src/lib/shareWords.ts')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+const FEED = `${SITE}blog/feed.xml`
+const SEASON = P.currentSeason
+/** "Oct 18, 2026" from an epoch day. */
+const dateOf = (ep) => longIso(isoDate(ep))
 
 const template = fs.readFileSync(OUT, 'utf8')
 // Throw rather than no-op: a Vite change that renames the marker would
@@ -63,16 +74,19 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
 
 /**
  * One page: the app rendered with `initial`, and a head whose title,
- * description, canonical and image are the page's own.
+ * description, canonical and image are the page's own. With `body`, a
+ * static page instead (a post): that markup in the root, the site's styles,
+ * and no app script, so nothing hydrates over it.
  */
-function page({ initial, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, shell = false }) {
+function page({ initial, body, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, shell = false, ogType = 'website' }) {
   // the shell (dist/404.html) carries no markup: the app boots from an empty root on whatever address reached it
-  const appHtml = shell ? '' : renderToString(React.createElement(App, { initial }))
+  const appHtml = body ?? (shell ? '' : renderToString(React.createElement(App, { initial })))
   const head = `
     <meta name="description" content="${esc(description)}" />
     <link rel="canonical" href="${url}" />
+    <link rel="alternate" type="application/rss+xml" title="${esc(config.title)}: weekly posts" href="${FEED}" />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="${ogType}" />
     <meta property="og:site_name" content="${esc(config.domain)}" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(description)}" />
@@ -97,6 +111,12 @@ function page({ initial, url, title, description, image, imageAlt, jsonLd, embed
   let html = template
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
   html = html.replace('</head>', head)
+  // a static page keeps the styles and drops the app: main.jsx would otherwise hydrate the board over it
+  if (body != null) {
+    const before = html
+    html = html.replace(/<script type="module"[^>]*><\/script>\s*/, '')
+    if (html === before) throw new Error('prerender: could not find the app script tag to drop from a static page')
+  }
   // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
   const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
   html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('breakers-data', breakers)}`)
@@ -111,8 +131,29 @@ const webPage = (url, name, description) => ({
   '@type': 'WebPage', '@id': url, url, name, description,
   isPartOf: { '@type': 'WebSite', url: `${ORIGIN}/`, name: config.domain },
 })
+/** A ranked list for a leaderboard page: [name, url?][] in order. */
+const itemList = (name, items) => ({
+  '@type': 'ItemList', name, itemListOrder: 'https://schema.org/ItemListOrderAscending', numberOfItems: items.length,
+  itemListElement: items.map(([item, url], i) => ({ '@type': 'ListItem', position: i + 1, name: item, ...(url ? { url } : {}) })),
+})
+const sportsTeam = (t) => ({ '@type': 'SportsTeam', name: t.name, sport: 'American Football', url: `${SITE}team/${t.id}/` })
+/** A game as an event: its teams, its date, and the score once played. */
+const sportsEvent = (key, url, played) => {
+  const home = teams[key.home], away = teams[key.away]
+  const ev = {
+    '@type': 'SportsEvent', name: `${away.name} ${key.neutral ? 'vs' : 'at'} ${home.name}`, url, sport: 'American Football',
+    startDate: isoDate(key.ep), homeTeam: sportsTeam(home), awayTeam: sportsTeam(away), competitor: [sportsTeam(home), sportsTeam(away)],
+    eventStatus: 'https://schema.org/EventScheduled',
+  }
+  if (played) {
+    const [hs, as] = scoreOf(played)
+    ev.description = `Final: ${home.name} ${hs}, ${away.name} ${as}.`
+  }
+  return ev
+}
 
-// --- the root page ---
+// --- the root page: the default board (its top ten as a list) ---
+const todayEp = todayEpochDay()
 const root = page({
   initial: {},
   url: SITE,
@@ -122,7 +163,11 @@ const root = page({
   imageAlt: config.ogImageAlt,
   jsonLd: {
     '@context': 'https://schema.org',
-    '@graph': [webPage(SITE, config.title, config.description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE]])],
+    '@graph': [
+      webPage(SITE, config.title, config.description),
+      breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE]]),
+      itemList('Longest all-time win streaks vs unranked opponents', allTimeBoard(DEFAULT_CHIPS, 'W', todayEp).slice(0, 10).map((r) => [`${teams[r.ti].name}: ${r.s.len} straight`, `${SITE}team/${teams[r.ti].id}/`])),
+    ],
   },
 })
 fs.writeFileSync(OUT, root.html)
@@ -192,8 +237,8 @@ console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken stre
 // --- the schedule: every scheduled game, by week ---
 {
   const url = `${SITE}games/`
-  const title = `This week's games · ${config.title}`
-  const description = `Every scheduled FBS game, with the line and the streak most on the line in it.`
+  const title = `This week's college football games and the streaks at stake · ${config.title}`
+  const description = `Every scheduled FBS game this week, with the line and the streak most on the line in it; every past week's results and the streaks they broke.`
   const first = currentWeeks.find((w) => w.games.some((g) => g.scheduled))?.wk ?? currentWeeks.at(-1)?.wk
   const slice = seasonSlice(P.currentSeason, weekKeys(first))
   const { html } = page({
@@ -249,11 +294,14 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
     })),
   }
   const url = `${SITE}games/week/${n}/`
-  const title = `Week ${n} games · ${config.title}`
+  const title = broken
+    ? `Streaks broken in Week ${n} of the ${SEASON} college football season · ${config.title}`
+    : `Week ${n} ${SEASON} college football games and the streaks at stake · ${config.title}`
   const top = broken ? broken.list.slice(0, 3).map((b) => brokenClaim(b)) : []
+  const total = broken ? broken.list.length + broken.more.length : 0
   const description = top.length
-    ? `${top.join('. ')}.${broken.list.length > top.length ? ` And ${broken.list.length - top.length} more runs that ended in Week ${n}.` : ''} Week ${n}'s results, and what each game ended.`
-    : `Week ${n}'s college football games and the streaks they put at risk.`
+    ? `${top.join('. ')}.${total > top.length ? ` ${total - top.length} more streaks ended in Week ${n}.` : ''} Every Week ${n} result, and what each game broke.`
+    : `Every Week ${n} college football game of ${SEASON}, with the line and the streaks each puts at risk.`
   const slice = seasonSlice(P.currentSeason, weekKeys(n))
   const { html } = page({
     initial: { games: true, bwk: n, digests, seasonRows: slice.rows },
@@ -266,7 +314,11 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
     imageAlt: broken ? `The streaks broken in Week ${n}, on a dark leaderboard.` : `${config.title}: the default board.`,
     jsonLd: {
       '@context': 'https://schema.org',
-      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${n}`, url]])],
+      '@graph': [
+        webPage(url, title, description),
+        breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`Week ${n}`, url]]),
+        ...(broken ? [itemList(`Streaks broken in Week ${n}, ${SEASON}`, broken.list.slice(0, 10).map((b) => [brokenClaim(b), `${SITE}team/${teams[b.ti].id}/`]))] : []),
+      ],
     },
   })
   const dir = path.join(ROOT, 'dist', 'games', 'week', String(n))
@@ -282,7 +334,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
   if (risk) {
     const { wk } = risk
     const url = `${SITE}games/at-risk/`
-    const title = `Week ${wk} at-risk streaks · ${config.title}`
+    const title = `College football streaks at stake in Week ${wk} (${SEASON}) · ${config.title}`
     const rows = risk.list.map((r) => ({
       count: `${r.s.len}${r.s.atEdge ? '+' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N',
       claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips)}` : ''}`,
@@ -290,7 +342,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
     }))
     weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows, total: risk.list.length + risk.more.length }
     const top = rows.slice(0, 3).map((r) => `${r.claim}, ${r.sub.split(' · ')[0]}`)
-    const description = `${top.join('. ')}. The streaks the week's games can take away, ranked by the odds.`
+    const description = `${top.join('. ')}. Every longest active streak Week ${wk}'s college football games can end, ranked by the odds from the line.`
     const slice = seasonSlice(P.currentSeason, weekKeys(wk))
     const { html } = page({
       initial: { games: true, risk: true, digests, seasonRows: slice.rows },
@@ -303,7 +355,11 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
       imageAlt: `Week ${wk}'s streaks most at risk, on a dark leaderboard.`,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], ['At risk', url]])],
+        '@graph': [
+          webPage(url, title, description),
+          breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], ['At risk', url]]),
+          itemList(`Streaks at stake in Week ${wk}, ${SEASON}`, rows.slice(0, 10).map((r) => [r.claim, `${SITE}team/${r.team}/`])),
+        ],
       },
     })
     const dir = path.join(ROOT, 'dist', 'games', 'at-risk')
@@ -332,22 +388,23 @@ const gameUrls = []
       const at = key.neutral ? 'vs' : 'at'
       const url = `${SITE}${gamePath(key)}`
       let title, description
+      const when = dateOf(key.ep)
       if (item.played) {
         const [hs, as] = scoreOf(item.played)
         const winner = hs > as ? `${home} ${hs}, ${away} ${as}` : as > hs ? `${away} ${as}, ${home} ${hs}` : `${away} ${as}, ${home} ${hs} (tie)`
-        title = `${winner} · ${config.title}`
+        title = `${winner} (${when}) · ${config.title}`
         const top = rows.ended.slice(0, 3).map((b) => `${teams[b.ti].name} ${PAST_ENDED[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`)
         const leaders = rows.leaders.slice(0, 2).map((l) => `${teams[l.ti].name} now leads: ${l.len} straight${marginWords(l.dir)}${l.chips.length ? ` ${wordsOf(l.chips)}` : ''}`)
         description = [...top, ...leaders].length
-          ? `${[...top, ...leaders].join('. ')}. Every streak this game ended, and every field it handed a new leader.`
-          : `${away} ${at} ${home}, ${isoDate(key.ep)}: no streak that led its field ended here.`
+          ? `${[...top, ...leaders].join('. ')}. Every streak this college football game ended, and every field it handed a new leader.`
+          : `${away} ${at} ${home}, ${when}: no streak that led its field ended in this college football game.`
       } else {
         const g = item.scheduled
-        title = `${away} ${at} ${home}, ${monthDay(key.ep)} · ${config.title}`
+        title = `${away} ${at} ${home}, ${when}: streaks on the line · ${config.title}`
         const top = digests.onLine[g.i]
         description = top
-          ? `${teams[top.ti].name} ${PRESENT[baseDir(top.s.dir)]} ${top.s.len}${top.s.atEdge ? '+' : ''} straight${marginWords(top.s.dir)}${top.s.chips.length ? ` ${wordsOf(top.s.chips)}` : ''}. Every streak on the line when ${away} play${key.neutral ? '' : ' at'} ${home}.`
-          : `Every streak on the line when ${away} play ${at} ${home}, ${monthDay(key.ep)}.`
+          ? `${teams[top.ti].name} ${PRESENT[baseDir(top.s.dir)]} ${top.s.len}${top.s.atEdge ? '+' : ''} straight${marginWords(top.s.dir)}${top.s.chips.length ? ` ${wordsOf(top.s.chips)}` : ''}. Every streak on the line when ${away} play${key.neutral ? '' : ' at'} ${home}, ${when}.`
+          : `Every streak on the line when ${away} play ${at} ${home}, ${when}.`
       }
       const { html } = page({
         initial: { game: key, seasonRows: slice.rows },
@@ -359,7 +416,7 @@ const gameUrls = []
         imageAlt: `${away} ${at} ${home}: the streaks it ended, on a dark leaderboard.`,
         jsonLd: {
           '@context': 'https://schema.org',
-          '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`${away} ${at} ${home}`, url]])],
+          '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [`${away} ${at} ${home}`, url]]), sportsEvent(key, url, item.played)],
         },
       })
       const dir = path.join(ROOT, 'dist', gamePath(key))
@@ -396,6 +453,8 @@ const gameUrls = []
   const meta = {
     site: config.title,
     teams: Object.fromEntries(teams.filter((t) => t.major).map((t) => [t.id, t.name])),
+    // a game address can name a never-major opponent; the worker words it from here
+    others: Object.fromEntries(teams.filter((t) => !t.major).map((t) => [t.id, t.name])),
     mascots: P.mascots ?? [],
     colors: P.colors ?? [],
   }
@@ -427,7 +486,14 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
     breakers: breakersFile,
     url, title, description,
     image: `${SITE}share/og.png?breakers=${P.currentSeason}`, imageAlt: `The ${P.currentSeason} streak-breakers, on a dark leaderboard.`,
-    jsonLd: { '@context': 'https://schema.org', '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-breakers', url]])] },
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        webPage(url, title, description),
+        breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Streak-breakers', url]]),
+        itemList(`Top Streak-Breakers ${P.currentSeason}`, ranking.slice(0, 10).map((s) => [`${teams[s.ti].name}: ${s.n} streak${s.n === 1 ? '' : 's'} broken`, `${SITE}breakers/${teams[s.ti].id}/`])),
+      ],
+    },
   })
   fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', 'index.html'), html)
   // the cards' rows: the leaderboard's top, and each breaker's own top breaks (the worker's og.png?breakers= and ?breaker=)
@@ -473,7 +539,6 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
 }
 
 // --- one page per current FBS team ---
-const todayEp = todayEpochDay()
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
 const urls = [SITE, `${SITE}games/`, `${SITE}breakers/`, ...breakerUrls, ...weekUrls, ...gameUrls]
 let teamPages = 0
@@ -481,9 +546,9 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const t = teams[ti]
   const row = board.find((r) => r.ti === ti)
   const url = `${SITE}team/${t.id}/`
-  const title = `${t.name} streaks · ${config.title}`
+  const title = `${t.name} football streaks: every win streak and losing streak it leads · ${config.title}`
   const since = windowStartOf(ti)
-  const tail = `${t.name}'s record, next game, and every streak it leads, active or all-time, under any definition, since ${since}.`
+  const tail = `${t.name}'s record, next game, and every streak it leads in college football, active or all-time, under any definition, since ${since}.`
   const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
@@ -498,7 +563,7 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
     imageAlt: hasImage ? `${t.name}'s longest streaks, on a dark leaderboard.` : config.ogImageAlt,
     jsonLd: {
       '@context': 'https://schema.org',
-      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [t.name, url]])],
+      '@graph': [webPage(url, title, description), breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [t.name, url]]), sportsTeam(t)],
     },
   })
   const dir = path.join(ROOT, 'dist', 'team', t.id)
@@ -509,7 +574,177 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
 }
 console.log(`prerendered ${teamPages} team pages under dist/team/`)
 
-// Sitemap: the root and every team page, with lastmod.
+// --- the named definition pages (landing.ts): the board on each, at its
+// own path, titled the way people search for it; its card is the worker's
+// board card for the definition ---
+{
+  let n = 0
+  for (const l of LANDINGS) {
+    const v = landingView(l)
+    const rows = (v.scope === 'all' ? allTimeBoard(v.active, v.dir, todayEp) : activeBoard(v.active, v.dir, todayEp)).slice(0, 10)
+    const url = `${SITE}${l.slug}/`
+    const title = `${l.h1}${l.scope === 'all' ? ' (since 1936)' : ''} · ${config.title}`
+    const lead = rows[0] ? `${teams[rows[0].ti].name} leads at ${rows[0].s.len}${rows[0].s.atEdge ? '+' : ''}. ` : ''
+    const description = `${lead}${l.description}`
+    const img = new URLSearchParams({ c: l.c })
+    if (l.dir !== 'W') img.set('dir', l.dir)
+    if (l.scope === 'active') img.set('scope', 'active')
+    const { html } = page({
+      initial: { landing: l.slug },
+      url, title, description,
+      image: `${SITE}share/og.png?${img}`,
+      imageAlt: `${l.h1}, on a dark leaderboard.`,
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          webPage(url, title, description),
+          breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [l.h1, url]]),
+          itemList(l.h1, rows.map((r) => [`${teams[r.ti].name}: ${r.s.len}${r.s.atEdge ? '+' : ''} straight`, `${SITE}team/${teams[r.ti].id}/`])),
+        ],
+      },
+    })
+    const dir = path.join(ROOT, 'dist', l.slug)
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, 'index.html'), html)
+    urls.push(url)
+    n++
+  }
+  console.log(`prerendered ${n} named definition pages`)
+}
+
+// --- every past season's schedule, one page per week (/games/<season>/week/<n>/)
+// and one for the season (/games/<season>/, its first week): the week's
+// results and the streaks they broke, from the season file ---
+{
+  let n = 0
+  const PAST_SEASONS = seasons().filter((se) => se !== SEASON)
+  for (const se of PAST_SEASONS) {
+    const weeks = seasonWeeks(se)
+    if (!weeks.length) continue
+    for (const [i, w] of weeks.entries()) {
+      const slice = seasonSlice(se, w.games.map((g) => keyString(g.key)))
+      const broken = brokenFromRows(slice.rows, w)
+      const top = broken ? broken.list.slice(0, 3).map((b) => brokenClaim(b)) : []
+      const total = broken ? broken.list.length + broken.more.length : 0
+      // the season's own address is its first week, rendered as the app opens it (no week in the path)
+      for (const root of i === 0 ? [false, true] : [false]) {
+        const url = root ? `${SITE}games/${se}/` : `${SITE}games/${se}/week/${w.wk}/`
+        const title = root
+          ? `${se} college football season: every week's games and the streaks they broke · ${config.title}`
+          : `Week ${w.wk}, ${se} college football: the games and the streaks they broke · ${config.title}`
+        const description = top.length
+          ? `${top.join('. ')}.${total > top.length ? ` ${total - top.length} more streaks ended in Week ${w.wk} of ${se}.` : ''} Every Week ${w.wk} game with a current FBS team, and what each one broke.`
+          : `Every Week ${w.wk} game of the ${se} college football season with a current FBS team, and the streaks each one ended.`
+        const { html } = page({
+          initial: { games: true, bwk: root ? null : w.wk, season: se, seasonRows: slice.rows },
+          season: slice.file,
+          url, title, description,
+          image: `${SITE}og.png`,
+          imageAlt: config.ogImageAlt,
+          jsonLd: {
+            '@context': 'https://schema.org',
+            '@graph': [
+              webPage(url, title, description),
+              breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Games', `${SITE}games/`], [String(se), `${SITE}games/${se}/`], ...(root ? [] : [[`Week ${w.wk}`, url]])]),
+              ...(broken?.list.length ? [itemList(`Streaks broken in Week ${w.wk}, ${se}`, broken.list.slice(0, 10).map((b) => [brokenClaim(b), `${SITE}team/${teams[b.ti].id}/`]))] : []),
+            ],
+          },
+        })
+        const dir = root ? path.join(ROOT, 'dist', 'games', String(se)) : path.join(ROOT, 'dist', 'games', String(se), 'week', String(w.wk))
+        fs.mkdirSync(dir, { recursive: true })
+        fs.writeFileSync(path.join(dir, 'index.html'), html)
+        urls.push(url)
+        n++
+      }
+    }
+  }
+  console.log(`prerendered ${n} past-season week pages (${PAST_SEASONS.length} seasons)`)
+}
+
+// --- the weekly posts (content/posts/*.md): static pages with the site's
+// styles and no app, an index, and the feed ---
+const posts = readPosts(path.join(ROOT, 'content', 'posts'))
+{
+  const chevron = '<svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M7 1 2 6l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
+  const bar = `<div class="tpg-bar"><a class="crumb" href="${SITE}">${chevron} Streak King</a><a class="crumb" href="${SITE}blog/">All posts</a></div>`
+  const foot = `<footer><a href="${ORIGIN}/">drewhoover.com</a> · <a href="${SITE}">the board</a> · <a href="${SITE}games/">this week's games</a> · <a href="${FEED}">RSS</a></footer>`
+  const person = { '@type': 'Person', name: 'Drew Hoover', url: `${ORIGIN}/` }
+  for (const [i, p] of posts.entries()) {
+    const url = `${SITE}blog/${p.slug}/`
+    const newer = posts[i - 1], older = posts[i + 1]
+    const nav = newer || older
+      ? `<nav class="post-nav">${older ? `<a href="${SITE}blog/${older.slug}/">← ${esc(older.title)}</a>` : '<span></span>'}${newer ? `<a href="${SITE}blog/${newer.slug}/">${esc(newer.title)} →</a>` : ''}</nav>`
+      : ''
+    const body = `<main class="post">${bar}<article><h1 class="post-h1">${esc(p.title)}</h1><p class="post-meta">${longDate(p.date)} · Drew Hoover</p><div class="post-body">${p.html}</div></article>${nav}${foot}</main>`
+    const image = p.image ? (p.image.startsWith('http') ? p.image : `${ORIGIN}${p.image}`) : `${SITE}og.png`
+    const { html } = page({
+      body, url, title: `${p.title} · ${config.title}`, description: p.description, image, imageAlt: config.ogImageAlt, ogType: 'article',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'BlogPosting', '@id': url, url, headline: p.title, description: p.description, datePublished: p.date, dateModified: p.date,
+            author: person, publisher: person, image, mainEntityOfPage: url, isPartOf: { '@type': 'Blog', '@id': `${SITE}blog/`, name: `${config.title}: weekly posts` },
+          },
+          breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Posts', `${SITE}blog/`], [p.title, url]]),
+        ],
+      },
+    })
+    const dir = path.join(ROOT, 'dist', 'blog', p.slug)
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, 'index.html'), html)
+    urls.push(url)
+  }
+  // the index
+  {
+    const url = `${SITE}blog/`
+    const title = `Weekly posts: the streaks at stake, and the ones that broke · ${config.title}`
+    const description = `Every week in season: the college football streaks the coming games put on the line, and the ones the results broke. ${posts.length ? `${posts.length} post${posts.length === 1 ? '' : 's'}, the latest ${longDate(posts[0].date)}.` : 'The first post lands with the season.'}`
+    const list = posts.length
+      ? `<ul class="post-list">${posts.map((p) => `<li><a href="${SITE}blog/${p.slug}/">${esc(p.title)}</a><p class="post-meta">${longDate(p.date)}</p><p>${esc(p.description)}</p></li>`).join('')}</ul>`
+      : `<p class="empty">No posts yet.</p>`
+    const body = `<main class="post">${bar}<h1 class="post-h1">Weekly posts</h1><p class="post-meta">the streaks at stake, and the ones that broke · <a href="${FEED}">RSS</a></p><p class="tpg-note">Thursdays, the streaks the coming week's games put on the line (<a href="${SITE}games/at-risk/">the full list</a>); Sundays, the ones the results broke (<a href="${SITE}games/">by week</a>).</p>${list}${foot}</main>`
+    const { html } = page({
+      body, url, title, description, image: `${SITE}og.png`, imageAlt: config.ogImageAlt,
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          { '@type': 'Blog', '@id': url, url, name: `${config.title}: weekly posts`, description, author: person, blogPost: posts.map((p) => ({ '@type': 'BlogPosting', headline: p.title, url: `${SITE}blog/${p.slug}/`, datePublished: p.date })) },
+          breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Posts', url]]),
+        ],
+      },
+    })
+    fs.mkdirSync(path.join(ROOT, 'dist', 'blog'), { recursive: true })
+    fs.writeFileSync(path.join(ROOT, 'dist', 'blog', 'index.html'), html)
+    urls.push(url)
+  }
+  // the feed
+  const cdata = (s) => `<![CDATA[${String(s).replace(/\]\]>/g, ']]]]><![CDATA[>')}]]>`
+  const items = posts.map((p) => `    <item>
+      <title>${cdata(p.title)}</title>
+      <link>${SITE}blog/${p.slug}/</link>
+      <guid isPermaLink="true">${SITE}blog/${p.slug}/</guid>
+      <pubDate>${rfc822(p.date)}</pubDate>
+      <description>${cdata(p.description)}</description>
+      <content:encoded>${cdata(p.html)}</content:encoded>
+    </item>`).join('\n')
+  fs.writeFileSync(path.join(ROOT, 'dist', 'blog', 'feed.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>${esc(config.title)}: weekly posts</title>
+    <link>${SITE}blog/</link>
+    <atom:link href="${FEED}" rel="self" type="application/rss+xml" />
+    <description>The college football streaks at stake each week, and the ones the results broke.</description>
+    <language>en-us</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+${items}
+  </channel>
+</rss>
+`)
+  console.log(`posts: ${posts.length} under dist/blog/, the index and feed.xml`)
+}
+
+// Sitemap: every prerendered page, with lastmod.
 const lastmod = new Date().toISOString().slice(0, 10)
 fs.writeFileSync(
   path.join(ROOT, 'dist/sitemap.xml'),

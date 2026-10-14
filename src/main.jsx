@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath } from './lib/url.ts'
+import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath } from './lib/url.ts'
 import { gameFromPath } from './lib/game.ts'
 import { decodeSeason } from './lib/seasonFile.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
@@ -33,6 +33,8 @@ const initial = {
   breaker: page == null && !game ? breakerFromPath(window.location.pathname) : null,
   // a past season's schedule or streak-breakers (not prerendered: the app boots on the 404 shell)
   season: page == null && !game ? seasonFromPath(window.location.pathname) ?? breakersSeasonFromPath(window.location.pathname) : null,
+  // a named definition's board (/longest-home-win-streaks/), prerendered on that definition
+  landing: page == null && !game ? landingFromPath(window.location.pathname)?.slug ?? null : null,
   crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
   seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,
