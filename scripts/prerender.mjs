@@ -52,7 +52,7 @@ const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoa
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
 const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
-const { LANDINGS } = await vite.ssrLoadModule('/src/lib/landing.ts')
+const { LANDINGS, leadSentence, leadRows } = await vite.ssrLoadModule('/src/lib/landing.ts')
 const { landingView } = await vite.ssrLoadModule('/src/lib/url.ts')
 const { activeBoard } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { seasons } = await vite.ssrLoadModule('/src/lib/game.ts')
@@ -157,17 +157,19 @@ const sportsEvent = (key, url, played) => {
 
 // --- the root page: the default board (its top ten as a list) ---
 const todayEp = todayEpochDay()
+// the root's title carries the head term; everywhere else config.title is the site's name
+const ROOT_TITLE = `${config.title}: longest winning and losing streaks`
 const root = page({
   initial: {},
   url: SITE,
-  title: config.title,
+  title: ROOT_TITLE,
   description: config.description,
   image: `${SITE}og.png`,
   imageAlt: config.ogImageAlt,
   jsonLd: {
     '@context': 'https://schema.org',
     '@graph': [
-      webPage(SITE, config.title, config.description),
+      webPage(SITE, ROOT_TITLE, config.description),
       breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE]]),
       itemList('Longest all-time win streaks vs unranked opponents', allTimeBoard(DEFAULT_CHIPS, 'W', todayEp).slice(0, 10).map((r) => [`${teams[r.ti].name}: ${r.s.len} straight`, `${SITE}team/${teams[r.ti].id}/`])),
     ],
@@ -594,11 +596,12 @@ console.log(`prerendered ${teamPages} team pages under dist/team/`)
   let n = 0
   for (const l of LANDINGS) {
     const v = landingView(l)
-    const rows = (v.scope === 'all' ? allTimeBoard(v.active, v.dir, todayEp) : activeBoard(v.active, v.dir, todayEp)).slice(0, 10)
+    const board = v.scope === 'all' ? allTimeBoard(v.active, v.dir, todayEp) : activeBoard(v.active, v.dir, todayEp)
+    const rows = board.slice(0, 10)
     const url = `${SITE}${l.slug}/`
-    const title = `${l.h1}${l.scope === 'all' ? ' (since 1936)' : ''} · ${config.title}`
-    const lead = rows[0] ? `${teams[rows[0].ti].name} leads at ${rows[0].s.len}${rows[0].s.atEdge ? '+' : ''}. ` : ''
-    const description = `${lead}${l.description}`
+    const title = `${l.title} (${l.scope === 'all' ? 'since 1936' : SEASON}) · ${config.title}`
+    const lead = leadSentence(l, leadRows(board, (ti) => teams[ti].name))
+    const description = `${lead ? `${lead} ` : ''}${l.description}`
     const img = new URLSearchParams({ c: l.c })
     if (l.dir !== 'W') img.set('dir', l.dir)
     if (l.scope === 'active') img.set('scope', 'active')

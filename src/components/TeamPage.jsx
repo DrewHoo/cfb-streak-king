@@ -154,7 +154,7 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
       <h2 ref={breaksRef}>Streaks broken this season</h2>
       <p className="tpg-note bkr-note">
         {breakSum && breakSum.n > 0
-          ? <>{t.name} ended <b>{breakSum.n}</b> {breakSum.n === 1 ? 'streak' : 'streaks'} by winning: {breakSum.by.alltime} all-time longest, {breakSum.by.leading} longest active.{breakRank != null ? <> <button className="gp-wk" onClick={on.breakers}>Streak King Rank #{breakRank}</button> <SkrInfo /></> : ''} <button className="gp-wk" onClick={() => on.breaker(ti)}>All {breakSum.n} ›</button></>
+          ? <>{t.name} ended <b>{breakSum.n}</b> {breakSum.n === 1 ? 'streak' : 'streaks'} by beating other teams: {breakSum.by.alltime} all-time longest, {breakSum.by.leading} longest active.{breakRank != null ? <> <button className="gp-wk" onClick={on.breakers}>Streak King Rank #{breakRank}</button> <SkrInfo /></> : ''} <button className="gp-wk" onClick={() => on.breaker(ti)}>All {breakSum.n} ›</button></>
           : <>The all-time longest and longest active streaks {t.name} ended by beating their owner.</>}
       </p>
       <div className="tpg-streaks">

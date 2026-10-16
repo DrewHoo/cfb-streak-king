@@ -3,7 +3,7 @@ import { P, teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, toda
 import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
 import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
-import { landingBySlug } from './lib/landing.ts';
+import { landingBySlug, leadSentence, leadRows } from './lib/landing.ts';
 import { viewReducer, initialView, isOpen } from './lib/view.ts';
 import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
@@ -311,7 +311,7 @@ export default function App({ initial } = {}) {
         <>
           <Dateline isStarred={star.isStarred} onStar={star.toggle} onShare={() => shareView()} copied={copied} onTeam={(ti) => openTeam(ti, 'find')} onGames={openGames} onBreakers={() => openBreakers('board')} isMobile={isMobile} />
           <h1 className={landing ? 'landing-h1' : undefined}>{landing ? landing.h1 : 'Streak King'}</h1>
-          {landing && <p className="landing-line">{landing.description}</p>}
+          {landing && <p className="landing-line">{leadSentence(landing, leadRows(rows, (ti) => teams[ti].name))} {landing.description}</p>}
 
           <Sentence
             active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay}

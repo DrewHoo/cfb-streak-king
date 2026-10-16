@@ -126,7 +126,7 @@ describe('prerender + hydrate', () => {
     const slice = { ...breakers, complete: false };
     const b = await hydrate({ page: uga, crowns: { active: [], all: [] }, breaks: slice }, '/cfb-streak-king/team/georgia/');
     expect(b.html).toContain('Streaks broken this season');
-    expect(b.html.replace(/<[^>]+>/g, '')).toContain('Georgia ended 1 streak by winning');
+    expect(b.html.replace(/<[^>]+>/g, '')).toContain('Georgia ended 1 streak by beating other teams');
     expect(b.html).toContain('show 1 sub-streak');
     expect(b.html.replace(/<[^>]+>/g, '')).toContain('Streak King Rank #1');
     expect(b.html).toContain('bk-logo'); // whose streak it was, in the schedule's row
