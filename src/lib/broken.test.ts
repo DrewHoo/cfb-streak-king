@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { brokenWeeks, completedWeeks, brokenClaim, everText, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
+import { brokenWeeks, brokenDigest, completedWeeks, brokenClaim, everText, BROKEN_CAP, BROKEN_CUTOFF } from './broken.ts';
+import { LIST } from './list.ts';
 import { mineBroken } from './crowns.ts';
 import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { qualifies } from './chips.ts';
@@ -12,7 +13,8 @@ const weekIdx = (ep: number) => Math.floor((ep - 5) / 7);
 
 const weeks = brokenWeeks(await mineBroken());
 const lastWk = completedWeeks().at(-1)?.wk ?? null;
-const broken = lastWk == null ? null : weeks.get(lastWk) ?? null;
+// the last week's digest as the page shows it: the list rule over the build's rows
+const broken = lastWk == null || !weeks.get(lastWk) ? null : brokenDigest(weeks.get(lastWk)!);
 const allRows = broken ? [...broken.list, ...broken.more] : [];
 
 describe('brokenWeeks', () => {
@@ -30,8 +32,11 @@ describe('brokenWeeks', () => {
     }
   });
 
-  test('only a run that led the active field as the week began, or was the all-time longest, is in a digest', () => {
-    for (const w of weeks.values()) for (const b of [...w.list, ...w.more, ...w.dups]) expect(b.rank === 1 || b.len >= b.everLen).toBe(true);
+  test('only a run the list rule admits (its place within the admit knob as the week began, or the all-time longest) is in a digest', () => {
+    for (const w of weeks.values()) {
+      const d = brokenDigest(w);
+      for (const b of [...d.list, ...d.more, ...d.subStreaks]) expect(b.rank <= LIST.admit.rank || b.len >= b.everLen).toBe(true);
+    }
   });
 
   test('the digest is capped, cut off, sorted best first, and names a team once', () => {
@@ -79,7 +84,7 @@ describe('brokenWeeks', () => {
     }
   });
 
-  test('one telling per broken run: no two rows share a team, direction, ender, start and length; a different run the same game ended stands', () => {
+  test('one placing per broken run: no two rows share a team, direction, ender, start and length; a different run the same game ended stands', () => {
     if (!broken) return;
     const keys = allRows.map((b) => `${b.ti}|${b.dir}|${b.ender.i}|${b.run}|${b.len}`);
     expect(new Set(keys).size).toBe(keys.length);
@@ -103,7 +108,7 @@ describe('brokenWeeks', () => {
     for (const w of list.filter((x) => x.wk != null)) {
       const d = weeks.get(w.wk!)!;
       expect(d.wk).toBe(w.wk);
-      for (const b of d.list) {
+      for (const b of d.rows) {
         expect(b.ender.ep).toBeGreaterThanOrEqual(w.lo);
         expect(b.ender.ep).toBeLessThanOrEqual(w.hi);
         expect(b.len).toBeGreaterThanOrEqual(LEN_FLOOR);

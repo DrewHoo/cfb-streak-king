@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { buildBreakers, breakersFromSeason, rankOrder, breakCat, breakPoints, breakSummary, breakRanking, breakRows, encodeBreakers, decodeBreakers, breakersSlice, BREAK } from './breakers.ts';
+import { buildBreakers, breakersFromSeason, rankOrder, breakCat, breakPoints, breakSummary, breakRanking, breakRows, listBreaks, encodeBreakers, decodeBreakers, breakersSlice, BREAK } from './breakers.ts';
+import { listBroken } from './broken.ts';
 import { mineBroken, HIST_CHIPS } from './crowns.ts';
 import { buildSeasons } from './seasons.ts';
 import { keyOf, keyString } from './game.ts';
@@ -29,20 +30,21 @@ describe('breakers', () => {
 
   test('only the all-time longest and the field leaders count; the all-time longest first, each by score; a sub-streak sits behind its run', () => {
     const order = { alltime: 0, leading: 1 };
-    for (const rows of breakers.teams.values()) {
+    for (const raw of breakers.teams.values()) {
+      const rows = listBreaks(raw);
       for (const b of rows) expect(breakCat(b)).not.toBeNull();
       for (let i = 1; i < rows.length; i++) {
         const a = rows[i - 1], b = rows[i];
         expect(order[breakCat(a)!] <= order[breakCat(b)!]).toBe(true);
         if (breakCat(a) === breakCat(b)) expect(a.score).toBeGreaterThanOrEqual(b.score);
       }
-      for (const b of rows) if (b.dup) expect(rows.some((o) => !o.dup && o.ti === b.ti && o.dir === b.dir && o.len >= b.len && o.chips.length < b.chips.length && o.chips.every((k) => b.chips.includes(k)))).toBe(true);
+      for (const b of rows) if (b.subStreak) expect(rows.some((o) => !o.subStreak && o.ti === b.ti && o.dir === b.dir && o.len >= b.len && o.chips.length < b.chips.length && o.chips.every((k) => b.chips.includes(k)))).toBe(true);
     }
   });
 
   test('a category re-derives from the games: the longest ever under the definition, else the field leader', () => {
     for (const s of ranking.slice(0, 3)) {
-      for (const b of breakRows(breakers.teams.get(s.ti)!).filter((x) => !x.dup).slice(0, 4)) {
+      for (const b of breakRows(listBreaks(breakers.teams.get(s.ti)!)).filter((x) => !x.subStreak).slice(0, 4)) {
         const chips = b.chips.map((k) => minedChipByKey.get(k)!);
         let ever = 0;
         for (let ti = 0; ti < teams.length; ti++) {
@@ -63,8 +65,8 @@ describe('breakers', () => {
     expect(breakPoints({ ...b, everLen: 12, rank: 3, chips: [] })).toBe(0);
     const top = ranking[0];
     if (!top) return;
-    const rows = breakRows(breakers.teams.get(top.ti)!);
-    const standing = rows.filter((r) => !r.dup);
+    const rows = breakRows(listBreaks(breakers.teams.get(top.ti)!));
+    const standing = rows.filter((r) => !r.subStreak);
     expect(top.n).toBe(standing.length);
     expect(top.points).toBeCloseTo(standing.reduce((a, r) => a + breakPoints(r), 0));
     expect(top.by.alltime + top.by.leading).toBe(top.n);
@@ -80,12 +82,12 @@ describe('breakers', () => {
     if (!season) return;
     const id = (b: { ti: number; dir: string; chips: string[] }) => `${b.ti}|${b.dir}|${b.chips.join('+')}`;
     for (const rows of breakers.teams.values()) {
-      for (const b of breakRows(rows)) {
+      for (const b of breakRows(listBreaks(rows))) {
         const game = season.games.get(keyString(keyOf(b.ti, b.ender)));
         expect(game).toBeDefined();
-        const same = game!.ended.find((x) => id(x) === id(b));
+        const same = listBroken(game!.ended).find((x) => id(x) === id(b));
         expect(same).toBeDefined();
-        expect(same!.dup).toBe(b.dup); // one telling per run on both pages, so the standing counts nest
+        expect(same!.subStreak).toBe(b.subStreak); // one row per run on both pages, so the standing counts nest
       }
     }
   });
@@ -97,7 +99,7 @@ describe('breakers', () => {
     const ranking = breakRanking(past);
     expect(ranking.length).toBeGreaterThan(0);
     for (const [breaker, rows] of past.teams) {
-      for (const b of rows) {
+      for (const b of listBreaks(rows)) {
         expect(b.ender.oppIdx).toBe(breaker);
         expect(b.ender.se).toBe(se);
         expect(breakCat(b)).not.toBeNull();
@@ -126,7 +128,7 @@ describe('breakers', () => {
     for (const [ti, rows] of breakers.teams) {
       const got = back.teams.get(ti)!;
       expect(got.length).toBe(rows.length);
-      got.forEach((g, i) => expect(g).toMatchObject({ ti: rows[i].ti, chips: rows[i].chips, dir: rows[i].dir, len: rows[i].len, everLen: rows[i].everLen, everN: rows[i].everN, dup: rows[i].dup }));
+      got.forEach((g, i) => expect(g).toMatchObject({ ti: rows[i].ti, chips: rows[i].chips, dir: rows[i].dir, len: rows[i].len, everLen: rows[i].everLen, everN: rows[i].everN, hT: rows[i].hT, nT: rows[i].nT }));
     }
     expect(back.ranks).toEqual(breakers.ranks);
     const top = ranking[0];

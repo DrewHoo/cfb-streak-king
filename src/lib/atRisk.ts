@@ -3,18 +3,22 @@
 // says how far past chance it sits; the line says how likely the game is to
 // end it; the stake is the product, the bits of streak expected to die.
 // Alabama's run at home as a 38-point favorite scores well and risks nothing,
-// so it sinks; a run carried into a pick'em floats.
+// so it sinks; a run carried into a pick'em floats. The build keeps the rows
+// (digests.ts); the page scores and orders them with the list rule, which
+// the stake weights.
 //
 // The chance comes from the line alone: our margin is normal around the
 // negated spread with SPREAD_SIGMA points of noise, the usual figure for a
 // college game. A covering or not-covering streak is a coin flip by
 // construction. A game without a line can't be ranked and stays out.
 
-import type { Crown, Dir, UpcomingRow } from './types.ts';
+import type { Dir, MinedCrown, UpcomingRow } from './types.ts';
 import { baseDir, marginOf } from './outcome.ts';
 import { teamStreaks, streaksOn } from './team.ts';
-import type { ScheduledGame, TeamStreak } from './team.ts';
+import type { ScheduledGame, TeamRun, TeamStreak } from './team.ts';
 import { digestOf } from './broken.ts';
+import { CTX, LIST, admitted, finish, coveredByStricterOutcome, markSubStreaksByTeam, pick } from './list.ts';
+import type { Knobs, RankContext } from './list.ts';
 
 export const SPREAD_SIGMA = 13.5;
 export const AT_RISK_CAP = 6;
@@ -47,53 +51,72 @@ export function pBreak(dir: Dir, sp: number | null): number | null {
   }
 }
 
-export interface AtRisk {
+/** One streak a lined game puts on the line, as the build keeps it. */
+export interface AtRiskInput {
   ti: number;
-  s: TeamStreak;
+  s: TeamRun;
   game: ScheduledGame;
   /** The game from the team's side. */
   row: UpcomingRow;
   /** The chance the game ends the streak. */
   p: number;
+}
+/** The same on the page: scored, with what the game can take. */
+export interface AtRisk extends Omit<AtRiskInput, 's'> {
+  s: TeamStreak;
   /** score × p: the bits of streak the game is expected to take. */
   stake: number;
-  /** The streak's own flag: a shorter telling of one of the team's other runs. */
-  dup: boolean;
+  /** The streak's own flag: a sub-streak of one of the team's other runs at risk. */
+  subStreak: boolean;
 }
 
+export interface AtRiskRows { rows: AtRiskInput[] }
 export interface AtRiskWeek {
   list: AtRisk[];
   more: AtRisk[];
-  /** The shorter tellings (dup), behind their own button. */
-  dups: AtRisk[];
+  /** The sub-streaks (subStreak), behind their own button. */
+  subStreaks: AtRisk[];
 }
 
 /**
- * The streaks on the line in these games, the most at stake first: one row
- * per streak (a team's run appears once, with its game), the top AT_RISK_CAP
- * in `list`, one per team, and the rest in `more` (no floor: every longest
- * active streak a lined game puts on the line).
- * Streaks are the team page's: `crownsOf` gives each team's active crowns.
+ * The streaks on the line in these games, as the build keeps them: every run
+ * a crowns file carries that a lined game puts on the line, once (a team's
+ * run appears once, with its game). `crownsOf` is each team's runs from its
+ * file.
  */
-export function atRiskWeek(games: ScheduledGame[], todayEp: number, crownsOf: (ti: number) => Crown[] | null): AtRiskWeek {
-  const rows: AtRisk[] = [];
+export function atRiskRows(games: ScheduledGame[], todayEp: number, crownsOf: (ti: number) => MinedCrown[] | null): AtRiskRows {
+  const rows: AtRiskInput[] = [];
+  const seen = new Set<string>();
   for (const game of games) {
     for (const { ti, row } of game.sides) {
       for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
-        if (s.rank !== 1) continue; // only the longest active (the all-time longest leads the field too)
         const p = pBreak(s.dir, row.sp);
         if (p == null) continue;
-        rows.push({ ti, s, game, row, p, stake: s.score * p, dup: s.dup });
+        // a run once, whichever of the team's games this week it rides on: the same games, under the same words
+        const k = `${ti}|${s.dir}|${s.len}|${s.startSe}|${s.endSe}|${s.chips.join('+')}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        rows.push({ ti, s, game, row, p });
       }
     }
   }
+  return { rows };
+}
+
+/**
+ * The week's at-risk digest from its rows: the admitted runs under their picked definition,
+ * scored by the list rule, the most at stake first, the top AT_RISK_CAP in
+ * `list`, one per team, and the rest in `more` (no floor).
+ */
+export function atRiskWeek(at: AtRiskRows, ctx: RankContext = CTX, w: Knobs = LIST): AtRiskWeek {
+  const all = at.rows.filter((r) => admitted(r.s, w)).map((r) => ({ ...r, s: finish(pick(r.s, w), ctx, w) }));
+  // what a team's own list drops too: a run another of its rows covers with a stricter outcome (undefeated by winning, plain by its margin)
+  const runs = all.map((r) => ({ ...r.s, ti: r.ti }));
+  const shown = all.filter((r) => !coveredByStricterOutcome({ ...r.s, ti: r.ti }, runs));
+  // the group reads the streak's words: each team's rows flagged against its own
+  const flags = markSubStreaksByTeam(shown.map((r, i) => ({ i, ti: r.ti, chips: r.s.chips, dir: r.s.dir, len: r.s.len, scope: r.s.scope, startSe: r.s.startSe, endSe: r.s.endSe })), w);
+  const subOf = new Map(flags.map((f) => [f.i, f.subStreak]));
+  const rows: AtRisk[] = shown.map((r, i) => { const subStreak = subOf.get(i)!; return { ...r, s: { ...r.s, subStreak }, stake: r.s.score * r.p, subStreak }; });
   rows.sort((a, b) => b.stake - a.stake || b.s.len - a.s.len);
-  const seen = new Set<string>();
-  const kept = rows.filter((r) => {
-    const k = `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}`;
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-  return digestOf(kept, () => true, AT_RISK_CAP);
+  return digestOf(rows, () => true, AT_RISK_CAP);
 }

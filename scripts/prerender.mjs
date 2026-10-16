@@ -39,12 +39,15 @@ const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
-const { completedWeeks, brokenClaim, everText } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { completedWeeks, brokenClaim, everText, brokenDigest, listBroken } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { listCrowns } = await vite.ssrLoadModule('/src/lib/list.ts')
+const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
+const { listLeaders } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
 const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule('/src/lib/digests.ts')
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
-const { breakersFromSeason, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows } = await vite.ssrLoadModule('/src/lib/breakers.ts')
+const { breakersFromSeason, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows, listBreaks } = await vite.ssrLoadModule('/src/lib/breakers.ts')
 const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
@@ -177,17 +180,21 @@ console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root
 // --- crowns: mined here, one file per team ---
 const t0 = Date.now()
 const [crownsActive, crownsAll, minedBroken] = await Promise.all([mineCrowns('active'), mineCrowns('all'), mineBroken()])
-const crownsOf = (ti) => encodeCrowns({ active: crownsActive.get(ti) ?? [], all: crownsAll.get(ti) ?? [] })
+// two files per team: the active runs (a team page embeds them, a game page fetches each side's) and the all-time ones (the Streaks switch fetches them)
+const allOf = (ti) => encodeCrowns('all', crownsAll.get(ti) ?? [])
 // what a team page embeds: the active list only; the all-time list is fetched when the switch asks for it
-const activeOf = (ti) => encodeCrowns({ active: crownsActive.get(ti) ?? [], all: null })
+const activeOf = (ti) => encodeCrowns('active', crownsActive.get(ti) ?? [])
 fs.mkdirSync(path.join(ROOT, 'dist', 'crowns'), { recursive: true })
 let crownBytes = 0
 for (const ti of fbsNow) {
-  const json = JSON.stringify(crownsOf(ti))
+  const json = JSON.stringify(activeOf(ti))
+  const jsonAll = JSON.stringify(allOf(ti))
+  crownBytes += jsonAll.length
+  fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.all.json`), jsonAll)
   crownBytes += json.length
   fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.json`), json)
 }
-console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
+console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} teams, two files each under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
 
 // --- the raw mine, for the tests: mineRaw() reads this file instead of
 // mining when STREAK_MINED names it (CI sets it for the build and the tests
@@ -205,7 +212,10 @@ console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} files under di
 // --- the schedule's digests: every completed week's broken streaks, the
 // coming week's at-risk ones, the streak on the line in each game; one
 // file, embedded in the games pages and fetched when the schedule opens ---
-const digestsFile = encodeDigests(buildDigests(todayEpochDay(), minedBroken, (ti) => crownsActive.get(ti) ?? []))
+// the list rule's rows per team, for the build's pick of the streak most on the line in each game
+const listedCache = new Map()
+const listedActive = (ti) => listedCache.get(ti) ?? listedCache.set(ti, listCrowns(crownsActive.get(ti) ?? [])).get(ti)
+const digestsFile = encodeDigests(buildDigests(todayEpochDay(), minedBroken, (ti) => crownsActive.get(ti) ?? [], listedActive))
 // rendered from the decoded file, so the hydrate matches
 const digests = decodeDigests(digestsFile)
 fs.mkdirSync(path.join(ROOT, 'dist', 'games'), { recursive: true })
@@ -232,7 +242,7 @@ const seasonSlice = (season, keys) => {
 }
 const currentWeeks = seasonWeeks(P.currentSeason)
 const weekKeys = (wk) => (currentWeeks.find((w) => w.wk === wk)?.games ?? []).map((g) => keyString(g.key))
-console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken streaks, ${digests.atRisk ? `week ${digests.atRisk.wk} at risk (${digests.atRisk.list.length} rows)` : 'nothing at risk'}, ${Object.keys(digests.onLine).length} games with a streak on the line`)
+console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken streaks, ${digests.atRisk ? `week ${digests.atRisk.wk} at risk (${digests.atRisk.rows.length} rows)` : 'nothing at risk'}, ${Object.keys(digests.onLine).length} games with a streak on the line`)
 
 // --- the schedule: every scheduled game, by week ---
 {
@@ -284,7 +294,8 @@ const weekUrls = []
 const weekNums = new Set(scheduledGames().map((g) => g.wk))
 for (const w of completedWeeks()) if (w.wk != null) weekNums.add(w.wk)
 for (const n of [...weekNums].sort((a, b) => a - b)) {
-  const broken = digests.broken[n]
+  // the week's digest under the shipped knobs, as the page shows it
+  const broken = digests.broken[n] ? brokenDigest(digests.broken[n]) : null
   if (broken) weekly.broken[n] = {
     wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length, total: broken.list.length + broken.more.length,
     rows: broken.list.map((b) => ({
@@ -330,7 +341,7 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
 
 // --- the week's at-risk streaks, at their own address, with their own preview ---
 {
-  const risk = digests.atRisk
+  const risk = digests.atRisk ? { ...digests.atRisk, ...atRiskWeek(digests.atRisk) } : null
   if (risk) {
     const { wk } = risk
     const url = `${SITE}games/at-risk/`
@@ -383,7 +394,9 @@ const gameUrls = []
       const key = item.key
       const ks = keyString(key)
       const slice = seasonSlice(P.currentSeason, [ks])
-      const rows = slice.rows.games.get(ks) ?? { ended: [], leaders: [] }
+      const raw = slice.rows.games.get(ks) ?? { ended: [], leaders: [] }
+      // the game's rows as the page lists them (the list rule, shipped knobs)
+      const rows = { ended: listBroken(raw.ended), leaders: listLeaders(raw.leaders) }
       const away = teams[key.away].name, home = teams[key.home].name
       const at = key.neutral ? 'vs' : 'at'
       const url = `${SITE}${gamePath(key)}`
@@ -511,7 +524,7 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
   // one page per breaker: its broken streaks, at /breakers/<id>/, with its own card
   for (const s of ranking) {
     const t = teams[s.ti]
-    const rows = breakRows(breakers.teams.get(s.ti) ?? []).filter((b) => !b.dup)
+    const rows = breakRows(listBreaks(breakers.teams.get(s.ti) ?? [])).filter((b) => !b.subStreak)
     weekly.breaker[t.id] = {
       season: P.currentSeason, name: t.name, n: s.n, rank: breakers.ranks.get(s.ti) ?? 0,
       rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: brokenSub(b) })),
@@ -553,7 +566,7 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: decodeCrowns(activeOf(ti)), breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
+    initial: { page: ti, crowns: { active: decodeCrowns(activeOf(ti)).rows, all: null }, breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
     embed: activeOf(ti),
     breakers: encodeBreakers(breakersSlice(breakers, ti)),
     url,

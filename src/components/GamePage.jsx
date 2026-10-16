@@ -9,8 +9,10 @@ import { useMemo, useState } from 'react';
 import { P, teams, fbsNow, gamesOf } from '../lib/model.ts';
 import { seasonRecord, recordText, atsText, teamStreaks, streaksOn } from '../lib/team.ts';
 import { pBreak } from '../lib/atRisk.ts';
-import { rowsOf } from '../lib/seasonFile.ts';
-import { everText } from '../lib/broken.ts';
+import { rowsOf, listLeaders } from '../lib/seasonFile.ts';
+import { everText, listBroken } from '../lib/broken.ts';
+import { listCrowns } from '../lib/list.ts';
+import { useKnobs } from '../tune.ts';
 import { scoreOf } from '../lib/game.ts';
 import { dayOf, monthDay, kickOf, shortDate, spreadText } from '../lib/format.ts';
 import { useActiveCrowns } from '../hooks/useCrowns.ts';
@@ -37,9 +39,9 @@ function Side({ ti, rank, score, onTeam }) {
     : <span className="mu-side">{body}</span>;
 }
 
-// a list of six, the rest a page at a time behind "see more", the shorter tellings behind their own button
+// a list of six, the rest a page at a time behind "see more", the sub-streaks behind their own button
 function Rows({ title, rows, cap, empty, keyOf, render }) {
-  const full = rows.filter((r) => !r.dup);
+  const full = rows.filter((r) => !r.subStreak);
   return (
     <section className="gp-sec">
       <h2>{title} <span>{full.length}</span></h2>
@@ -67,20 +69,25 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
   const sp = played ? (row.sp == null ? null : side.ti === key.home ? row.sp : -row.sp) : scheduled?.sp ?? null;
   const fav = sp == null ? null : sp === 0 ? 'PK' : `${teams[sp < 0 ? key.home : key.away].name} ${spreadText(-Math.abs(sp))}`;
   const homeCover = played && row.cover ? (side.ti === key.home ? row.cover : row.cover === 'W' ? 'L' : row.cover === 'L' ? 'W' : 'P') : null;
-  const rows = rowsOf(season, key);
+  const knobs = useKnobs();
+  // the game's rows under the list rule: what it ended, and who it made a leader
+  const raw = rowsOf(season, key);
+  const rows = useMemo(() => ({ ended: listBroken(raw.ended, undefined, knobs), leaders: listLeaders(raw.leaders, undefined, knobs) }), [raw, knobs]);
   // the meeting before this one, from the home side (the away side when the home team is below FBS)
   const lastSide = fbsNow.has(key.home) ? key.home : key.away;
   const last = gamesOf(lastSide).findLast((g) => g.oppIdx === (lastSide === key.home ? key.away : key.home) && g.ep < key.ep) ?? null;
 
   // unplayed: both sides' streaks on the line, by what the game can take away
-  const homeCrowns = useActiveCrowns(scheduled && fbsNow.has(key.home) ? key.home : null);
-  const awayCrowns = useActiveCrowns(scheduled && fbsNow.has(key.away) ? key.away : null);
+  const homeRaw = useActiveCrowns(scheduled && fbsNow.has(key.home) ? key.home : null);
+  const awayRaw = useActiveCrowns(scheduled && fbsNow.has(key.away) ? key.away : null);
+  const homeCrowns = useMemo(() => homeRaw && listCrowns(homeRaw, undefined, knobs), [homeRaw, knobs]);
+  const awayCrowns = useMemo(() => awayRaw && listCrowns(awayRaw, undefined, knobs), [awayRaw, knobs]);
   const onLine = useMemo(() => {
     if (!scheduled) return [];
     const out = [];
     for (const { ti, row: r } of scheduled.sides) {
       const crowns = ti === key.home ? homeCrowns : awayCrowns;
-      for (const s of streaksOn(teamStreaks(ti, todayEp, crowns), r)) out.push({ ti, s, p: pBreak(s.dir, r.sp), stake: (pBreak(s.dir, r.sp) ?? 0.5) * s.score, dup: s.dup, dir: s.dir, len: s.len, chips: s.chips, score: s.score });
+      for (const s of streaksOn(teamStreaks(ti, todayEp, crowns), r)) out.push({ ti, s, p: pBreak(s.dir, r.sp), stake: (pBreak(s.dir, r.sp) ?? 0.5) * s.score, subStreak: s.subStreak, dir: s.dir, len: s.len, chips: s.chips, score: s.score });
     }
     return out.sort((a, b) => b.stake - a.stake || b.s.len - a.s.len);
   }, [scheduled, homeCrowns, awayCrowns, todayEp, key.home]);

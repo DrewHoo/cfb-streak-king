@@ -28,6 +28,8 @@ import { GamePage } from './components/GamePage.jsx';
 import { Starred } from './components/Starred.jsx';
 import { Landings } from './components/Landings.jsx';
 import { Notes, KOFI_URL } from './components/Notes.jsx';
+import { Tuner } from './components/Tuner.jsx';
+import { TuneContext, readTuneOn, readOverrides, writeOverrides, knobsOf } from './tune.ts';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -70,6 +72,14 @@ export default function App({ initial } = {}) {
   const star = useStarred(active, dir);
   const { copied, share } = useShare();
   const isMobile = useIsMobile();
+  // the tuner (tune.ts): on at ?tune=1, its knob overrides remembered; every list reads the knobs from the context
+  const [tune, setTune] = useState({ on: false, over: {}, picked: [] });
+  const tuneCtx = useMemo(() => ({
+    on: tune.on, over: tune.over, knobs: knobsOf(tune.over), picked: tune.picked,
+    set: (path, value) => setTune((t) => { const over = { ...t.over, [path]: value }; writeOverrides(over); return { ...t, over }; }),
+    reset: () => setTune((t) => { writeOverrides({}); return { ...t, over: {} }; }),
+    pick: (row) => setTune((t) => ({ ...t, picked: t.picked.includes(row) ? t.picked.filter((r) => r !== row) : [...t.picked.slice(-1), row] })),
+  }), [tune]);
 
   // URL -> state, after mount only: the prerender has no window. Back and
   // Forward load the entry's URL the same way, at the scroll it was left at.
@@ -79,6 +89,7 @@ export default function App({ initial } = {}) {
     dispatch({ type: 'load', view: v });
     setTodayEp(todayEpochDay());
     setHydrated(true);
+    if (readTuneOn(window.location.search)) setTune({ on: true, over: readOverrides(), picked: [] });
     try { window.history.scrollRestoration = 'manual'; } catch {}
     const onPop = (e) => {
       dispatch({ type: 'load', view: load() });
@@ -244,7 +255,9 @@ export default function App({ initial } = {}) {
   );
 
   return (
+    <TuneContext.Provider value={tuneCtx}>
     <main>
+      <Tuner />
       {page != null ? (
         <TeamPage
           ti={page} todayEp={todayEp} initial={initial} breakers={breaks} focus={teamFocus} isMobile={isMobile} copied={copied}
@@ -324,5 +337,6 @@ export default function App({ initial } = {}) {
         <a href={KOFI_URL} onClick={() => track('kofi', { from: 'footer' })}>buy me a coffee</a>
       </footer>
     </main>
+    </TuneContext.Provider>
   );
 }

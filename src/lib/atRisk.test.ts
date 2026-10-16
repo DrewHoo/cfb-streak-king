@@ -2,7 +2,8 @@ import { describe, expect, test } from 'vitest';
 import { P } from './model.ts';
 import { mineCrowns } from './crowns.ts';
 import { scheduledGames, streaksOn, teamStreaks } from './team.ts';
-import { Phi, pBreak, atRiskWeek, AT_RISK_CAP } from './atRisk.ts';
+import { Phi, pBreak, atRiskRows, atRiskWeek, AT_RISK_CAP } from './atRisk.ts';
+import { LIST } from './list.ts';
 
 const today = Math.floor(Date.parse(P.builtAt) / 86400000);
 
@@ -41,7 +42,7 @@ describe('atRiskWeek', () => {
     if (!week.length) return;
     const crowns = await mineCrowns('active');
     const crownsOf = (ti: number) => crowns.get(ti) ?? [];
-    const { list, more } = atRiskWeek(week, today, crownsOf);
+    const { list, more } = atRiskWeek(atRiskRows(week, today, crownsOf));
     const all = [...list, ...more];
     expect(list.length).toBeGreaterThan(0);
     expect(list.length).toBeLessThanOrEqual(AT_RISK_CAP);
@@ -52,14 +53,14 @@ describe('atRiskWeek', () => {
     for (const r of more) expect(list.length === AT_RISK_CAP || listed.has(r.ti)).toBe(true);
     for (const r of all) {
       expect(r.stake).toBeCloseTo(r.s.score * r.p, 9);
-      expect(r.s.rank).toBe(1); // only the longest active
+      expect(r.s.rank).toBeLessThanOrEqual(LIST.admit.rank); // only what the list rule admits
       expect(r.row.sp).not.toBeNull();
       expect(r.game.sides.some((x) => x.ti === r.ti && x.row === r.row)).toBe(true);
       // the streak really is on the line in that game
       const on = streaksOn(teamStreaks(r.ti, today, crownsOf(r.ti)), r.row);
       expect(on.some((s) => s.dir === r.s.dir && s.len === r.s.len && s.since === r.s.since)).toBe(true);
     }
-    const keys = all.map((r) => `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}`);
+    const keys = all.map((r) => `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}|${r.s.endSe}|${r.s.chips.join('+')}`); // a run once: the same games under the same words
     expect(new Set(keys).size).toBe(keys.length);
   }, 600000);
 });

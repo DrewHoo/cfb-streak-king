@@ -37,6 +37,43 @@ const countAnd = (a, b) => { let n = 0; for (let w = 0; w < a.length; w++) n += 
 const log2 = Math.log2;
 
 /**
+ * Whether definition `a` (chip indices, ascending) is simpler than `b`:
+ * fewer chips; then fewer choices in all (`choices[i]` is log2 of the
+ * choices chip i is one of, 0 for a plain chip), so "at home" beats "vs
+ * Alabama"; then earlier in the catalog.
+ */
+export function simpler(a, b, choices) {
+  if (a.length !== b.length) return a.length < b.length;
+  let ca = 0, cb = 0;
+  for (const i of a) ca += choices[i];
+  for (const i of b) cb += choices[i];
+  if (ca !== cb) return ca < cb;
+  for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return a[k] < b[k];
+  return false;
+}
+const PLACING = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'everLen', 'everN'];
+const placingOf = (r) => { const t = {}; for (const k of PLACING) if (r[k] !== undefined) t[k] = r[k]; return t; };
+/**
+ * Fold `cand`, one definition's placing of a run, into `held` under the
+ * run's key: the fewest-conditions placing stays on top, `also` counts the rest, and
+ * the highest placing (the lowest rank, then the fewest-conditions) rides along
+ * as `highest` when it places higher than the top one. Used by the walk and,
+ * across threads, by crowns.ts.
+ */
+export function collapseInto(held, key, cand, choices) {
+  const prev = held.get(key);
+  if (!prev) { held.set(key, cand); return; }
+  const also = prev.also + cand.also + 1;
+  let top = prev, other = cand;
+  if (simpler(cand.chips, prev.chips, choices)) { top = cand; other = prev; held.set(key, cand); }
+  top.also = also;
+  const better = (x, y) => x.rank < y.rank || (x.rank === y.rank && simpler(x.chips, y.chips, choices));
+  let best = null;
+  for (const x of [other, prev.highest, cand.highest]) if (x && (!best || better(x, best))) best = x;
+  top.highest = best && best.rank < top.rank ? placingOf(best) : undefined;
+}
+
+/**
  * One forward scan of a team's masked sequence: the trailing runs, the
  * longest runs, the runs ended by a game in a recorded week, and the run
  * lengths entering each recorded week (plus the state after the last one).
@@ -139,11 +176,11 @@ export function mineCore(input) {
   const wFromDeep = weeks.wFrom; // the running season's first recorded week: deep definitions record from here
   const wFromHist = weeks.wHist; // the history pass records every week at definitions of up to `histChips` chips
   const { LEN_FLOOR, FIELD_FLOOR, KEEP_FLOOR } = floors;
-  const { chanceW, gapW, gapFloor, spanA, spanAll, PMAX, cutoff } = rank;
+  const { chanceW, leadW, leadFloor, spanA, spanAll, PMAX, cutoff } = rank;
   const log2Teams = log2(rank.teams);
   const seasons = (td, s, e) => (td.se[e] - td.se[s] + 1);
 
-  const perTeam = { active: data.map(() => new Map()), all: data.map(() => new Map()), broken: data.map(() => new Map()), leaders: data.map(() => new Map()) };
+  const runs = { active: data.map(() => new Map()), all: data.map(() => new Map()), broken: data.map(() => new Map()), leaders: data.map(() => new Map()) };
   const q = Array.from({ length: maxChips + 1 }, () => data.map((td) => new Uint32Array(td.words)));
   const alive = Array.from({ length: maxChips + 1 }, () => new Uint8Array(T));
   for (let t = 0; t < T; t++) { q[0][t].fill(0xffffffff); alive[0][t] = 1; }
@@ -153,33 +190,33 @@ export function mineCore(input) {
   const linedBuf = data.map((td) => new Uint32Array(td.words));
   // the field entering each recorded week, per (scan, kind): reused
   const bestLen = new Int32Array(W + 2), bestN = new Int32Array(W + 2), bestT = new Int32Array(W + 2), secondLen = new Int32Array(W + 2), fieldN = new Int32Array(W + 2);
+  // the counts the rates read: pooled over the field, and per team (8 per team: games, won, lost, lined, covered, missed, won by the margin, lost by it)
   const pooled = new Float64Array(8);
-  const rateOf = (dir) => {
-    const [g, won, lost, lined, cov, miss, wonM, lostM] = pooled;
-    const [hit, n] = dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'U' ? [g - lost, g] : dir === 'C' ? [cov, lined] : dir === 'N' ? [miss, lined] : dir === 'W10' ? [wonM, g] : [lostM, g];
-    return { p: n ? hit / n : 1, n };
+  const perTeam = new Float64Array(T * 8);
+  const hitsOf = (c, o, dir) => {
+    const g = c[o], won = c[o + 1], lost = c[o + 2], lined = c[o + 3], cov = c[o + 4], miss = c[o + 5], wonM = c[o + 6], lostM = c[o + 7];
+    return dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'U' ? [g - lost, g] : dir === 'C' ? [cov, lined] : dir === 'N' ? [miss, lined] : dir === 'W10' ? [wonM, g] : [lostM, g];
   };
-  const wordCost = (def) => { let c = 0; for (const i of def) c += chips.cost[i]; return c; };
+  const rateOf = (dir) => { const [hit, n] = hitsOf(pooled, 0, dir); return { p: n ? hit / n : 1, n }; };
+  const teamHits = (t, dir) => { const [hit, n] = hitsOf(perTeam, t * 8, dir); return { hT: hit, nT: n }; };
+  const conditionCost = (def) => { let c = 0; for (const i of def) c += chips.cost[i]; return c; };
   const fits = (def, d) => { for (const i of def) if (!chips.fits[i * 7 + d]) return false; return true; };
   const score = (scope, len, second, p, n, span, cost) => {
     const pp = Math.min(p, PMAX);
     const b = log2(1 / pp);
     const chance = scope === 'active' ? log2Teams : log2(Math.max(2, n * (1 - pp)));
-    const gap = gapFloor == null ? len - second : Math.max(gapFloor, len - second);
-    return len * b + gapW * gap * b - chanceW * chance - cost + (scope === 'active' ? spanA : spanAll) * log2(span);
+    const gap = leadFloor == null ? len - second : Math.max(leadFloor, len - second);
+    return len * b + leadW * gap * b - chanceW * chance - cost + (scope === 'active' ? spanA : spanAll) * log2(span);
   };
-  const collapse = (held, key, cand) => {
-    const prev = held.get(key);
-    if (!prev) held.set(key, cand);
-    else { cand.also = prev.also + 1; if (cand.score > prev.score) held.set(key, cand); else prev.also = cand.also; }
-  };
+  const collapse = (held, key, cand) => collapseInto(held, key, cand, chips.choices);
 
   const evaluate = (def, depth) => {
     const qd = q[depth], ad = alive[depth];
-    const cost = wordCost(def);
+    const cost = conditionCost(def);
     const hist = def.length <= input.histChips;
     const wFrom = hist ? wFromHist : wFromDeep;
     pooled.fill(0);
+    perTeam.fill(0);
     for (let t = 0; t < T; t++) {
       const td = data[t];
       for (let s = 0; s < 3; s++) outs[t][s].trail = null;
@@ -191,17 +228,19 @@ export function mineCore(input) {
         scan(td, m, td[SCANS[s].seq], td.wkOf, wFrom, W, LEN_FLOOR, outs[t][s]);
       }
       // the empty definition fills every bit, past the last game too
+      const o = t * 8;
       for (let w = 0; w < td.words; w++) {
         const rem = td.n - (w << 5);
-        pooled[0] += popcount(rem >= 32 ? qb[w] : qb[w] & ((1 << rem) - 1));
+        perTeam[o] += popcount(rem >= 32 ? qb[w] : qb[w] & ((1 << rem) - 1));
       }
-      pooled[1] += countAnd(qb, td.won);
-      pooled[2] += countAnd(qb, td.lost);
-      pooled[3] += countAnd(qb, td.lined);
-      pooled[4] += countAnd(qb, td.covered);
-      pooled[5] += countAnd(qb, td.missed);
-      pooled[6] += countAnd(qb, td.wonM);
-      pooled[7] += countAnd(qb, td.lostM);
+      perTeam[o + 1] = countAnd(qb, td.won);
+      perTeam[o + 2] = countAnd(qb, td.lost);
+      perTeam[o + 3] = countAnd(qb, td.lined);
+      perTeam[o + 4] = countAnd(qb, td.covered);
+      perTeam[o + 5] = countAnd(qb, td.missed);
+      perTeam[o + 6] = countAnd(qb, td.wonM);
+      perTeam[o + 7] = countAnd(qb, td.lostM);
+      for (let j = 0; j < 8; j++) pooled[j] += perTeam[o + j];
     }
     for (let s = 0; s < 3; s++) {
       for (let k = 0; k < 3; k++) {
@@ -228,9 +267,9 @@ export function mineCore(input) {
             const second = places.other(run.len);
             const sc = score(scope, run.len, second, p, n, seasons(td, run.startIdx, run.lastIdx), cost);
             if (sc < KEEP_FLOOR && def.length) continue;
-            collapse(perTeam[scope][t], dir + '|' + run.lastIdx + '|' + run.len, {
+            collapse(runs[scope][t], dir + '|' + run.startIdx + '|' + run.lastIdx + '|' + run.len, {
               chips: def, dir, scope, len: run.len, atEdge: run.atEdge, field, rank: places.rank(run.len), tied: places.tied(run.len), second,
-              startIdx: run.startIdx, lastIdx: run.lastIdx, live: run.live, also: 0, p, n, score: sc,
+              startIdx: run.startIdx, lastIdx: run.lastIdx, live: run.live, also: 0, p, n, ...teamHits(t, dir),
             });
           }
         }
@@ -270,9 +309,9 @@ export function mineCore(input) {
             if (sc < KEEP_FLOOR && def.length) continue;
             let rank = 1, tied = 0;
             for (let u = 0; u < T; u++) { const l = lenAt(u, w); if (l > run.len) rank++; else if (l === run.len) tied++; }
-            collapse(perTeam.broken[t], dir + '|' + run.enderIdx + '|' + run.startIdx + '|' + run.len, {
+            collapse(runs.broken[t], dir + '|' + run.enderIdx + '|' + run.startIdx + '|' + run.len, {
               chips: def, dir, scope: 'active', len: run.len, atEdge: run.atEdge, field: fieldN[w], rank, tied, second,
-              startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, score: sc, enderIdx: run.enderIdx, w, everLen, everN,
+              startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, ...teamHits(t, dir), enderIdx: run.enderIdx, w, everLen, everN,
             });
           }
         }
@@ -310,9 +349,9 @@ export function mineCore(input) {
           const second = secondLen[w + 1];
           const sc = score('active', len, second, p, n, seasons(td, idx, start), cost);
           if (sc < cutoff) continue;
-          collapse(perTeam.leaders[nt], dir + '|' + w + '|' + len, {
+          collapse(runs.leaders[nt], dir + '|' + w + '|' + len, {
             chips: def, dir, scope: 'active', len, atEdge: false, field: fieldN[w + 1], rank: 1, tied: 1, second,
-            startIdx: idx, lastIdx: start, live: true, also: 0, p, n, score: sc, w, prevT: ot, prevLen: ot >= 0 ? lenAt(ot, w) : bestLen[w], causeT, causeIdx,
+            startIdx: idx, lastIdx: start, live: true, also: 0, p, n, ...teamHits(nt, dir), w, prevT: ot, prevLen: ot >= 0 ? lenAt(ot, w) : bestLen[w], causeT, causeIdx,
           });
         }
       }
@@ -361,5 +400,5 @@ export function mineCore(input) {
   if (descend) rec(prefix.length ? prefix[prefix.length - 1] + 1 : 0, prefix.length, prefix);
   else evaluate(prefix, prefix.length);
   const out = (maps) => maps.map((m) => [...m.values()]);
-  return { active: out(perTeam.active), all: out(perTeam.all), broken: out(perTeam.broken), leaders: out(perTeam.leaders) };
+  return { active: out(runs.active), all: out(runs.all), broken: out(runs.broken), leaders: out(runs.leaders) };
 }

@@ -4,11 +4,14 @@ import { PLAIN_CHIPS, chipByKey } from './chips.ts';
 import { mineCrowns, nearUniversalChips } from './crowns.ts';
 import { refsOf } from './minedChips.ts';
 import { seasonRecord, nextGameOf, gameVs, apRank, teamStreaks, streaksOn, rankText, teamList, nextQualifying, LEN_FLOOR, SHEET_DIRS } from './team.ts';
+import { listCrowns } from './list.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const today = builtEpochDay;
 const crowns = await mineCrowns('active');
-const of = (ti: number) => crowns.get(ti) ?? [];
+// a team's list as its page shows it: the list rule over its file
+const listed = new Map<number, ReturnType<typeof listCrowns>>();
+const of = (ti: number) => listed.get(ti) ?? listed.set(ti, listCrowns(crowns.get(ti) ?? [])).get(ti)!;
 
 describe('team', () => {
   test('the season record counts this season only, straight up and against the spread', () => {

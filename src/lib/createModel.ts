@@ -117,6 +117,7 @@ export function createModel(P: Payload) {
       wday: ((cols.ep[i] % 7) + 11) % 7, // 1970-01-01 was a Thursday
       moon: underFullMoon(cols.ep[i]),
       oppConf,
+      ownConf: confOf(ti, se),
       oppPower: isPowerOpp(teams[oppIdx]?.id, oppConf, se),
       ownPower: isPowerConf(confOf(ti, se), se),
       oppMascots: teams[oppIdx]?.mg ?? NO_MASCOTS,

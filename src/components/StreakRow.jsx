@@ -9,6 +9,8 @@ import { monthDay, siteWord, gamesWord, oddsText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { Chevron } from './Icons.jsx';
 import { TeamMark } from './Chip.jsx';
+import { useTune } from '../tune.ts';
+import { Why } from './Tuner.jsx';
 
 const bad = (dir) => baseDir(dir) === 'L' || dir === 'N';
 /** A streak's conditions as words; a mined key ("vsteam:alabama") carries its choice. */
@@ -24,7 +26,9 @@ export const streakWords = (chips) => (chips.length ? chips.map(chipLabel).join(
 export function StreakRow({ s, onClick, next, tag, lead, mark }) {
   const n = next ? s.next : null;
   const mt = mark != null ? teams[mark] : null;
+  const { on: tuning } = useTune();
   return (
+    <Fragment>
     <button className={'srow' + (mt ? ' marked' : '')} onClick={onClick}>
       <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}</span>
       {mt && (mt.espn ? <TeamMark ti={mark} className="srow-mark" /> : <b className="srow-mark gm-ini">{mt.name[0]}</b>)}
@@ -35,19 +39,22 @@ export function StreakRow({ s, onClick, next, tag, lead, mark }) {
           <b className={s.rank === 1 && s.tied === 1 ? 'k' : ''}>{rankText(s)} of {s.field}</b>
           {s.since != null && ` · since ${s.since}`}
           {s.chance != null && ` · ${oddsText(s.chance)} by chance`}
+          {s.other ? ` · ${rankText(s.other)} ${s.other.chips.length ? streakWords(s.other.chips) : 'overall'}` : ''}
           {tag ? ` · ${tag}` : ''}
           {n ? <i> · next {monthDay(n.ep)} {siteWord(n)} {teams[n.oppIdx]?.name}</i> : null}
         </small>
       </span>
       <Chevron />
     </button>
+    {tuning && s.p != null && <Why s={s} />}
+    </Fragment>
   );
 }
 
 const byScore = (a, b) => b.score - a.score || b.len - a.len;
 
 /**
- * Each sub-streak (a row flagged dup: a run the team tells at least as long
+ * Each sub-streak (a row flagged subStreak: a run the team tells at least as long
  * under fewer conditions) under the run it is a sub-streak of: the standing
  * row of the same team and outcome whose conditions are a subset of its own
  * and whose run is no shorter, the nearest one (most conditions, then best
@@ -55,11 +62,11 @@ const byScore = (a, b) => b.score - a.score || b.len - a.len;
  * The standing rows come back best score first, or in the caller's `order`.
  */
 export function subsByParent(rows, order = byScore) {
-  const standing = rows.filter((r) => !r.dup);
+  const standing = rows.filter((r) => !r.subStreak);
   const subs = new Map();
   const loose = [];
   for (const r of rows) {
-    if (!r.dup) continue;
+    if (!r.subStreak) continue;
     const parent = standing
       .filter((o) => (o.ti ?? null) === (r.ti ?? null) && o.dir === r.dir && o.len >= r.len && o.chips.length < r.chips.length && o.chips.every((k) => r.chips.includes(k)))
       .sort((a, b) => b.chips.length - a.chips.length || b.score - a.score)[0];
@@ -70,7 +77,7 @@ export function subsByParent(rows, order = byScore) {
 }
 
 /**
- * A row's sub-streaks, folded beneath it: "show N sub-streaks" opens them,
+ * A row's sub-streaks, grouped beneath it: "show N sub-streaks" opens them,
  * indented, in score order. `open` and `setOpen` hold the open rows' keys.
  */
 export function Subs({ parent, subs, k, open, setOpen, render }) {
@@ -97,7 +104,7 @@ export const MoreButton = ({ shown, total, onMore }) => (total > shown
 /**
  * A list of streaks: the standing rows up to `cap`, then "see more" pages
  * through the rest, PAGE at a time (a new list starts over); each row's
- * sub-streaks folded beneath it. `keyOf` names a row.
+ * sub-streaks grouped beneath it. `keyOf` names a row.
  */
 export function Tellings({ rows, cap, render, keyOf, order }) {
   const [open, setOpen] = useState(() => new Set());

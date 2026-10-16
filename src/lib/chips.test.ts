@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { GameContext, GameRow } from './types.ts';
 import { CHIPS, chipByKey, fitsDir, qualifies } from './chips.ts';
-import { fbsNow, gamesOf } from './model.ts';
+import { P, fbsNow, gamesOf } from './model.ts';
 import { GROUP_NOTES, GROUPS, defaultParam } from './definition.ts';
 
 const all: GameRow[] = [...fbsNow].flatMap((ti) => gamesOf(ti));
@@ -64,4 +64,23 @@ test('a chip that bounds the margin can’t define a streak by more than it', ()
 
 test('every chip has a group the menu shows', () => {
   for (const c of CHIPS) expect(GROUPS, c.key).toContain(c.group);
+});
+
+describe('the conference chips while independent', () => {
+  const idx = (id: string) => [...fbsNow].find((ti) => P.teams[ti].id === id)!;
+  test('neither chip can read a Notre Dame game while independent; its 2020 ACC season both can', () => {
+    const nd = idx('notre-dame');
+    const conf = chipByKey.get('confgame')!, non = chipByKey.get('nonconf')!;
+    const games = gamesOf(nd);
+    const indie = games.filter((g) => g.se === 2024);
+    const acc = games.filter((g) => g.se === 2020);
+    expect(indie.length).toBeGreaterThan(0);
+    expect(acc.length).toBeGreaterThan(0);
+    for (const g of indie) { expect(g.ownConf).toBe('Independent'); expect(qualifies(conf, g)).toBe(false); expect(qualifies(non, g)).toBe(false); }
+    expect(acc.some((g) => qualifies(conf, g))).toBe(true);
+    expect(acc.every((g) => qualifies(conf, g) !== qualifies(non, g))).toBe(true);
+  });
+  test('a conference member’s games read one way or the other', () => {
+    for (const g of gamesOf(idx('alabama')).filter((x) => x.se === 2024)) expect(qualifies(chipByKey.get('confgame')!, g) !== qualifies(chipByKey.get('nonconf')!, g)).toBe(true);
+  });
 });

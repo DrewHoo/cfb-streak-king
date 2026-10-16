@@ -12,6 +12,9 @@ import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { Chevron } from './Icons.jsx';
 import { streakWords } from './StreakRow.jsx';
+import { useTune } from '../tune.ts';
+import { Why } from './Tuner.jsx';
+import { rankText } from '../lib/team.ts';
 
 const BASE = import.meta.env.BASE_URL;
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' };
@@ -33,7 +36,9 @@ export function BrokenRow({ b, onOpen, onBoard }) {
   const t = teams[b.ti];
   const claim = `${t?.name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
   const ever = everText(b);
+  const { on: tuning } = useTune();
   return (
+    <>
     <div className="bk">
       <button className="bk-hit" onClick={() => onOpen(b)} aria-label={claim} />
       <span className={'bk-len' + (baseDir(b.dir) === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
@@ -45,9 +50,12 @@ export function BrokenRow({ b, onOpen, onBoard }) {
             ? <a className="bk-lede" href={hrefOf(BASE, boardUrl(b.chips, b.dir, 'all'))} onClick={(e) => { e.preventDefault(); onBoard(b); }}>{ever}</a>
             : <b className="k">{leadWords(b)}</b>}
           {' · since '}{b.since}{' · '}{enderWords(b)}
+          {b.other ? ` · ${rankText(b.other)} ${b.other.chips.length ? streakWords(b.other.chips) : 'overall'}` : ''}
         </small>
       </span>
       <Chevron />
     </div>
+    {tuning && b.p != null && <Why s={b} />}
+    </>
   );
 }

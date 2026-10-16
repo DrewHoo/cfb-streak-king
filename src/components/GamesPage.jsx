@@ -13,7 +13,9 @@ import { P, teams } from '../lib/model.ts';
 import { lineText } from '../lib/team.ts';
 import { boardUrl, hrefOf } from '../lib/url.ts';
 import { seasons, seasonWeeks, scoreOf, keyString } from '../lib/game.ts';
-import { digestOf, everText, BROKEN_CAP, BROKEN_CUTOFF } from '../lib/broken.ts';
+import { brokenDigest, listBroken } from '../lib/broken.ts';
+import { atRiskWeek } from '../lib/atRisk.ts';
+import { useKnobs } from '../tune.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
@@ -50,25 +52,24 @@ const PAST = (dir) => PASTS[baseDir(dir)];
 
 /**
  * A past season's week digest, from the season file's rows: every run the
- * week's games ended (rank 1 as the week began, by construction), the
- * best first, one per team in the top six.
+ * week's games ended that the list rule admits, the best first, one per
+ * team in the top six.
  */
-export function brokenFromRows(seasonRows, week) {
+export function brokenFromRows(seasonRows, week, knobs) {
   if (!seasonRows || !week) return null;
-  const all = week.games.flatMap((g) => seasonRows.games.get(keyString(g.key))?.ended ?? []).sort((a, b) => b.score - a.score || b.len - a.len);
-  const { list, more, dups } = digestOf(all, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
-  return { wk: week.wk, lo: week.lo, hi: week.hi, list, more, dups };
+  const rows = week.games.flatMap((g) => seasonRows.games.get(keyString(g.key))?.ended ?? []);
+  return brokenDigest({ wk: week.wk, lo: week.lo, hi: week.hi, rows }, undefined, knobs);
 }
 
 // the digest of the selected week's broken runs, above its results
 function Broken({ broken, onOpen, onBoard, onLink }) {
-  // "see more" pages and the sub-streaks open per week, so flipping weeks folds them back up
+  // "see more" pages and the sub-streaks open per week, so flipping weeks groups them back up
   const [paged, setPaged] = useState({ wk: null, n: 0 });
   const [open, setOpen] = useState(() => new Set());
   if (!broken) return null;
   const n = paged.wk === broken.wk ? paged.n : 0;
   const rows = [...broken.list, ...broken.more.slice(0, n)];
-  const { subs } = subsByParent([...broken.list, ...broken.more, ...broken.dups]);
+  const { subs } = subsByParent([...broken.list, ...broken.more, ...broken.subStreaks]);
   const keyOf = (b) => `${broken.wk}|${b.ti}|${b.dir}|${b.chips.join()}|${b.run}`;
   return (
     <section className="gwk">
@@ -127,7 +128,7 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
   const rows = [...risk.list, ...risk.more.slice(0, n)];
   // a row at risk carries its streak; the grouping reads the streak's fields
   const flat = (r) => ({ ...r, dir: r.s.dir, len: r.s.len, chips: r.s.chips, score: r.s.score });
-  const { subs } = subsByParent([...risk.list, ...risk.more, ...risk.dups].map(flat));
+  const { subs } = subsByParent([...risk.list, ...risk.more, ...risk.subStreaks].map(flat));
   const subsOf = (r) => [...subs.entries()].find(([p]) => p.s === r.s)?.[1];
   const keyOf = (r) => `${r.ti}|${r.s.dir}|${r.s.chips.join()}`;
   return (
@@ -174,8 +175,8 @@ function ScheduledRow({ g, top, onGame }) {
   );
 }
 
-/** How many streaks a played game broke: one telling per run. */
-const brokenCount = (rows) => rows.ended.reduce((a, b) => a + (b.dup ? 0 : 1), 0);
+/** How many streaks a played game broke: one row per run. */
+const brokenCount = (rows) => rows.ended.reduce((a, b) => a + (b.subStreak ? 0 : 1), 0);
 
 // a played game's row: the score, away, home, how many streaks it broke;
 // beneath it the game's top broken run, when the season's rows have one
@@ -214,8 +215,10 @@ export function matchingGames(games, q) {
 // a week's games: the played ones, the most streaks broken first; the
 // scheduled ones under day dividers
 function Week({ week, games, digests, seasonRows, onGame }) {
+  const knobs = useKnobs();
   const out = [];
-  const rowsOf = (k) => seasonRows?.games.get(k) ?? (seasonRows ? { ended: [], leaders: [] } : null);
+  // each played game's broken runs as the list rule lists them
+  const rowsOf = (k) => { const r = seasonRows?.games.get(k); return r ? { ended: listBroken(r.ended, undefined, knobs) } : seasonRows ? { ended: [] } : null; };
   const played = games.filter((g) => !g.scheduled).map((item) => ({ item, k: keyString(item.key) })).map((x) => ({ ...x, rows: rowsOf(x.k) }));
   played.sort((a, b) => (b.rows ? brokenCount(b.rows) : 0) - (a.rows ? brokenCount(a.rows) : 0)); // stable: kickoff order within a count
   for (const { item, k, rows } of played) out.push(<PlayedRow key={k} item={item} rows={rows} onGame={onGame} />);
@@ -251,11 +254,13 @@ export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on }
   const sel = bwk ?? defaultWeek(season, weeks);
   const week = weeks.find((w) => w.wk === sel) ?? null;
   const current = season === P.currentSeason;
-  const broken = current ? digests?.broken[sel] ?? null : brokenFromRows(seasonRows, week);
+  const knobs = useKnobs();
+  // the week's digests under the list rule: the build's rows, picked, scored and ordered here
+  const broken = useMemo(() => (current ? (digests?.broken[sel] ? brokenDigest(digests.broken[sel], undefined, knobs) : null) : brokenFromRows(seasonRows, week, knobs)), [current, digests, sel, seasonRows, week, knobs]);
   // the schedule's filter: a team's name, kept across weeks to follow a team through the season
   const [q, setQ] = useState('');
   const shown = useMemo(() => (week ? matchingGames(week.games, q) : []), [week, q]);
-  const atRisk = current && digests?.atRisk?.wk === sel ? digests.atRisk : null;
+  const atRisk = useMemo(() => (current && digests?.atRisk?.wk === sel ? atRiskWeek(digests.atRisk, undefined, knobs) : null), [current, digests, sel, knobs]);
   const loading = current ? !digests : !seasonRows;
   return (
     <div className="gpg">
