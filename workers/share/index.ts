@@ -182,8 +182,8 @@ function loadWeekly(): Promise<Weekly> {
 }
 
 /** dist/games/<season>.json: each game's rows, as seasonFile.ts encodes them (a crown row's fields by position). */
-// a run as the files carry it (crownsFile.ts CrownRow): [chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, best placing or 0]; the worker reads the first seven
-type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, number, number, unknown];
+// a run as the files carry it (crownsFile.ts CrownRow): [chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, gT, rivals, highest placing or 0]; the worker reads the first seven
+type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, number, number, number, number, unknown];
 interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number, number?, number?][]; leaders: [number, SeasonCrown, number, number | null][] }> }
 const seasonCache = new Map<number, { day: string; data: Promise<SeasonFile | null> }>();
 function loadSeason(season: number): Promise<SeasonFile | null> {

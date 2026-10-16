@@ -7,7 +7,7 @@ const ctx = { teams: 136 };
 /** The classic weights: the field's rate alone, no rarity bonus, no margin cost, so a term can be read on its own. */
 const W = { ...LIST, rate: 0, rarityW: 0, marginCost: 0 };
 const crown = (o: Partial<MinedCrown> & { dir?: Dir; scope?: Scope } = {}): MinedCrown => ({
-  chips: [], dir: 'W', scope: 'active', len: 10, atEdge: false, field: 100, rank: 1, tied: 1, second: 5, startSe: 2020, endSe: 2020, live: true, also: 0, p: 0.5, n: 1000, hT: 50, nT: 100, ...o,
+  chips: [], dir: 'W', scope: 'active', len: 10, atEdge: false, field: 100, rank: 1, tied: 1, second: 5, startSe: 2020, endSe: 2020, live: true, also: 0, p: 0.5, n: 1000, hT: 50, nT: 100, gT: 100, ...o,
 });
 const chance = Math.log2(136);
 
@@ -92,6 +92,32 @@ describe('crownScore', () => {
     // the terms add up to the total
     const p = scoreParts(crown({ chips: ['home', 'fullmoon'], scope: 'all', n: 500, startSe: 1990, endSe: 1999 }), ctx);
     expect(p.length + p.lead + p.chance + p.conditions + p.margin + p.rarity + p.span).toBeCloseTo(p.total, 10);
+  });
+});
+
+describe('sparsity and the rival discount', () => {
+  test('a definition that keeps a sliver of the team’s games pays log2 of the ratio; one that keeps every game pays nothing', () => {
+    const sliver = crown({ nT: 11, gT: 1066 });
+    expect(scoreParts(sliver, ctx, W).sparse).toBeCloseTo(-Math.log2(1066 / 11), 10);
+    expect(scoreParts(crown({ nT: 965, gT: 965 }), ctx, W).sparse).toBe(0);
+    expect(scoreParts(sliver, ctx, { ...W, sparseW: 0 }).sparse).toBe(0);
+    expect(scoreParts(sliver, ctx, { ...W, sparseW: 2 }).sparse).toBeCloseTo(-2 * Math.log2(1066 / 11), 10);
+    // the terms still add up
+    const p = scoreParts(sliver, ctx);
+    expect(p.length + p.lead + p.chance + p.conditions + p.margin + p.sparse + p.rarity + p.span).toBeCloseTo(p.total, 10);
+  });
+
+  test('an opponent chip naming a rival is priced as a choice among the team’s rivals, by the knob', () => {
+    const full = conditionCost(['vsteam:auburn'], W);
+    expect(full).toBeCloseTo(W.tiers.brag + Math.log2(choicesOf('vsteam:auburn')), 10);
+    // Alabama has four rivals in the payload, say: the choice is one of four
+    expect(conditionCost(['vsteam:auburn'], W, 4)).toBeCloseTo(W.tiers.brag + Math.log2(4), 10);
+    expect(conditionCost(['vsteam:auburn'], { ...W, rivalChoice: 0 }, 4)).toBeCloseTo(full, 10);
+    expect(conditionCost(['vsteam:auburn'], { ...W, rivalChoice: 0.5 }, 4)).toBeCloseTo((full + W.tiers.brag + Math.log2(4)) / 2, 10);
+    // a non-opponent chip is untouched, and a row without the rival flag pays in full
+    expect(conditionCost(['home', 'vsteam:auburn'], W, 4) - conditionCost(['vsteam:auburn'], W, 4)).toBeCloseTo(W.tiers.brag, 10);
+    expect(scoreParts(crown({ chips: ['vsteam:houston'] }), ctx, W).conditions).toBeCloseTo(-full, 10);
+    expect(scoreParts(crown({ chips: ['vsteam:auburn'], rivals: 4 }), ctx, W).conditions).toBeCloseTo(-(W.tiers.brag + 2), 10);
   });
 });
 

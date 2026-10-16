@@ -174,6 +174,8 @@ values where one exists.
 | `tiers`, `chanceW`, `leadW`, `leadFloor`, `spanA`, `spanAll` | as today | as today | as today |
 | `marginCost` | a condition cost for the by-10 outcomes, which cost nothing today | 0 | 3 (the plain tier) |
 | `rarityW` | a bonus of rarityW · b per run, independent of length: a hard definition gets a fixed lift | 0 | 2.5 (Drew, from the tuner) |
+| `sparseW` | bits per doubling of how few of the team's games the definition keeps, log2(games ÷ qualifying games): a sliver pays, a definition that keeps every game pays nothing | 0 | 1 |
+| `rivalChoice` | the share of an opponent chip's choice cost a rival gets back: at 1 "vs Auburn" is a choice among Alabama's rivals (about 2 bits), at 0 one of 288 opponents (8.2) | 0 | 1 |
 | `bucket` | score bucket width B; rows sort by floor(score / B), then rarity b, then length; 0 is pure score | 0 | 0, compare in the tuner |
 | `sameYears.directed` | a run absorbs another only when its chips are a subset and its run is at least as long | false | true |
 | `sameYears.overlap` | `eraOv` as today | 50 | 50 |
@@ -366,6 +368,28 @@ split in two (`crowns/<id>.json` the active runs, `crowns/<id>.all.json` the all
 so a game page and a team page's first render never pull the all-time half, which is 80%
 of the bytes; the switch to all-time is the one fetch that got heavier, about 2.5×. The
 cheap cut left is `FILE_RANK` back to 1 until the medal rule ships (14.2 → 9.3 MB).
+
+### Sparsity and rivals (2026-10-16)
+
+Drew's observation on Alabama's page: "8 wins on the road after a loss vs the Independent
+since 1963" is at best marginally interesting, while Indiana's 22 straight is among the
+most impressive runs in the sport because every game counts. The chance frame doesn't
+support a penalty (eight wins in eight tries are eight tries) and the span term rewarded
+the sparse run (+3.5 bits for 26 seasons against Indiana's +0.8). What the row was
+missing is how thin the definition is for the team: it keeps 11 of Alabama's 1,066
+games. So the mine now stamps each run with the team's game count (`gT`: every game, or
+every lined game for a spread outcome) and the rule charges `sparseW · log2(gT ÷ nT)`.
+At weight 1 that is 6.6 bits for the sliver, 0 for Indiana, 3.6 to 4 for an annual
+rival, 5 for a conference opponent met most years.
+
+Rivalry streaks turned out to be buried by something else: the opponent chip's choice
+cost, log2(288) = 8.2 bits, priced as if Auburn were one opponent picked from 288. When
+the opponent is one of the team's rivals (the payload's rivalry pairs, what the `rivalry`
+chip reads) the mine marks the placing (`rivals`: how many rivals the team has) and the
+chip is priced as a choice among them, by `rivalChoice`. Alabama vs Auburn gets about 6
+bits back. Measured before the change: the Iron Bowl run was off Alabama's page (2nd of
+31 in its field behind Georgia's nine) and 637th of 1,312 under the medal rule; Georgia's
+leading nine vs Auburn sat 88th on Georgia's page.
 
 ### Settled by building it
 

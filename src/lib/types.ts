@@ -198,6 +198,8 @@ export interface Placing {
   /** The run reaches the definition's first qualifying game in the team's window, and no later qualifying game broke it: both read the definition, so a placing carries its own. */
   atEdge: boolean;
   live: boolean;
+  /** When the definition's opponent chip names one of the team's rivals: how many rivals it has (the choice the chip cost prices). */
+  rivals?: number;
   /** A broken run's: the longest run ever under the definition, by any team, and how many teams' longest it is. */
   everLen?: number;
   everN?: number;
@@ -216,6 +218,8 @@ export interface MinedCrown extends Placing {
   len: number;
   startSe?: number;
   endSe?: number;
+  /** The team's games the outcome can count at all: every game, or every lined game for a spread outcome; against `nT`, how few the definition keeps. */
+  gT: number;
   /** How many other definitions have the same run. */
   also: number;
   highest?: Placing;

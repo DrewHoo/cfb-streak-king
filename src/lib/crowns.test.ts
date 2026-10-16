@@ -5,7 +5,7 @@ import { MINE_STAMP, decodeMined, encodeMined } from './crowns.ts';
 import type { Mined } from './crowns.ts';
 import type { MinedCrown } from './types.ts';
 
-const row: MinedCrown = { chips: ['home'], dir: 'W', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, startSe: 2024, endSe: 2025, live: true, also: 2, p: 0.5, n: 100, hT: 5, nT: 9 };
+const row: MinedCrown = { chips: ['home'], dir: 'W', scope: 'active', len: 5, atEdge: false, field: 20, rank: 1, tied: 1, second: 3, startSe: 2024, endSe: 2025, live: true, also: 2, p: 0.5, n: 100, hT: 5, nT: 9, gT: 12 };
 const small: Mined = {
   active: new Map([[7, [row]]]),
   all: new Map([[7, [{ ...row, scope: 'all' }]]]),

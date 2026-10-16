@@ -31,7 +31,14 @@
 //                                   of every place a run could start (all-time)
 //            − Σ condition cost     each chip by tier (brag 1, plain 3, trivia 9,
 //                                   in-game 12) plus log2 of its choices ("vs
-//                                   Tennessee" is one of 288 opponents the walk tried)
+//                                   Tennessee" is one of 288 opponents the walk
+//                                   tried; a rival's chip is one of the team's
+//                                   rivals, by `rivalChoice`)
+//            − sparseW·log2(games ÷ qualifying games)
+//                                   a definition that keeps a sliver of the
+//                                   team's schedule (11 of Alabama's 1,066 games)
+//                                   pays for it; one that keeps every game pays
+//                                   nothing
 //            − marginCost           a by-10 outcome is a condition too
 //            + rarityW·b            a hard definition gets a fixed lift, so four
 //                                   wins on the road vs ranked teams sit nearer
@@ -82,6 +89,10 @@ export const LIST = {
   spanAll: 1.75,
   /** Bits a by-10 outcome costs, as a condition would. */
   marginCost: 3,
+  /** Bits per doubling of how few of the team's games the definition keeps: log2(games ÷ qualifying games). */
+  sparseW: 1,
+  /** How much of the opponent chip's choice cost a rival gets back: at 1 "vs Auburn" is priced as one of Alabama's rivals, at 0 as one of 288 opponents. */
+  rivalChoice: 1,
   /** A bonus of rarityW·b per run, whatever its length: a hard definition's fixed lift. */
   rarityW: 2.5,
   /** Score band width; rows sort by band, then rarity, then length. 0 is pure score. */
@@ -115,8 +126,16 @@ export const CTX: RankContext = { teams: fbsNow.size };
 const P_MAX = 0.995;
 const seasons = (c: Pick<MinedCrown, 'startSe' | 'endSe'>) => (c.startSe != null && c.endSe != null ? c.endSe - c.startSe + 1 : 1);
 
-/** The words' cost in bits: each chip by its tier, plus the choice it is among its kind. */
-export const conditionCost = (chips: readonly string[], w = LIST) => chips.reduce((a, k) => a + w.tiers[tierOf(k)] + Math.log2(choicesOf(k)), 0);
+/**
+ * The conditions' cost in bits: each chip by its tier, plus the choice it is
+ * among its kind. An opponent chip naming one of the team's `rivals` is a
+ * choice among them, by `rivalChoice`, instead of among every opponent.
+ */
+export const conditionCost = (chips: readonly string[], w = LIST, rivals?: number) => chips.reduce((a, k) => {
+  const choice = Math.log2(choicesOf(k));
+  const rival = rivals && k.startsWith('vsteam:') ? w.rivalChoice * (choice - Math.log2(Math.max(1, rivals))) : 0;
+  return a + w.tiers[tierOf(k)] + choice - rival;
+}, 0);
 
 /** A run's per-game rarity in bits: the field's rate and the team's own, shrunk toward the field, mixed by `rate`. */
 export function rateOf(c: Placing, w = LIST): { pF: number; pT: number; b: number } {
@@ -139,7 +158,7 @@ export function chanceOf(c: MinedCrown, ctx: RankContext = CTX): number {
 }
 
 /** The score's terms, in bits, so a row can say why it sits where it does. */
-export interface ScoreParts { b: number; pF: number; pT: number; length: number; lead: number; chance: number; conditions: number; margin: number; rarity: number; span: number; total: number }
+export interface ScoreParts { b: number; pF: number; pT: number; length: number; lead: number; chance: number; conditions: number; margin: number; sparse: number; rarity: number; span: number; total: number }
 
 export function scoreParts(c: MinedCrown, ctx: RankContext = CTX, w = LIST): ScoreParts {
   const { pF, pT, b } = rateOf(c, w);
@@ -151,12 +170,13 @@ export function scoreParts(c: MinedCrown, ctx: RankContext = CTX, w = LIST): Sco
     length: c.len * b,
     lead: w.leadW * gap * b,
     chance: -w.chanceW * chance,
-    conditions: -conditionCost(c.chips, w),
+    conditions: -conditionCost(c.chips, w, c.rivals),
     margin: isMargin(c.dir) ? -w.marginCost : 0,
+    sparse: c.gT > 0 && c.nT > 0 ? -w.sparseW * Math.log2(c.gT / c.nT) || 0 : 0, // `|| 0`: a definition that keeps every game is 0, not -0
     rarity: w.rarityW * b,
     span: span * Math.log2(seasons(c)),
   };
-  return { ...parts, total: parts.length + parts.lead + parts.chance + parts.conditions + parts.margin + parts.rarity + parts.span };
+  return { ...parts, total: parts.length + parts.lead + parts.chance + parts.conditions + parts.margin + parts.sparse + parts.rarity + parts.span };
 }
 
 export const crownScore = (c: MinedCrown, ctx: RankContext = CTX, w = LIST): number => scoreParts(c, ctx, w).total;
@@ -195,7 +215,7 @@ export const admits = (t: Pick<Placing, 'rank' | 'everLen'>, len: number, w = LI
 /** A run is on a list when either of its placings admits it. */
 export const admitted = (c: MinedCrown, w = LIST) => admits(c, c.len, w) || (!!c.highest && admits(c.highest, c.len, w));
 
-const PLACING_KEYS = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'everLen', 'everN'] as const;
+const PLACING_KEYS = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'rivals', 'everLen', 'everN'] as const;
 const placingOf = (c: Placing): Placing => {
   const t = {} as Record<string, unknown>;
   for (const k of PLACING_KEYS) if (c[k] !== undefined) t[k] = c[k];

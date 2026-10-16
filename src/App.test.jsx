@@ -56,7 +56,7 @@ describe('prerender + hydrate', () => {
   test('a team page hydrates without a mismatch, crowns included', async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
     // any crowns will do: this checks the render, crowns.test covers their contents
-    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2024, live: true, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20 });
+    const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2024, live: true, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20, gT: 20 });
     const crowns = { active: [crown(['road'], 'W', 9), crown(['ranked'], 'W', 5), crown(['night'], 'L', 4)], all: [] };
     const { html, errors, unmount } = await hydrate({ page: ti, crowns }, '/cfb-streak-king/team/alabama/');
     expect(html).toContain('Alabama');
@@ -83,7 +83,7 @@ describe('prerender + hydrate', () => {
     const week = weeks.find((w) => w.games.every((g) => !g.scheduled) && w.games.length);
     const ti = week.games[0].key.home;
     const ender = gamesOf(ti).find((g) => g.ep === week.games[0].key.ep);
-    const run = (chips, len) => ({ chips, dir: 'W', scope: 'all', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2023, live: false, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20, ti, since: 2023, ender, run: ender.ep - 400, everLen: 20, everN: 1 });
+    const run = (chips, len) => ({ chips, dir: 'W', scope: 'all', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2023, live: false, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20, gT: 20, ti, since: 2023, ender, run: ender.ep - 400, everLen: 20, everN: 1 });
     // the build's rows; the page's list rule folds the sub-streak under the run
     const digests = { builtAt: '', broken: { [week.wk]: { wk: week.wk, lo: week.lo, hi: week.hi, rows: [run(['home'], 9), run(['home', 'night'], 7)] } }, atRisk: null, onLine: {} };
     const seasonRows = { season: P.currentSeason, builtAt: '', games: new Map(), complete: false };
@@ -113,7 +113,7 @@ describe('prerender + hydrate', () => {
     const bama = teams.findIndex((t) => t.id === 'alabama'), uga = teams.findIndex((t) => t.id === 'georgia');
     const ender = gamesOf(bama).find((g) => g.se === P.currentSeason && g.oppIdx === uga && g.r === 'L');
     if (!ender) return; // another payload
-    const run = (chips, len) => ({ chips, dir: 'W', scope: 'all', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2023, live: false, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20, ti: bama, since: 2023, ender, run: ender.ep - 400, everLen: len, everN: 1 });
+    const run = (chips, len) => ({ chips, dir: 'W', scope: 'all', len, atEdge: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2023, live: false, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20, gT: 20, ti: bama, since: 2023, ender, run: ender.ep - 400, everLen: len, everN: 1 });
     const breakers = { season: P.currentSeason, builtAt: '', complete: true, teams: new Map([[uga, [run(['home'], 9), run(['home', 'night'], 7)]]]), ranks: new Map([[uga, 1]]) };
     const a = await hydrate({ breakers: true, breaks: breakers }, '/cfb-streak-king/breakers/');
     expect(a.html).toContain('Top Streak-Breakers');

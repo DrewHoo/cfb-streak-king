@@ -36,7 +36,7 @@ import { conflicts, fitsDir, qualifies } from './chips.ts';
 import { MINED_CHIPS, choicesOf } from './minedChips.ts';
 import type { MinedCrown, Placing } from './types.ts';
 import { LIST, conditionCost } from './list.ts';
-import { P, fbsNow, gamesOf } from './model.ts';
+import { P, fbsNow, gamesOf, teams } from './model.ts';
 import { MINED_OUTCOMES } from './streaks.ts';
 import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { completedWeeks, weekIdx } from './weeks.ts';
@@ -313,6 +313,7 @@ function mineInput(data: TeamData[]) {
       loose: Uint8Array.from(NP, (_, i) => (loose.has(i) ? 1 : 0)),
       cost: Float64Array.from(NP, (c) => conditionCost([c.key])),
       choices: Float64Array.from(NP, (c) => Math.log2(choicesOf(c.key))),
+      ...rivalInput(data),
     },
     weeks: { count: grid.weeks.length, wFrom: grid.wFrom, wHist: 0 },
     floors: { LEN_FLOOR, FIELD_FLOOR, KEEP_FLOOR },
@@ -320,14 +321,33 @@ function mineInput(data: TeamData[]) {
     prefix: [] as number[], descend: false, maxChips: 4, histChips: HIST_CHIPS,
   };
 }
+/**
+ * The rivalry pairs as the walk reads them: for each team (by its index in
+ * `data`) which opponent chips name one of its rivals, and how many rivals
+ * it has, so a run under "vs Auburn" can be priced as a choice among
+ * Alabama's rivals rather than among every opponent (list.ts conditionCost).
+ */
+function rivalInput(data: TeamData[]) {
+  const n = NP.length;
+  const rivalMask = new Uint8Array(data.length * n);
+  const rivalN = new Int32Array(data.length);
+  const oppOf = NP.map((c) => (c.key.startsWith('vsteam:') ? teams.findIndex((t) => t.id === c.key.slice(7)) : -1));
+  data.forEach((td, t) => {
+    const rivals = new Set<number>();
+    for (const r of P.rivals) { if (r.a === td.ti) rivals.add(r.b); else if (r.b === td.ti) rivals.add(r.a); }
+    rivalN[t] = rivals.size;
+    oppOf.forEach((opp, i) => { if (opp >= 0 && rivals.has(opp)) rivalMask[t * n + i] = 1; });
+  });
+  return { rivalMask, rivalN };
+}
 /** One piece of the walk: the definition `prefix` names and, when `descend`, everything below it. */
 interface Piece { prefix: number[]; descend: boolean }
 /** The first chips whose subtrees are split at the second chip: the plain chips come first and their subtrees dwarf the rest. */
 const SPLIT_ROOTS = 16;
 
 // what mineCore returns: per team, per reading, the candidates with chip indices and game indices
-interface CorePlacing { chips: number[]; field: number; rank: number; tied: number; second: number; p: number; n: number; hT: number; nT: number; atEdge: boolean; live: boolean; everLen?: number; everN?: number }
-interface CoreRun extends CorePlacing { dir: Dir; scope: Scope; len: number; atEdge: boolean; startIdx: number; lastIdx: number; live: boolean; also: number; highest?: CorePlacing; enderIdx?: number; w?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
+interface CorePlacing { chips: number[]; field: number; rank: number; tied: number; second: number; p: number; n: number; hT: number; nT: number; atEdge: boolean; live: boolean; rivals?: number; everLen?: number; everN?: number }
+interface CoreRun extends CorePlacing { dir: Dir; scope: Scope; len: number; atEdge: boolean; startIdx: number; lastIdx: number; live: boolean; also: number; gT: number; highest?: CorePlacing; enderIdx?: number; w?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
 interface CoreOut { active: CoreRun[][]; all: CoreRun[][]; broken: CoreRun[][]; leaders: CoreRun[][] }
 
 // the threads' outputs, merged: the identical run found in two subtrees collapses as it would in one
@@ -345,10 +365,10 @@ function merge(data: TeamData[], parts: CoreOut[]): Mined {
       const gs = td.gs;
       const placing = (x: CorePlacing): Placing => ({
         chips: x.chips.map((i) => NP[i].key), field: x.field, rank: x.rank, tied: x.tied, second: x.second, p: x.p, n: x.n, hT: x.hT, nT: x.nT, atEdge: x.atEdge, live: x.live,
-        ...(x.everLen != null ? { everLen: x.everLen, everN: x.everN } : {}),
+        ...(x.rivals ? { rivals: x.rivals } : {}), ...(x.everLen != null ? { everLen: x.everLen, everN: x.everN } : {}),
       });
       const base = (r: CoreRun): MinedCrown => ({
-        ...placing(r), dir: r.dir, scope: r.scope, len: r.len, atEdge: r.atEdge,
+        ...placing(r), dir: r.dir, scope: r.scope, len: r.len, atEdge: r.atEdge, gT: r.gT,
         startSe: gs[r.startIdx]?.se, endSe: gs[r.lastIdx]?.se, live: r.live, also: r.also, ...(r.highest ? { highest: placing(r.highest) } : {}),
       });
       const rows = [...held.values()];
@@ -447,7 +467,7 @@ const fnv = (s: string) => {
 
 /** What a raw mine depends on: the payload's build time, the chips walked (count and a hash of their keys), the keep floor and the history depth. */
 /** The mine's row shape; bump it when a reading gains a field, so an older file re-mines. */
-export const MINE_FORMAT = 6;
+export const MINE_FORMAT = 7;
 export const MINE_STAMP = `payload ${P.builtAt} · chips ${NP.length}/${fnv(NP.map((c) => c.key).join(','))} · keep ${KEEP_FLOOR} · hist ${HIST_CHIPS} · v${MINE_FORMAT}`;
 
 export const encodeMined = (m: Mined): MinedFile => ({ stamp: MINE_STAMP, teams: m.teams, active: [...m.active], all: [...m.all], broken: [...m.broken], leaders: [...m.leaders] });

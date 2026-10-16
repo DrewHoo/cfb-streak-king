@@ -51,7 +51,7 @@ export function simpler(a, b, choices) {
   for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return a[k] < b[k];
   return false;
 }
-const PLACING = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'everLen', 'everN'];
+const PLACING = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'rivals', 'everLen', 'everN'];
 const placingOf = (r) => { const t = {}; for (const k of PLACING) if (r[k] !== undefined) t[k] = r[k]; return t; };
 /**
  * Fold `cand`, one definition's placing of a run, into `held` under the
@@ -198,7 +198,12 @@ export function mineCore(input) {
     return dir === 'W' ? [won, g] : dir === 'L' ? [lost, g] : dir === 'U' ? [g - lost, g] : dir === 'C' ? [cov, lined] : dir === 'N' ? [miss, lined] : dir === 'W10' ? [wonM, g] : [lostM, g];
   };
   const rateOf = (dir) => { const [hit, n] = hitsOf(pooled, 0, dir); return { p: n ? hit / n : 1, n }; };
-  const teamHits = (t, dir) => { const [hit, n] = hitsOf(perTeam, t * 8, dir); return { hT: hit, nT: n }; };
+  // the team's games the outcome can count at all: every game, or every lined game for a spread outcome
+  const gAll = Int32Array.from(data, (td) => td.n);
+  const gLined = Int32Array.from(data, (td) => { let n = 0; for (const w of td.lined) n += popcount(w); return n; });
+  const teamHits = (t, dir) => { const [hit, n] = hitsOf(perTeam, t * 8, dir); return { hT: hit, nT: n, gT: dir === 'C' || dir === 'N' ? gLined[t] : gAll[t] }; };
+  // a definition whose opponent chip names one of the team's rivals: the choice was among its rivals, not among every opponent
+  const rivalsOf = (t, def) => { if (!chips.rivalMask) return {}; for (const i of def) if (chips.rivalMask[t * NP + i]) return { rivals: chips.rivalN[t] }; return {}; };
   const conditionCost = (def) => { let c = 0; for (const i of def) c += chips.cost[i]; return c; };
   const fits = (def, d) => { for (const i of def) if (!chips.fits[i * 7 + d]) return false; return true; };
   const score = (scope, len, second, p, n, span, cost) => {
@@ -269,7 +274,7 @@ export function mineCore(input) {
             if (sc < KEEP_FLOOR && def.length) continue;
             collapse(runs[scope][t], dir + '|' + run.startIdx + '|' + run.lastIdx + '|' + run.len, {
               chips: def, dir, scope, len: run.len, atEdge: run.atEdge, field, rank: places.rank(run.len), tied: places.tied(run.len), second,
-              startIdx: run.startIdx, lastIdx: run.lastIdx, live: run.live, also: 0, p, n, ...teamHits(t, dir),
+              startIdx: run.startIdx, lastIdx: run.lastIdx, live: run.live, also: 0, p, n, ...teamHits(t, dir), ...rivalsOf(t, def),
             });
           }
         }
@@ -311,7 +316,7 @@ export function mineCore(input) {
             for (let u = 0; u < T; u++) { const l = lenAt(u, w); if (l > run.len) rank++; else if (l === run.len) tied++; }
             collapse(runs.broken[t], dir + '|' + run.enderIdx + '|' + run.startIdx + '|' + run.len, {
               chips: def, dir, scope: 'active', len: run.len, atEdge: run.atEdge, field: fieldN[w], rank, tied, second,
-              startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, ...teamHits(t, dir), enderIdx: run.enderIdx, w, everLen, everN,
+              startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, ...teamHits(t, dir), ...rivalsOf(t, def), enderIdx: run.enderIdx, w, everLen, everN,
             });
           }
         }
@@ -351,7 +356,7 @@ export function mineCore(input) {
           if (sc < cutoff) continue;
           collapse(runs.leaders[nt], dir + '|' + w + '|' + len, {
             chips: def, dir, scope: 'active', len, atEdge: false, field: fieldN[w + 1], rank: 1, tied: 1, second,
-            startIdx: idx, lastIdx: start, live: true, also: 0, p, n, ...teamHits(nt, dir), w, prevT: ot, prevLen: ot >= 0 ? lenAt(ot, w) : bestLen[w], causeT, causeIdx,
+            startIdx: idx, lastIdx: start, live: true, also: 0, p, n, ...teamHits(nt, dir), ...rivalsOf(nt, def), w, prevT: ot, prevLen: ot >= 0 ? lenAt(ot, w) : bestLen[w], causeT, causeIdx,
           });
         }
       }

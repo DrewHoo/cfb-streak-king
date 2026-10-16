@@ -65,6 +65,8 @@ export function knobsSource(k: Knobs): string {
     `  spanA: ${k.spanA},`,
     `  spanAll: ${k.spanAll},`,
     `  marginCost: ${k.marginCost},`,
+    `  sparseW: ${k.sparseW},`,
+    `  rivalChoice: ${k.rivalChoice},`,
     `  rarityW: ${k.rarityW},`,
     `  bucket: ${k.bucket},`,
     `  sameYears: { directed: ${k.sameYears.directed}, overlap: ${k.sameYears.overlap} },`,

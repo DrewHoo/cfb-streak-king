@@ -26,6 +26,10 @@ const KNOBS = [
     help: 'Adds this many times the per-game rarity, in bits, to every run whatever its length. It lifts hard definitions as a whole, so four wins on the road vs ranked teams sit nearer thirty easy ones. 0 adds nothing.' },
   { path: 'marginCost', label: 'margin cost (by 10+)', min: 0, max: 15, step: 0.5,
     help: 'Bits charged to a “by 10+” outcome, the way a condition is charged. Without it a by-10 run has no condition cost and a higher per-game rarity, so by-10 rows crowd the top.' },
+  { path: 'sparseW', label: 'sparsity cost (× log2 of games ÷ qualifying)', min: 0, max: 5, step: 0.25,
+    help: 'Bits per doubling of how few of the team’s games the definition keeps: log2(the team’s games ÷ its qualifying games). A definition that keeps every game (Indiana’s 22 straight) pays nothing; one that keeps 11 of Alabama’s 1,066 (on the road, after a loss, vs the Independent) pays 6.6; an annual rival keeps about 8% and pays 3.6. Eight wins in eight tries are still eight tries, so this is an editorial weight, not a chance one: it prices the sliver the definition cut.' },
+  { path: 'rivalChoice', label: 'rival discount on the opponent chip', min: 0, max: 1, step: 0.1,
+    help: 'An opponent chip costs log2 of the opponents the mine tried, 8.2 bits for one of 288. When the opponent is one of the team’s rivals (the payload’s rivalry pairs, what the rivalry chip reads), this share of that cost comes back and the chip is priced as a choice among the team’s rivals, about 2 bits. At 1 “vs Auburn” on Alabama’s page gets 6 bits back; “vs Houston” gets nothing.' },
   { path: 'bucket', label: 'score bucket (0 pure score)', min: 0, max: 40, step: 1,
     help: 'Width of a score band. Rows sort by band, then by per-game rarity, then by length, so inside a band the hardest definitions come first (top-5 wins before unranked wins). 0 sorts by score alone. Bands have edges: 19.9 and 20.1 land in different bands.' },
   { path: 'leadW', label: 'lead weight', min: 0, max: 3, step: 0.05,
@@ -81,7 +85,7 @@ function Knob({ k, knobs, set }) {
   );
 }
 
-const TERMS = [['length', 'length'], ['lead', 'lead'], ['chance', 'chance'], ['conditions', 'conditions'], ['margin', 'margin'], ['rarity', 'rarity'], ['span', 'span'], ['total', 'total']];
+const TERMS = [['length', 'length'], ['lead', 'lead'], ['chance', 'chance'], ['conditions', 'conditions'], ['margin', 'margin'], ['sparse', 'sparse'], ['rarity', 'rarity'], ['span', 'span'], ['total', 'total']];
 
 /** The score's terms for one row, in bits: why it sits where it does. */
 export function Why({ s }) {
@@ -96,8 +100,8 @@ export function Why({ s }) {
         </tbody>
       </table>
       <small>
-        p field {parts.pF.toFixed(3)} · p team {parts.pT.toFixed(3)} ({s.hT}/{s.nT}) · {parts.b.toFixed(2)} bits/game · lead {s.len}−{s.second} · {s.field} in field
-        {s.chips.length ? <> · words {s.chips.map((k) => `${k} ${tierOf(k)}${choicesOf(k) > 1 ? ` +log2(${choicesOf(k)})` : ''}`).join(', ')} = {conditionCost(s.chips, knobs).toFixed(1)}</> : null}
+        p field {parts.pF.toFixed(3)} · p team {parts.pT.toFixed(3)} ({s.hT}/{s.nT}) · {parts.b.toFixed(2)} bits/game · lead {s.len}−{s.second} · {s.field} in field · keeps {s.nT} of the team’s {s.gT} games{s.rivals ? ` · a rival, one of ${s.rivals}` : ''}
+        {s.chips.length ? <> · conditions {s.chips.map((k) => `${k} ${tierOf(k)}${choicesOf(k) > 1 ? ` +log2(${choicesOf(k)})` : ''}`).join(', ')} = {conditionCost(s.chips, knobs, s.rivals).toFixed(1)}</> : null}
         {s.other ? <> · also under {streakWords(s.other.chips)}, {s.other.rank === 1 && s.other.tied === 1 ? '1st' : `${s.other.rank}${s.other.tied > 1 ? ' (tied)' : ''}`} of {s.other.field}</> : null}
         {s.also ? <> · {s.also} other definitions have this run</> : null}
       </small>

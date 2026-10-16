@@ -13,31 +13,31 @@ import type { Dir, MinedCrown, Scope, Placing } from './types.ts';
 /** A team's runs as a page holds them: `all` is null until the all-time file has loaded. */
 export interface TeamCrowns { active: MinedCrown[]; all: MinedCrown[] | null }
 
-// a placing: [chips joined by '+', field, rank, tied, second, p (4 decimals), n, hT, nT, atEdge, live, everLen, everN] (the last two for a broken run's)
-export type PlacingRow = [string, number, number, number, number, number, number, number, number, 0 | 1, 0 | 1, number?, number?];
-// a run: [chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, best placing or 0]
-export type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, number, number, PlacingRow | 0];
-export interface CrownsFile { v: 6; scope: Scope; rows: CrownRow[] }
+// a placing: [chips joined by '+', field, rank, tied, second, p (4 decimals), n, hT, nT, atEdge, live, rivals (0 none), everLen, everN] (the last two for a broken run's)
+export type PlacingRow = [string, number, number, number, number, number, number, number, number, 0 | 1, 0 | 1, number, number?, number?];
+// a run: [chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, gT, rivals (0 none), highest placing or 0]
+export type CrownRow = [string, Dir, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, number, number, number, number, PlacingRow | 0];
+export interface CrownsFile { v: 7; scope: Scope; rows: CrownRow[] }
 
 const rp = (p: number) => +p.toFixed(4);
 const toPlacing = (t: Placing): PlacingRow => {
-  const row: PlacingRow = [t.chips.join('+'), t.field, t.rank, t.tied, t.second, rp(t.p), t.n, t.hT, t.nT, t.atEdge ? 1 : 0, t.live ? 1 : 0];
+  const row: PlacingRow = [t.chips.join('+'), t.field, t.rank, t.tied, t.second, rp(t.p), t.n, t.hT, t.nT, t.atEdge ? 1 : 0, t.live ? 1 : 0, t.rivals ?? 0];
   if (t.everLen != null) row.push(t.everLen, t.everN ?? 0);
   return row;
 };
-const fromPlacing = ([chips, field, rank, tied, second, p, n, hT, nT, atEdge, live, everLen, everN]: PlacingRow): Placing => ({
-  chips: chips ? chips.split('+') : [], field, rank, tied, second, p, n, hT, nT, atEdge: !!atEdge, live: !!live, ...(everLen != null ? { everLen, everN: everN ?? 0 } : {}),
+const fromPlacing = ([chips, field, rank, tied, second, p, n, hT, nT, atEdge, live, rivals, everLen, everN]: PlacingRow): Placing => ({
+  chips: chips ? chips.split('+') : [], field, rank, tied, second, p, n, hT, nT, atEdge: !!atEdge, live: !!live, ...(rivals ? { rivals } : {}), ...(everLen != null ? { everLen, everN: everN ?? 0 } : {}),
 });
 export const toCrownRow = (c: MinedCrown): CrownRow => [
-  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, rp(c.p), c.n, c.hT, c.nT, c.highest ? toPlacing(c.highest) : 0,
+  c.chips.join('+'), c.dir, c.len, c.atEdge ? 1 : 0, c.field, c.rank, c.tied, c.second, c.startSe ?? null, c.endSe ?? null, c.live ? 1 : 0, c.also, rp(c.p), c.n, c.hT, c.nT, c.gT, c.rivals ?? 0, c.highest ? toPlacing(c.highest) : 0,
 ];
-export const fromCrownRow = (scope: Scope) => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, highest]: CrownRow): MinedCrown => ({
+export const fromCrownRow = (scope: Scope) => ([chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, gT, rivals, highest]: CrownRow): MinedCrown => ({
   chips: chips ? chips.split('+') : [], dir, scope, len, atEdge: !!atEdge, field, rank, tied, second,
   ...(startSe != null ? { startSe } : {}), ...(endSe != null ? { endSe } : {}),
-  live: !!live, also, p, n, hT, nT, ...(highest ? { highest: fromPlacing(highest) } : {}),
+  live: !!live, also, p, n, hT, nT, gT, ...(rivals ? { rivals } : {}), ...(highest ? { highest: fromPlacing(highest) } : {}),
 });
 /** One scope's rows as a file. */
-export const encodeCrowns = (scope: Scope, rows: readonly MinedCrown[]): CrownsFile => ({ v: 6, scope, rows: rows.map(toCrownRow) });
+export const encodeCrowns = (scope: Scope, rows: readonly MinedCrown[]): CrownsFile => ({ v: 7, scope, rows: rows.map(toCrownRow) });
 export const decodeCrowns = (f: CrownsFile): { scope: Scope; rows: MinedCrown[] } => ({ scope: f.scope, rows: f.rows.map(fromCrownRow(f.scope)) });
 /** The file's path under the site root for a team and scope. */
 export const crownsPath = (id: string, scope: Scope) => `crowns/${id}${scope === 'all' ? '.all' : ''}.json`;
