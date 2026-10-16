@@ -9,11 +9,11 @@ export const BREAK_WORDS: Record<BreakCat, string> = { alltime: 'all-time longes
 /** The weights: points by category, the discount per condition (base ÷ (1 + discount × conditions)), and the covering flag. */
 export const BREAK = { points: { alltime: 10, leading: 4 } as Record<BreakCat, number>, discount: 0.5, covers: false };
 
-/** A break's category: the longest ever under the definition, else the active field's leader; any other run isn't a break here. */
-export const breakCat = (b: { len: number; everLen: number; rank: number }): BreakCat | null => (b.len >= b.everLen ? 'alltime' : b.rank === 1 ? 'leading' : null);
+/** A break's category: the longest ever under the definition, else a run the list rule admits by its place (the active field's leader, or the medal rule's `admitRank`); any other run isn't a break here. */
+export const breakCat = (b: { len: number; everLen: number; rank: number }, admitRank = 1): BreakCat | null => (b.len >= b.everLen ? 'alltime' : b.rank <= admitRank ? 'leading' : null);
 /** What a break is worth. */
-export const breakPoints = (b: { len: number; everLen: number; rank: number; chips: string[] }, w = BREAK) => {
-  const c = breakCat(b);
+export const breakPoints = (b: { len: number; everLen: number; rank: number; chips: string[] }, w = BREAK, admitRank = 1) => {
+  const c = breakCat(b, admitRank);
   return c ? w.points[c] / (1 + w.discount * b.chips.length) : 0;
 };
 

@@ -182,7 +182,8 @@ function loadWeekly(): Promise<Weekly> {
 }
 
 /** dist/games/<season>.json: each game's rows, as seasonFile.ts encodes them (a crown row's fields by position). */
-type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, 0 | 1];
+// a run as the files carry it (crownsFile.ts CrownRow): [chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, gT, rivals, highest placing or 0]; the worker reads the first seven
+type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, number, number, number, number, unknown];
 interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number, number?, number?][]; leaders: [number, SeasonCrown, number, number | null][] }> }
 const seasonCache = new Map<number, { day: string; data: Promise<SeasonFile | null> }>();
 function loadSeason(season: number): Promise<SeasonFile | null> {
@@ -207,8 +208,8 @@ async function gameRows(key: string, date: string): Promise<GameRowWords[]> {
     const g = file?.games[key];
     if (!g) continue;
     const row = (team: number, c: SeasonCrown, since: number, leader: boolean, everLen?: number, everN?: number): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], atEdge: !!c[3], rank: c[5], tied: c[6], field: c[4], since, leader, everLen, everN });
-    // the full tellings only: a shorter telling (dup) stays off the head and the card
-    return [...g.ended.filter(([, c]) => !c[14]).map(([t, c, since, , , everLen, everN]) => row(t, c, since, false, everLen, everN)), ...g.leaders.filter(([, c]) => !c[14]).map(([t, c, since]) => row(t, c, since, true))];
+    // the full placings only: a sub-streak (subStreak) stays off the head and the card
+    return [...g.ended.filter((r) => !isSubStreakRow(g.ended, r)).map(([t, c, since, , , everLen, everN]) => row(t, c, since, false, everLen, everN)), ...g.leaders.filter((r) => !isSubStreakRow(g.leaders, r)).map(([t, c, since]) => row(t, c, since, true))];
   }
   return [];
 }
@@ -253,15 +254,29 @@ async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> 
   return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
 }
 
-/** One break of a past season, as the cards and the head word it. */
+/**
+ * A sub-streak among a game's rows (list.ts isSubStreak, on the file's
+ * tuples [team, crown, since, ...]): the same team's run of the same
+ * outcome, at least as long, under a strict subset of its conditions,
+ * unless it started first. The file carries no subStreak flag: the page's list
+ * rule sets it, and the worker does the same here.
+ */
+function isSubStreakRow(rows: readonly [number, SeasonCrown, number, ...unknown[]][], r: readonly [number, SeasonCrown, number, ...unknown[]]): boolean {
+  const chips = r[1][0] ? r[1][0].split('+') : [];
+  return rows.some((o) => o !== r && o[0] === r[0] && o[1][1] === r[1][1] && o[1][2] >= r[1][2]
+    && (o[1][0] ? o[1][0].split('+') : []).length < chips.length && (o[1][0] ? o[1][0].split('+') : []).every((k) => chips.includes(k))
+    && !(r[2] < o[2]));
+}
+
+/** One break of a past season, as the cards and the head word it; `score` orders within a category (the run's length: the file carries no score). */
 interface PastBreak { victim: number; row: GameRowWords; cat: 'alltime' | 'leading'; score: number; ender: string }
-/** A team that broke a streak that season: its standing breaks, the most telling first, and its place. */
+/** A team that broke a streak that season: its standing breaks, the most placing first, and its place. */
 interface PastBreaker { ti: number; n: number; points: number; alltime: number; leading: number; victims: [number, number][]; breaks: PastBreak[]; rank: number }
 const pastCache = new Map<number, { day: string; data: Promise<PastBreaker[]> }>();
 /**
  * A past season's streak-breakers from its season file, scored the way
  * breakers.ts scores them (breakScore.ts): a winning run ended by a loss to
- * the breaker, the full tellings only, ranked by points then breaks.
+ * the breaker, the full placings only, ranked by points then breaks.
  */
 function pastBreakers(se: number): Promise<PastBreaker[]> {
   const day = dayKey();
@@ -273,8 +288,9 @@ function pastBreakers(se: number): Promise<PastBreaker[]> {
     const ids = m.teams.map((t) => t.id);
     const by = new Map<number, PastBreaker>();
     for (const g of Object.values(file.games)) {
-      for (const [ti, c, since, enderI, , everLen, everN] of g.ended) {
-        if (c[14]) continue; // a shorter telling
+      for (const row of g.ended) {
+        const [ti, c, since, enderI, , everLen, everN] = row;
+        if (isSubStreakRow(g.ended, row)) continue;
         const dir = c[1];
         const chips = c[0] ? c[0].split('+') : [];
         const b = { len: c[2], everLen: everLen ?? 0, rank: c[5], chips };
@@ -295,7 +311,7 @@ function pastBreakers(se: number): Promise<PastBreaker[]> {
         if (v) v[1]++; else s.victims.push([ti, 1]);
         const name = m.teams[opp]?.name ?? '?';
         s.breaks.push({
-          victim: ti, cat, score: c[13],
+          victim: ti, cat, score: c[2],
           row: { team: ids[ti], chips: c[0], dir, len: c[2], atEdge: !!c[3], rank: c[5], tied: c[6], field: c[4], since, everLen, everN },
           ender: win ? `lost to ${name} ${ender.them}–${ender.us}` : `didn’t cover vs ${name}`,
         });

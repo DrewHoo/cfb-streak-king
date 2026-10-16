@@ -3,31 +3,31 @@ import { builtEpochDay } from './model.ts';
 import { mineBroken, mineCrowns } from './crowns.ts';
 import { buildDigests, encodeDigests, decodeDigests } from './digests.ts';
 import { scheduledGames } from './team.ts';
+import { listCrowns } from './list.ts';
 
 test('the schedule’s digests survive the file encoding', async () => {
   const [mined, crowns] = await Promise.all([mineBroken(), mineCrowns('active')]);
-  const d = buildDigests(builtEpochDay, mined, (ti) => crowns.get(ti) ?? []);
+  const listed = new Map<number, ReturnType<typeof listCrowns>>();
+  const d = buildDigests(builtEpochDay, mined, (ti) => crowns.get(ti) ?? [], (ti) => listed.get(ti) ?? listed.set(ti, listCrowns(crowns.get(ti) ?? [])).get(ti)!);
   const back = decodeDigests(JSON.parse(JSON.stringify(encodeDigests(d))));
   // what the file rounds
-  const r2 = (x: number) => +x.toPrecision(2);
-  const r = (x: number, k: number) => +x.toFixed(k) || 0;
+  const r4 = (x: number) => +x.toFixed(4);
   for (const [wk, w] of Object.entries(d.broken)) {
     const b = back.broken[Number(wk)];
-    expect(b.list.length).toBe(w.list.length);
-    expect(b.more.length).toBe(w.more.length);
-    for (const [i, x] of [...w.list, ...w.more].entries()) {
-      const y = [...b.list, ...b.more][i];
+    expect(b.rows.length).toBe(w.rows.length);
+    for (const [i, x] of w.rows.entries()) {
+      const y = b.rows[i];
       const label = `week ${wk} row ${i}: ${x.chips.join('+')} ${x.dir} ${x.len}`;
-      const want = { ti: x.ti, chips: x.chips, dir: x.dir, len: x.len, rank: x.rank, tied: x.tied, field: x.field, since: x.since, run: x.run, chance: r2(x.chance), score: r(x.score, 2) };
+      const want = { ti: x.ti, chips: x.chips, dir: x.dir, len: x.len, rank: x.rank, tied: x.tied, field: x.field, since: x.since, run: x.run, p: r4(x.p), n: x.n, hT: x.hT, nT: x.nT, everLen: x.everLen };
       for (const [k, v] of Object.entries(want)) expect(y[k as keyof typeof y], `${label} ${k}`).toEqual(v);
       expect(y.ender, `${label} ender`).toBe(x.ender);
     }
   }
   if (d.atRisk) {
     expect(back.atRisk!.wk).toBe(d.atRisk.wk);
-    expect(back.atRisk!.list.length).toBe(d.atRisk.list.length);
-    for (const [i, x] of d.atRisk.list.entries()) {
-      const y = back.atRisk!.list[i];
+    expect(back.atRisk!.rows.length).toBe(d.atRisk.rows.length);
+    for (const [i, x] of d.atRisk.rows.entries()) {
+      const y = back.atRisk!.rows[i];
       expect(y.ti).toBe(x.ti);
       expect(y.game).toBe(x.game);
       expect(y.row).toBe(x.row);

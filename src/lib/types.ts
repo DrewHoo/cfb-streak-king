@@ -97,6 +97,8 @@ export interface GameContext {
   moon: boolean;
   /** The opponent's conference that season. */
   oppConf: string | null;
+  /** The team's own conference that season ("Independent" for an independent; the conference chips can't read such a game). */
+  ownConf: string | null;
   /** The opponent counted as power-conference that season (power.ts; always false before 1998). */
   oppPower: boolean;
   /** The team itself was a power-conference member that season (strict membership, so never Notre Dame while independent). */
@@ -175,15 +177,11 @@ export interface BoardRow {
 }
 
 /**
- * One of a team's streaks under a mined definition, with its place in the
- * field: active, the team's current run; all-time, its longest ever.
+ * A run under one definition: the definition's conditions, the team's place
+ * in that field, and the rates the list rule scores it by (list.ts).
  */
-export interface Crown {
+export interface Placing {
   chips: string[];
-  dir: Dir;
-  scope: Scope;
-  len: number;
-  atEdge: boolean;
   /** Teams holding any run under the definition. */
   field: number;
   /** 1 = the longest; teams level on length share a rank. */
@@ -191,13 +189,51 @@ export interface Crown {
   tied: number;
   /** The longest run any other team holds; the gap to it is part of the score. */
   second: number;
+  /** The outcome's rate pooled over every FBS team's qualifying games, and how many games that is. */
+  p: number;
+  n: number;
+  /** The team's own hits and qualifying games under the definition. */
+  hT: number;
+  nT: number;
+  /** The run reaches the definition's first qualifying game in the team's window, and no later qualifying game broke it: both read the definition, so a placing carries its own. */
+  atEdge: boolean;
+  live: boolean;
+  /** When the definition's opponent chip names one of the team's rivals: how many rivals it has (the choice the chip cost prices). */
+  rivals?: number;
+  /** A broken run's: the longest run ever under the definition, by any team, and how many teams' longest it is. */
+  everLen?: number;
+  everN?: number;
+}
+
+/**
+ * One of a team's runs as the miner keeps it: under the definition with the
+ * fewest conditions, with the definition the team places highest under in
+ * `highest` when that is a different one. Active: the team's current run;
+ * all-time: its longest ever. The list rule (list.ts) decides whether the
+ * run is on a list, which placing it shows, and its score.
+ */
+export interface MinedCrown extends Placing {
+  dir: Dir;
+  scope: Scope;
+  len: number;
   startSe?: number;
   endSe?: number;
-  live: boolean;
+  /** The team's games the outcome can count at all: every game, or every lined game for a spread outcome; against `nT`, how few the definition keeps. */
+  gT: number;
+  /** How many other definitions have the same run. */
   also: number;
+  highest?: Placing;
+}
+
+/** A run on a list: its picked placing at the top level, the rule's outputs, and its other placing. */
+export interface Crown extends MinedCrown {
   /** The chance some team's streak reaches this length under the definition by luck alone, 0–1. */
   chance: number;
   score: number;
-  /** A shorter telling: the team holds a run at least as long under a subset of these conditions (crownRank.ts markDups); shown on request. */
-  dup: boolean;
+  /** The per-game rarity the score used, in bits (list.ts rateOf). */
+  bits: number;
+  /** A sub-streak: the team holds a run at least as long under a subset of these conditions (list.ts markSubStreaks); shown on request. */
+  subStreak: boolean;
+  /** The run's other placing, when it has one: fewer conditions, or a higher place. */
+  other?: Placing;
 }

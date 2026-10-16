@@ -34,7 +34,7 @@ const serveBuilt = {
   name: 'serve-built-data',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      const m = new RegExp(`^/${pkg.name}/(crowns/[\\w-]+\\.json|games/(?:digests|\\d{4})\\.json|breakers/\\d{4}\\.json)$`).exec((req.url ?? '').split('?')[0])
+      const m = new RegExp(`^/${pkg.name}/(crowns/[\\w.-]+\\.json|games/(?:digests|\\d{4})\\.json|breakers/\\d{4}\\.json)$`).exec((req.url ?? '').split('?')[0])
       const file = m && path.join(server.config.root, 'dist', m[1])
       if (!file || !fs.existsSync(file)) return next()
       res.setHeader('Content-Type', 'application/json')

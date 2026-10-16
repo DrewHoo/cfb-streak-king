@@ -7,11 +7,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams, fbsNow } from '../lib/model.ts';
-import { BREAK_WORDS, breakCat, breakOrder, breakRanking, breakRows, breakSummary } from '../lib/breakers.ts';
+import { BREAK_WORDS, breakCat, breakOrder, breakRanking, breakRows, breakSummary, listBreaks } from '../lib/breakers.ts';
+import { useKnobs } from '../tune.ts';
 import { TeamMark } from './Chip.jsx';
 import { Picker } from './Picker.jsx';
 import { seasons } from '../lib/game.ts';
 import { HIST_CHIPS } from '../lib/crowns.ts';
+import { LIST } from '../lib/list.ts';
 import { ShareIcon, Chevron } from './Icons.jsx';
 import { streakWords, Tellings } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
@@ -77,7 +79,7 @@ function Row({ s, skr, onBreaker }) {
       <span className="bkr-vs"><Victims victims={s.victims} /></span>
       <span className="bkr-best">
         {best && <span>{bestWords(best)}</span>}
-        {best && <small className={`bkr-${breakCat(best)}-t`}>{BREAK_WORDS[breakCat(best)]}</small>}
+        {best && <small className={`bkr-${breakCat(best, 99)}-t`}>{BREAK_WORDS[breakCat(best, 99)]}</small>}
       </span>
       <Chevron />
     </button>
@@ -88,8 +90,9 @@ function Row({ s, skr, onBreaker }) {
 export function BreakerPage({ ti, season, breakers, copied, on }) {
   const t = teams[ti];
   const [victim, setVictim] = useState(null);
-  const rows = useMemo(() => (breakers ? breakRows(breakers.teams.get(ti) ?? []) : null), [breakers, ti]);
-  const sum = useMemo(() => (rows ? breakSummary(ti, rows) : null), [rows, ti]);
+  const knobs = useKnobs();
+  const rows = useMemo(() => (breakers ? breakRows(listBreaks(breakers.teams.get(ti) ?? [], undefined, knobs)) : null), [breakers, ti, knobs]);
+  const sum = useMemo(() => (rows ? breakSummary(ti, rows, undefined, knobs) : null), [rows, ti, knobs]);
   const rank = breakers?.ranks.get(ti) ?? null;
   const victims = sum?.victims ?? [];
   const shown = useMemo(() => (rows && victim != null ? rows.filter((b) => b.ti === victim) : rows), [rows, victim]);
@@ -139,7 +142,9 @@ const SORTS = {
 export function BreakersPage({ season, breakers, copied, on }) {
   const [sort, setSort] = useState({ key: 'skr', rev: false });
   const [all, setAll] = useState(false);
-  const ranking = useMemo(() => (breakers ? breakRanking(breakers).map((s, i) => ({ ...s, skr: breakers.ranks.get(s.ti) ?? i + 1 })) : []), [breakers]);
+  const knobs = useKnobs();
+  // under the shipped knobs a team's place is the build's; under the tuner's, the order the knobs make
+  const ranking = useMemo(() => (breakers ? breakRanking(breakers, undefined, knobs).map((s, i) => ({ ...s, skr: (knobs === LIST && breakers.ranks.get(s.ti)) || i + 1 })) : []), [breakers, knobs]);
   const ordered = useMemo(() => {
     const out = [...ranking].sort(SORTS[sort.key]);
     return sort.rev ? out.reverse() : out;

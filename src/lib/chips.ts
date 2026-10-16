@@ -58,6 +58,8 @@ const post = (c: Omit<PostgameChip, 'pregame'>): PostgameChip => ({ ...c, pregam
 const oppRankKnown = (g: GameContext) => g.oppRank != null;
 const ownRankKnown = (g: GameContext) => g.ownRank != null;
 const lined = (g: GameRow) => g.sp != null;
+// an independent plays no conference game and no non-conference game either: neither chip can read its games that season
+const inConference = (g: GameContext) => g.ownConf !== 'Independent';
 const BETTING = { exclusive: true, known: lined, floor: { season: 1978, what: 'closing-line' } } as const;
 const HALF = { season: 2001, what: 'halftime-score' };
 const CLOCK = { season: 2004, what: 'possession' };
@@ -81,8 +83,8 @@ export const CHIPS: Chip[] = [
   post({ key: 'dog7', label: 'as a 7+ point underdog', group: 'betting', ...BETTING, test: (x) => x.sp! >= 7 }),
   post({ key: 'dog14', label: 'as a 14+ point underdog', group: 'betting', ...BETTING, test: (x) => x.sp! >= 14 }),
   post({ key: 'close', label: 'close spread (≤ 3)', group: 'betting', ...BETTING, test: (x) => Math.abs(x.sp!) <= 3 }),
-  pre({ key: 'confgame', label: 'in conference games', group: 'conference', exclusive: true, test: (x) => x.conf }),
-  pre({ key: 'nonconf', label: 'in non-conference games', group: 'conference', exclusive: true, test: (x) => !x.conf }),
+  pre({ key: 'confgame', label: 'in conference games', group: 'conference', exclusive: true, known: inConference, test: (x) => x.conf }),
+  pre({ key: 'nonconf', label: 'in non-conference games', group: 'conference', exclusive: true, known: inConference, test: (x) => !x.conf }),
   pre({ key: 'vsconf', label: 'vs the [conference]', group: 'conference', param: 'conf', test: (x, p) => x.oppConf === p }),
   // era-aware (power.ts): BCS AQ 1998–2013, Power 5 2014–23, Power 4 since; Notre Dame counts throughout
   pre({ key: 'power', label: 'vs power-conference opponents', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.oppPower, floor: { season: 1998, what: 'power-conference' } }),

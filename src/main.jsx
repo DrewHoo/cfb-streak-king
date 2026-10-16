@@ -35,7 +35,7 @@ const initial = {
   season: page == null && !game ? seasonFromPath(window.location.pathname) ?? breakersSeasonFromPath(window.location.pathname) : null,
   // a named definition's board (/longest-home-win-streaks/), prerendered on that definition
   landing: page == null && !game ? landingFromPath(window.location.pathname)?.slug ?? null : null,
-  crowns: page != null && embedded ? decodeCrowns(JSON.parse(embedded.textContent)) : null,
+  crowns: page != null && embedded ? { active: decodeCrowns(JSON.parse(embedded.textContent)).rows, all: null } : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
   seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,
   breaks: breakers ? decodeBreakers(JSON.parse(breakers.textContent)) : null,

@@ -14,7 +14,9 @@ import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow, Tellings } from './StreakRow.jsx';
 import { useTeamCrowns } from '../hooks/useCrowns.ts';
 import { track } from '../lib/analytics.ts';
-import { breakOrder, breakRows, breakSummary } from '../lib/breakers.ts';
+import { breakOrder, breakRows, breakSummary, listBreaks } from '../lib/breakers.ts';
+import { listCrowns } from '../lib/list.ts';
+import { useKnobs } from '../tune.ts';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 import { SkrInfo } from './BreakersPage.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
@@ -56,10 +58,17 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
   const t = teams[ti];
   // the streaks the team leads its field with: active (the default) or all-time
   const [scope, setScope] = useState('active');
-  const crowns = useTeamCrowns(ti, scope, initial);
+  const raw = useTeamCrowns(ti, scope, initial);
+  // the list rule over the team's file, under the knobs in force (the shipped ones, or the tuner's)
+  const knobs = useKnobs();
+  const crowns = useMemo(() => ({
+    active: raw.active && listCrowns(raw.active, undefined, knobs),
+    crowns: raw.crowns && (scope === 'active' && raw.crowns === raw.active ? null : listCrowns(raw.crowns, undefined, knobs)),
+  }), [raw.active, raw.crowns, scope, knobs]);
+  if (crowns.crowns === null && crowns.active) crowns.crowns = crowns.active;
   // the streaks the team broke this season (breakers.ts), the all-time longest first; opened from the breakers page, the section scrolls into view
-  const breaks = useMemo(() => (breakers ? breakRows(breakers.teams.get(ti) ?? []) : null), [breakers, ti]);
-  const breakSum = useMemo(() => (breaks ? breakSummary(ti, breaks) : null), [breaks, ti]);
+  const breaks = useMemo(() => (breakers ? breakRows(listBreaks(breakers.teams.get(ti) ?? [], undefined, knobs)) : null), [breakers, ti, knobs]);
+  const breakSum = useMemo(() => (breaks ? breakSummary(ti, breaks, undefined, knobs) : null), [breaks, ti, knobs]);
   const breakRank = breakers?.ranks.get(ti) ?? null;
   const breaksRef = useRef(null);
   const scrolledTo = useRef(null);
@@ -145,7 +154,7 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
       <h2 ref={breaksRef}>Streaks broken this season</h2>
       <p className="tpg-note bkr-note">
         {breakSum && breakSum.n > 0
-          ? <>{t.name} ended <b>{breakSum.n}</b> {breakSum.n === 1 ? 'streak' : 'streaks'} by winning: {breakSum.by.alltime} all-time longest, {breakSum.by.leading} longest active.{breakRank != null ? <> <button className="gp-wk" onClick={on.breakers}>Streak King Rank #{breakRank}</button> <SkrInfo /></> : ''} <button className="gp-wk" onClick={() => on.breaker(ti)}>All {breakSum.n} ›</button></>
+          ? <>{t.name} ended <b>{breakSum.n}</b> {breakSum.n === 1 ? 'streak' : 'streaks'} by beating other teams: {breakSum.by.alltime} all-time longest, {breakSum.by.leading} longest active.{breakRank != null ? <> <button className="gp-wk" onClick={on.breakers}>Streak King Rank #{breakRank}</button> <SkrInfo /></> : ''} <button className="gp-wk" onClick={() => on.breaker(ti)}>All {breakSum.n} ›</button></>
           : <>The all-time longest and longest active streaks {t.name} ended by beating their owner.</>}
       </p>
       <div className="tpg-streaks">

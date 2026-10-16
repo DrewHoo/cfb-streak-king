@@ -21,22 +21,26 @@
 //   leaders   every week a team became the sole leader of a definition's
 //             field, with the game that did it (seasons.ts tells them)
 // A run is kept when it is LEN_FLOOR or longer, FIELD_FLOOR teams hold any
-// run under the definition, and it scores above KEEP_FLOOR (crownRank.ts).
-// Definitions that produce the identical run (same outcome, last game and
-// length) collapse to the best-scoring telling; `also` counts the rest.
-// Each run carries its definition's pooled rate; crownRank.ts picks which
-// of a team's runs to show and orders them.
+// run under the definition, and it scores above KEEP_FLOOR at the field's
+// rate under the shipped weights (list.ts; the floor is the miner's own, so
+// turning a knob never re-mines). Definitions that produce the identical run
+// (same outcome, last game and length) collapse to its fewest-conditions placing,
+// with its highest placing in `best` when another definition places the
+// team higher (mineCore.js collapseInto); `also` counts the rest. Each
+// placing carries its definition's pooled rate and the team's own; the list
+// rule (list.ts) decides, at page time, which of a team's runs a list shows,
+// under which placing, and in what order.
 
-import type { Crown, Dir, GameRow, Result, Scope } from './types.ts';
+import type { Dir, GameRow, Result, Scope } from './types.ts';
 import { conflicts, fitsDir, qualifies } from './chips.ts';
-import { MINED_CHIPS } from './minedChips.ts';
-import { RANK, rankCrowns, wordCost } from './crownRank.ts';
-import type { MinedCrown } from './crownRank.ts';
-import { P, fbsNow, gamesOf } from './model.ts';
+import { MINED_CHIPS, choicesOf } from './minedChips.ts';
+import type { MinedCrown, Placing } from './types.ts';
+import { LIST, conditionCost } from './list.ts';
+import { P, fbsNow, gamesOf, teams } from './model.ts';
 import { MINED_OUTCOMES } from './streaks.ts';
 import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { completedWeeks, weekIdx } from './weeks.ts';
-import { mineCore } from './mineCore.js';
+import { mineCore, collapseInto } from './mineCore.js';
 import { SHEET_DIRS } from './team.ts';
 
 /**
@@ -52,8 +56,12 @@ export type Runs = Partial<Record<Dir, Run>>;
 
 export const LEN_FLOOR = 4;
 export const FIELD_FLOOR = 10;
-/** A run scoring under this is never kept; the cutoff is above it so a team with nothing past the cutoff still has its best few. */
-export const KEEP_FLOOR = RANK.cutoff - 6;
+/** A run scoring under this at the field's rate is never kept: the miner's own floor, the only one any list has. */
+export const KEEP_FLOOR = -12.5;
+/** A week's new leader scoring under this isn't recorded. */
+export const LEADER_FLOOR = -6.5;
+/** A crowns file carries a team's runs placed this high or better under either placing, so the admit knob (list.ts) has them to reach. */
+export const FILE_RANK = 3;
 /** Definitions of up to this many chips are read for every game since 1936; longer ones for the running season only. */
 export const HIST_CHIPS = 2;
 /**
@@ -303,13 +311,34 @@ function mineInput(data: TeamData[]) {
     chips: {
       n, conflict, fits,
       loose: Uint8Array.from(NP, (_, i) => (loose.has(i) ? 1 : 0)),
-      cost: Float64Array.from(NP, (c) => wordCost([c.key])),
+      cost: Float64Array.from(NP, (c) => conditionCost([c.key])),
+      choices: Float64Array.from(NP, (c) => Math.log2(choicesOf(c.key))),
+      ...rivalInput(data),
     },
     weeks: { count: grid.weeks.length, wFrom: grid.wFrom, wHist: 0 },
     floors: { LEN_FLOOR, FIELD_FLOOR, KEEP_FLOOR },
-    rank: { chanceW: RANK.chanceW, gapW: RANK.gapW, gapFloor: RANK.gapFloor, spanA: RANK.spanA, spanAll: RANK.spanAll, PMAX: 0.995, cutoff: RANK.cutoff, teams: data.length },
+    rank: { chanceW: LIST.chanceW, leadW: LIST.leadW, leadFloor: LIST.leadFloor, spanA: LIST.spanA, spanAll: LIST.spanAll, PMAX: 0.995, cutoff: LEADER_FLOOR, teams: data.length },
     prefix: [] as number[], descend: false, maxChips: 4, histChips: HIST_CHIPS,
   };
+}
+/**
+ * The rivalry pairs as the walk reads them: for each team (by its index in
+ * `data`) which opponent chips name one of its rivals, and how many rivals
+ * it has, so a run under "vs Auburn" can be priced as a choice among
+ * Alabama's rivals rather than among every opponent (list.ts conditionCost).
+ */
+function rivalInput(data: TeamData[]) {
+  const n = NP.length;
+  const rivalMask = new Uint8Array(data.length * n);
+  const rivalN = new Int32Array(data.length);
+  const oppOf = NP.map((c) => (c.key.startsWith('vsteam:') ? teams.findIndex((t) => t.id === c.key.slice(7)) : -1));
+  data.forEach((td, t) => {
+    const rivals = new Set<number>();
+    for (const r of P.rivals) { if (r.a === td.ti) rivals.add(r.b); else if (r.b === td.ti) rivals.add(r.a); }
+    rivalN[t] = rivals.size;
+    oppOf.forEach((opp, i) => { if (opp >= 0 && rivals.has(opp)) rivalMask[t * n + i] = 1; });
+  });
+  return { rivalMask, rivalN };
 }
 /** One piece of the walk: the definition `prefix` names and, when `descend`, everything below it. */
 interface Piece { prefix: number[]; descend: boolean }
@@ -317,29 +346,30 @@ interface Piece { prefix: number[]; descend: boolean }
 const SPLIT_ROOTS = 16;
 
 // what mineCore returns: per team, per reading, the candidates with chip indices and game indices
-interface CoreRun { chips: number[]; dir: Dir; scope: Scope; len: number; atEdge: boolean; field: number; rank: number; tied: number; second: number; startIdx: number; lastIdx: number; live: boolean; also: number; p: number; n: number; score: number; enderIdx?: number; w?: number; everLen?: number; everN?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
+interface CorePlacing { chips: number[]; field: number; rank: number; tied: number; second: number; p: number; n: number; hT: number; nT: number; atEdge: boolean; live: boolean; rivals?: number; everLen?: number; everN?: number }
+interface CoreRun extends CorePlacing { dir: Dir; scope: Scope; len: number; atEdge: boolean; startIdx: number; lastIdx: number; live: boolean; also: number; gT: number; highest?: CorePlacing; enderIdx?: number; w?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
 interface CoreOut { active: CoreRun[][]; all: CoreRun[][]; broken: CoreRun[][]; leaders: CoreRun[][] }
 
 // the threads' outputs, merged: the identical run found in two subtrees collapses as it would in one
 function merge(data: TeamData[], parts: CoreOut[]): Mined {
   const grid = weekGrid(data);
-  const keyOf = { active: (r: CoreRun) => `${r.dir}|${r.lastIdx}|${r.len}`, all: (r: CoreRun) => `${r.dir}|${r.lastIdx}|${r.len}`, broken: (r: CoreRun) => `${r.dir}|${r.enderIdx}|${r.startIdx}|${r.len}`, leaders: (r: CoreRun) => `${r.dir}|${r.w}|${r.len}` };
+  const choices = Float64Array.from(NP, (c) => Math.log2(choicesOf(c.key)));
+  const keyOf = { active: (r: CoreRun) => `${r.dir}|${r.startIdx}|${r.lastIdx}|${r.len}`, all: (r: CoreRun) => `${r.dir}|${r.startIdx}|${r.lastIdx}|${r.len}`, broken: (r: CoreRun) => `${r.dir}|${r.enderIdx}|${r.startIdx}|${r.len}`, leaders: (r: CoreRun) => `${r.dir}|${r.w}|${r.len}` };
   const out: Mined = { active: new Map(), all: new Map(), broken: new Map(), leaders: new Map(), teams: data.length };
   for (const reading of ['active', 'all', 'broken', 'leaders'] as const) {
     data.forEach((td, t) => {
       const held = new Map<string, CoreRun>();
       for (const part of parts) {
-        for (const r of part[reading][t]) {
-          const k = keyOf[reading](r);
-          const prev = held.get(k);
-          if (!prev) held.set(k, r);
-          else { r.also = prev.also + r.also + 1; if (r.score > prev.score) held.set(k, r); else prev.also = r.also; }
-        }
+        for (const r of part[reading][t]) collapseInto(held, keyOf[reading](r), r, choices);
       }
       const gs = td.gs;
+      const placing = (x: CorePlacing): Placing => ({
+        chips: x.chips.map((i) => NP[i].key), field: x.field, rank: x.rank, tied: x.tied, second: x.second, p: x.p, n: x.n, hT: x.hT, nT: x.nT, atEdge: x.atEdge, live: x.live,
+        ...(x.rivals ? { rivals: x.rivals } : {}), ...(x.everLen != null ? { everLen: x.everLen, everN: x.everN } : {}),
+      });
       const base = (r: CoreRun): MinedCrown => ({
-        chips: r.chips.map((i) => NP[i].key), dir: r.dir, scope: r.scope, len: r.len, atEdge: r.atEdge, field: r.field, rank: r.rank, tied: r.tied, second: r.second,
-        startSe: gs[r.startIdx]?.se, endSe: gs[r.lastIdx]?.se, live: r.live, also: r.also, p: r.p, n: r.n,
+        ...placing(r), dir: r.dir, scope: r.scope, len: r.len, atEdge: r.atEdge, gT: r.gT,
+        startSe: gs[r.startIdx]?.se, endSe: gs[r.lastIdx]?.se, live: r.live, also: r.also, ...(r.highest ? { highest: placing(r.highest) } : {}),
       });
       const rows = [...held.values()];
       if (reading === 'active' || reading === 'all') out[reading].set(td.ti, rows.map(base));
@@ -437,7 +467,7 @@ const fnv = (s: string) => {
 
 /** What a raw mine depends on: the payload's build time, the chips walked (count and a hash of their keys), the keep floor and the history depth. */
 /** The mine's row shape; bump it when a reading gains a field, so an older file re-mines. */
-export const MINE_FORMAT = 2;
+export const MINE_FORMAT = 7;
 export const MINE_STAMP = `payload ${P.builtAt} · chips ${NP.length}/${fnv(NP.map((c) => c.key).join(','))} · keep ${KEEP_FLOOR} · hist ${HIST_CHIPS} · v${MINE_FORMAT}`;
 
 export const encodeMined = (m: Mined): MinedFile => ({ stamp: MINE_STAMP, teams: m.teams, active: [...m.active], all: [...m.all], broken: [...m.broken], leaders: [...m.leaders] });
@@ -476,26 +506,27 @@ export function mineRaw(): Promise<Mined> {
   return (mining ??= readMined().then((m) => m ?? mineAll()));
 }
 
-const caches: Record<Scope, Map<number, Crown[]> | null> = { active: null, all: null };
+const caches: Record<Scope, Map<number, MinedCrown[]> | null> = { active: null, all: null };
 
 /**
- * A team's streaks, best first (crownRank.ts): every run it leads its field
- * with (rank 1, ties included: the longest active, or the all-time longest),
- * under the outcomes a sheet shows, with no score floor past the miner's own,
- * the same rule as the broken runs a game ends. The page pages through them.
+ * A team's runs as its crowns file carries them: every run placed FILE_RANK
+ * or better under either placing (the longest active, or the all-time
+ * longest, and the places the admit knob can reach), under the outcomes a
+ * sheet shows, with no score floor past the miner's own. The list rule
+ * (list.ts listCrowns) admits, tells and orders them wherever a page lists
+ * them, the same rule as the broken runs a game ends.
  */
-export async function mineCrowns(scope: Scope = 'active'): Promise<Map<number, Crown[]>> {
+export async function mineCrowns(scope: Scope = 'active'): Promise<Map<number, MinedCrown[]>> {
   if (!caches[scope]) {
     const m = await mineRaw();
-    const cache = new Map<number, Crown[]>();
-    const w = { ...RANK, cutoff: -Infinity };
-    for (const [ti, list] of m[scope]) cache.set(ti, rankCrowns(list.filter((c) => c.rank === 1 && SHEET_DIRS.includes(c.dir)), { teams: m.teams }, w));
+    const cache = new Map<number, MinedCrown[]>();
+    for (const [ti, list] of m[scope]) cache.set(ti, list.filter((c) => (c.rank <= FILE_RANK || (c.highest != null && c.highest.rank <= FILE_RANK)) && SHEET_DIRS.includes(c.dir)));
     caches[scope] = cache;
   }
   return caches[scope]!;
 }
 
-/** Every run a game ended and every week's new leader, per team, unfiltered (broken.ts and seasons.ts tell them). */
+/** Every run a game ended and every week's new leader, per team, unfiltered (broken.ts and seasons.ts read them). */
 export async function mineBroken(): Promise<{ broken: Map<number, BrokenRun[]>; leaders: Map<number, LeaderRun[]>; teams: number }> {
   const m = await mineRaw();
   return { broken: m.broken, leaders: m.leaders, teams: m.teams };
@@ -503,6 +534,6 @@ export async function mineBroken(): Promise<{ broken: Map<number, BrokenRun[]>; 
 
 export const isMined = (scope: Scope = 'active') => !!caches[scope];
 
-export function crownsFor(ti: number, scope: Scope = 'active'): Crown[] {
+export function crownsFor(ti: number, scope: Scope = 'active'): MinedCrown[] {
   return caches[scope]?.get(ti) ?? [];
 }

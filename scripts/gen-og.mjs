@@ -67,6 +67,7 @@ const { P, teams, fbsNow, firstSeason, allTimeBoard, todayEpochDay } = await vit
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineCrowns, mineBroken } = await vite.ssrLoadModule('/src/lib/crowns.ts')
+const { listCrowns } = await vite.ssrLoadModule('/src/lib/list.ts')
 const { streakGames } = await vite.ssrLoadModule('/src/lib/streaks.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 
@@ -201,10 +202,10 @@ async function renderBoard(W, H) {
 async function renderTeam(ti, W, H) {
   const t = teams[ti]
   const row = rows.find((r) => r.ti === ti)
-  const held = crowns.get(ti) ?? []
-  // what the team is king of: every active run it leads its field with (ties included), one telling per run, as its page lists them
-  const w = held.filter((c) => baseDir(c.dir) === 'W' && !c.dup).length
-  const l = held.filter((c) => baseDir(c.dir) === 'L' && !c.dup).length
+  // what the team is king of: its active runs as its page lists them (the list rule over its file), one row per run
+  const held = listCrowns(crowns.get(ti) ?? [])
+  const w = held.filter((c) => baseDir(c.dir) === 'W' && !c.subStreak).length
+  const l = held.filter((c) => baseDir(c.dir) === 'L' && !c.subStreak).length
   const color = t.espn && (await logoUri(t.espn, 'color'))
   const lines = row ? wrap(claim(row, DEFAULT_CHIPS, 'W'), 44) : [`No winning streak vs unranked opponents on record.`]
   const parts = []

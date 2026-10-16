@@ -2,13 +2,12 @@
 // rank, its next game, and its current streaks with their place in the field.
 //
 // The streaks are the team's active crowns (crowns.ts mines every team's
-// run under every definition at build time; the page loads its file), each
-// with the next scheduled game that qualifies, so a matchup and the at-risk
-// digest know which runs a game puts on the line. The list is already in
-// the King-of order: by crownRank's score, how far the run sits past what
-// chance would produce.
+// run under every definition at build time; the page loads its file and
+// lists them with the list rule, list.ts), each with the next scheduled
+// game that qualifies, so a matchup and the at-risk digest know which runs
+// a game puts on the line.
 
-import type { Crown, Dir, GameRow, UpcomingRow } from './types.ts';
+import type { Crown, Dir, GameRow, MinedCrown, UpcomingRow } from './types.ts';
 import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
 import { chipByKey, qualifiesPregame } from './chips.ts';
 import type { PregameChip } from './chips.ts';
@@ -52,13 +51,15 @@ export function apRank(ti: number, todayEp: number): number | null {
 /** The last time the two met, from ti's side. */
 export const lastMeeting = (ti: number, opp: number): GameRow | null => gamesOf(ti).findLast((g) => g.oppIdx === opp) ?? null;
 
-/** One of a team's current streaks: its active crown, with the game that next puts it on the line. */
-export interface TeamStreak extends Crown {
+/** One of a team's current runs with the game that next puts it on the line, as a file keeps it (no score). */
+export type TeamRun<T extends MinedCrown = MinedCrown> = T & {
   /** The next scheduled game that qualifies; null when none does, or when a condition can't be known before kickoff. */
   next: UpcomingRow | null;
   /** The season the run started in. */
   since: number;
-}
+};
+/** One of a team's current streaks on a list: its active crown under the definition the list rule picked, scored, with its next game. */
+export type TeamStreak = TeamRun<Crown>;
 
 /** The miner's floor: a run shorter than this is never on a list. */
 export const LEN_FLOOR = 4;
@@ -79,11 +80,11 @@ export function nextQualifying(ti: number, chips: readonly string[], todayEp: nu
 }
 
 /**
- * A team's current streaks worth reading, best first: its active crowns
- * under the outcomes a sheet shows (crowns.ts kept and crownRank.ts ordered
- * them), each with its next qualifying game. Empty while the crowns load.
+ * A team's current streaks, in the order given: its active crowns under the
+ * outcomes a sheet shows (the list rule's rows, or a file's raw ones), each
+ * with its next qualifying game. Empty while the crowns load.
  */
-export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null): TeamStreak[] {
+export function teamStreaks<T extends MinedCrown>(ti: number, todayEp: number, crowns: T[] | null): TeamRun<T>[] {
   if (!crowns) return [];
   return crowns
     .filter((c) => c.scope === 'active' && SHEET_DIRS.includes(c.dir))
@@ -91,7 +92,7 @@ export function teamStreaks(ti: number, todayEp: number, crowns: Crown[] | null)
 }
 
 /** The streaks a scheduled game puts on the line: the ones whose next qualifying game it is. */
-export const streaksOn = (list: TeamStreak[], game: UpcomingRow): TeamStreak[] => list.filter((s) => s.next?.i === game.i);
+export const streaksOn = <T extends TeamRun>(list: T[], game: UpcomingRow): T[] => list.filter((s) => s.next?.i === game.i);
 
 /** "T-3rd": the rank, marked when shared. */
 export const rankText = (s: Pick<Crown, 'rank' | 'tied'>) => (s.tied > 1 ? 'T-' : '') + ordinal(s.rank);
@@ -147,17 +148,17 @@ export function lineText(g: Pick<ScheduledGame, 'home' | 'away' | 'sp'>): string
 }
 
 /**
- * The longest active streaks either side puts on the line in the game: the
- * one with the highest score, with its team, and `n`, how many there are (one
- * telling per run). Null when the game puts none on the line. `crownsOf` is
- * each team's active crowns.
+ * The streaks either side puts on the line in the game: the one with the
+ * highest score, with its team, and `n`, how many there are (one placing per
+ * run). Null when the game puts none on the line. `crownsOf` is each team's
+ * active crowns as the list rule lists them.
  */
 export function topOnLine(g: ScheduledGame, todayEp: number, crownsOf: (ti: number) => Crown[] | null): { ti: number; s: TeamStreak; n: number } | null {
   let best: { ti: number; s: TeamStreak } | null = null;
   let n = 0;
   for (const { ti, row } of g.sides) {
     for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
-      if (s.dup || s.rank !== 1) continue;
+      if (s.subStreak) continue;
       n++;
       if (!best || s.score > best.s.score) best = { ti, s };
     }
