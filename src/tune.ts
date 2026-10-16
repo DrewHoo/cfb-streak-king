@@ -34,8 +34,9 @@ export const useKnobs = () => useContext(TuneContext).knobs;
 const read = (k: string): string | null => { try { return window.localStorage.getItem(k); } catch { return null; } };
 const write = (k: string, v: string | null) => { try { if (v == null) window.localStorage.removeItem(k); else window.localStorage.setItem(k, v); } catch { /* private mode */ } };
 
-/** Whether the tuner is on, from the address (`?tune=1` / `?tune=0`, remembered) else what was remembered. */
+/** Whether the tuner is on, from the address (`?tune=1` / `?tune=0`, remembered) else what was remembered. Dev server only: a production build never turns it on, whatever the address or localStorage says. */
 export function readTuneOn(search: string): boolean {
+  if (!import.meta.env.DEV) return false;
   const q = new URLSearchParams(search).get('tune');
   if (q === '1' || q === '0') { write(ON_KEY, q === '1' ? '1' : null); return q === '1'; }
   return read(ON_KEY) === '1';
