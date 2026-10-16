@@ -10,6 +10,7 @@ import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, str
 import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
 import { ShareIcon, Caret, Chevron } from './Icons.jsx';
+import { Cite } from './Cite.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow, Tellings } from './StreakRow.jsx';
 import { useTeamCrowns } from '../hooks/useCrowns.ts';
@@ -93,6 +94,7 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
       <div className="tpg-bar">
         <button className="crumb" onClick={on.board}><Chevron left /> Streak King</button>
         <span className="dateline-acts">
+          {on.cite && <Cite onCopy={(embed) => on.cite(ti, embed)} />}
           <button className="ico" onClick={() => on.share(ti)} aria-label={`Share ${t.name}`}><ShareIcon /></button>
           {copied && <span className="toast">copied</span>}
         </span>

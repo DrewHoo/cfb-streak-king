@@ -27,7 +27,7 @@ export function Landings({ current, hrefOf, onOpen }) {
           </div>
         ))}
       </div>
-      <p className="landings-more"><a href={`${BASE}blog/`}>Weekly posts</a>: the streaks at stake in the coming week's games, and the ones its results broke.</p>
+      <p className="landings-more"><a href={`${BASE}blog/`}>Weekly posts</a>: the streaks at stake in the coming week's games, and the ones its results broke. <a href={`${BASE}data/`}>The data</a>: every file the site reads, free to use with credit.</p>
     </nav>
   );
 }

@@ -10,6 +10,7 @@ import { siteWord, shortDate, dayOf, kickOf, yearOf, count, spreadText } from '.
 import { seasonRecord, recordText } from '../lib/team.ts';
 import { unplayedInRun, classOf, KIND_WORDS } from '../lib/unplayed.ts';
 import { TeamMark } from './Chip.jsx';
+import { Cite } from './Cite.jsx';
 import { ShareIcon, CloseIcon, Chevron } from './Icons.jsx';
 
 const LEDGER_CAP = 8;
@@ -124,7 +125,7 @@ function Ledger({ row, edge, cover, onGame }) {
   );
 }
 
-export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, onShare, onClose, onTeam, onGame }) {
+export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, onShare, onCite, onClose, onTeam, onGame }) {
   const t = teams[ti];
   const sentence = row ? claim(row, active, dir) : noClaim(ti, active, dir);
   return (
@@ -150,6 +151,7 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, onSh
           {row.s.atEdge && !row.onTheLine && row.live !== false && (edge?.joined
             ? `${count(row.s)} means the streak runs back to ${t.name}'s first ${edge.year < 1978 ? 'major-college' : 'FBS'} season, ${edge.year}`
             : `${count(row.s)} means the streak runs past the start of the data`)}
+          {onCite && <Cite onCopy={(embed) => onCite(sentence, embed)} />}
         </p>
       )}
       {row && <Ledger row={row} edge={edge} cover={againstSpread(dir)} onGame={onGame} />}

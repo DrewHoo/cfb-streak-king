@@ -788,3 +788,20 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .why small { flex: 1 1 220px; color: var(--ink-faint); line-height: 1.4; }
 .tune-i { margin-left: 6px; vertical-align: 1px; }
 .tune-help { grid-column: 1 / -1; color: var(--ink-faint); font-size: 12px; line-height: 1.4; margin: -2px 0 4px; }
+
+/* the credit line (Cite.jsx): two small text buttons, "cite" and "embed", in the small print of a panel, a team page's bar and a digest heading */
+.cite { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: baseline; }
+.cite-b {
+  font: inherit; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-faint); background: none; border: none; padding: 0; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 3px; border-radius: 2px;
+}
+.cite-b:hover, .cite-b:focus-visible { color: var(--cream); outline: none; }
+.claim-meta .cite { margin-left: 0; display: flex; margin-top: 2px; }
+.gbk-h .cite { margin-left: 6px; }
+.gbk-h .cite-b { text-transform: none; letter-spacing: 0.04em; font-size: 11px; }
+.tpg-bar .cite { margin-right: 6px; }
+/* the data page's file list */
+.data-files dt { margin: 14px 0 2px; }
+.data-files dd { margin: 0; color: var(--ink-muted); font-size: 14.5px; line-height: 1.55; }
+.data-files dd a { word-break: break-all; }

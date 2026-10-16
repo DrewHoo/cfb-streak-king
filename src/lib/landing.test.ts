@@ -45,6 +45,16 @@ describe('landing', () => {
     expect(landingBySlug.get('longest-active-win-streaks')!.title).toBe('Current longest winning streaks in college football');
     expect(landingBySlug.get('longest-home-losing-streaks')!.title).toBe('Current longest home losing streaks in college football');
     expect(landingBySlug.get('longest-win-streaks-in-college-football-history')!.title).toBe('Longest winning streaks in college football history');
+    // a row's own title wins where the searcher's words differ from the page's
+    expect(landingBySlug.get('longest-active-cover-streaks')!.title).toBe('Current longest cover streaks (ATS) in college football');
+    expect(landingBySlug.get('longest-active-cover-streaks')!.h1).toBe('Longest active cover streaks in college football');
+    expect(landingBySlug.get('longest-win-streaks-in-october')!.title).toBe('Current longest October winning streaks in college football');
+  });
+
+  test('a definition with a chip choice (a month) has a page, found by its spelling', () => {
+    expect(landingFor('month:10', 'W', 'active')?.slug).toBe('longest-win-streaks-in-october');
+    expect(landingFor('all', 'C', 'active')?.slug).toBe('longest-active-cover-streaks');
+    expect(landingFor('all', 'N', 'active')?.slug).toBe('longest-active-ats-losing-streaks');
   });
 
   describe('lead sentence', () => {
