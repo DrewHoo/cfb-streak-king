@@ -29,7 +29,7 @@ export function NextChip({ u, color, small, title }) {
   );
 }
 
-export function TeamMark({ ti, className = 'colteam' }) {
+export function TeamMark({ ti, className = 'colteam', hidden }) {
   const t = teams[ti];
-  return t?.espn ? <img className={className} src={`${BASE}logos-color/${t.espn}.png`} alt={t.name} loading="lazy" /> : null;
+  return t?.espn ? <img className={className} src={`${BASE}logos-color/${t.espn}.png`} alt={t.name} aria-hidden={hidden || undefined} loading="lazy" /> : null;
 }

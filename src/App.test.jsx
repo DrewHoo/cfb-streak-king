@@ -53,6 +53,19 @@ describe('prerender + hydrate', () => {
     await unmount();
   });
 
+  test("a column says its run in words, as its button's own text, and hides its pictures from screen readers", async () => {
+    const { root, unmount } = await hydrate({ page: null });
+    for (const col of [...root.querySelectorAll('.colwrap > .colbtn')].slice(0, 8)) {
+      const btn = col.matches('button') ? col : col.querySelector('.colbody');
+      expect(btn.getAttribute('aria-label')).toBeNull();
+      expect(btn.querySelector('.sr-only').textContent).toMatch(/^[^:]+: \d+\+? wins in a row(, (since [A-Z][a-z]+ \d{4}|\d{4}.\d{4}.*))?\.$/);
+      for (const el of btn.children) if (!el.classList.contains('sr-only')) expect(el.getAttribute('aria-hidden')).toBe('true');
+      const head = col.querySelector('.colhead');
+      if (head) expect(head.querySelector('.sr-only').textContent).toMatch(/: the game\.$/);
+    }
+    await unmount();
+  });
+
   test('a team page hydrates without a mismatch, crowns included', async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
     // any crowns will do: this checks the render, crowns.test covers their contents

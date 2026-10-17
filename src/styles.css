@@ -173,6 +173,7 @@ h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-s
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   width: 40px; padding: 4px 0 6px; background: transparent; border: none;
   border-radius: 4px; cursor: pointer; font: inherit; color: inherit;
+  position: relative; /* holds the column's .sr-only words, which would otherwise escape the phone rail's scroller and widen the page */
 }
 .colbtn:hover, .colbtn:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
 /* the open column: a lighter fill and a rust ring, the active state the keys move */
@@ -369,6 +370,7 @@ footer a { color: var(--ink-muted); }
 .colhead, .colbody {
   display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%;
   background: transparent; border: none; border-radius: 4px; cursor: pointer; font: inherit; color: inherit;
+  position: relative;
 }
 .colhead { padding: 4px 0 0; }
 .colbody { padding: 4px 0 6px; }
