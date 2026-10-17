@@ -132,10 +132,10 @@ describe('url', () => {
   });
 
   test('a broken run’s all-time link is the board under its definition, no team open', () => {
-    const u = boardUrl(['night'], 'W', 'all');
+    const u = boardUrl(['fullmoon'], 'W', 'all');
     expect(u.params.t ?? null).toBeNull();
-    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/?c=night');
-    expect(parseUrl('/cfb-streak-king/', '?c=night')).toMatchObject({ scope: 'all', team: null });
+    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/?c=fullmoon');
+    expect(parseUrl('/cfb-streak-king/', '?c=fullmoon')).toMatchObject({ scope: 'all', team: null });
     expect(hrefOf('/x/', { path: 'games/', params: { a: null, b: '' } })).toBe('/x/games/');
   });
 

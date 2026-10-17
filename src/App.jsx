@@ -352,7 +352,7 @@ export default function App({ initial } = {}) {
           />
 
           <Starred starred={star.starred} todayEp={todayEp} onApply={applyStarred} onRemove={star.remove} />
-          <Landings current={landing} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), team: null, run: null, week: false }))} onOpen={openLanding} />
+          <Landings current={landing} todayEp={todayEp} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), team: null, run: null, week: false }))} onOpen={openLanding} />
         </>
       )}
 

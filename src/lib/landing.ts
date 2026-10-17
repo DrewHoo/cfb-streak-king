@@ -35,6 +35,9 @@ const FIRST = 1936;
 // ("cover streaks" on the page, "ATS" in the search box)
 type Row = [slug: string, c: string, dir: Dir, scope: Scope, what: string, note?: string, title?: string];
 const LINES = 'Closing lines are known from 1978.';
+const COVER = `A cover is a win against the spread (ATS): the team beat the closing line. ${LINES}`;
+const NOCOVER = `ATS is against the spread: a loss here is a game the team didn't cover. ${LINES}`;
+const NIGHT = 'Kickoff times are known from 2002.';
 const ROWS: Row[] = [
   // active
   ['longest-active-win-streaks', 'all', 'W', 'active', 'win streaks'],
@@ -54,24 +57,35 @@ const ROWS: Row[] = [
   ['longest-win-streaks-as-underdog', 'dog', 'W', 'active', 'win streaks as an underdog', LINES],
   ['longest-win-streaks-as-favorite', 'fav', 'W', 'active', 'win streaks as the favorite', LINES],
   // against the spread: the searcher says "ATS" or "cover streak", the page says "cover streaks"
-  ['longest-active-cover-streaks', 'all', 'C', 'active', 'cover streaks', LINES, 'Current longest cover streaks (ATS) in college football'],
-  ['longest-active-ats-losing-streaks', 'all', 'N', 'active', 'ATS losing streaks', LINES],
-  ['longest-night-game-win-streaks', 'night', 'W', 'active', 'night game win streaks', 'Kickoff times are known from 2002.'],
+  ['longest-active-cover-streaks', 'all', 'C', 'active', 'cover streaks', COVER, 'Current longest cover streaks (ATS) in college football'],
+  ['longest-active-ats-losing-streaks', 'all', 'N', 'active', 'ATS losing streaks', NOCOVER],
+  ['longest-night-game-win-streaks', 'night', 'W', 'active', 'night game win streaks', NIGHT],
   ['longest-win-streaks-in-september', 'month:9', 'W', 'active', 'September win streaks'],
   ['longest-win-streaks-in-october', 'month:10', 'W', 'active', 'October win streaks'],
   ['longest-win-streaks-in-november', 'month:11', 'W', 'active', 'November win streaks'],
-  // all-time
+  // all-time: one for every active page, in the same order
   ['longest-win-streaks-in-college-football-history', 'all', 'W', 'all', 'win streaks'],
   ['longest-losing-streaks-in-college-football-history', 'all', 'L', 'all', 'losing streaks'],
   ['longest-unbeaten-streaks-in-college-football-history', 'all', 'U', 'all', 'unbeaten streaks'],
   ['longest-home-win-streaks-ever', 'home', 'W', 'all', 'home win streaks'],
+  ['longest-home-losing-streaks-ever', 'home', 'L', 'all', 'home losing streaks'],
   ['longest-road-win-streaks-ever', 'road', 'W', 'all', 'road win streaks'],
   ['longest-road-losing-streaks-ever', 'road', 'L', 'all', 'road losing streaks'],
   ['longest-win-streaks-vs-ranked-teams-ever', 'ranked', 'W', 'all', 'win streaks vs ranked teams'],
+  ['longest-losing-streaks-vs-ranked-teams-ever', 'ranked', 'L', 'all', 'losing streaks vs ranked teams'],
+  // (all-time win streaks vs unranked teams is the default definition: the root page, not a landing)
   ['longest-conference-win-streaks-ever', 'confgame', 'W', 'all', 'conference win streaks'],
+  ['longest-conference-losing-streaks-ever', 'confgame', 'L', 'all', 'conference losing streaks'],
   ['longest-bowl-win-streaks-ever', 'postseason', 'W', 'all', 'bowl win streaks'],
+  ['longest-bowl-losing-streaks-ever', 'postseason', 'L', 'all', 'bowl losing streaks'],
   ['longest-win-streaks-as-underdog-ever', 'dog', 'W', 'all', 'win streaks as an underdog', LINES],
-  ['longest-cover-streaks-ever', 'all', 'C', 'all', 'cover streaks', LINES, 'Longest cover streaks (ATS) in college football history'],
+  ['longest-win-streaks-as-favorite-ever', 'fav', 'W', 'all', 'win streaks as the favorite', LINES],
+  ['longest-cover-streaks-ever', 'all', 'C', 'all', 'cover streaks', COVER, 'Longest cover streaks (ATS) in college football history'],
+  ['longest-ats-losing-streaks-ever', 'all', 'N', 'all', 'ATS losing streaks', NOCOVER],
+  ['longest-night-game-win-streaks-ever', 'night', 'W', 'all', 'night game win streaks', NIGHT],
+  ['longest-win-streaks-in-september-ever', 'month:9', 'W', 'all', 'September win streaks'],
+  ['longest-win-streaks-in-october-ever', 'month:10', 'W', 'all', 'October win streaks'],
+  ['longest-win-streaks-in-november-ever', 'month:11', 'W', 'all', 'November win streaks'],
 ];
 
 export const LANDINGS: Landing[] = ROWS.map(([slug, c, dir, scope, what, note, title]) => ({
