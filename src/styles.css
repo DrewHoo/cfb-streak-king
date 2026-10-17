@@ -743,6 +743,9 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .post .crumb { text-decoration: none; }
 .post-h1 { text-align: left; font-size: clamp(28px, 6vw, 42px); margin: 18px 0 6px; }
 .post-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 22px; }
+/* the small print's links (RSS, the full list, by week): there is no base rule for links, so without this they'd be browser blue */
+.post-meta a, .post .tpg-note a { color: var(--ink-muted); text-decoration: underline dotted; text-underline-offset: 3px; }
+.post-meta a:hover, .post .tpg-note a:hover { color: var(--cream); text-decoration-style: solid; }
 .post-body { font-size: 16px; line-height: 1.6; color: var(--ink); }
 .post-body p, .post-body ul, .post-body ol, .post-body blockquote { margin: 0 0 16px; }
 .post-body h2 { margin: 32px 0 8px; }
