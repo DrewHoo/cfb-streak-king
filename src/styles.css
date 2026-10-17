@@ -722,17 +722,20 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 /* the named definition boards, listed under the grid: real links, so a crawler reaches every one */
 .landings { max-width: 700px; margin: 36px auto 0; }
 .landings h2 { margin-top: 0; }
-.landings-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; margin-top: 10px; }
-.landings-h { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; }
-.landings ul { list-style: none; margin: 0; padding: 0; }
-.landings li { border-bottom: 1px dotted var(--line); }
-.landings a { display: block; padding: 6px 2px; font-size: 13.5px; color: var(--ink-muted); text-decoration: none; }
-.landings a:hover { color: var(--cream); }
-.landings a[aria-current='page'] { color: var(--cream); }
-.landings a[aria-current='page']::before { content: '· '; color: var(--rust); }
+/* one row per definition, its two scopes as short links; two columns of rows on a desktop */
+.landings-rows { columns: 2; column-gap: 32px; margin-top: 10px; }
+.landings-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0 14px; align-items: baseline; border-bottom: 1px dotted var(--line); padding: 5px 2px; break-inside: avoid; font-size: 13.5px; }
+.landings-what { color: var(--ink-muted); }
+.landings-scope { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; min-width: 72px; text-align: right; }
+.landings-scope i { color: var(--ink-faint); font-style: normal; }
+/* the scope words read as links: dotted underline, the ink color, and the mark of the team that holds the board */
+.landings-scope a { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
+.landings-scope a:hover { color: var(--cream); text-decoration-style: solid; }
+.landings-scope a[aria-current='page'] { color: var(--cream); text-decoration-style: solid; }
+.landings-mark { width: 15px; height: 15px; display: block; object-fit: contain; }
 .landings-more { font-size: 13.5px; color: var(--ink-muted); margin: 14px 0 0; }
 .landings-more a { color: var(--ink); text-decoration: underline dotted; text-underline-offset: 3px; }
-@media (max-width: 640px) { .landings-cols { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .landings-rows { columns: 1; } }
 
 /* the weekly posts (/blog/): static pages the prerender writes, no app on them */
 .post { max-width: 640px; margin: 0 auto; }
@@ -740,6 +743,9 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .post .crumb { text-decoration: none; }
 .post-h1 { text-align: left; font-size: clamp(28px, 6vw, 42px); margin: 18px 0 6px; }
 .post-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 22px; }
+/* the small print's links (RSS, the full list, by week): there is no base rule for links, so without this they'd be browser blue */
+.post-meta a, .post .tpg-note a { color: var(--ink-muted); text-decoration: underline dotted; text-underline-offset: 3px; }
+.post-meta a:hover, .post .tpg-note a:hover { color: var(--cream); text-decoration-style: solid; }
 .post-body { font-size: 16px; line-height: 1.6; color: var(--ink); }
 .post-body p, .post-body ul, .post-body ol, .post-body blockquote { margin: 0 0 16px; }
 .post-body h2 { margin: 32px 0 8px; }
@@ -788,3 +794,20 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .why small { flex: 1 1 220px; color: var(--ink-faint); line-height: 1.4; }
 .tune-i { margin-left: 6px; vertical-align: 1px; }
 .tune-help { grid-column: 1 / -1; color: var(--ink-faint); font-size: 12px; line-height: 1.4; margin: -2px 0 4px; }
+
+/* the credit line (Cite.jsx): two small text buttons, "cite" and "embed", in the small print of a panel, a team page's bar and a digest heading */
+.cite { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: baseline; }
+.cite-b {
+  font: inherit; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-faint); background: none; border: none; padding: 0; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 3px; border-radius: 2px;
+}
+.cite-b:hover, .cite-b:focus-visible { color: var(--cream); outline: none; }
+.claim-meta .cite { margin-left: 0; display: flex; margin-top: 2px; }
+.gbk-h .cite { margin-left: 6px; }
+.gbk-h .cite-b { text-transform: none; letter-spacing: 0.04em; font-size: 11px; }
+.tpg-bar .cite { margin-right: 6px; }
+/* the data page's file list */
+.data-files dt { margin: 14px 0 2px; }
+.data-files dd { margin: 0; color: var(--ink-muted); font-size: 14.5px; line-height: 1.55; }
+.data-files dd a { word-break: break-all; }

@@ -70,7 +70,7 @@ export default function App({ initial } = {}) {
   // a team page opened from the breakers leaderboard scrolls to its breaks
   const [teamFocus, setTeamFocus] = useState(null);
   const star = useStarred(active, dir);
-  const { copied, share } = useShare();
+  const { copied, share, copy } = useShare();
   const isMobile = useIsMobile();
   // the tuner (tune.ts): on at ?tune=1, its knob overrides remembered; every list reads the knobs from the context
   const [tune, setTune] = useState({ on: false, over: {}, picked: [] });
@@ -244,12 +244,37 @@ export default function App({ initial } = {}) {
     const played = !!found?.played;
     share(`${teams[key.away].name} ${key.neutral ? 'vs' : 'at'} ${teams[key.home].name}: ${played ? 'the streaks it ended' : 'every streak on the line'}`, absoluteUrl(BASE, gameUrl(key)));
   }
+  // the credit line (Cite.jsx): one line a writer can paste, with the
+  // permalink, or an image card that links to it (the worker's card for the
+  // address, a team's committed card for its page)
+  function cite(where, claimText, url, card, alt, embed) {
+    track('cite', { where, embed });
+    copy(embed
+      ? `<a href="${url}"><img src="${card}" alt="${alt.replace(/"/g, '&quot;')}" width="600" height="315" style="max-width:100%;height:auto"></a>`
+      : `${claimText} (per Streak King, ${url})`);
+  }
+  const cardUrl = (params) => `${window.location.origin}${BASE}share/og.png?${params}`;
+  function citeView(sentence, embed) {
+    const p = new URLSearchParams({ c: encodeChips(active) || 'all' });
+    if (dir !== 'W') p.set('dir', dir);
+    if (scope === 'active') p.set('scope', 'active');
+    cite('panel', sentence, window.location.href, cardUrl(p), sentence, embed);
+  }
+  function citeTeam(ti, embed) {
+    const t = teams[ti];
+    cite('team page', `${t.name}'s win streaks and losing streaks, active and all-time`, absoluteUrl(BASE, teamUrl(ti)), `${window.location.origin}${BASE}og/team/${t.id}.png`, `${t.name}'s longest streaks`, embed);
+  }
+  function citeSection(kind, wk, embed) {
+    const url = absoluteUrl(BASE, gamesUrl(kind === 'risk' ? null : wk, kind === 'risk'));
+    const what = kind === 'risk' ? `Week ${wk}'s college football streaks at risk` : `The college football streaks broken in Week ${wk}`;
+    cite(kind, what, url, cardUrl(new URLSearchParams({ [kind]: String(wk) })), what, embed);
+  }
 
   const panel = team != null && (
     <TeamPanel
       ti={team} row={teamRow} rank={teamRow ? rows.indexOf(teamRow) + 1 : 0} field={rows.length}
       active={active} dir={dir} scope={scope} edge={edgeFor(team)}
-      onShare={shareView} onClose={() => close({ type: 'close' })}
+      onShare={shareView} onCite={citeView} onClose={() => close({ type: 'close' })}
       onTeam={(ti) => openTeam(ti, 'panel')} onGame={(ti, g) => openGame(ti, g, 'panel')}
     />
   );
@@ -270,6 +295,7 @@ export default function App({ initial } = {}) {
             streak: (s, ti) => openStreak(s, ti, 'team page'),
             allTime: (b) => openAllTime(b, 'team page all-time'),
             share: shareTeam,
+            cite: citeTeam,
           }}
         />
       ) : game != null ? (
@@ -303,6 +329,7 @@ export default function App({ initial } = {}) {
             allTime: (b) => openAllTime(b, 'broken all-time'),
             week: (wk) => { dispatch({ type: 'bweek', wk, season }); track('broken week', { wk, season }); },
             year: (se) => { dispatch({ type: 'bweek', wk: null, season: se === P.currentSeason ? null : se }); track('games year', { season: se }); },
+            cite: citeSection,
             link: linkSection,
             share: shareGames,
           }}
@@ -325,7 +352,7 @@ export default function App({ initial } = {}) {
           />
 
           <Starred starred={star.starred} todayEp={todayEp} onApply={applyStarred} onRemove={star.remove} />
-          <Landings current={landing} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), team: null, run: null, week: false }))} onOpen={openLanding} />
+          <Landings current={landing} todayEp={todayEp} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), team: null, run: null, week: false }))} onOpen={openLanding} />
         </>
       )}
 

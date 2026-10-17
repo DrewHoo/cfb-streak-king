@@ -56,7 +56,7 @@ describe('golden orderings', () => {
         }
       }
     }
-  });
+  }, 180_000); // 272 lists through the rule: ~19s on a laptop, past the 30s default on a CI runner
 
   test('every team: its current run under no condition is in the file at its true place, and told plainly once the admit knob reaches it', () => {
     let n = 0;

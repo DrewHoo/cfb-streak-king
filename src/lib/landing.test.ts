@@ -45,6 +45,25 @@ describe('landing', () => {
     expect(landingBySlug.get('longest-active-win-streaks')!.title).toBe('Current longest winning streaks in college football');
     expect(landingBySlug.get('longest-home-losing-streaks')!.title).toBe('Current longest home losing streaks in college football');
     expect(landingBySlug.get('longest-win-streaks-in-college-football-history')!.title).toBe('Longest winning streaks in college football history');
+    // a row's own title wins where the searcher's words differ from the page's
+    expect(landingBySlug.get('longest-active-cover-streaks')!.title).toBe('Current longest cover streaks (ATS) in college football');
+    expect(landingBySlug.get('longest-active-cover-streaks')!.h1).toBe('Longest active cover streaks in college football');
+    expect(landingBySlug.get('longest-win-streaks-in-october')!.title).toBe('Current longest October winning streaks in college football');
+  });
+
+  test('every active page has an all-time twin under the same definition, except the one whose twin is the root', () => {
+    const root = encodeChips(DEFAULT_CHIPS);
+    for (const l of LANDINGS.filter((x) => x.scope === 'active' && !(x.c === root && x.dir === 'W'))) {
+      const twin = landingFor(l.c, l.dir, 'all');
+      expect(twin, `${l.slug} has no all-time page`).not.toBeNull();
+      expect(twin!.what).toBe(l.what);
+    }
+  });
+
+  test('a definition with a chip choice (a month) has a page, found by its spelling', () => {
+    expect(landingFor('month:10', 'W', 'active')?.slug).toBe('longest-win-streaks-in-october');
+    expect(landingFor('all', 'C', 'active')?.slug).toBe('longest-active-cover-streaks');
+    expect(landingFor('all', 'N', 'active')?.slug).toBe('longest-active-ats-losing-streaks');
   });
 
   describe('lead sentence', () => {

@@ -561,8 +561,9 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const t = teams[ti]
   const row = board.find((r) => r.ti === ti)
   const url = `${SITE}team/${t.id}/`
-  const title = `${t.name} football streaks: every win streak and losing streak it leads · ${config.title}`
+  // the title is the fact people type ("alabama win streak"), with the all-time half said outright
   const since = windowStartOf(ti)
+  const title = `${t.name} win streaks and losing streaks: active and all-time, since ${since} · ${config.title}`
   const tail = `${t.name}'s record, next game, and every streak it leads in college football, active or all-time, under any definition, since ${since}.`
   const description = row ? `${claim(row, DEFAULT_CHIPS, 'W')} ${tail}` : tail
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
@@ -758,6 +759,62 @@ ${items}
 </rss>
 `)
   console.log(`posts: ${posts.length} under dist/blog/, the index and feed.xml`)
+}
+
+// --- the data page (/data/): every file the build writes, documented and
+// licensed, with Dataset JSON-LD, so a researcher or a writer can take the
+// rows and credit the site. A static page, like a post. ---
+{
+  const url = `${SITE}data/`
+  const title = `College football streak data, 1936–${SEASON}: every file, free with credit · ${config.title}`
+  const description = `The data behind ${config.title} as JSON: every game since 1936 with its closing line, every FBS team's longest streaks under hundreds of definitions, each week's broken and at-risk streaks, and the season's streak-breakers. CC BY 4.0.`
+  const allSeasons = seasons()
+  const first = Math.min(...allSeasons), last = Math.max(...allSeasons)
+  const teamIds = [...fbsNow].map((ti) => teams[ti].id).sort()
+  const ex = teamIds.includes('alabama') ? 'alabama' : teamIds[0]
+  const files = [
+    ['share/payload.json', `Every game in the window, ${first}–${last}: date, teams, site, score, closing line, AP ranks, conference, coach, kickoff, and the flags the chips read. One file. The field layout and sentinels are <code>src/lib/schema.ts</code>; <code>createModel.ts</code> decodes it.`, [`${SITE}share/payload.json`]],
+    [`games/&lt;season&gt;.json`, `For each game of a season, the streaks it ended (with the run's length, its definition, how long the longest ever under that definition is) and the definitions under which a team became the sole leader because of it. One file per season, ${first}–${last}; the running season from definitions of up to four conditions, older seasons up to two. Format: <code>src/lib/seasonFile.ts</code>.`, [`${SITE}games/${SEASON}.json`, `${SITE}games/${SEASON - 1}.json`]],
+    ['games/digests.json', 'The running season: every completed week\'s broken streaks, the coming week\'s streaks at risk with the line and the chance the game ends each, and the streak most on the line in every scheduled game. Format: <code>src/lib/digests.ts</code>.', [`${SITE}games/digests.json`]],
+    ['crowns/&lt;team&gt;.json, crowns/&lt;team&gt;.all.json', `Every streak a team leads: its longest active runs (<code>.json</code>) and its longest ever (<code>.all.json</code>) under every definition of up to four conditions, each with its rank, the size of the field and the longest other run. One pair per current FBS team (${teamIds.length}). Format: <code>src/lib/crownsFile.ts</code>.`, [`${SITE}crowns/${ex}.json`, `${SITE}crowns/${ex}.all.json`]],
+    [`breakers/${SEASON}.json`, 'The season\'s streak-breakers: every streak a team ended by beating its owner, whose it was, and the ranking they make. Format: <code>src/lib/breakers.ts</code>.', [`${SITE}breakers/${SEASON}.json`]],
+    ['share/weekly.json', 'The rows the share cards draw: this week\'s broken and at-risk streaks and the breakers, with totals.', [`${SITE}share/weekly.json`]],
+  ]
+  const chevron = '<svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M7 1 2 6l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
+  const bar = `<div class="tpg-bar"><a class="crumb" href="${SITE}">${chevron} Streak King</a></div>`
+  const foot = `<footer><a href="${ORIGIN}/">drewhoover.com</a> · <a href="${SITE}">the board</a> · <a href="${SITE}games/">this week's games</a> · <a href="${SITE}blog/">weekly posts</a></footer>`
+  const repo = `https://github.com/DrewHoo/${SLUG}`
+  const body = `<main class="post">${bar}<article><h1 class="post-h1">The data</h1><p class="post-meta">${first}–${last} · rebuilt weekly in season · <a href="${repo}">source</a></p><div class="post-body">
+<p>Everything the site shows is computed at build time from one payload and written to static JSON files. They are free to use under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>: take the rows, and credit <em>${config.title} (${config.domain})</em> with a link. The game results themselves come from the sources named in the site's notes (Warren Repole's files, James Howell's scores, cfbfastR, College Poll Archive and CollegeFootballData), whose own terms cover them; the 78 corrections to Repole's files are published separately as <a href="https://github.com/DrewHoo/repole-errata">repole-errata</a>, CC0.</p>
+<h2>How to cite a streak</h2>
+<p>Every streak, team, game and week has a permalink, and every one shows a <em>cite</em> button that copies a one-line credit with the link, and an <em>embed</em> button that copies an image card linking to it. A credit line reads: <em>Indiana has won 22 straight (per Streak King, ${SITE}longest-active-win-streaks/)</em>.</p>
+<h2>The files</h2>
+<dl class="data-files">${files.map(([name, what, urls]) => `<dt><code>${name}</code></dt><dd>${what} ${urls.map((u) => `<a href="${u}">${u.slice(SITE.length)}</a>`).join(' · ')}</dd>`).join('')}</dl>
+<h2>What a streak is here</h2>
+<p>A streak under a definition counts only the games that fit it: "road wins in a row" skips home games rather than ending at them. A run leads its field when it is the longest active one, or the longest ever, under its definition (ties included). The method notes on the board say the rest: which games count, how the window starts, and the floors each condition's data has.</p>
+<p>Questions, corrections, or a use worth a mention: <a href="${repo}/issues">open an issue</a>.</p>
+</div></article>${foot}</main>`
+  const person = { '@type': 'Person', name: 'Drew Hoover', url: `${ORIGIN}/` }
+  const { html } = page({
+    body, url, title, description, image: `${SITE}og.png`, imageAlt: config.ogImageAlt,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Dataset', '@id': url, url, name: `${config.title}: college football streak data, ${first}–${last}`, description,
+          license: 'https://creativecommons.org/licenses/by/4.0/', isAccessibleForFree: true, creator: person, publisher: person,
+          temporalCoverage: `${first}/${last}`, dateModified: String(P.builtAt).slice(0, 10),
+          keywords: ['college football', 'FBS', 'winning streaks', 'losing streaks', 'against the spread', 'game results', 'closing lines'],
+          distribution: files.flatMap(([, , urls]) => urls.map((u) => ({ '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: u }))),
+        },
+        breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Data', url]]),
+      ],
+    },
+  })
+  fs.mkdirSync(path.join(ROOT, 'dist', 'data'), { recursive: true })
+  fs.writeFileSync(path.join(ROOT, 'dist', 'data', 'index.html'), html)
+  urls.push(url)
+  console.log(`data page: ${files.length} file families under dist/data/`)
 }
 
 // Sitemap: every prerendered page, with lastmod.

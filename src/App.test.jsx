@@ -159,11 +159,11 @@ describe('prerender + hydrate', () => {
 
   test("an old team link with a definition hydrates as the page, then opens that team's panel on the board", async () => {
     const ti = teams.findIndex((t) => t.id === 'alabama');
-    const { root, errors, unmount } = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/cfb-streak-king/team/alabama/?c=night');
+    const { root, errors, unmount } = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/cfb-streak-king/team/alabama/?c=fullmoon');
     expect(errors).toEqual([]);
     expect(root.querySelector('h1').textContent).toBe('Streak King');
     expect(root.querySelector('.panel-name').textContent).toBe('Alabama');
-    expect(window.location.pathname + window.location.search).toBe('/?c=night&t=alabama');
+    expect(window.location.pathname + window.location.search).toBe('/?c=fullmoon&t=alabama');
     await unmount();
   });
 
