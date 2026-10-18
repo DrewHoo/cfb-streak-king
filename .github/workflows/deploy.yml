@@ -76,7 +76,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: node scripts/indexnow.mjs ${{ github.event_name == 'push' && '' || '--all' }}
+      # (an empty string is falsy in an expression, so the flag is the truthy branch)
+      - run: node scripts/indexnow.mjs ${{ github.event_name != 'push' && '--all' || '' }}
 
   # The share worker (workers/share) bundles src/lib, so it ships with the
   # site. Needs a CLOUDFLARE_API_TOKEN repo secret: a token made from the
