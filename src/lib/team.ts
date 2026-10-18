@@ -69,14 +69,18 @@ export const LEN_FLOOR = 4;
 export const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 
 /**
- * The first scheduled game of `ti`'s on or after `todayEp` that every chip
- * of the definition admits; null when a chip can't be known before kickoff.
+ * The first scheduled game of `ti`'s that every chip of the definition
+ * admits; null when a chip can't be known before kickoff. A scheduled game
+ * counts past its date, as the board's does (createModel's nextQualifying):
+ * no build has recorded its result yet, so it is unknown, not gone. Cutting
+ * at today emptied the at-risk list whenever a build ran after midnight UTC
+ * on a game day (Saturday evening in the US) with the day's games unrecorded.
  */
-export function nextQualifying(ti: number, chips: readonly string[], todayEp: number): UpcomingRow | null {
+export function nextQualifying(ti: number, chips: readonly string[], _todayEp?: number): UpcomingRow | null {
   const refs = refsOf(chips);
   const cs = refs.map((r) => ({ c: chipByKey.get(r.key)!, p: r.param }));
   if (cs.some(({ c }) => !c.pregame)) return null;
-  return upcomingOf(ti).find((u) => u.ep >= todayEp && cs.every(({ c, p }) => qualifiesPregame(c as PregameChip, u, p))) ?? null;
+  return upcomingOf(ti).find((u) => cs.every(({ c, p }) => qualifiesPregame(c as PregameChip, u, p))) ?? null;
 }
 
 /**

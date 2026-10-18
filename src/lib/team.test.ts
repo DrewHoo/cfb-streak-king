@@ -82,7 +82,7 @@ describe('team', () => {
   test('the next qualifying game reads every chip, choice included; a chip read from the game itself has none', () => {
     const ti = teamList().find((t) => upcomingOf(t).length)!;
     const ahead = upcomingOf(ti);
-    expect(nextQualifying(ti, [], today)).toBe(ahead.find((u) => u.ep >= today) ?? null);
+    expect(nextQualifying(ti, [], today)).toBe(ahead[0] ?? null); // past its date too: unrecorded, not gone
     const home = nextQualifying(ti, ['home'], today);
     if (home) expect(home.home && !home.neutral).toBe(true);
     const opp = ahead[0].oppIdx;
