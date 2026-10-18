@@ -198,10 +198,19 @@ const mmss = (s) => {
 };
 const box26ById = new Map();
 const box26 = new Map();
+// CFBD's finals, for a game the cfbfastR schedule hasn't marked completed yet:
+// cfbfastR catches up the morning after a slate, CFBD within the hour, so a
+// Saturday-night build records the day's results instead of reading them as
+// still scheduled.
+const final26 = new Map();
 for (const g of gamesRaw26 ?? []) {
   if (!g.completed || !g.startDate) continue;
   const h = canon(g.homeTeam, 'cfbd-games') ?? `x:${slug(g.homeTeam)}`;
   const a = canon(g.awayTeam, 'cfbd-games') ?? `x:${slug(g.awayTeam)}`;
+  if (Number.isFinite(g.homePoints) && Number.isFinite(g.awayPoints)) {
+    const ep0 = epochDay(String(g.startDate).slice(0, 10));
+    for (const d of [ep0 - 1, ep0, ep0 + 1]) final26.set(`${h}|${a}|${d}`, { hs: g.homePoints, as: g.awayPoints });
+  }
   const row = {};
   if (g.homeLineScores?.length >= 2 && g.awayLineScores?.length >= 2) {
     row.h1h = (g.homeLineScores[0] ?? 0) + (g.homeLineScores[1] ?? 0);
@@ -244,11 +253,14 @@ const stateIdxOf = (code) => {
   return i === -1 ? 0 : i;
 };
 let added = 0;
-for (const r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? ''))) {
+let fromCfbd = 0;
+for (let r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? ''))) {
   const anyFbs = r.homeDiv === 'fbs' || r.awayDiv === 'fbs';
   if (!anyFbs) continue;
   const { date, hour } = localParts(r.start, teamInfo[r.home]?.tz);
   const ep = epochDay(date);
+  const fin = r.completed ? null : final26.get(`${r.home}|${r.away}|${ep}`);
+  if (fin) { r = { ...r, completed: true, homeScore: fin.hs, awayScore: fin.as }; fromCfbd++; }
   const hh = r.timeKnown ? hour : NO_HOUR;
   const hi = teamIdx(r.home, r.homeRaw, r.espnHome);
   const ai = teamIdx(r.away, r.awayRaw, r.espnAway);
@@ -413,5 +425,5 @@ if (added && !lined26) {
 ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
 console.log(
-  `payload: +${added} completed ${SEASON} games (${lined26} lined), ${upcoming.ep.length} upcoming (${upcoming.sp.filter((s) => s !== NO_LINE).length} lined), ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
+  `payload: +${added} completed ${SEASON} games (${lined26} lined, ${fromCfbd} final in CFBD ahead of cfbfastR), ${upcoming.ep.length} upcoming (${upcoming.sp.filter((s) => s !== NO_LINE).length} lined), ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );
