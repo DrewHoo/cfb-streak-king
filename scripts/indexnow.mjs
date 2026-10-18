@@ -4,7 +4,7 @@
 // own; Cloudflare's Crawler Hints also pings IndexNow when a cached page
 // changes, and this covers what a cache can't see (a page nobody has fetched).
 //
-//   node scripts/indexnow.mjs          the definition pages, the board and the schedule
+//   node scripts/indexnow.mjs          the definition pages, the board, the schedule and the posts
 //   node scripts/indexnow.mjs --all    every URL in the live sitemap
 //
 // The key is public by design: a file whose name and content are the key,
@@ -47,7 +47,10 @@ async function main() {
     if (!res.ok) { console.log(`indexnow: sitemap ${res.status}, skipped`); return }
     urls = [...(await res.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1])
   } else {
-    urls = [SITE, ...LANDINGS.map((l) => `${SITE}${l.slug}/`), `${SITE}games/`, `${SITE}games/at-risk/`, `${SITE}breakers/`, `${SITE}data/`]
+    // the posts by file name, drafts left out (the job runs without node_modules, so no marked)
+    const postDir = path.join(ROOT, 'content', 'posts')
+    const posts = fs.readdirSync(postDir).filter((f) => /^[a-z0-9-]+\.md$/.test(f) && !/^draft:\s*true\s*$/m.test(fs.readFileSync(path.join(postDir, f), 'utf8')))
+    urls = [SITE, ...LANDINGS.map((l) => `${SITE}${l.slug}/`), `${SITE}games/`, `${SITE}games/at-risk/`, `${SITE}breakers/`, `${SITE}data/`, `${SITE}blog/`, ...posts.map((f) => `${SITE}blog/${f.slice(0, -3)}/`)]
   }
   urls = urls.filter((u) => u.startsWith(SITE))
   for (let i = 0; i < urls.length; i += BATCH) {
