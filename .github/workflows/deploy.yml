@@ -64,6 +64,20 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
 
+  # Ask Bing and the other IndexNow engines to recrawl, once the pages are
+  # live: a push sends the board, the definition pages and the schedule; the
+  # scheduled refresh, which changes every page's data, sends the whole
+  # sitemap. A failed ping never fails the deploy (the script exits 0).
+  indexnow:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/indexnow.mjs ${{ github.event_name == 'push' && '' || '--all' }}
+
   # The share worker (workers/share) bundles src/lib, so it ships with the
   # site. Needs a CLOUDFLARE_API_TOKEN repo secret: a token made from the
   # "Edit Cloudflare Workers" template. The weekly data refresh changes no

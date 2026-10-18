@@ -593,6 +593,7 @@ console.log(`prerendered ${teamPages} team pages under dist/team/`)
 // --- the named definition pages (landing.ts): the board on each, at its
 // own path, titled the way people search for it; its card is the worker's
 // board card for the definition ---
+const llmsBoards = [] // each page's h1, address and lead sentence, for llms.txt below
 {
   let n = 0
   for (const l of LANDINGS) {
@@ -624,6 +625,7 @@ console.log(`prerendered ${teamPages} team pages under dist/team/`)
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(path.join(dir, 'index.html'), html)
     urls.push(url)
+    llmsBoards.push({ l, url, lead })
     n++
   }
   console.log(`prerendered ${n} named definition pages`)
@@ -827,4 +829,44 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${lastmod}</lastmo
 </urlset>
 `,
 )
+// llms.txt (llmstxt.org): the site in plain markdown for a language model
+// that reads it, the way a person reads the board: what it is, then one
+// line per definition page with its leader, then the rest. Said the way the
+// pages say it, nothing more.
+{
+  const line = ({ l, url, lead }) => `- [${l.h1}](${url})${lead ? `: ${lead}` : ''}`
+  const active = llmsBoards.filter((b) => b.l.scope === 'active')
+  const allTime = llmsBoards.filter((b) => b.l.scope === 'all')
+  const txt = `# ${config.title}
+
+> ${config.description}
+
+A streak under a definition counts only the games that fit it: "road wins in a row" skips home games rather than ending at them. Every FBS team is ranked by its longest run under the definition, active (still going) or all-time, from every game since 1936 (closing lines since 1978). The board at ${SITE} takes any definition of up to four conditions (home or road, vs ranked or unranked opponents, as the favorite or the underdog, in conference, after a loss, by a margin, and hundreds more); the pages below are the definitions people search for. It updates weekly in season, and the data is published under CC BY 4.0. Credit as "per Streak King" with the page's link.
+
+## Active streaks (${SEASON})
+
+${active.map(line).join('\n')}
+
+## All-time streaks (since 1936)
+
+${allTime.map(line).join('\n')}
+
+## This season
+
+- [This week's games](${SITE}games/): the week's FBS games, each with the streaks it puts on the line; a played week lists the streaks its results broke.
+- [Streaks at risk this week](${SITE}games/at-risk/): every longest active streak this week's games put on the line, with the chance, from the betting line, that the game ends it.
+- [Top Streak-Breakers](${SITE}breakers/): every team ranked by the streaks it ended this season by beating their owner.
+
+## Data
+
+- [The data](${SITE}data/): the JSON files behind the site, documented: every game since 1936 (closing lines since 1978), every team's longest streaks under hundreds of definitions, each week's broken and at-risk streaks. CC BY 4.0.
+
+## Optional
+
+- [Team pages](${SITE}team/alabama/): one per FBS team at ${SITE}team/<team>/, with its record, next game and every streak it leads.
+- [Past seasons](${SITE}games/2025/): every week of every season since 1936 at ${SITE}games/<season>/week/<n>/, with the streaks each week's results broke.
+`
+  fs.writeFileSync(path.join(ROOT, 'dist', 'llms.txt'), txt)
+  console.log(`llms.txt: ${llmsBoards.length} definition pages`)
+}
 await vite.close()
