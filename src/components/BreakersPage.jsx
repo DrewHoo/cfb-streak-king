@@ -14,7 +14,8 @@ import { Picker } from './Picker.jsx';
 import { seasons } from '../lib/game.ts';
 import { HIST_CHIPS } from '../lib/crowns.ts';
 import { LIST } from '../lib/list.ts';
-import { ShareIcon, Chevron } from './Icons.jsx';
+import { Chevron } from './Icons.jsx';
+import { NavIcons } from './Dateline.jsx';
 import { streakWords, Tellings } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 import { marginWords } from '../lib/format.ts';
@@ -87,7 +88,7 @@ function Row({ s, skr, onBreaker }) {
 }
 
 /** One team's broken streaks: whose they were (a tap filters), then the list, the all-time longest first. */
-export function BreakerPage({ ti, season, breakers, copied, on }) {
+export function BreakerPage({ ti, season, breakers, copied, on, nav, isMobile }) {
   const t = teams[ti];
   const [victim, setVictim] = useState(null);
   const knobs = useKnobs();
@@ -100,10 +101,7 @@ export function BreakerPage({ ti, season, breakers, copied, on }) {
     <div className="bkr">
       <div className="tpg-bar">
         <button className="crumb" onClick={on.breakers}><Chevron left /> Top Streak-Breakers{season === P.currentSeason ? '' : ` ${season}`}</button>
-        <span className="dateline-acts">
-          <button className="ico" onClick={() => on.share(ti)} aria-label={`Share the streaks ${t.name} broke`}><ShareIcon /></button>
-          {copied && <span className="toast">copied</span>}
-        </span>
+        <NavIcons here="breaker" nav={nav} onShare={() => on.share(ti)} shareLabel={`Share the streaks ${t.name} broke`} copied={copied} isMobile={isMobile} />
       </div>
       <h1 className="gpg-h1 bkr-h1">{t.espn ? <TeamMark ti={ti} className="bkr-logo" /> : null}<span>Streaks {t.name} broke <YearPicker season={season} onYear={on.year} /></span></h1>
       <p className="tpg-note bkr-note">
@@ -139,7 +137,7 @@ const SORTS = {
   team: (a, b) => teams[a.ti].name.localeCompare(teams[b.ti].name),
 };
 
-export function BreakersPage({ season, breakers, copied, on }) {
+export function BreakersPage({ season, breakers, copied, on, nav, isMobile }) {
   const [sort, setSort] = useState({ key: 'skr', rev: false });
   const [all, setAll] = useState(false);
   const knobs = useKnobs();
@@ -160,10 +158,7 @@ export function BreakersPage({ season, breakers, copied, on }) {
     <div className="bkr">
       <div className="tpg-bar">
         <button className="crumb" onClick={on.board}><Chevron left /> Streak King</button>
-        <span className="dateline-acts">
-          <button className="ico" onClick={on.share} aria-label="Share the streak-breakers"><ShareIcon /></button>
-          {copied && <span className="toast">copied</span>}
-        </span>
+        <NavIcons here="breakers" nav={nav} onShare={on.share} shareLabel="Share the streak-breakers" copied={copied} isMobile={isMobile} />
       </div>
       <h1 className="gpg-h1">Top Streak-Breakers <YearPicker season={season} onYear={on.year} /></h1>
       <p className="tpg-note">

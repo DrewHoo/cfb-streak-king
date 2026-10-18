@@ -9,8 +9,8 @@ import { P, teams, confOf, gamesOf, upcomingOf } from '../lib/model.ts';
 import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
-import { ShareIcon, Caret, Chevron } from './Icons.jsx';
-import { Cite } from './Cite.jsx';
+import { Caret, Chevron } from './Icons.jsx';
+import { NavIcons } from './Dateline.jsx';
 import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow, Tellings } from './StreakRow.jsx';
 import { useTeamCrowns } from '../hooks/useCrowns.ts';
@@ -55,7 +55,7 @@ function NextCard({ ti, game, onLine, onGame }) {
   );
 }
 
-export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copied, on }) {
+export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copied, on, nav }) {
   const t = teams[ti];
   // the streaks the team leads its field with: active (the default) or all-time
   const [scope, setScope] = useState('active');
@@ -93,11 +93,7 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
     <div className="tpg">
       <div className="tpg-bar">
         <button className="crumb" onClick={on.board}><Chevron left /> Streak King</button>
-        <span className="dateline-acts">
-          {on.cite && <Cite onCopy={(embed) => on.cite(ti, embed)} />}
-          <button className="ico" onClick={() => on.share(ti)} aria-label={`Share ${t.name}`}><ShareIcon /></button>
-          {copied && <span className="toast">copied</span>}
-        </span>
+        <NavIcons here="team page" nav={nav} onShare={() => on.share(ti)} shareLabel={`Share ${t.name}`} copied={copied} isMobile={isMobile} />
       </div>
 
       <div className="tpg-head">

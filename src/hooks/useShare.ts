@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-/** The native share sheet where there is one, else copy "text url" and flash "copied"; `copy` puts any text on the clipboard with no toast (the caller shows its own). */
+/** The native share sheet where there is one, else copy "text url" and flash "copied". */
 export function useShare() {
   const [copied, setCopied] = useState(false);
   const share = (text: string, url: string) => {
@@ -12,8 +12,5 @@ export function useShare() {
       });
     } catch {}
   };
-  const copy = (text: string) => {
-    try { navigator.clipboard.writeText(text).catch(() => {}); } catch {}
-  };
-  return { copied, share, copy };
+  return { copied, share };
 }

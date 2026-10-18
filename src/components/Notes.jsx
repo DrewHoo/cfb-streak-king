@@ -14,11 +14,11 @@ export function Notes() {
       <div className="notes">
         <p>
           <a href="https://drewhoover.com/hostile-territory/">Hostile Territory</a> — every head
-          coach's true road record against AP top-10 teams since 1990, one chip per game.
+          coach's true road record against AP top-10 teams since 1990.
         </p>
         <p>
           <a href="https://drewhoover.com/how-many-rings/">How Many Rings?</a> — every person on a
-          national-championship staff since 1990, ranked by rings, each one cited.
+          national-championship staff since 1990, ranked by the number of rings they can claim.
         </p>
         <p>
           <a href="https://drewhoover.com/cfb-all-time-records/football">All-time FBS records</a> — all
@@ -50,7 +50,8 @@ export function Notes() {
             move up (Temple's from 1971, Appalachian State's from 2014).
           </li>
           <li>
-            Streak Rules:
+            <details>
+            <summary>Streak rules</summary>
             <ul>
               <li>
                 A game qualifies when it matches every word in the definition. Non-qualifying games neither extend nor
@@ -116,10 +117,12 @@ export function Notes() {
             condition that favors neither side, like a full moon, can sit a little above 50%. I haven't found a neutral condition that disfavors FBS teams, but would love to hear about one!
           </li>
             </ul>
+            </details>
           </li>
           
           <li>
-            Sources:
+            <details>
+            <summary>Sources</summary>
             <ul>
               <li>
                 Scores, sites and closing spreads for 1978–2013 come from Warren Repole's{' '}
@@ -156,6 +159,7 @@ export function Notes() {
                 look like a mid-season hire. If a streak here looks wrong to you, it might be — say so.
               </li>
             </ul>
+            </details>
           </li>
         </ul>
       </div>

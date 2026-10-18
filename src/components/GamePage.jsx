@@ -17,7 +17,8 @@ import { scoreOf } from '../lib/game.ts';
 import { dayOf, monthDay, kickOf, shortDate, spreadText } from '../lib/format.ts';
 import { useActiveCrowns } from '../hooks/useCrowns.ts';
 import { TeamMark } from './Chip.jsx';
-import { ShareIcon, Chevron } from './Icons.jsx';
+import { Chevron } from './Icons.jsx';
+import { NavIcons } from './Dateline.jsx';
 import { StreakRow, Tellings } from './StreakRow.jsx';
 
 const CAP = { phone: 4, desk: 6 };
@@ -55,7 +56,7 @@ function Rows({ title, rows, cap, empty, keyOf, render }) {
  * `found` is what the address names (game.ts findGame); `season` that
  * season's rows, null while loading; `todayEp` the day the page is read.
  */
-export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
+export function GamePage({ found, season, todayEp, isMobile, copied, on, nav }) {
   const { key, played, scheduled } = found;
   const cap = isMobile ? CAP.phone : CAP.desk;
   const home = teams[key.home], away = teams[key.away];
@@ -100,10 +101,7 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on }) {
     <div className="gp">
       <div className="tpg-bar">
         <button className="crumb" onClick={on.board}><Chevron left /> Streak King</button>
-        <span className="dateline-acts">
-          <button className="ico" onClick={() => on.share(key)} aria-label="Share this game"><ShareIcon /></button>
-          {copied && <span className="toast">copied</span>}
-        </span>
+        <NavIcons here="game" nav={nav} onShare={() => on.share(key)} shareLabel="Share this game" copied={copied} isMobile={isMobile} />
       </div>
       <h1 className="gp-h1">{away.name} {key.neutral ? 'vs' : 'at'} {home.name}</h1>
       <p className="gp-when">

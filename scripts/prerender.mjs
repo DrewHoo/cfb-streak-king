@@ -789,7 +789,7 @@ ${items}
   const body = `<main class="post">${bar}<article><h1 class="post-h1">The data</h1><p class="post-meta">${first}–${last} · rebuilt weekly in season · <a href="${repo}">source</a></p><div class="post-body">
 <p>Everything the site shows is computed at build time from one payload and written to static JSON files. They are free to use under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>: take the rows, and credit <em>${config.title} (${config.domain})</em> with a link. The game results themselves come from the sources named in the site's notes (Warren Repole's files, James Howell's scores, cfbfastR, College Poll Archive and CollegeFootballData), whose own terms cover them; the 78 corrections to Repole's files are published separately as <a href="https://github.com/DrewHoo/repole-errata">repole-errata</a>, CC0.</p>
 <h2>How to cite a streak</h2>
-<p>Every streak, team, game and week has a permalink, and every one shows a <em>cite</em> button that copies a one-line credit with the link, and an <em>embed</em> button that copies an image card linking to it. A credit line reads: <em>Indiana has won 22 straight (per Streak King, ${SITE}longest-active-win-streaks/)</em>.</p>
+<p>Every streak, team, game and week has a permalink: name the site and link to it. A credit line reads: <em>Indiana has won 22 straight (per Streak King, ${SITE}longest-active-win-streaks/)</em>.</p>
 <h2>The files</h2>
 <dl class="data-files">${files.map(([name, what, urls]) => `<dt><code>${name}</code></dt><dd>${what} ${urls.map((u) => `<a href="${u}">${u.slice(SITE.length)}</a>`).join(' · ')}</dd>`).join('')}</dl>
 <h2>What a streak is here</h2>

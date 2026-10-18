@@ -19,8 +19,8 @@ import { useKnobs } from '../tune.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
-import { ShareIcon, Chevron, LinkIcon } from './Icons.jsx';
-import { Cite } from './Cite.jsx';
+import { Chevron, LinkIcon } from './Icons.jsx';
+import { NavIcons } from './Dateline.jsx';
 import { streakWords, subsByParent, Subs, MoreButton, PAGE } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 import { Picker } from './Picker.jsx';
@@ -63,7 +63,7 @@ export function brokenFromRows(seasonRows, week, knobs) {
 }
 
 // the digest of the selected week's broken runs, above its results
-function Broken({ broken, onOpen, onBoard, onLink, onCite }) {
+function Broken({ broken, onOpen, onBoard, onLink }) {
   // "see more" pages and the sub-streaks open per week, so flipping weeks groups them back up
   const [paged, setPaged] = useState({ wk: null, n: 0 });
   const [open, setOpen] = useState(() => new Set());
@@ -79,7 +79,7 @@ function Broken({ broken, onOpen, onBoard, onLink, onCite }) {
         <small>
           {span(broken.lo, broken.hi)} · {broken.list.length ? `${broken.list.length} of note` : 'none of note'}
           {broken.wk != null && onLink && <button className="lnk" onClick={() => onLink('broken', broken.wk)} aria-label={`Link to Week ${broken.wk}’s broken streaks`} title="link to this"><LinkIcon /></button>}
-          {broken.wk != null && onCite && <Cite onCopy={(embed) => onCite('broken', broken.wk, embed)} />}
+          
         </small>
       </div>
       <div className="gbk-list">
@@ -120,7 +120,7 @@ function AtRiskRow({ r, onGame }) {
 // the week's streaks most at risk, above its games: what the games can take
 // away (atRisk.ts, worked out by the build for the first scheduled week),
 // the most first, the rest behind "more"
-function AtRisk({ wk, lo, hi, risk, onGame, onLink, onCite, focus }) {
+function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
   const [n, setN] = useState(0);
   const [open, setOpen] = useState(() => new Set());
   // its own address lands on it
@@ -140,7 +140,7 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, onCite, focus }) {
         <small>
           {span(lo, hi)} · by what the game can take away
           <button className="lnk" onClick={() => onLink('risk', wk)} aria-label="Link to this week’s at-risk streaks" title="link to this"><LinkIcon /></button>
-          {onCite && <Cite onCopy={(embed) => onCite('risk', wk, embed)} />}
+          
         </small>
       </div>
       <div className="gbk-list">
@@ -251,7 +251,7 @@ export function defaultWeek(season, weeks) {
   return weeks[0]?.wk ?? null;
 }
 
-export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on }) {
+export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on, nav, isMobile }) {
   const weeks = useMemo(() => seasonWeeks(season), [season]);
   // the selected week: its broken runs (once played) or its at-risk streaks (the running week), and its games
   const sel = bwk ?? defaultWeek(season, weeks);
@@ -269,10 +269,7 @@ export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on }
     <div className="gpg">
       <div className="tpg-bar">
         <button className="crumb" onClick={on.board}><Chevron left /> Streak King</button>
-        <span className="dateline-acts">
-          <button className="ico" onClick={on.share} aria-label="Share the schedule"><ShareIcon /></button>
-          {copied && <span className="toast">copied</span>}
-        </span>
+        <NavIcons here="games" nav={nav} onShare={on.share} shareLabel="Share the schedule" copied={copied} isMobile={isMobile} />
       </div>
       <h1 className="gpg-h1">
         <span className="gbk-wk"><Picker value={season} options={seasons().map((se) => ({ value: se, label: String(se) }))} onChange={on.year} ariaLabel="Pick a season" /></span>
@@ -287,8 +284,8 @@ export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on }
           : <>Every game with a current FBS team, and the streaks it ended: the runs of up to two conditions whose team led the field.</>}
       </p>
       {loading && <p className="empty">finding the week’s streaks…</p>}
-      <Broken broken={broken} onOpen={on.streak} onBoard={on.allTime} onLink={current ? on.link : null} onCite={current ? on.cite : null} />
-      {week && atRisk && <AtRisk wk={sel} lo={week.lo} hi={week.hi} risk={atRisk} onGame={on.game} onLink={on.link} onCite={on.cite} focus={risk} />}
+      <Broken broken={broken} onOpen={on.streak} onBoard={on.allTime} onLink={current ? on.link : null} />
+      {week && atRisk && <AtRisk wk={sel} lo={week.lo} hi={week.hi} risk={atRisk} onGame={on.game} onLink={on.link} focus={risk} />}
       {!week && <p className="empty">No games in this week.</p>}
       {week && (
         <section className="gwk">
