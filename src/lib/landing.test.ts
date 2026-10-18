@@ -38,7 +38,8 @@ describe('landing', () => {
     expect(landingFromPath('/cfb-streak-king/')).toBeNull();
     expect(landingFor('home', 'W', 'active')?.slug).toBe('longest-home-win-streaks');
     expect(landingFor('home', 'W', 'all')?.slug).toBe('longest-home-win-streaks-ever');
-    expect(landingFor('home', 'C', 'all')).toBeNull();
+    expect(landingFor('home', 'C', 'all')?.slug).toBe('longest-home-cover-streaks-ever');
+    expect(landingFor('home', 'N', 'all')).toBeNull();
   });
 
   test('a title says what people type', () => {
@@ -64,6 +65,9 @@ describe('landing', () => {
     expect(landingFor('month:10', 'W', 'active')?.slug).toBe('longest-win-streaks-in-october');
     expect(landingFor('all', 'C', 'active')?.slug).toBe('longest-active-cover-streaks');
     expect(landingFor('all', 'N', 'active')?.slug).toBe('longest-active-ats-losing-streaks');
+    expect(landingFor('all', 'W10', 'active')?.slug).toBe('longest-double-digit-win-streaks');
+    expect(landingFor('vsmascot:animal', 'W', 'all')?.slug).toBe('longest-win-streaks-vs-animal-mascots-ever');
+    expect(landingFor('top10', 'W', 'active')?.slug).toBe('longest-win-streaks-vs-top-10-teams');
   });
 
   describe('lead sentence', () => {

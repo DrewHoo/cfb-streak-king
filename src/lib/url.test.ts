@@ -151,6 +151,9 @@ describe('url', () => {
     expect(parseUrl('/cfb-streak-king/longest-home-win-streaks/', '')).toMatchObject({ active: [{ key: 'home' }], dir: 'W', scope: 'active', page: null, games: false, breakers: false });
     expect(parseUrl('/cfb-streak-king/longest-active-losing-streaks/', '?t=alabama')).toMatchObject({ active: [], dir: 'L', scope: 'active', team: idx('alabama') });
     expect(parseUrl('/cfb-streak-king/longest-active-losing-streaks/', '?dir=W')).toMatchObject({ active: [], dir: 'W', scope: 'active' });
+    // an old query-string link to a definition that has since got a page moves to the page; a margin and a chip choice included
+    expect(hrefOf('/cfb-streak-king/', toUrl(parseUrl('/cfb-streak-king/', '?c=all&dir=W10&scope=active')))).toBe('/cfb-streak-king/longest-double-digit-win-streaks/');
+    expect(hrefOf('/cfb-streak-king/', toUrl(parseUrl('/cfb-streak-king/', '?c=vsmascot%3Aanimal')))).toBe('/cfb-streak-king/longest-win-streaks-vs-animal-mascots-ever/');
     expect(landingFromPath('/cfb-streak-king/longest-home-win-streaks/')?.slug).toBe('longest-home-win-streaks');
     expect(landingFromPath('/cfb-streak-king/team/alabama/')).toBeNull();
     expect(landingFromPath('/cfb-streak-king/games/')).toBeNull();

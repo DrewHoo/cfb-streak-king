@@ -38,17 +38,22 @@ const LINES = 'Closing lines are known from 1978.';
 const COVER = `A cover is a win against the spread (ATS): the team beat the closing line. ${LINES}`;
 const NOCOVER = `ATS is against the spread: a loss here is a game the team didn't cover. ${LINES}`;
 const NIGHT = 'Kickoff times are known from 2002.';
+const BY10 = 'Every game in the run was won by 10 points or more.';
+const ANIMAL = 'An animal mascot is a creature: Bulldogs, Tigers, Gators, Eagles; not Volunteers, Rebels or Sun Devils.';
 const ROWS: Row[] = [
   // active
   ['longest-active-win-streaks', 'all', 'W', 'active', 'win streaks'],
   ['longest-active-losing-streaks', 'all', 'L', 'active', 'losing streaks'],
   ['longest-active-unbeaten-streaks', 'all', 'U', 'active', 'unbeaten streaks'],
+  ['longest-double-digit-win-streaks', 'all', 'W10', 'active', 'win streaks by 10+ points', BY10, 'Current longest streaks of double-digit wins in college football'],
   ['longest-home-win-streaks', 'home', 'W', 'active', 'home win streaks'],
   ['longest-home-losing-streaks', 'home', 'L', 'active', 'home losing streaks'],
   ['longest-road-win-streaks', 'road', 'W', 'active', 'road win streaks'],
   ['longest-road-losing-streaks', 'road', 'L', 'active', 'road losing streaks'],
   ['longest-win-streaks-vs-ranked-teams', 'ranked', 'W', 'active', 'win streaks vs ranked teams'],
   ['longest-losing-streaks-vs-ranked-teams', 'ranked', 'L', 'active', 'losing streaks vs ranked teams'],
+  ['longest-win-streaks-vs-top-10-teams', 'top10', 'W', 'active', 'win streaks vs top-10 teams'],
+  ['longest-win-streaks-vs-top-5-teams', 'top5', 'W', 'active', 'win streaks vs top-5 teams'],
   ['longest-win-streaks-vs-unranked-teams', 'unranked', 'W', 'active', 'win streaks vs unranked teams'],
   ['longest-conference-win-streaks', 'confgame', 'W', 'active', 'conference win streaks'],
   ['longest-conference-losing-streaks', 'confgame', 'L', 'active', 'conference losing streaks'],
@@ -59,20 +64,25 @@ const ROWS: Row[] = [
   // against the spread: the searcher says "ATS" or "cover streak", the page says "cover streaks"
   ['longest-active-cover-streaks', 'all', 'C', 'active', 'cover streaks', COVER, 'Current longest cover streaks (ATS) in college football'],
   ['longest-active-ats-losing-streaks', 'all', 'N', 'active', 'ATS losing streaks', NOCOVER],
+  ['longest-home-cover-streaks', 'home', 'C', 'active', 'home cover streaks', COVER, 'Current longest home cover streaks (ATS) in college football'],
   ['longest-night-game-win-streaks', 'night', 'W', 'active', 'night game win streaks', NIGHT],
   ['longest-win-streaks-in-september', 'month:9', 'W', 'active', 'September win streaks'],
   ['longest-win-streaks-in-october', 'month:10', 'W', 'active', 'October win streaks'],
   ['longest-win-streaks-in-november', 'month:11', 'W', 'active', 'November win streaks'],
+  ['longest-win-streaks-vs-animal-mascots', 'vsmascot:animal', 'W', 'active', 'win streaks vs animal mascots', ANIMAL],
   // all-time: one for every active page, in the same order
   ['longest-win-streaks-in-college-football-history', 'all', 'W', 'all', 'win streaks'],
   ['longest-losing-streaks-in-college-football-history', 'all', 'L', 'all', 'losing streaks'],
   ['longest-unbeaten-streaks-in-college-football-history', 'all', 'U', 'all', 'unbeaten streaks'],
+  ['longest-double-digit-win-streaks-ever', 'all', 'W10', 'all', 'win streaks by 10+ points', BY10, 'Longest streaks of double-digit wins in college football history'],
   ['longest-home-win-streaks-ever', 'home', 'W', 'all', 'home win streaks'],
   ['longest-home-losing-streaks-ever', 'home', 'L', 'all', 'home losing streaks'],
   ['longest-road-win-streaks-ever', 'road', 'W', 'all', 'road win streaks'],
   ['longest-road-losing-streaks-ever', 'road', 'L', 'all', 'road losing streaks'],
   ['longest-win-streaks-vs-ranked-teams-ever', 'ranked', 'W', 'all', 'win streaks vs ranked teams'],
   ['longest-losing-streaks-vs-ranked-teams-ever', 'ranked', 'L', 'all', 'losing streaks vs ranked teams'],
+  ['longest-win-streaks-vs-top-10-teams-ever', 'top10', 'W', 'all', 'win streaks vs top-10 teams'],
+  ['longest-win-streaks-vs-top-5-teams-ever', 'top5', 'W', 'all', 'win streaks vs top-5 teams'],
   // (all-time win streaks vs unranked teams is the default definition: the root page, not a landing)
   ['longest-conference-win-streaks-ever', 'confgame', 'W', 'all', 'conference win streaks'],
   ['longest-conference-losing-streaks-ever', 'confgame', 'L', 'all', 'conference losing streaks'],
@@ -82,10 +92,12 @@ const ROWS: Row[] = [
   ['longest-win-streaks-as-favorite-ever', 'fav', 'W', 'all', 'win streaks as the favorite', LINES],
   ['longest-cover-streaks-ever', 'all', 'C', 'all', 'cover streaks', COVER, 'Longest cover streaks (ATS) in college football history'],
   ['longest-ats-losing-streaks-ever', 'all', 'N', 'all', 'ATS losing streaks', NOCOVER],
+  ['longest-home-cover-streaks-ever', 'home', 'C', 'all', 'home cover streaks', COVER, 'Longest home cover streaks (ATS) in college football history'],
   ['longest-night-game-win-streaks-ever', 'night', 'W', 'all', 'night game win streaks', NIGHT],
   ['longest-win-streaks-in-september-ever', 'month:9', 'W', 'all', 'September win streaks'],
   ['longest-win-streaks-in-october-ever', 'month:10', 'W', 'all', 'October win streaks'],
   ['longest-win-streaks-in-november-ever', 'month:11', 'W', 'all', 'November win streaks'],
+  ['longest-win-streaks-vs-animal-mascots-ever', 'vsmascot:animal', 'W', 'all', 'win streaks vs animal mascots', ANIMAL],
 ];
 
 export const LANDINGS: Landing[] = ROWS.map(([slug, c, dir, scope, what, note, title]) => ({
