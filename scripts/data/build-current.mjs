@@ -155,6 +155,29 @@ async function cfbd(pathq, cacheFile) {
     return null;
   }
 }
+// CFBD's AP poll, for a week the poll archive hasn't posted yet: the archive
+// can lag the Sunday release by a day or more, CFBD has it within hours. Only
+// a poll newer than the archive's newest is added, so the archive stays the
+// source. A week-N poll is dated the day before CFBD's week N opens (its weeks
+// start Monday 07:00 UTC), the Sunday the archive dates it too.
+const rankingsRaw = await cfbd(`/rankings?year=${SEASON}&seasonType=regular`, `cfbd-rankings-${SEASON}.json`);
+const calendarRaw = rankingsRaw ? await cfbd(`/calendar?year=${SEASON}`, `cfbd-calendar-${SEASON}.json`) : null;
+{
+  const newest = polls.at(-1)?.date ?? '';
+  for (const wk of [...(rankingsRaw ?? [])].sort((a, b) => a.week - b.week)) {
+    const ap = wk.polls?.find((p) => p.poll === 'AP Top 25');
+    const start = calendarRaw?.find((c) => c.week === wk.week && c.seasonType === 'regular')?.startDate;
+    if (!ap?.ranks?.length || !start) continue;
+    const date = new Date(Date.parse(start) - 86400000).toISOString().slice(0, 10);
+    if (date <= newest) continue;
+    const ranks = ap.ranks
+      .map((r) => ({ rank: r.rank, team: canon(r.school, 'cfbd-rankings') ?? `x:${slug(r.school)}`, raw: r.school }))
+      .sort((a, b) => a.rank - b.rank);
+    polls.push({ season: SEASON, id: `cfbd-${wk.week}`, label: `Week ${wk.week} (CFBD)`, date, ranks });
+    pollTimeline.push([epochDay(date), new Map(ranks.map((r) => [r.team, r.rank]))]);
+    console.log(`poll: week ${wk.week} AP from CFBD (${date}), ahead of the poll archive`);
+  }
+}
 const linesRaw = await cfbd(`/lines?year=${SEASON}`, `cfbd-lines-${SEASON}.json`);
 const gamesRaw26 = await cfbd(`/games?year=${SEASON}`, `cfbd-games-${SEASON}.json`);
 let statsRaw26 = null;
