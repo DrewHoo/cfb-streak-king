@@ -5,7 +5,11 @@
 // game opens its matchup.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { P, teams, confOf, gamesOf, upcomingOf } from '../lib/model.ts';
+import { P, teams, confOf, gamesOf, upcomingOf, asBoard, windowStartOf } from '../lib/model.ts';
+import { asH1, asLead } from '../lib/asTeam.ts';
+import { leadRows } from '../lib/landing.ts';
+import { asUrl, hrefOf } from '../lib/url.ts';
+import { yearOf } from '../lib/format.ts';
 import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
 import { TeamMark } from './Chip.jsx';
@@ -24,6 +28,74 @@ import { BrokenRow } from './BrokenRow.jsx';
 
 const STREAKS_CAP = 10;
 const BREAKS_CAP = 6;
+const OPP_CAP = 5;
+const BASE = import.meta.env.BASE_URL;
+
+/**
+ * A team's streaks against each opponent, one way: its all-time board by
+ * opponent (asBoard), one row per opponent (its longest run; a tie, the
+ * latest), with where the series stands now (the team's current run that
+ * way). The lead sentence is the page's (asTeam.ts).
+ */
+function byOpponent(ti, dir, todayEp) {
+  const all = asBoard(ti, [], dir, 'all', todayEp);
+  const now = new Map(asBoard(ti, [], dir, 'active', todayEp).map((r) => [r.vs, r.s.len]));
+  const rows = [];
+  const seen = new Set();
+  for (const r of all) {
+    if (seen.has(r.vs)) continue;
+    seen.add(r.vs);
+    rows.push({ ...r, now: now.get(r.vs) ?? 0 });
+  }
+  return { rows, lead: asLead(teams[ti].name, dir, leadRows(all.map((r) => ({ ...r, ti: r.vs })), (x) => teams[x].name), windowStartOf(ti)) };
+}
+
+/** One opponent's row: the run's length, the opponent, its years, and the series now. */
+function OppRow({ ti, r, dir, onOpen }) {
+  const o = teams[r.vs];
+  // the + on the length says a run at the window's edge may be older than the data; the years are the games in it
+  const years = yearOf(r.s.start.ep) === yearOf(r.s.end.ep) ? String(yearOf(r.s.end.ep)) : `${yearOf(r.s.start.ep)}–${yearOf(r.s.end.ep)}`;
+  const now = r.live ? 'still going' : r.now > 0 ? `now ${r.now} straight` : null;
+  return (
+    <button className="srow marked" onClick={() => onOpen(ti, dir, r)} aria-label={`${o.name}: ${r.s.len}${r.s.atEdge ? '+' : ''} straight, ${years}; the streak`}>
+      <span className={'srow-len' + (dir === 'L' ? ' l' : '')}>{r.s.len}{r.s.atEdge ? '+' : ''}</span>
+      {o.espn ? <TeamMark ti={r.vs} className="srow-mark" /> : <b className="srow-mark gm-ini">{o.name[0]}</b>}
+      <span className="srow-txt">
+        <span>{o.name}</span>
+        <small>{years}{now ? <> · <i>{now}</i></> : ''}</small>
+      </span>
+      <Chevron />
+    </button>
+  );
+}
+
+/**
+ * Whom the team has beaten the most times in a row: its winning streaks by
+ * opponent, the top rows, heading to its page; the other question (who has
+ * beaten it the most in a row) is a link under them. Fans come to see what
+ * their team is good at (Drew, 2026-10-20).
+ */
+function ByOpponent({ ti, todayEp, on }) {
+  const t = teams[ti];
+  const W = useMemo(() => byOpponent(ti, 'W', todayEp), [ti, todayEp]);
+  const link = (dir, text) => <a href={hrefOf(BASE, asUrl(ti, dir))} onClick={(e) => { e.preventDefault(); on.as(ti, dir, null); }}>{text}</a>;
+  return (
+    <>
+      <h2>Streaks by opponent</h2>
+      <div className="tpg-opp">
+        <h3>{link('W', asH1(t.name, 'W'))}</h3>
+        <p className="tpg-note">{W.lead || `${t.name} has no winning streak against any opponent since ${windowStartOf(ti)}.`}</p>
+        <div className="tpg-streaks">
+          {W.rows.slice(0, OPP_CAP).map((r) => <OppRow key={r.vs} ti={ti} r={r} dir="W" onOpen={on.as} />)}
+        </div>
+        <p className="tpg-opp-more">
+          {W.rows.length > OPP_CAP && <>{link('W', `all ${W.rows.length} opponents ›`)} · </>}
+          {link('L', `${asH1(t.name, 'L')} ›`)}
+        </p>
+      </div>
+    </>
+  );
+}
 
 function coachLine(ti) {
   const stint = teams[ti].hc?.at(-1);
@@ -148,6 +220,8 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
             <StreakRow s={s} tag={s.live ? 'still going' : `ended ${s.endSe}`} onClick={() => on.streak(s, ti)} />
           )} />}
       </div>
+
+      <ByOpponent ti={ti} todayEp={todayEp} on={on} />
 
       <h2 ref={breaksRef}>Streaks broken this season</h2>
       <p className="tpg-note bkr-note">

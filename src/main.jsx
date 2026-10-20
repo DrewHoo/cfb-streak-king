@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath } from './lib/url.ts'
+import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath, asTeamFromPath } from './lib/url.ts'
 import { gameFromPath } from './lib/game.ts'
 import { decodeSeason } from './lib/seasonFile.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
@@ -23,6 +23,8 @@ const embedded = document.getElementById('crowns-data')
 const digests = document.getElementById('digests-data')
 const seasonRows = document.getElementById('season-data')
 const breakers = document.getElementById('breakers-data')
+// a team's by-opponent page (/team/<id>/losing-streaks-by-opponent/), prerendered on that board
+const asPage = page == null && !game ? asTeamFromPath(window.location.pathname) : null
 const initial = {
   page,
   game,
@@ -35,6 +37,8 @@ const initial = {
   season: page == null && !game ? seasonFromPath(window.location.pathname) ?? breakersSeasonFromPath(window.location.pathname) : null,
   // a named definition's board (/longest-home-win-streaks/), prerendered on that definition
   landing: page == null && !game ? landingFromPath(window.location.pathname)?.slug ?? null : null,
+  as: asPage?.ti ?? null,
+  asDir: asPage?.dir ?? null,
   crowns: page != null && embedded ? { active: decodeCrowns(JSON.parse(embedded.textContent)).rows, all: null } : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
   seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,

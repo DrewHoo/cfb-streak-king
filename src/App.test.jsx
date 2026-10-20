@@ -200,6 +200,35 @@ describe('prerender + hydrate', () => {
     await old.unmount();
   });
 
+  test("a team's by-opponent page hydrates as that board, the question as its h1 and the answer under it; its team page carries both lists", async () => {
+    const ti = teams.findIndex((t) => t.id === 'auburn');
+    const { root, errors, unmount } = await hydrate({ as: ti, asDir: 'L' }, '/team/auburn/losing-streaks-by-opponent/');
+    expect(errors).toEqual([]);
+    expect(root.querySelector('h1').textContent).toBe('Who has beaten Auburn the most times in a row?');
+    expect(root.querySelector('.landing-line').textContent).toMatch(/^Georgia Tech beat Auburn 13 straight times, 1941–1954/);
+    // the sentence says the team, the columns are its opponents, and the first column's words name Georgia Tech
+    expect(root.textContent).toContain('as Auburn');
+    expect(root.querySelector('.colwrap .colbtn .sr-only').textContent).toMatch(/^vs Georgia Tech: 13 losses in a row, 1941–1954/);
+    expect(window.location.pathname + window.location.search).toBe('/team/auburn/losing-streaks-by-opponent/');
+    await unmount();
+    // the winning page, and a column open on it keeps the path
+    const w = await hydrate({ as: ti, asDir: 'W' }, '/team/auburn/win-streaks-by-opponent/?t=kentucky');
+    expect(w.errors).toEqual([]);
+    expect(w.root.querySelector('h1').textContent).toBe('Who has Auburn beaten the most times in a row?');
+    expect(w.root.querySelector('.card .panel-name').textContent).toBe('Auburn');
+    expect(w.root.querySelector('.card .claim').textContent).toMatch(/^Auburn won 15 straight games against Kentucky/);
+    expect(window.location.pathname + window.location.search).toBe('/team/auburn/win-streaks-by-opponent/?t=kentucky');
+    await w.unmount();
+    // the team page's section is the winning list, what the team is good at, and links both pages by their addresses
+    const page = await hydrate({ page: ti, crowns: { active: [], all: [] } }, '/team/auburn/');
+    expect(page.errors).toEqual([]);
+    expect(page.root.querySelector('.tpg-opp h3 a').getAttribute('href')).toBe('/team/auburn/win-streaks-by-opponent/');
+    expect(page.root.querySelector('.tpg-opp h3').textContent).toBe('Who has Auburn beaten the most times in a row?');
+    expect(page.root.querySelector('.tpg-opp .srow-txt span').textContent).toBe('Chattanooga');
+    expect(page.root.querySelector('.tpg-opp-more a[href="/team/auburn/losing-streaks-by-opponent/"]').textContent).toBe('Who has beaten Auburn the most times in a row? ›');
+    await page.unmount();
+  });
+
   test('on desktop the open streak is a card in the grid; ← → move it along the columns and Escape closes it', async () => {
     const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?t=alabama');
     expect(errors).toEqual([]);

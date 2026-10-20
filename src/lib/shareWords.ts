@@ -13,6 +13,7 @@ import type { Chip } from './chips.ts';
 import { dirWord, stateName } from './format.ts';
 import { parseDir } from './outcome.ts';
 import { landingFromPath } from './landing.ts';
+import { asFromPath, asBoardTitle } from './asTeam.ts';
 
 /** dist/share/meta.json, as the prerender writes it. */
 export interface ShareMeta {
@@ -187,8 +188,18 @@ export function shareText(pathname: string, q: URLSearchParams, meta: ShareMeta)
     return { title, description: `Every streak either side puts on the line in the game, with the line and both teams’ records.` };
   }
 
+  // a team's by-opponent page (asTeam.ts) is prerendered with its own head; a column open on one (?t=) is worded from its definition
+  const asPage = asFromPath(pathname);
+  if (asPage) {
+    if (!meta.teams[asPage.id] || !q.has('t')) return null;
+    q = new URLSearchParams(q);
+    q.set('as', asPage.id);
+    q.set('dir', asPage.dir);
+    q.delete('c');
+    q.delete('scope');
+  }
   // the board: only its base path, and only when the URL says something
-  if (!/\/$/.test(pathname) || /\/(team|games)\//.test(pathname) || /\/games\/?$/.test(pathname)) return null;
+  if (!asPage && (!/\/$/.test(pathname) || /\/(team|games)\//.test(pathname) || /\/games\/?$/.test(pathname))) return null;
   // a named definition's page (landing.ts) is prerendered with its own head; a panel open on it reads from its definition
   const landing = landingFromPath(pathname);
   if (landing) {
@@ -198,7 +209,20 @@ export function shareText(pathname: string, q: URLSearchParams, meta: ShareMeta)
     q.set('dir', landing.dir);
     q.set('scope', landing.scope);
   }
-  if (!['c', 'dir', 'scope', 't', 'run', 'week'].some((k) => q.has(k))) return null;
+  if (!['c', 'dir', 'scope', 't', 'run', 'week', 'as'].some((k) => q.has(k))) return null;
+  // the by-opponent board: one team's streaks against each opponent; its default definition has no conditions
+  const as = q.get('as');
+  if (as != null) {
+    const name = meta.teams[as];
+    if (!name) return null;
+    const w = defWords(q.get('c') ?? 'all', meta) ?? [];
+    const t = q.get('t');
+    const opp = t ? teamName(meta, t) : null;
+    return {
+      title: `${opp ? `${name} vs ${opp} — ` : ''}${asBoardTitle(name, SCOPE(q), DIR(q), w)} · ${meta.site}`,
+      description: `${name}’s longest ${SCOPE(q)} ${DIR(q)} streak against each opponent it has played${w.length ? ` ${w.join(', ')}` : ''}, ranked since 1936. Open a column for every game in the run.`,
+    };
+  }
   const words = defWords(q.get('c'), meta) ?? DEFAULT_WORDS;
   const t = q.get('t');
   const who = t && meta.teams[t] ? `${meta.teams[t]} — ` : '';

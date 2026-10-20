@@ -6,7 +6,7 @@ import { createModel } from './createModel.ts';
 
 export const model = createModel(payload);
 export const {
-  P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, baseRate, edgeFor,
+  P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, asBoard, baseRate, edgeFor,
 } = model;
 export { CHIPS, chipByKey } from './chips.ts';
 

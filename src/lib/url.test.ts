@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { P, teams, fbsNow, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, hrefOf, landingFromPath, landingOf } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, asUrl, hrefOf, landingFromPath, landingOf } from './url.ts';
 import type { View } from './url.ts';
 import { LANDINGS } from './landing.ts';
 
@@ -167,5 +167,36 @@ describe('url', () => {
       expect(hrefOf('/cfb-streak-king/', toUrl(v))).toBe(`/cfb-streak-king/${l.slug}/`);
       expect(landingOf(v)?.slug).toBe(l.slug);
     }
+  });
+});
+
+describe('url: the by-opponent board ("as [team]", asTeam.ts)', () => {
+  const auburn = idx('auburn');
+  test('its two named definitions are pages under the team; a column open on one is ?t=', () => {
+    expect(toUrl({ ...DEFAULT_VIEW, as: auburn, active: [], dir: 'L' })).toMatchObject({ path: 'team/auburn/losing-streaks-by-opponent/', params: { as: null, c: null, dir: null, scope: null } });
+    expect(toUrl({ ...DEFAULT_VIEW, as: auburn, active: [], dir: 'W' }).path).toBe('team/auburn/win-streaks-by-opponent/');
+    expect(asUrl(auburn, 'L', idx('georgia-tech'))).toMatchObject({ path: 'team/auburn/losing-streaks-by-opponent/', params: { t: 'georgia-tech' } });
+    expect(parseUrl('/cfb-streak-king/team/auburn/losing-streaks-by-opponent/', '')).toMatchObject({ as: auburn, active: [], dir: 'L', scope: 'all', page: null, team: null });
+    expect(parseUrl('/cfb-streak-king/team/auburn/win-streaks-by-opponent/', '?t=georgia-tech')).toMatchObject({ as: auburn, dir: 'W', team: idx('georgia-tech') });
+    // the page is not the team's page
+    expect(teamFromPath('/cfb-streak-king/team/auburn/losing-streaks-by-opponent/')).toBeNull();
+    expect(landingFromPath('/cfb-streak-king/team/auburn/losing-streaks-by-opponent/')).toBeNull();
+    expect(parseUrl('/cfb-streak-king/team/not-a-team/losing-streaks-by-opponent/', '')).toMatchObject({ as: null, page: null });
+  });
+
+  test('every other state is the root with ?as=, its conditions said outright (none = no c)', () => {
+    const v: View = { ...DEFAULT_VIEW, as: auburn, active: [{ key: 'home' }], dir: 'L', scope: 'active' };
+    expect(toUrl(v)).toMatchObject({ path: '', params: { as: 'auburn', c: 'home', dir: 'L', scope: 'active' } });
+    expect(roundTrip(v)).toEqual(v);
+    const plain: View = { ...DEFAULT_VIEW, as: auburn, active: [], dir: 'L', scope: 'active' };
+    expect(toUrl(plain).params.c).toBeNull();
+    expect(roundTrip(plain)).toEqual(plain);
+    // the default definition is said, since a by-opponent board's default is no conditions
+    const unranked: View = { ...DEFAULT_VIEW, as: auburn, active: [{ key: 'unranked' }], dir: 'W' };
+    expect(toUrl(unranked).params.c).toBe('unranked');
+    expect(roundTrip(unranked)).toEqual(unranked);
+    expect(roundTrip({ ...DEFAULT_VIEW, as: auburn, active: [], dir: 'L' })).toEqual({ ...DEFAULT_VIEW, as: auburn, active: [], dir: 'L' });
+    // an opponent below FBS can be the open column
+    expect(parseUrl('/cfb-streak-king/', '?as=auburn&t=' + teams.find((t) => t.name === 'Chattanooga')!.id)).toMatchObject({ as: auburn, team: teams.findIndex((t) => t.name === 'Chattanooga') });
   });
 });

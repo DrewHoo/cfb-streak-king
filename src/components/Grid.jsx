@@ -46,7 +46,8 @@ function columnsPerRow(rail) {
 // A run at the window's edge may be older than the data, so it says so.
 export function columnWords(row, dir, edgeYear) {
   const t = teams[row.ti];
-  const run = `${t.name}: ${count(row.s)} ${gamesWord(dir, row.s.len)} in a row`;
+  // a by-opponent board's column is named for the opponent; the team is said once, in the sentence
+  const run = row.vs != null ? `vs ${teams[row.vs].name}: ${count(row.s)} ${gamesWord(dir, row.s.len)} in a row` : `${t.name}: ${count(row.s)} ${gamesWord(dir, row.s.len)} in a row`;
   // the run's first game: an all-time row carries it, an active one is its
   // oldest qualifying game (landing.ts reads the lead sentence's the same way)
   const first = row.s.start ?? (row.qual?.length >= row.s.len ? row.qual[row.qual.length - row.s.len] : undefined);
@@ -62,6 +63,8 @@ export function columnWords(row, dir, edgeYear) {
 
 function Column({ row, edgeFor, onOpen, onGame, hi, cover, slot, otl, flipKey, dir }) {
   const t = teams[row.ti];
+  // the column's mark: the opponent's on a by-opponent board (an opponent without a mark shows its initial)
+  const col = teams[row.vs ?? row.ti];
   const games = streakGames(row);
   const shown = games.slice(0, CHIP_CAP);
   const ended = row.live === false;
@@ -70,7 +73,7 @@ function Column({ row, edgeFor, onOpen, onGame, hi, cover, slot, otl, flipKey, d
     <>
       <span className={'colcount' + (otl && row.onTheLine ? ' is-otl' : '') + (ended ? ' is-ended' : '')} aria-hidden="true">{count(row.s)}</span>
       {row.s.start && <span className="colspan" aria-hidden="true">{yy(row.s.start.ep)}–{ended ? yy(row.s.end.ep) : 'now'}</span>}
-      <TeamMark ti={row.ti} hidden />
+      {col?.espn ? <TeamMark ti={row.vs ?? row.ti} hidden /> : <b className="colteam colini" aria-hidden="true">{col?.name?.[0] ?? '?'}</b>}
       {!ended && slot && (
         // a live run keeps the slot an ended run's breaker takes, so the
         // stacks line up; the next qualifying game fills it when one is
@@ -111,12 +114,14 @@ function Column({ row, edgeFor, onOpen, onGame, hi, cover, slot, otl, flipKey, d
   );
 }
 
-function Empty({ week, scope, dir }) {
+function Empty({ week, scope, dir, as }) {
   return (
     <p className="empty">
       {week
         ? `No ${dirWord(dir)} streak under this definition could be broken this week.`
-        : `No team holds a${scope === 'all' ? '' : 'n active'} ${dirWord(dir)} streak under this definition.`}
+        : as
+          ? `${teams[as].name} holds no${scope === 'all' ? '' : ' active'} ${dirWord(dir)} streak against any opponent under this definition.`
+          : `No team holds a${scope === 'all' ? '' : 'n active'} ${dirWord(dir)} streak under this definition.`}
     </p>
   );
 }
@@ -192,7 +197,7 @@ function usePanelPhase(curTeam) {
   return [shown, phase];
 }
 
-export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor, isMobile, limit, setLimit, week, scope, dir, panel }) {
+export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor, isMobile, limit, setLimit, week, scope, dir, as, panel }) {
   // a phone shows every active streak; the all-time list runs to thousands,
   // so it grows a chunk at a time there and a full row at a time on desktop
   const cap = isMobile ? (scope === 'all' ? Math.max(limit, MOBILE_ALLTIME_CAP) : rows.length) : limit;
@@ -256,8 +261,8 @@ export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor,
   const col = (row) => (
     <Column key={rowKey(row)} flipKey={rowKey(row)} row={row} edgeFor={edgeFor} hi={rowKey(row) === litKey} onOpen={() => onPick(row)} onGame={onGame} cover={againstSpread(dir)} slot={slot} otl={scope === 'all'} dir={dir} />
   );
-  const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} />;
-  const what = scope === 'all' ? 'streaks' : 'teams';
+  const empty = rows.length === 0 && <Empty week={week} scope={scope} dir={dir} as={as} />;
+  const what = scope === 'all' ? 'streaks' : as != null ? 'opponents' : 'teams';
   // desktop: complete the current row and add one more; phone: another chunk of the rail
   const showMore = () => { track('show more', { scope }); setLimit((l) => {
     if (isMobile) return Math.max(l, MOBILE_ALLTIME_CAP) + MOBILE_ALLTIME_CAP;

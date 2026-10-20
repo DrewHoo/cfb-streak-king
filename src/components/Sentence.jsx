@@ -15,6 +15,10 @@ import { MARGINS, marginDir } from '../lib/outcome.ts';
 import { teams } from '../lib/model.ts';
 import { useAddKings, useChipKings } from '../hooks/useAddKings.ts';
 import { Caret } from './Icons.jsx';
+import { TeamPicker } from './TeamPicker.jsx';
+
+// the team "as [team]" starts on, like the "vs [team]" chip's default choice
+const DEFAULT_AS = () => teams.findIndex((t) => t.id === 'alabama');
 
 const BASE = import.meta.env.BASE_URL;
 // a list longer than this scrolls in its own box, so what's below stays in view
@@ -112,12 +116,13 @@ function PillGroups({ chips, kingOf, cur, scope, isDisabled, onPick, Item: I, He
  * constraint no other word excludes. "remove" is small text in the header,
  * never a whole row, so it isn't hit by accident. It opens on the checked row.
  */
-function ChipWord({ a, active, dir, scope, on }) {
+function ChipWord({ a, active, dir, scope, as, on }) {
   const [open, setOpen] = useState(false);
   const contentRef = useRef(null);
   const kings = useChipKings(open, active, a.key, dir, scope);
   const c = chipByKey.get(a.key);
-  const targets = swapTargets(active, a.key, dir);
+  // a by-opponent board's columns are its opponents already, so "vs [team]" isn't offered on one
+  const targets = swapTargets(active, a.key, dir).filter((t) => !(as != null && t.key === 'vsteam'));
   const siblings = targets.filter((s) => s.group === c.group);
   const others = targets.filter((s) => s.group !== c.group);
   const params = c.param ? PARAMS[c.param].options(c) : [];
@@ -169,10 +174,10 @@ function ChipWord({ a, active, dir, scope, on }) {
 }
 
 /** The body of the add menu, shared by the dropdown and the sheet. */
-function AddBody({ active, dir, scope, week, weekCount, weekDay, kings, on, Item: I, Heading: H, Group: G }) {
+function AddBody({ active, dir, scope, week, weekCount, weekDay, as, kings, on, Item: I, Heading: H, Group: G }) {
   const full = active.length >= MAX_CHIPS;
-  // one-score and shootout can't define a spread streak
-  const chips = CHIPS.filter((c) => !active.some((a) => a.key === c.key) && fitsDir(c, dir));
+  // one-score and shootout can't define a spread streak; a by-opponent board has no "vs [team]"
+  const chips = CHIPS.filter((c) => !active.some((a) => a.key === c.key) && fitsDir(c, dir) && !(as != null && c.key === 'vsteam'));
   // at four constraints only a swap for an exclusive group-mate still fits
   const swaps = (c) => active.some((a) => conflicts(chipByKey.get(a.key), c));
   return (
@@ -187,7 +192,23 @@ function AddBody({ active, dir, scope, week, weekCount, weekDay, kings, on, Item
           <I onSelect={on.week}>could be broken {weekDay} <b className="mi-n">· {weekCount}</b></I>
         </G>
       )}
+      {as == null && (
+        // one team's streaks against each opponent: the columns become its opponents (asTeam.ts)
+        <G wrap>
+          <H title="One team's streaks against each opponent it has played: the columns become its opponents, and the definition's other words still apply.">as one team ⓘ</H>
+          <I className="pill" onSelect={() => on.as(DEFAULT_AS())}><span className="pk-l">as [team]</span></I>
+        </G>
+      )}
     </>
+  );
+}
+
+/** "as Auburn": the by-opponent board's team, a picker for any other team or none. */
+function AsWord({ ti, on, isMobile }) {
+  return (
+    <TeamPicker current={ti} onPick={on.as} onClear={on.unas} clearLabel="remove: every team's streaks" isMobile={isMobile}>
+      <button className="pick strong" aria-label={`as ${teams[ti].name}: pick another team, or remove`}>as {teams[ti].name}<Caret /></button>
+    </TeamPicker>
   );
 }
 
@@ -238,10 +259,10 @@ function AddMenu({ isMobile, open, setOpen, dir, ...body }) {
   );
 }
 
-export function Sentence({ active, dir, scope, week, weekCount, weekDay, isMobile, addOpen, setAddOpen, on }) {
+export function Sentence({ active, dir, scope, week, weekCount, weekDay, as, isMobile, addOpen, setAddOpen, on }) {
   // at four constraints each word's own menu does the swapping; + stays only
-  // while it still has the week filter to offer
-  const canAdd = active.length < MAX_CHIPS || (scope === 'active' && weekCount > 0 && !week);
+  // while it still has the week filter or "as [team]" to offer
+  const canAdd = active.length < MAX_CHIPS || (scope === 'active' && weekCount > 0 && !week) || as == null;
   // an outcome the definition's chips can't pair with: one-score or shootout vs the spread
   const blocker = (d) => active.map((a) => chipByKey.get(a.key)).find((c) => c && !fitsDir(c, d));
   const dirItem = (d, word) => {
@@ -278,7 +299,8 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, isMobil
         ))}
       </Word>
       <span>streaks</span>
-      {active.map((a) => <ChipWord key={a.key} a={a} active={active} dir={dir} scope={scope} on={on} />)}
+      {active.map((a) => <ChipWord key={a.key} a={a} active={active} dir={dir} scope={scope} as={as} on={on} />)}
+      {as != null && <AsWord ti={as} on={on} isMobile={isMobile} />}
       {week && (
         <Word label={`could be broken ${weekDay}`} strong>
           <Item muted onSelect={on.unweek}>remove</Item>
@@ -287,7 +309,7 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, isMobil
       {canAdd && (
         <AddMenu
           isMobile={isMobile} open={addOpen} setOpen={setAddOpen} dir={dir}
-          active={active} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay} on={on}
+          active={active} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay} as={as} on={on}
         />
       )}
     </div>

@@ -34,7 +34,8 @@ const vite = await createServer({
   logLevel: 'warn',
 })
 const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
-const { P, teams, fbsNow, allTimeBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { P, teams, fbsNow, allTimeBoard, asBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { AS_SLUGS, asPath, asH1, asTitle, asDescription, asLead } = await vite.ssrLoadModule('/src/lib/asTeam.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModule('/src/lib/crowns.ts')
@@ -590,6 +591,55 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
 }
 console.log(`prerendered ${teamPages} team pages under dist/team/`)
 
+// --- two pages per team, its streaks by opponent (asTeam.ts): who has
+// beaten it the most times in a row (its all-time losing streaks against
+// each opponent) and which teams it has beaten the most times in a row; the
+// board as that team, with the question as the h1 and the answer in a
+// sentence. The card is the worker's board card for the team ---
+const llmsAs = [] // each team's two pages and their lead sentences, for llms.txt below
+{
+  let n = 0
+  for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
+    const t = teams[ti]
+    const since = windowStartOf(ti)
+    const pages = {}
+    for (const dir of Object.keys(AS_SLUGS)) {
+      const rows = asBoard(ti, [], dir, 'all', todayEp)
+      const url = `${SITE}${asPath(t.id, dir)}`
+      const lead = asLead(t.name, dir, leadRows(rows.map((r) => ({ ...r, ti: r.vs })), (x) => teams[x].name), since)
+      const h1 = asH1(t.name, dir)
+      const title = `${asTitle(t.name, dir, since)} · ${config.title}`
+      const description = `${lead ? `${lead} ` : ''}${asDescription(t.name, dir, since)}`
+      // the top opponents, once each (an all-time board has a row per run)
+      const top = []
+      for (const r of rows) { if (top.length < 10 && !top.some((x) => x.vs === r.vs)) top.push(r) }
+      const { html } = page({
+        initial: { as: ti, asDir: dir },
+        url, title, description,
+        // (the head writes the image raw, so the & is escaped here)
+        image: `${SITE}share/og.png?as=${t.id}${dir === 'W' ? '' : `&amp;dir=${dir}`}`,
+        imageAlt: `${h1} ${t.name}'s streaks by opponent, on a dark leaderboard.`,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@graph': [
+            webPage(url, title, description),
+            breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [t.name, `${SITE}team/${t.id}/`], [h1, url]]),
+            itemList(h1, top.map((r) => [`${teams[r.vs].name}: ${r.s.len}${r.s.atEdge ? '+' : ''} straight`, fbsNow.has(r.vs) ? `${SITE}team/${teams[r.vs].id}/` : null])),
+          ],
+        },
+      })
+      const dir_ = path.join(ROOT, 'dist', asPath(t.id, dir))
+      fs.mkdirSync(dir_, { recursive: true })
+      fs.writeFileSync(path.join(dir_, 'index.html'), html)
+      urls.push(url)
+      pages[dir] = { url, lead, h1 }
+      n++
+    }
+    llmsAs.push({ name: t.name, ...pages })
+  }
+  console.log(`prerendered ${n} by-opponent pages under dist/team/<id>/`)
+}
+
 // --- the named definition pages (landing.ts): the board on each, at its
 // own path, titled the way people search for it; its card is the worker's
 // board card for the definition ---
@@ -851,6 +901,12 @@ ${active.map(line).join('\n')}
 
 ${allTime.map(line).join('\n')}
 
+## Streaks by opponent (every FBS team)
+
+Two pages per team: who has beaten it the most times in a row (every opponent's longest winning streak over it), and which teams it has beaten the most times in a row. Said as the pages say it.
+
+${llmsAs.map((t) => `- ${t.name}: [${t.L.h1}](${t.L.url})${t.L.lead ? ` ${t.L.lead}` : ''} [${t.W.h1}](${t.W.url})${t.W.lead ? ` ${t.W.lead}` : ''}`).join('\n')}
+
 ## This season
 
 - [This week's games](${SITE}games/): the week's FBS games, each with the streaks it puts on the line; a played week lists the streaks its results broke.
@@ -867,6 +923,6 @@ ${allTime.map(line).join('\n')}
 - [Past seasons](${SITE}games/2025/): every week of every season since 1936 at ${SITE}games/<season>/week/<n>/, with the streaks each week's results broke.
 `
   fs.writeFileSync(path.join(ROOT, 'dist', 'llms.txt'), txt)
-  console.log(`llms.txt: ${llmsBoards.length} definition pages`)
+  console.log(`llms.txt: ${llmsBoards.length} definition pages, ${llmsAs.length} teams' by-opponent pages`)
 }
 await vite.close()

@@ -294,6 +294,50 @@ export function createModel(P: Payload) {
   }
 
   /**
+   * The by-opponent board ("as [team]"): one column per opponent `ti` has
+   * played, holding ti's run under the definition against that opponent, so
+   * a column is ti's row on the board for the definition plus "vs [that
+   * opponent]" (the same run, the same words). Rows carry `vs`, the
+   * opponent, and `ti` stays the run's owner; the active board has one row
+   * per opponent, the all-time board one per run, longest first.
+   */
+  function asBoard(ti: number, active: ChipRef[], dir: Dir, scope: 'active' | 'all', todayEp: number): BoardRow[] {
+    const rows: BoardRow[] = [];
+    const filter = makeFilter(active);
+    const opps = [...new Set(gamesOf(ti).map((g) => g.oppIdx))];
+    for (const vs of opps) {
+      const def = [...active.filter((a) => a.key !== 'vsteam'), { key: 'vsteam', param: vs }];
+      const pre = makePre(def);
+      const qual = gamesOf(ti).filter((g) => g.oppIdx === vs && filter(g) && decided(dir, g));
+      if (!qual.length) continue;
+      const oppId = teams[vs].id;
+      if (scope === 'active') {
+        const s = activeRun(qual, dir);
+        if (!s) continue;
+        rows.push({ ti, vs, s, qual, ...nextQualifying(ti, pre, todayEp), key: `as:${oppId}` });
+        continue;
+      }
+      for (const [startIdx, endIdx] of runsOf(qual, dir)) {
+        const live = endIdx === qual.length - 1;
+        const s = {
+          dir, len: endIdx - startIdx + 1, atEdge: startIdx === 0, last: qual[endIdx],
+          ender: startIdx > 0 ? qual[startIdx - 1] : null,
+          start: qual[startIdx], end: qual[endIdx], startIdx, endIdx,
+        };
+        const nx = live ? nextQualifying(ti, pre, todayEp) : { next: null, onTheLine: false };
+        rows.push({ ti, vs, s, qual, ...nx, ended: live ? null : qual[endIdx + 1], live, key: `as:${oppId}:${s.start.ep}` });
+      }
+    }
+    if (scope === 'active') {
+      const enderEp = (r: BoardRow) => (r.s.atEdge ? EDGE : r.s.ender!.ep);
+      rows.sort((a, b) => b.s.len - a.s.len || enderEp(a) - enderEp(b));
+    } else {
+      rows.sort((a, b) => b.s.len - a.s.len || b.s.end!.ep - a.s.end!.ep);
+    }
+    return rows;
+  }
+
+  /**
    * How often the outcome happens under a definition: every current FBS
    * team's qualifying games, pooled. `n` counts the games that can decide it
    * (lined ones for a spread outcome), `from` is the first season among them.
@@ -334,5 +378,5 @@ export function createModel(P: Payload) {
     };
   }
 
-  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, baseRate, edgeFor };
+  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, asBoard, baseRate, edgeFor };
 }

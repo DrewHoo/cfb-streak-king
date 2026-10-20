@@ -30,12 +30,13 @@ const Row = ({ ti }) => (
   </>
 );
 
-/** `children` is the trigger (one element); `onPick(ti)` gets the chosen team. */
-export function TeamPicker({ children, current, onPick, isMobile }) {
+/** `children` is the trigger (one element); `onPick(ti)` gets the chosen team. With `onClear`, a first row (`clearLabel`) picks no team. */
+export function TeamPicker({ children, current, onPick, onClear, clearLabel = 'none', isMobile }) {
   const [open, setOpen] = useState(false);
   const { q, setQ, list } = useFilter();
   const change = (o) => { setOpen(o); if (!o) setQ(''); };
   const pick = (ti) => { change(false); onPick(ti); };
+  const clear = () => { change(false); onClear(); };
   const box = (autoFocus) => (
     <input
       className="tp-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a team" aria-label="Find a team" autoFocus={autoFocus}
@@ -55,6 +56,7 @@ export function TeamPicker({ children, current, onPick, isMobile }) {
             <Drawer.Title className="sheet-title">Team</Drawer.Title>
             <div className="tp-top">{box(false)}</div>
             <div className="sheet-body">
+              {onClear && !q && <button className="mi tp-row tp-clear" onClick={clear}>{clearLabel}</button>}
               {none}
               {list.map((ti) => (
                 <button key={ti} className={'mi tp-row' + (ti === current ? ' on' : '')} onClick={() => pick(ti)}><Row ti={ti} /></button>
@@ -72,6 +74,7 @@ export function TeamPicker({ children, current, onPick, isMobile }) {
         <DM.Content className="menu tp-menu" sideOffset={6} collisionPadding={12} align="start">
           <div className="tp-top">{box(true)}</div>
           <div className="tp-list">
+            {onClear && !q && <DM.Item className="mi tp-row tp-clear" onSelect={clear}>{clearLabel}</DM.Item>}
             {none}
             {list.map((ti) => (
               <DM.Item key={ti} className={'mi tp-row' + (ti === current ? ' on' : '')} onSelect={() => pick(ti)}><Row ti={ti} /></DM.Item>

@@ -162,7 +162,10 @@ export interface Streak {
 }
 
 export interface BoardRow {
+  /** The team whose streak this is. */
   ti: number;
+  /** A by-opponent board ("as [team]"): the opponent this column stands for; the run is `ti`'s against it. */
+  vs?: number;
   s: Streak;
   /** The team's qualifying games, ascending. */
   qual: GameRow[];

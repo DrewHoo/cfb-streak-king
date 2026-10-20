@@ -28,6 +28,7 @@
 
 import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords, teamName, pastWeekText } from '../../src/lib/shareWords.ts';
 import { landingFromPath } from '../../src/lib/landing.ts';
+import { asFromPath } from '../../src/lib/asTeam.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
 import type { ShareMeta } from '../../src/lib/shareWords.ts';
 import { createModel } from '../../src/lib/createModel.ts';
@@ -106,21 +107,22 @@ function report(ctx: ExecutionContext, request: Request, event: string, props: R
 const urlProps = (url: URL) => {
   const q = url.searchParams;
   const team = /\/team\/([a-z0-9-]+)\/?$/.exec(url.pathname)?.[1] ?? null;
-  // a named definition's path says the definition
+  // a named definition's path says the definition; a by-opponent page's says the team and the outcome
   const landing = landingFromPath(url.pathname);
+  const asPage = asFromPath(url.pathname);
   return {
     // the shared link as one string, and under Mixpanel's own name so its UI
     // treats it as the event's URL
     url: url.href,
     $current_url: url.href,
     path: url.pathname.replace(BASE, '') || '/',
-    chips: q.get('c') ?? landing?.c ?? null, dir: q.get('dir') ?? landing?.dir ?? 'W', scope: q.get('scope') ?? landing?.scope ?? 'all',
-    team: q.get('t') ?? team, vs: q.get('vs'),
+    chips: q.get('c') ?? landing?.c ?? null, dir: q.get('dir') ?? asPage?.dir ?? landing?.dir ?? 'W', scope: q.get('scope') ?? landing?.scope ?? 'all',
+    team: q.get('t') ?? team, vs: q.get('vs'), as: q.get('as') ?? asPage?.id ?? null,
   };
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-12j';
+const CARD_VERSION = '2026-10-20a';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -473,18 +475,22 @@ async function logoUri(espn: string | null | undefined): Promise<string | null> 
   } catch { return null; }
 }
 
-/** The board card for a definition URL's og image. */
+/** The board card for a definition URL's og image; with `as`, the by-opponent board of that team (asTeam.ts), its columns the opponents. */
 async function ogCard(q: URLSearchParams): Promise<Response> {
   const m = await loadModel();
   const tables = { teamIds: m.teams.map((t) => t.id), mascots: m.P.mascots ?? [], colors: m.P.colors ?? [] };
-  const refs = decodeRefs(q.get('c'), tables) ?? decodeRefs(DEFAULT_C, tables)!;
+  const asId = q.get('as');
+  const asTi = asId ? m.teams.findIndex((t) => t.id === asId) : -1;
+  if (asId && (asTi < 0 || !m.fbsNow.has(asTi))) throw new Error(`no team as ${asId}`);
+  // a by-opponent board's default definition has no conditions
+  const refs = (asTi >= 0 ? decodeRefs(q.get('c') ?? 'all', tables) : decodeRefs(q.get('c'), tables)) ?? decodeRefs(DEFAULT_C, tables)!;
   const dir: Dir = parseDir(q.get('dir')) ?? 'W';
   const scope = q.get('scope') === 'active' ? 'active' : 'all';
   const todayEp = Math.floor(Date.now() / 86400000);
-  const rows = (scope === 'all' ? m.allTimeBoard(refs, dir, todayEp) : m.activeBoard(refs, dir, todayEp)).slice(0, 6);
+  const rows = (asTi >= 0 ? m.asBoard(asTi, refs, dir, scope, todayEp) : scope === 'all' ? m.allTimeBoard(refs, dir, todayEp) : m.activeBoard(refs, dir, todayEp)).slice(0, 6);
   const meta: ShareMeta = { site: '', teams: {}, mascots: tables.mascots, colors: tables.colors };
   for (const t of m.teams) if (t.major) meta.teams[t.id] = t.name;
-  const words = defWords(q.get('c') ?? DEFAULT_C, meta) ?? [];
+  const words = defWords(asTi >= 0 ? q.get('c') ?? 'all' : q.get('c') ?? DEFAULT_C, meta) ?? [];
   const cardRows: CardRow[] = [];
   for (const r of rows as BoardRow[]) {
     const live = scope === 'active' || !!r.live;
@@ -492,19 +498,22 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
     const endEp = r.s.end?.ep ?? r.s.last.ep;
     // a live run's next qualifying game, when one is scheduled
     const nx = live && r.next ? r.next : null;
+    // a by-opponent board's row is named for the opponent
+    const who = m.teams[r.vs ?? r.ti];
     cardRows.push({
       count: `${r.s.len}${r.s.atEdge ? '+' : ''}`,
-      name: m.teams[r.ti].name,
+      name: who.name,
       span: live ? `since ${yy(startEp)}` : `${yy(startEp)}–${yy(endEp)}`,
       live,
-      logo: await logoUri(m.teams[r.ti].espn),
-      initial: m.teams[r.ti].name[0] ?? '?',
+      logo: await logoUri(who.espn),
+      initial: who.name[0] ?? '?',
       next: nx ? { word: siteWord(nx), logo: await logoUri(m.teams[nx.oppIdx]?.espn), initial: m.teams[nx.oppIdx]?.name[0] ?? '?', date: monthDay(nx.ep) } : null,
     });
   }
   const res = renderCard({
-    heading: `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks`,
-    words: words.length ? words.join(' · ') : 'all games, no conditions',
+    heading: `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks${asTi >= 0 ? ` as ${m.teams[asTi].name}` : ''}`,
+    words: asTi >= 0 ? `${m.teams[asTi].name} against each opponent · ${words.length ? words.join(' · ') : 'all games'}` : words.length ? words.join(' · ') : 'all games, no conditions',
+    logo: asTi >= 0 ? await logoUri(m.teams[asTi].espn) : null,
     rows: cardRows,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
   });
@@ -520,6 +529,7 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
 /** The og image URL for a board URL, from its own params, in one stable order. */
 function ogImageUrl(q: URLSearchParams): string {
   const out = new URLSearchParams();
+  if (q.get('as') != null) out.set('as', q.get('as')!);
   if (q.get('c') != null) out.set('c', q.get('c')!);
   const d = parseDir(q.get('dir'));
   if (d && d !== 'W') out.set('dir', d);

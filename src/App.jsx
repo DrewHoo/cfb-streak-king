@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { P, teams, activeBoard, allTimeBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
+import { P, teams, firstSeason, activeBoard, allTimeBoard, asBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
 import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
 import { landingBySlug, leadSentence, leadRows } from './lib/landing.ts';
-import { viewReducer, initialView, isOpen } from './lib/view.ts';
+import { asPageDir, asH1, asLead, asDescription } from './lib/asTeam.ts';
+import { viewReducer, initialView, isOpen, columnOf } from './lib/view.ts';
 import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
 import { dirWord, dayOf, rowKey } from './lib/format.ts';
@@ -39,13 +40,15 @@ const BASE = import.meta.env.BASE_URL;
 // ({ active, all }) already loaded; a game page (/game/<date>/<teams>/) on
 // that game with its season's rows; /games/ starts on the schedule, and
 // /games/week/<n>/ on that week; a landing page (/<slug>/, `landing`) on
-// that named definition's board.
+// that named definition's board; a by-opponent page (`as`, `asDir`) on that
+// team's all-time board by opponent.
 export default function App({ initial } = {}) {
   const [view, dispatch] = useReducer(viewReducer, initial, (i) => {
     const l = i?.landing ? landingBySlug.get(i.landing) : null;
-    return initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null, l ? landingView(l) : {});
+    const def = l ? landingView(l) : i?.as != null ? { as: i.as, dir: i.asDir ?? 'L', scope: 'all', active: [] } : {};
+    return initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null, def);
   });
-  const { active, dir, scope, week, team, run, limit, page, game, games, bwk, season, risk, breakers, breaker } = view;
+  const { active, dir, scope, week, team, as, run, limit, page, game, games, bwk, season, risk, breakers, breaker } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -116,9 +119,9 @@ export default function App({ initial } = {}) {
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
     if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
-    if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope });
+    if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope, ...(as != null ? { as: teams[as].id } : {}) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, run, page, game, games, bwk, season, risk, breakers, breaker, hydrated]);
+  }, [active, dir, scope, week, team, as, run, page, game, games, bwk, season, risk, breakers, breaker, hydrated]);
 
   // Closing a panel: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -128,21 +131,25 @@ export default function App({ initial } = {}) {
     else dispatch(action);
   }
 
+  // the board: every team's run under the definition, or, as one team, its run against each opponent
   const rows = useMemo(
-    () => (scope === 'all' ? allTimeBoard(active, dir, todayEp) : activeBoard(active, dir, todayEp)),
-    [active, dir, scope, todayEp],
+    () => (as != null ? asBoard(as, active, dir, scope, todayEp) : scope === 'all' ? allTimeBoard(active, dir, todayEp) : activeBoard(active, dir, todayEp)),
+    [as, active, dir, scope, todayEp],
   );
   const weekCount = useMemo(() => rows.filter((r) => r.onTheLine).length, [rows]);
   const shown = week ? rows.filter((r) => r.onTheLine) : rows;
   const edgeFor = useMemo(() => edgeForDefinition(active, dir), [active, dir]);
   // active: a team has one row. all-time: the open run, else the team's longest
   const teamRow = team != null
-    ? rows.find((r) => r.ti === team && (scope !== 'all' || run == null || r.s.start.ep === run)) ?? rows.find((r) => r.ti === team) ?? null
+    ? rows.find((r) => columnOf(r) === team && (scope !== 'all' || run == null || r.s.start.ep === run)) ?? rows.find((r) => columnOf(r) === team) ?? null
     : null;
   const nextUp = rows.find((r) => r.onTheLine)?.next;
   const weekDay = nextUp ? dayOf(nextUp.ep) : 'Saturday';
   // the named definition the board is on, when it has a page of its own: its h1 and line
-  const landing = useMemo(() => landingOf({ active, dir, scope }), [active, dir, scope]);
+  const landing = useMemo(() => (as == null ? landingOf({ active, dir, scope }) : null), [as, active, dir, scope]);
+  // the by-opponent board on one of its two pages (asTeam.ts): the question as the h1, the answer as the line
+  const asPage = as != null ? asPageDir(active.length, dir, scope) : null;
+  const asLine = asPage != null ? `${asLead(teams[as].name, asPage, leadRows(rows.map((r) => ({ ...r, ti: r.vs })), (ti) => teams[ti].name), firstSeason)} ${asDescription(teams[as].name, asPage, firstSeason)}` : null;
 
   const define = (chips, d) => dispatch({ type: 'define', active: chips, dir: d });
   const on = {
@@ -154,10 +161,18 @@ export default function App({ initial } = {}) {
     setParam: (key, param) => define(withParam(active, key, param)),
     week: () => { dispatch({ type: 'week', on: true }); track('week filter', { on: true }); },
     unweek: () => { dispatch({ type: 'week', on: false }); track('week filter', { on: false }); },
+    // the by-opponent board of a team, and back to the board of every team
+    as: (ti) => { dispatch({ type: 'as', team: ti }); track('as team', { team: teams[ti].id, from: 'sentence' }); },
+    unas: () => dispatch({ type: 'as', team: null }),
   };
+  // a team page's streaks by opponent: that team's by-opponent board, with the row's column open
+  function openAs(ti, d, row, from) {
+    dispatch({ type: 'as', team: ti, dir: d, scope: 'all', vs: row?.vs ?? null, run: row?.s.start?.ep ?? null });
+    track('as team', { team: teams[ti].id, dir: d, from });
+  }
   function pickRow(row) {
     if (isOpen(view, row)) { close({ type: 'close' }); return; }
-    track('team open', { team: teams[row.ti].id, scope, len: row.s.len });
+    track('team open', { team: teams[row.ti].id, scope, len: row.s.len, ...(row.vs != null ? { vs: teams[row.vs].id } : {}) });
     dispatch({ type: 'pick', row });
   }
   function openTeam(ti, from) {
@@ -217,8 +232,8 @@ export default function App({ initial } = {}) {
     track('lead apply', { chips: l.c, dir: l.dir, scope: l.scope, from: 'landing' });
   }
   function shareView(sentence) {
-    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active, dir)}`;
-    track('share', { chips: encodeChips(active) || 'overall', dir, team: team != null ? teams[team].id : null });
+    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active, dir)}${as != null ? ` as ${teams[as].name}` : ''}`;
+    track('share', { chips: encodeChips(active) || 'overall', dir, team: team != null ? teams[team].id : null, ...(as != null ? { as: teams[as].id } : {}) });
     share(text, window.location.href);
   }
   function shareTeam(ti) {
@@ -247,10 +262,11 @@ export default function App({ initial } = {}) {
   // the icon bar on every page (NavIcons in Dateline.jsx)
   const nav = { team: openTeam, games: openGames, breakers: (from) => openBreakers(from) };
 
+  // on a by-opponent board the open column is an opponent's; the streak, and the panel, are the board's team's
   const panel = team != null && (
     <TeamPanel
-      ti={team} row={teamRow} rank={teamRow ? rows.indexOf(teamRow) + 1 : 0} field={rows.length}
-      active={active} dir={dir} scope={scope} edge={edgeFor(team)}
+      ti={as ?? team} vs={as != null ? team : undefined} row={teamRow} rank={teamRow ? rows.indexOf(teamRow) + 1 : 0} field={rows.length}
+      active={active} dir={dir} scope={scope} edge={edgeFor(as ?? team)}
       onShare={shareView} onClose={() => close({ type: 'close' })}
       onTeam={(ti) => openTeam(ti, 'panel')} onGame={(ti, g) => openGame(ti, g, 'panel')}
     />
@@ -271,6 +287,7 @@ export default function App({ initial } = {}) {
             game: (ti, g) => openGame(ti, g, 'team page'),
             streak: (s, ti) => openStreak(s, ti, 'team page'),
             allTime: (b) => openAllTime(b, 'team page all-time'),
+            as: (ti, d, row) => openAs(ti, d, row, 'team page'),
             share: shareTeam,
           }}
           nav={nav}
@@ -313,23 +330,25 @@ export default function App({ initial } = {}) {
         />
       ) : (
         <>
-          <Dateline nav={nav} star={star} onShare={() => shareView()} copied={copied} isMobile={isMobile} />
-          <h1 className={landing ? 'landing-h1' : undefined}>{landing ? landing.h1 : 'Streak King'}</h1>
+          {/* the star saves a definition, which a by-opponent board isn't */}
+          <Dateline nav={nav} star={as != null ? null : star} onShare={() => shareView()} copied={copied} isMobile={isMobile} />
+          <h1 className={landing || asPage ? 'landing-h1' : undefined}>{landing ? landing.h1 : asPage ? asH1(teams[as].name, asPage) : 'Streak King'}</h1>
           {landing && <p className="landing-line">{leadSentence(landing, leadRows(rows, (ti) => teams[ti].name))} {landing.description}</p>}
+          {asLine && <p className="landing-line">{asLine}</p>}
 
           <Sentence
-            active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay}
+            active={active} dir={dir} scope={scope} week={week} weekCount={weekCount} weekDay={weekDay} as={as}
             isMobile={isMobile} addOpen={addOpen} setAddOpen={setAddOpen} on={on}
           />
-          <BaseRate active={active} dir={dir} />
+          <BaseRate active={active} dir={dir} as={as} />
 
           <Grid
             rows={shown} curTeam={team} openKey={teamRow ? rowKey(teamRow) : null} onPick={pickRow} onGame={(ti, g) => openGame(ti, g, 'column')} onClose={() => close({ type: 'close' })} edgeFor={edgeFor} isMobile={isMobile}
-            limit={limit} setLimit={(l) => dispatch({ type: 'limit', limit: l })} week={week} scope={scope} dir={dir} panel={panel}
+            limit={limit} setLimit={(l) => dispatch({ type: 'limit', limit: l })} week={week} scope={scope} dir={dir} as={as} panel={panel}
           />
 
           <Starred starred={star.starred} todayEp={todayEp} onApply={applyStarred} onRemove={star.remove} />
-          <Landings current={landing} todayEp={todayEp} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), team: null, run: null, week: false }))} onOpen={openLanding} />
+          <Landings current={landing} todayEp={todayEp} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), as: null, team: null, run: null, week: false }))} onOpen={openLanding} />
         </>
       )}
 

@@ -695,3 +695,46 @@ numbers don't compare with this season's"), Drew's call (option 1a) over mining 
   limit). Past seasons are final, so a one-time offline mine stored per season is the path if it's
   wanted; probe one season's cost first.
 
+
+## The by-opponent board: "as [team]" (2026-10-20)
+
+Google's AI Mode, asked "what college football team has beaten Auburn the most times in a
+row", answered Georgia and Alabama at 9, found Georgia Tech's 13 (1941–1954) only after the
+user corrected it, and still got rows three to six wrong. The board at `?c=vsteam:auburn`
+has had the right answer all along, but it isn't a prerendered address, and a fan can't ask
+the other question at all: "what are our best streaks against individual teams?" The team
+page can't carry that either, because the list rule admits a run only when the team leads
+its field, and the field for "losing vs Georgia Tech" is every team's losing streak vs
+Georgia Tech; Auburn is 2nd of 69 behind Tulane's 14.
+
+So the board gets a subject: "as Auburn". With a team fixed, the columns are its
+opponents, each the team's run under the definition against that opponent. That column is
+the same run as the team's row on the board for the definition plus "vs [that opponent]",
+so nothing new is computed, only grouped (`asBoard` in `createModel.ts`; `asTeam.test`
+pins the nesting both ways, Auburn's losing column vs Georgia Tech against Auburn's row on
+`vsteam:georgia-tech` losing, and against Georgia Tech's row on `vsteam:auburn` winning).
+
+- `as` is a view axis (`View.as`), not a chip: a chip is a predicate on a game row, and
+  the board's fields, ranks and scores are all over the set of FBS teams. Rows keep `ti` as
+  the run's owner and carry `vs`, the opponent; `?t=` on a by-opponent board names the open
+  column, an opponent, FBS or not. "vs [team]" and `as` never meet: adding one drops the
+  other, and the menus don't offer "vs [team]" on a by-opponent board.
+- Two definitions are pages, the two questions people ask about a team, prerendered per
+  team: `/team/<id>/losing-streaks-by-opponent/` ("Who has beaten Auburn the most times in a
+  row?") and `/team/<id>/win-streaks-by-opponent/` ("Who has Auburn beaten the most times in a
+  row?"), each with the question as the h1, the answer in a sentence under it
+  ("Georgia Tech beat Auburn 13 straight times, 1941–1954, the longest winning streak any
+  team has had against Auburn since 1936. Then Georgia and Alabama at 9."), an ItemList,
+  a sitemap entry and a line in `llms.txt`. Every other state is `/?as=<id>` with the chips
+  said outright, since the board's default definition is no conditions. The team page's
+  "Streaks by opponent" section is the winning list, what the team is good at (Drew): the
+  top five, one row per opponent with where the series stands now, the losing page a link
+  under it, so the page Google already indexes carries the answer and reaches the other.
+- No score is involved: the list is one team's runs by length. The star is off (it saves
+  a definition, which this isn't). The base-rate line reads the team's own rate.
+- The share worker words `?as=` boards and a column open on a page, reports `as` with a
+  share, and draws the card (`share/og.png?as=<id>&dir=L`) from `asBoard`, the team's mark
+  beside the heading (`CARD_VERSION` bumped).
+- Not done: series pages (`/series/<a>-vs-<b>/`, Winsipedia's shape), which the SEO spec
+  parks as rivalry drought pages; GSC should show whether matchup queries reach the
+  by-opponent pages first.

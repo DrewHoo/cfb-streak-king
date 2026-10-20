@@ -804,3 +804,15 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .data-files dt { margin: 14px 0 2px; }
 .data-files dd { margin: 0; color: var(--ink-muted); font-size: 14.5px; line-height: 1.55; }
 .data-files dd a { word-break: break-all; }
+
+/* a team page's streaks by opponent: the winning question, its top rows, and the other question as a link */
+.tpg-opp h3 { font-family: 'Graduate', serif; font-weight: 400; font-size: 15px; letter-spacing: 0.03em; margin: 10px 0 4px; color: var(--cream); }
+.tpg-opp h3 a { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
+.tpg-opp h3 a:hover { color: var(--rust); }
+.tpg-opp-more { margin: 8px 0 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); }
+.tpg-opp-more a { color: inherit; text-decoration: none; }
+.tpg-opp-more a:hover { color: var(--cream); }
+/* a by-opponent board's column for an opponent without a mark */
+.colini { font-family: 'Graduate', serif; font-size: 18px; color: var(--ink-muted); text-align: center; line-height: 26px; }
+/* the team picker's first row, when it can pick no team ("as [team]" off) */
+.tp-clear { color: var(--ink-muted); font-style: italic; }

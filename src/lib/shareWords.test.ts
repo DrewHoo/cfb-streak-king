@@ -64,6 +64,16 @@ describe('shareWords', () => {
     expect(shareText(BASE + 'games/', q(''), meta)).toBeNull();
     expect(shareText(BASE + 'games/week/5/', q(''), meta)).toBeNull();
     expect(shareText(BASE + 'team/alabama/', q(''), meta)).toBeNull();
+    // a team's by-opponent pages are prerendered too; a column open on one is worded from the page's definition
+    expect(shareText(BASE + 'team/auburn/losing-streaks-by-opponent/', q(''), meta)).toBeNull();
+    expect(shareText(BASE + 'team/auburn/losing-streaks-by-opponent/', q('t=georgia-tech'), meta)!.title).toBe('Auburn vs Georgia Tech — Longest all-time losing streaks as Auburn · College Football Streak King');
+    expect(shareText(BASE + 'team/not-a-team/losing-streaks-by-opponent/', q('t=georgia-tech'), meta)).toBeNull();
+    // the by-opponent board in any other state: ?as=, its default definition no conditions
+    const as = shareText(BASE, q('as=auburn&dir=L&scope=active'), meta)!;
+    expect(as.title).toBe('Longest active losing streaks as Auburn · College Football Streak King');
+    expect(as.description).toMatch(/^Auburn’s longest active losing streak against each opponent it has played, ranked since 1936\./);
+    expect(shareText(BASE, q('as=auburn&c=home'), meta)!.title).toBe('Longest all-time winning streaks as Auburn · at home · College Football Streak King');
+    expect(shareText(BASE, q('as=not-a-team'), meta)).toBeNull();
   });
 
   test('a definition board titles itself; an open team leads it', () => {

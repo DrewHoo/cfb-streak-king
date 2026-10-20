@@ -124,9 +124,11 @@ function Ledger({ row, edge, cover, onGame }) {
   );
 }
 
-export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, onShare, onClose, onTeam, onGame }) {
+/** `vs`: on a by-opponent board, the opponent whose column is open; the run is `ti`'s against it, and the claim says so. */
+export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, vs, onShare, onClose, onTeam, onGame }) {
   const t = teams[ti];
-  const sentence = row ? claim(row, active, dir) : noClaim(ti, active, dir);
+  const def = vs != null ? [...active.filter((a) => a.key !== 'vsteam'), { key: 'vsteam', param: vs }] : active;
+  const sentence = row ? claim(row, def, dir) : noClaim(ti, def, dir);
   return (
     <div className="panel">
       <div className="panel-head">
@@ -134,7 +136,7 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, onSh
         <div className="panel-id">
           <button className="panel-name namelink" onClick={() => onTeam(ti)} aria-label={`${t.name}: team page`}>{t.name}<Chevron /></button>
           <span className="panel-meta">
-            {row ? `${ordinal(rank)} of ${field}${row.live === false ? ` · ended ${yearOf(row.ended.ep)}` : ''}` : `not among the ${field}`}
+            {row ? `${ordinal(rank)} of ${field}${vs != null ? ' opponents' : ''}${row.live === false ? ` · ended ${yearOf(row.ended.ep)}` : ''}` : `not among the ${field}`}
           </span>
         </div>
         <button className="ico" onClick={() => onShare(sentence)} aria-label={`Share ${t.name}`}><ShareIcon /></button>

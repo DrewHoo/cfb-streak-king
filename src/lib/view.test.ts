@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { BoardRow } from './types.ts';
-import { viewReducer, initialView, DESKTOP_CAP } from './view.ts';
+import { viewReducer, initialView, isOpen, DESKTOP_CAP } from './view.ts';
 import type { ViewState } from './view.ts';
 
 const row = (ti: number, startEp: number) => ({ ti, s: { start: { ep: startEp } } }) as unknown as BoardRow;
@@ -139,5 +139,32 @@ describe('view', () => {
     expect([w.games, w.bwk, w.season, w.game]).toEqual([true, 5, 1987, null]);
     expect(viewReducer(w, { type: 'bweek', wk: 6 }).season).toBeNull();
     expect(viewReducer(w, { type: 'games' }).season).toBeNull();
+  });
+});
+
+describe('view: the by-opponent board ("as [team]")', () => {
+  const vsRow = (ti: number, vs: number, startEp: number) => ({ ti, vs, s: { start: { ep: startEp } } }) as unknown as BoardRow;
+  test('as a team: the definition stays less any "vs [team]", the panel closes, the limit resets', () => {
+    const v = { ...initialView(), active: [{ key: 'home' }, { key: 'vsteam', param: 3 }], team: 7, run: 5, limit: 60 };
+    const as = viewReducer(v, { type: 'as', team: 2 });
+    expect(as).toMatchObject({ as: 2, active: [{ key: 'home' }], team: null, run: null, limit: DESKTOP_CAP });
+    // back to every team's board
+    expect(viewReducer(as, { type: 'as', team: null })).toMatchObject({ as: null, active: [{ key: 'home' }], team: null });
+    // from a team page: that team's board with one opponent's column open, and the page closed
+    const fromPage = viewReducer({ ...initialView(4), scope: 'active' }, { type: 'as', team: 4, dir: 'L', scope: 'all', vs: 9, run: 100 });
+    expect(fromPage).toMatchObject({ as: 4, dir: 'L', scope: 'all', team: 9, run: 100, page: null, week: false });
+  });
+
+  test('a column is its opponent: picking opens it by the opponent, and "vs [team]" or a streak leaves the board', () => {
+    let v = viewReducer(initialView(), { type: 'as', team: 2 });
+    v = viewReducer(v, { type: 'pick', row: vsRow(2, 11, 100) });
+    expect([v.team, v.run]).toEqual([11, 100]);
+    expect(isOpen(v, vsRow(2, 11, 100))).toBe(true);
+    expect(isOpen(v, vsRow(2, 12, 100))).toBe(false);
+    v = viewReducer(v, { type: 'pick', row: vsRow(2, 11, 100) });
+    expect(v.team).toBeNull();
+    expect(viewReducer(v, { type: 'define', active: [{ key: 'vsteam', param: 5 }] }).as).toBeNull();
+    expect(viewReducer(v, { type: 'define', active: [{ key: 'road' }] }).as).toBe(2);
+    expect(viewReducer(v, { type: 'streak', chips: ['home'], dir: 'W', scope: 'active', team: 1 }).as).toBeNull();
   });
 });

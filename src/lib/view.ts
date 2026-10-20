@@ -27,6 +27,7 @@ export type ViewAction =
   | { type: 'dir'; dir: Dir }
   | { type: 'week'; on: boolean }
   | { type: 'streak'; chips: (string | ChipRef)[]; dir: Dir; scope: Scope; team?: number | null; run?: number | null }
+  | { type: 'as'; team: number | null; dir?: Dir; scope?: Scope; vs?: number | null; run?: number | null }
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
   | { type: 'page'; team: number }
@@ -39,10 +40,14 @@ export type ViewAction =
   | { type: 'limit'; limit: number | ((l: number) => number) };
 
 /** The view a page starts on; `def` is a named definition's board (a landing page), else the default definition. */
-export const initialView = (page: number | null = null, games = false, bwk: number | null = null, risk = false, game: GameKey | null = null, season: number | null = null, breakers = false, breaker: number | null = null, def: Partial<Pick<View, 'active' | 'dir' | 'scope'>> = {}): ViewState => ({ ...DEFAULT_VIEW, ...def, page, game, games, bwk, season, risk, breakers, breaker, limit: DESKTOP_CAP });
+export const initialView = (page: number | null = null, games = false, bwk: number | null = null, risk = false, game: GameKey | null = null, season: number | null = null, breakers = false, breaker: number | null = null, def: Partial<Pick<View, 'active' | 'dir' | 'scope' | 'as'>> = {}): ViewState => ({ ...DEFAULT_VIEW, ...def, page, game, games, bwk, season, risk, breakers, breaker, limit: DESKTOP_CAP });
 
+/** The team a board row stands for: the opponent on a by-opponent board, else the run's owner. */
+export const columnOf = (row: BoardRow) => row.vs ?? row.ti;
 /** Whether a board row is the one already open. */
-export const isOpen = (v: View, row: BoardRow) => v.team === row.ti && (v.scope !== 'all' || v.run === row.s.start?.ep);
+export const isOpen = (v: View, row: BoardRow) => v.team === columnOf(row) && (v.scope !== 'all' || v.run === row.s.start?.ep);
+// "vs [team]" fixes the one column a by-opponent board would have left; the two never meet
+const hasVs = (active: ChipRef[]) => active.some((c) => c.key === 'vsteam');
 
 const fit = (v: ViewState): ViewState => {
   const active = v.active.filter((c) => { const chip = chipByKey.get(c.key); return !chip || fitsDir(chip, v.dir); });
@@ -61,7 +66,7 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
         ? { ...v, page: a.view.page, game: a.view.game, games: a.view.games, bwk: a.view.bwk, season: a.view.season, risk: a.view.risk, breakers: a.view.breakers, breaker: a.view.breaker }
         : { ...v, ...a.view };
     case 'define':
-      return { ...v, active: a.active, dir: a.dir ?? v.dir, limit: DESKTOP_CAP };
+      return { ...v, active: a.active, dir: a.dir ?? v.dir, limit: DESKTOP_CAP, as: hasVs(a.active) ? null : v.as };
     case 'scope':
       return { ...v, scope: a.scope, limit: DESKTOP_CAP, week: a.scope === 'all' ? false : v.week };
     case 'dir':
@@ -74,13 +79,24 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       // all-time row. A chip may carry its choice ("vs [team]").
       return {
         ...v, active: a.chips.map((c) => (typeof c === 'string' ? { key: c } : c)), dir: a.dir, scope: a.scope,
-        run: (a.scope === 'all' ? a.run : null) ?? null, limit: DESKTOP_CAP,
+        run: (a.scope === 'all' ? a.run : null) ?? null, limit: DESKTOP_CAP, as: null,
         team: a.team === undefined ? v.team : a.team, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, week: a.scope === 'all' ? false : v.week,
       };
     case 'pick': {
       // picking the open row closes it; in all-time mode a team has one row per run
       if (isOpen(v, a.row)) return { ...v, team: null, run: null };
-      return { ...v, team: a.row.ti, run: v.scope === 'all' ? a.row.s.start?.ep ?? null : null };
+      return { ...v, team: columnOf(a.row), run: v.scope === 'all' ? a.row.s.start?.ep ?? null : null };
+    }
+    case 'as': {
+      // the by-opponent board of a team (null: back to the board of every
+      // team), keeping the definition less any "vs [team]"; from a team
+      // page it comes with one opponent's column open
+      const scope = a.scope ?? v.scope;
+      return {
+        ...v, as: a.team, active: a.team != null && hasVs(v.active) ? v.active.filter((c) => c.key !== 'vsteam') : v.active, dir: a.dir ?? v.dir, scope,
+        team: a.vs ?? null, run: a.vs != null && scope === 'all' ? a.run ?? null : null, limit: DESKTOP_CAP, week: scope === 'all' ? false : v.week,
+        page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null,
+      };
     }
     case 'close':
       return { ...v, team: null, run: null };
