@@ -20,7 +20,4 @@ export default {
   // Alt text for the OG image, for screen readers on social platforms.
   ogImageAlt:
     'A leaderboard of college football teams ranked by streak length on a dark background.',
-
-  // Used by the favicon and the OG image. Pick something from your data.
-  accent: '#b45309',
 }
