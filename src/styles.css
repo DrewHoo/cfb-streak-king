@@ -164,7 +164,7 @@ h1 {
 .pk-tag.rec { color: var(--cream); }
 
 /* the grid: teams as columns, games as squares, newest on top */
-h2 { font-family: 'Graduate', serif; font-weight: 400; font-size: 21px; letter-spacing: 0.04em; margin: 40px 0 4px; color: var(--cream); }
+h2 { font-family: Georgia, 'Source Serif 4', 'Times New Roman', serif; font-weight: 700; font-size: 21px; letter-spacing: 0.02em; margin: 40px 0 4px; color: var(--cream); }
 .colwrap {
   margin-top: 18px; border-top: 1px dotted var(--line); padding-top: 14px;
   display: flex; flex-wrap: wrap; gap: 18px 6px; align-items: flex-start;
