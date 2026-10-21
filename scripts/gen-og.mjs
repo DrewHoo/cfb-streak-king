@@ -1,8 +1,11 @@
 // Generate the social preview images. Run: npm run gen:og
-//   public/og.png            1200x630, what X/Bluesky/LinkedIn/Reddit/iMessage show
-//   public/card.png          1200x750, the 8:5 cover for the index site's project card
-//   public/og/team/<id>.png  1200x630, one per current FBS team, used by /team/<id>/
-//   public/og/week/<n>.png   1200x630, one per completed week: its broken
+// Each is laid out on a 1200-wide canvas (1200x630, or 1200x750 for the 8:5
+// cover) and rasterized at 96 dpi, so the files are 4/3 of that: 1600x840
+// and 1600x1000. The prerender declares those sizes (og:image:width/height).
+//   public/og.png            1600x840, what X/Bluesky/LinkedIn/Reddit/iMessage show
+//   public/card.png          1600x1000, the 8:5 cover for the index site's project card
+//   public/og/team/<id>.png  1600x840, one per current FBS team, used by /team/<id>/
+//   public/og/week/<n>.png   1600x840, one per completed week: its broken
 //                            streaks, used by /games/week/<n>/. A week's digest
 //                            is final once the week is, so `npm run gen:og --
 //                            --weeks` after the weekly payload refresh renders
@@ -79,7 +82,7 @@ const { listCrowns } = await vite.ssrLoadModule('/src/lib/list.ts')
 const { streakGames } = await vite.ssrLoadModule('/src/lib/streaks.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 
-const { completedWeeks, brokenWeeks } = await vite.ssrLoadModule('/src/lib/broken.ts')
+const { completedWeeks, brokenWeeks, brokenDigest } = await vite.ssrLoadModule('/src/lib/broken.ts')
 
 const todayEp = todayEpochDay()
 const rows = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
@@ -343,7 +346,9 @@ if (!weeksOnly) {
 if (!teamIds.length) {
   let n = 0
   for (const w of completedWeeks().filter((x) => x.wk != null)) {
-    const broken = brokenByWeek.get(w.wk)
+    // the week's rows, through the digest the page shows (brokenWeeks keeps rows, not a list)
+    const rows = brokenByWeek.get(w.wk)
+    const broken = rows && brokenDigest(rows)
     if (!broken || !broken.list.length) continue
     await png(await renderWeek(broken, 1200, 630)).toFile(resolve(outDir, 'og', 'week', `${w.wk}.png`))
     n++
