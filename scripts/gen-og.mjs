@@ -35,12 +35,20 @@ if (!existsSync(resolve(FONTS, 'Graduate-Regular.ttf'))) {
   throw new Error('fonts missing: fetch Graduate/IBMPlexMono/SourceSerif4 TTFs into data/raw/fonts (see header)')
 }
 const font = (f) => opentype.parse(readFileSync(resolve(FONTS, f)).buffer.slice(0))
+// The title is Georgia Bold, the same face Hostile Territory's poster uses, read from
+// the Mac's own copy (not redistributable, so never committed here).
+const GEORGIA_BOLD = '/System/Library/Fonts/Supplemental/Georgia Bold.ttf'
+const titleFont = () => {
+  if (!existsSync(GEORGIA_BOLD)) throw new Error(`title font missing: ${GEORGIA_BOLD} (run gen:og on a Mac, or point GEORGIA_BOLD at a Georgia Bold TTF)`)
+  return opentype.parse(readFileSync(GEORGIA_BOLD).buffer.slice(0))
+}
 const FONT = {
   Graduate: font('Graduate-Regular.ttf'),
   Mono: font('IBMPlexMono-Regular.ttf'),
   MonoBold: font('IBMPlexMono-SemiBold.ttf'),
   Serif: font('SourceSerif4.ttf'),
   SerifItalic: font('SourceSerif4-Italic.ttf'),
+  Title: titleFont(),
 }
 // one run of text as a filled path; spacing is letter-spacing in px
 function text(str, { x, y, font: name, size, fill, anchor = 'start', spacing = 0, opacity }) {
@@ -190,8 +198,8 @@ async function renderBoard(W, H) {
   const midY = H / 2
   return frame(W, H, `
   ${text('COLLEGE FOOTBALL', { x: 64, y: midY - 128, font: 'MonoBold', size: 17, spacing: 4, fill: RUST })}
-  ${text('STREAK', { x: 60, y: midY - 44, font: 'Graduate', size: 76, fill: CREAM })}
-  ${text('KING', { x: 60, y: midY + 40, font: 'Graduate', size: 76, fill: CREAM })}
+  ${text('Streak', { x: 60, y: midY - 48, font: 'Title', size: 88, fill: CREAM, spacing: 1.5 })}
+  ${text('King', { x: 60, y: midY + 44, font: 'Title', size: 88, fill: CREAM, spacing: 1.5 })}
   ${text('Longest all-time winning streaks', { x: 64, y: midY + 96, font: 'SerifItalic', size: 23, fill: MUTED })}
   ${text('vs unranked opponents.', { x: 64, y: midY + 128, font: 'SerifItalic', size: 23, fill: MUTED })}
   ${text(`${firstSeason}–${P.currentSeason} · ${P.games.se.length.toLocaleString('en-US')} GAMES`, { x: 64, y: H - 56, font: 'Mono', size: 15, spacing: 2, fill: FAINT })}
