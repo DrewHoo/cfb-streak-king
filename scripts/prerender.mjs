@@ -76,6 +76,12 @@ if (!/<title>[^<]*<\/title>/.test(template)) {
   throw new Error('prerender: could not find <title> in dist/index.html')
 }
 
+// The declared image size has to be the file's own: the worker draws its
+// cards (share/og.png?...) at 1200x630; gen-og.mjs renders the committed
+// og.png and og/team/<id>.png from a 1200x630 canvas at 96 dpi, so those
+// files are 1600x840 (a post's image is one or the other).
+const imageSize = (image) => (image.includes('/share/og.png') ? [1200, 630] : [1600, 840])
+
 /**
  * One page: the app rendered with `initial`, and a head whose title,
  * description, canonical and image are the page's own. With `body`, a
@@ -96,8 +102,8 @@ function page({ initial, body, url, title, description, image, imageAlt, jsonLd,
     <meta property="og:description" content="${esc(description)}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:image" content="${image}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content="${imageSize(image)[0]}" />
+    <meta property="og:image:height" content="${imageSize(image)[1]}" />
     <meta property="og:image:alt" content="${esc(imageAlt)}" />
 
     <meta name="twitter:card" content="summary_large_image" />
