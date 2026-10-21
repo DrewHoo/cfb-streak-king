@@ -97,5 +97,5 @@ jobs:
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: '4.147.0'
+          wranglerVersion: '4.151.3' # the devDependency's version, so by-hand and CI deploys match
           command: deploy -c workers/share/wrangler.jsonc

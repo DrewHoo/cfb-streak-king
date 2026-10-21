@@ -39,7 +39,11 @@ import { BREAK, breakCat, breakPoints, rankOrder } from '../../src/lib/breakScor
 import { renderCard } from './card.ts';
 import type { CardRow } from './card.ts';
 
-const ORIGIN = 'https://drewhoover.com';
+// Set per request from the deploy's vars: `npm run worker:dev` points it at a
+// local vite preview (ORIGIN) and silences the analytics (NO_REPORT); the
+// deployed worker has neither, so it reads the live site and reports.
+interface Env { ORIGIN?: string; NO_REPORT?: string }
+let ORIGIN = 'https://drewhoover.com';
 const BASE = '/cfb-streak-king';
 // the committed payload, for the window between a worker deploy and the next Pages deploy
 const RAW_PAYLOAD = 'https://raw.githubusercontent.com/DrewHoo/cfb-streak-king/main/src/data/payload.json';
@@ -76,7 +80,8 @@ const AGENTS: [RegExp, string][] = [
 ];
 const agentOf = (ua: string | null): string => AGENTS.find(([re]) => re.test(ua ?? ''))?.[1] ?? 'browser';
 
-function report(ctx: ExecutionContext, request: Request, event: string, props: Record<string, unknown>) {
+function report(env: Env, ctx: ExecutionContext, request: Request, event: string, props: Record<string, unknown>) {
+  if (env.NO_REPORT) return; // a local run never reaches the project
   try {
     const ua = request.headers.get('user-agent');
     const agent = agentOf(ua);
@@ -543,7 +548,8 @@ const content = (text: string) => ({
 });
 
 export default {
-  async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    ORIGIN = env.ORIGIN ?? 'https://drewhoover.com';
     const url = new URL(request.url);
 
     // the dynamic card, cached at the edge under this deploy's version, so a
@@ -560,7 +566,7 @@ export default {
         // the season: ?breakers=<season>, or a team's ?breaker=<id>&season=<season>; absent, the running one
         const seParam = url.searchParams.get('season') ?? url.searchParams.get('breakers');
         const breakSe = seParam && /^\d{4}$/.test(seParam) ? Number(seParam) : null;
-        report(ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
+        report(env, ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
         const res = game
           ? await gameCard(game)
@@ -597,7 +603,7 @@ export default {
         const shell = await fetch(`${ORIGIN}${BASE}/404.html?d=${dayKey()}`, edge(3600));
         if (!shell.ok) { await shell.body?.cancel(); return new Response('not found', { status: 404 }); }
         res = new Response(shell.body, { status: 200, headers: shell.headers });
-        if (agentOf(request.headers.get('user-agent')) !== 'browser') report(ctx, request, 'share unfurl', urlProps(url));
+        if (agentOf(request.headers.get('user-agent')) !== 'browser') report(env, ctx, request, 'share unfurl', urlProps(url));
         const bkSe = bk ? (bk[2] ? Number(bk[2]) : (await loadModel()).P.currentSeason) : null;
         const bkId = bk?.[3] ?? null;
         const text = game
@@ -630,7 +636,7 @@ export default {
       if (!(res.headers.get('content-type') ?? '').includes('text/html')) return res;
       const text = shareText(url.pathname, url.searchParams, meta);
       if (!text) return res;
-      if (agentOf(request.headers.get('user-agent')) !== 'browser') report(ctx, request, 'share unfurl', urlProps(url));
+      if (agentOf(request.headers.get('user-agent')) !== 'browser') report(env, ctx, request, 'share unfurl', urlProps(url));
       const board = !/\/team\//.test(url.pathname);
       let out = new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(text.title); } })
@@ -653,4 +659,4 @@ export default {
       return res;
     }
   },
-} satisfies ExportedHandler;
+} satisfies ExportedHandler<Env>;

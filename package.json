@@ -9,8 +9,10 @@
     "preview": "vite preview",
     "gen:og": "node scripts/gen-og.mjs",
     "gen:favicon": "node scripts/gen-favicon.mjs",
+    "worker:dev": "npx wrangler dev -c workers/share/wrangler.jsonc --local --var ORIGIN:http://localhost:4173 --var NO_REPORT:1",
+    "worker:deploy": "npx wrangler deploy -c workers/share/wrangler.jsonc",
     "test": "vitest run",
-    "typecheck": "tsc -p .",
+    "typecheck": "tsc -p . && tsc -p tsconfig.worker.json",
     "check:receipts": "node scripts/data/check-receipts.mjs --offline data/ref",
     "coverage": "node scripts/data/coverage-report.mjs"
   },
@@ -24,6 +26,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261021.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.0.4",
@@ -34,6 +37,7 @@
     "typescript": "^7.0.2",
     "vite": "^8.2.0",
     "vitest": "^5.0.2",
-    "workers-og": "^0.0.27"
+    "workers-og": "^0.0.27",
+    "wrangler": "4.151.3"
   }
 }

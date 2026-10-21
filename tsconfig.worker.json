@@ -1,0 +1,11 @@
+{
+  // Type-check the share worker (npm run typecheck runs this after tsconfig.json).
+  // Its own config because the Workers runtime types replace lib.dom: the two
+  // declare the same globals (Request, Response, caches, HTMLRewriter's Element).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["workers/share/**/*.ts"]
+}
