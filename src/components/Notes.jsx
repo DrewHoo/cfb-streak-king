@@ -24,6 +24,10 @@ export function Notes() {
           <a href="https://drewhoover.com/cfb-all-time-records/football">All-time FBS records</a> — all
           136 programs ranked by total wins, win percentage and bowl record.
         </p>
+        <p>
+          <a href="https://drewhoover.com/nhl-comparator/">NHL Comparator</a> — compare NHL players at the same
+          point in their careers, every career since 1917-18, Gretzky and Howe included.
+        </p>
       </div>
 
       <h2>Using a streak from here</h2>
