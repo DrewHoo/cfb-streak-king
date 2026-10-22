@@ -40,6 +40,7 @@ const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
+const { SIBLINGS } = await vite.ssrLoadModule('/src/lib/siblings.ts')
 const { completedWeeks, brokenClaim, everText, brokenDigest, listBroken } = await vite.ssrLoadModule('/src/lib/broken.ts')
 const { listCrowns } = await vite.ssrLoadModule('/src/lib/list.ts')
 const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
@@ -922,6 +923,10 @@ ${llmsAs.map((t) => `- ${t.name}: [${t.L.h1}](${t.L.url})${t.L.lead ? ` ${t.L.le
 ## Data
 
 - [The data](${SITE}data/): the JSON files behind the site, documented: every game since 1936 (closing lines since 1978), every team's longest streaks under hundreds of definitions, each week's broken and at-risk streaks. CC BY 4.0.
+
+## What to read next
+
+${SIBLINGS.map((s) => `- [${s.name}](${s.url}) — ${s.words}.`).join('\n')}
 
 ## Optional
 
