@@ -158,7 +158,7 @@ describe('active board', () => {
     for (const r of activeBoard([{ key: 'home' }], 'W', today)) {
       const tail = r.qual.slice(-r.s.len);
       expect(tail.every((x) => x.r === 'W')).toBe(true);
-      if (!r.s.atEdge) expect(r.qual[r.qual.length - r.s.len - 1].r).not.toBe('W');
+      if (r.s.ender) expect(r.qual[r.qual.length - r.s.len - 1].r).not.toBe('W');
     }
   });
 });

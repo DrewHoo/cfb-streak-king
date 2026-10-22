@@ -46,15 +46,15 @@ export const asDescription = (name: string, dir: 'W' | 'L', since: number) => (d
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const yearOf = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
 const monthOf = (ep: number) => `${MONTHS[new Date(ep * 86400000).getUTCMonth()]} ${yearOf(ep)}`;
-const times = (r: LeadRow) => `${r.len}${r.atEdge ? '+' : ''} straight ${r.len === 1 && !r.atEdge ? 'time' : 'times'}`;
+const times = (r: LeadRow) => `${r.len}${r.unsure ? '†' : ''} straight ${r.len === 1 && !r.unsure ? 'time' : 'times'}`;
 function names(ns: string[]): string {
   if (ns.length > 3) return `${ns.slice(0, 3).join(', ')} and ${ns.length - 3} more`;
   return ns.length < 3 ? ns.join(' and ') : `${ns[0]}, ${ns[1]} and ${ns[2]}`;
 }
-// ", since October 2020" for a live run; ", 1941–1954" for an ended one, and for a run at the
-// window's edge (its + says it may be older than the data), live or not
+// ", since October 2020" for a live run; ", 1941–1954" for an ended one, and for a run whose
+// length is unsure (its dagger says missing data could change it), live or not
 function when(r: LeadRow): string {
-  if (r.live && !r.atEdge) return r.startEp != null ? `, since ${monthOf(r.startEp)}` : '';
+  if (r.live && !r.unsure) return r.startEp != null ? `, since ${monthOf(r.startEp)}` : '';
   if (r.startEp != null && r.endEp != null) return `, ${yearOf(r.startEp)}${yearOf(r.endEp) === yearOf(r.startEp) ? '' : `–${yearOf(r.endEp)}`}`;
   return '';
 }
@@ -69,7 +69,7 @@ function when(r: LeadRow): string {
 export function asLead(name: string, dir: 'W' | 'L', rows: LeadRow[], since: number): string {
   if (rows.length === 0) return '';
   const top = rows[0];
-  const tied = rows.filter((r) => r.len === top.len && r.atEdge === top.atEdge);
+  const tied = rows.filter((r) => r.len === top.len && r.unsure === top.unsure);
   const leaders = [...new Set(tied.map((r) => r.name))];
   let first: string;
   if (dir === 'L') {
@@ -78,10 +78,10 @@ export function asLead(name: string, dir: 'W' | 'L', rows: LeadRow[], since: num
       : `${names(leaders)} have each beaten ${name} ${times(top)}, the longest winning streak any team has had against ${name} since ${since}.`;
   } else {
     first = leaders.length === 1
-      ? `${name}'s longest winning streak against one opponent since ${since} is ${times(top)} over ${top.name}${when(top)}${top.live && top.atEdge ? ', and still going' : ''}.`
+      ? `${name}'s longest winning streak against one opponent since ${since} is ${times(top)} over ${top.name}${when(top)}${top.live && top.unsure ? ', and still going' : ''}.`
       : `${name}'s longest winning streak against one opponent since ${since} is ${times(top)}, over ${names(leaders)}.`;
   }
-  const then = rows.slice(tied.length, tied.length + 2).map((r) => `${r.name} at ${r.len}${r.atEdge ? '+' : ''}`);
+  const then = rows.slice(tied.length, tied.length + 2).map((r) => `${r.name} at ${r.len}${r.unsure ? '†' : ''}`);
   return then.length ? `${first} Then ${then.join(' and ')}.` : first;
 }
 

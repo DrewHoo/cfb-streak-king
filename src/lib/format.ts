@@ -37,7 +37,7 @@ export const spreadText = (sp: number) => (sp === 0 ? 'PK' : sp > 0 ? `+${sp}` :
 /** A streak's games, by outcome: "8 covers", "1 loss". */
 const GAMES: Record<string, [string, string]> = { W: ['win', 'wins'], L: ['loss', 'losses'], U: ['game undefeated', 'games undefeated'], C: ['cover', 'covers'], N: ['missed cover', 'missed covers'] };
 export const gamesWord = (dir: string, n: number) => (GAMES[baseDir(dir as Dir)] ?? GAMES.W)[n === 1 ? 0 : 1] + (marginOf(dir as Dir) ? ` by ${marginOf(dir as Dir)}+` : '');
-export const count = (s: Pick<Streak, 'len' | 'atEdge'>) => `${s.len}${s.atEdge ? '+' : ''}`;
+export const count = (s: Pick<Streak, 'len' | 'unsure'>) => `${s.len}${s.unsure ? '†' : ''}`;
 
 const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 const sup = (n: number) => String(n).replace(/\d/g, (d) => SUP[+d]);

@@ -15,7 +15,7 @@ export function Starred({ starred, todayEp, onApply, onRemove }) {
     const chips = decodeChips(f.c);
     const b = activeBoard(chips, f.dir, todayEp);
     const top = b[0];
-    return { f, chips, leader: top ? teams[top.ti] : null, len: top ? `${top.s.len}${top.s.atEdge ? '+' : ''}` : '' };
+    return { f, chips, leader: top ? teams[top.ti] : null, len: top ? `${top.s.len}${top.s.unsure ? '†' : ''}` : '' };
   }), [starred, todayEp]);
   if (!rows.length) return null;
   return (

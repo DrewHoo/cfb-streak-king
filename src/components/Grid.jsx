@@ -43,17 +43,15 @@ function columnsPerRow(rail) {
 // screen reader (and anything that reads the page as text, a search engine's
 // or a chat app's fetcher) gets the run in words instead. It says only what
 // the column shows: the team, the length, when it started, and how it ended.
-// A run at the window's edge may be older than the data, so it says so.
-export function columnWords(row, dir, edgeYear) {
+// A run whose length missing data could change (the dagger, dagger.ts) says so.
+export function columnWords(row, dir) {
   const t = teams[row.ti];
+  const n = `${row.s.len} ${gamesWord(dir, row.s.len)} in a row${row.s.unsure ? ' (length unsure)' : ''}`;
   // a by-opponent board's column is named for the opponent; the team is said once, in the sentence
-  const run = row.vs != null ? `vs ${teams[row.vs].name}: ${count(row.s)} ${gamesWord(dir, row.s.len)} in a row` : `${t.name}: ${count(row.s)} ${gamesWord(dir, row.s.len)} in a row`;
+  const run = row.vs != null ? `vs ${teams[row.vs].name}: ${n}` : `${t.name}: ${n}`;
   // the run's first game: an all-time row carries it, an active one is its
   // oldest qualifying game (landing.ts reads the lead sentence's the same way)
   const first = row.s.start ?? (row.qual?.length >= row.s.len ? row.qual[row.qual.length - row.s.len] : undefined);
-  if (row.s.atEdge && edgeYear) {
-    return row.live === false ? `${run}, ${edgeYear} or earlier–${yearOf(row.s.end.ep)}.` : `${run}, since ${edgeYear} or earlier.`;
-  }
   if (row.live === false) {
     const by = row.ended && teams[row.ended.oppIdx]?.name;
     return `${run}${first ? `, ${yearOf(first.ep)}–${yearOf(row.s.end.ep)}` : ''}${by ? `, ended ${siteWord(row.ended)} ${by}` : ''}.`;
@@ -95,13 +93,13 @@ function Column({ row, edgeFor, onOpen, onGame, hi, cover, slot, otl, flipKey, d
       <span className={'colstack' + (games.length > shown.length ? ' fade' : '')} aria-hidden="true">
         {shown.map((g) => <Chip key={g.i} g={g} cover={cover} />)}
       </span>
-      {row.s.atEdge
-        ? <span className="coledge" aria-hidden="true">{yyOfYear(edgeFor(row.ti).year)}</span>
-        : <span className="colender" aria-hidden="true"><Chip g={row.s.ender} small cover={cover} /><span className="colyr">{yy(row.s.ender.ep)}</span></span>}
+      {row.s.ender
+        ? <span className="colender" aria-hidden="true"><Chip g={row.s.ender} small cover={cover} /><span className="colyr">{yy(row.s.ender.ep)}</span></span>
+        : <span className="coledge" aria-hidden="true">{yyOfYear(edgeFor(row.ti).year)}</span>}
     </>
   );
   // the words are the buttons' text, so they're their names too (no aria-label)
-  const words = <span className="sr-only">{columnWords(row, dir, row.s.atEdge ? edgeFor(row.ti).year : null)}</span>;
+  const words = <span className="sr-only">{columnWords(row, dir)}</span>;
   // no game to open: the whole column is the streak's button, as it always was
   if (!row.next) {
     return <button className={'colbtn' + (hi ? ' hi' : '')} data-flip={flipKey} onClick={onOpen} aria-pressed={hi}>{words}{head}{body}</button>;
@@ -276,6 +274,8 @@ export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor,
       {limit > DESKTOP_CAP && <button onClick={() => setLimit(DESKTOP_CAP)}>fewer</button>}
     </div>
   );
+  // a dagger on a count shown is explained once, under the board
+  const dagger = visible.some((r) => r.s.unsure) && <p className="dagger-note">† Missing data could change this streak’s length. Open it for what’s missing.</p>;
   const railMore = isMobile && rows.length > visible.length && (
     <button key="more" className="colmore" onClick={showMore} aria-label={`Show more ${what}`}>
       <b>{(rows.length - visible.length).toLocaleString()}</b><span>more</span>
@@ -286,12 +286,13 @@ export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor,
     return (
       <div ref={wrapRef}>
         <div className="colwrap" ref={railRef}>{empty}{visible.map(col)}{railMore}</div>
+        {dagger}
         <StreakSheet open={curTeam != null} name={curTeam != null ? teams[curTeam].name : ''} onClose={onClose}>{panel}</StreakSheet>
       </div>
     );
   }
 
-  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}</div>{more}</div>;
+  if (shownKey == null) return <div ref={wrapRef}><div className="colwrap" ref={railRef}>{empty}{visible.map(col)}</div>{more}{dagger}</div>;
 
   // the open column and the panel, one card in the row; the panel last shown
   // stays in it through the exit, so it has something to fade out
@@ -314,6 +315,7 @@ export function Grid({ rows, curTeam, openKey, onPick, onGame, onClose, edgeFor,
         {visible.map((row) => (rowKey(row) === shownKey ? card(row) : col(row)))}
       </div>
       {more}
+      {dagger}
     </div>
   );
 }

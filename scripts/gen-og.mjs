@@ -141,7 +141,7 @@ function wrap(text, maxChars) {
 async function column(row, x, y, chipN, { countSize = 34, W = 56, sq = 46, gap = 7 } = {}) {
   const t = teams[row.ti]
   const parts = []
-  const count = `${row.s.len}${row.s.atEdge ? '+' : ''}`
+  const count = `${row.s.len}${row.s.unsure ? '†' : ''}`
   parts.push(text(count, { x: x + W / 2, y: y + countSize, font: 'Graduate', size: countSize, fill: CREAM, anchor: 'middle' }))
   const color = t.espn && (await logoUri(t.espn, 'color'))
   if (color) parts.push(`<image x="${x + (W - 44) / 2}" y="${y + countSize + 12}" width="44" height="44" href="${color}"/>`)
@@ -243,7 +243,7 @@ async function renderTeam(ti, W, H) {
   for (const cr of held.filter((c) => c.dir !== 'U').slice(0, 3)) {
     const words = [marginWords(cr.dir).trim(), ...cr.chips.map(chipLabel)].filter(Boolean).join(' · ') || 'all games'
     parts.push(line([
-      { str: `${cr.len}${cr.atEdge ? '+' : ''}`, font: 'Graduate', size: 19, fill: baseDir(cr.dir) === 'L' ? RUST : CREAM },
+      { str: `${cr.len}${cr.unsure ? '†' : ''}`, font: 'Graduate', size: 19, fill: baseDir(cr.dir) === 'L' ? RUST : CREAM },
       { str: `  ${words}`, font: 'Mono', size: 15, fill: FAINT },
     ], { x: 64, y }))
     y += 30
@@ -292,7 +292,7 @@ async function renderWeek(broken, W, H) {
   const shown = broken.list.slice(0, 5)
   for (const b of shown) {
     const bad = baseDir(b.dir) === 'L' || b.dir === 'N'
-    const count = `${b.len}${b.atEdge ? '+' : ''}`
+    const count = `${b.len}${b.unsure ? '†' : ''}`
     parts.push(text(count, { x: L + 52, y: y + 30, font: 'Graduate', size: 28, fill: bad ? RUST : CREAM, anchor: 'end' }))
     const t = teams[b.ti]
     const color = t?.espn && (await logoUri(t.espn, 'color'))
@@ -331,7 +331,7 @@ if (!teamIds.length && !weeksOnly) {
     await png(await renderBoard(W, H)).toFile(resolve(outDir, file))
     console.log(`${file}: ${W}x${H}`)
   }
-  console.log('board shown:', rows.slice(0, 9).map((r) => `${teams[r.ti].id} ${r.s.len}${r.s.atEdge ? '+' : ''}`).join(', '))
+  console.log('board shown:', rows.slice(0, 9).map((r) => `${teams[r.ti].id} ${r.s.len}${r.s.unsure ? '†' : ''}`).join(', '))
 }
 if (!weeksOnly) {
   let n = 0

@@ -123,7 +123,7 @@ export interface LeadRow {
   name: string;
   len: number;
   /** The run reaches the first game in the window, so it's at least len. */
-  atEdge: boolean;
+  unsure: boolean;
   /** Epoch days of the run's first and last games. */
   startEp?: number;
   endEp?: number;
@@ -134,7 +134,7 @@ export interface LeadRow {
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const yearOf = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
 const monthOf = (ep: number) => `${MONTHS[new Date(ep * 86400000).getUTCMonth()]} ${yearOf(ep)}`;
-const games = (r: LeadRow) => `${r.len}${r.atEdge ? '+' : ''} ${r.len === 1 && !r.atEdge ? 'game' : 'games'}`;
+const games = (r: LeadRow) => `${r.len}${r.unsure ? '†' : ''} ${r.len === 1 && !r.unsure ? 'game' : 'games'}`;
 function names(ns: string[]): string {
   if (ns.length > 3) return `${ns.slice(0, 3).join(', ')} and ${ns.length - 3} more`;
   return ns.length < 3 ? ns.join(' and ') : `${ns[0]}, ${ns[1]} and ${ns[2]}`;
@@ -143,7 +143,7 @@ function names(ns: string[]): string {
 /** The first rows of a board as leadSentence reads them. */
 export function leadRows(rows: BoardRow[], nameOf: (ti: number) => string): LeadRow[] {
   return rows.map((r) => ({
-    name: nameOf(r.ti), len: r.s.len, atEdge: r.s.atEdge,
+    name: nameOf(r.ti), len: r.s.len, unsure: r.s.unsure,
     // an active run carries no start game: it's the last len of the team's qualifying games
     startEp: (r.s.start ?? (r.qual.length >= r.s.len ? r.qual[r.qual.length - r.s.len] : undefined))?.ep,
     endEp: (r.s.end ?? r.s.last)?.ep, live: r.live,
@@ -159,13 +159,13 @@ export function leadRows(rows: BoardRow[], nameOf: (ti: number) => string): Lead
 export function leadSentence(l: Landing, rows: LeadRow[]): string {
   if (rows.length === 0) return '';
   const top = rows[0];
-  const tied = rows.filter((r) => r.len === top.len && r.atEdge === top.atEdge);
+  const tied = rows.filter((r) => r.len === top.len && r.unsure === top.unsure);
   const leaders = [...new Set(tied.map((r) => r.name))];
   const thing = singular(l.what);
   let first: string;
   if (l.scope === 'active') {
     first = leaders.length === 1
-      ? `${top.name} has the longest active ${thing} in FBS: ${games(top)}${top.startEp != null && !top.atEdge ? `, since ${monthOf(top.startEp)}` : ''}.`
+      ? `${top.name} has the longest active ${thing} in FBS: ${games(top)}${top.startEp != null && !top.unsure ? `, since ${monthOf(top.startEp)}` : ''}.`
       : `${names(leaders)} share the longest active ${thing} in FBS: ${games(top)}.`;
   } else if (tied.length === 1) {
     const span = top.live
@@ -177,7 +177,7 @@ export function leadSentence(l: Landing, rows: LeadRow[]): string {
   } else {
     first = `${names(leaders)} share the longest ${thing} of any FBS team since ${FIRST}: ${games(top)}.`;
   }
-  const then = rows.slice(tied.length, tied.length + 2).map((r) => `${r.name} at ${r.len}${r.atEdge ? '+' : ''}`);
+  const then = rows.slice(tied.length, tied.length + 2).map((r) => `${r.name} at ${r.len}${r.unsure ? '†' : ''}`);
   return then.length ? `${first} Then ${then.join(' and ')}.` : first;
 }
 

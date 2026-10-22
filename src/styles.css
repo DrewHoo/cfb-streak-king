@@ -217,6 +217,8 @@ h2 { font-family: Georgia, 'Source Serif 4', 'Times New Roman', serif; font-weig
 .coledge { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--ink-faint); margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); width: 28px; text-align: center; }
 
 .showmore { display: flex; justify-content: center; align-items: baseline; gap: 4px; margin-top: 14px; }
+/* the dagger's footnote: one line under a list that shows a † count */
+.dagger-note { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.03em; color: var(--ink-faint); text-align: center; margin: 10px 16px 0; }
 .showmore-n {
   font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em;
   color: var(--ink-faint); padding: 6px 4px 2px;

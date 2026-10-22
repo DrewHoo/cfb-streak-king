@@ -36,6 +36,58 @@ const popcount = (x) => {
 const countAnd = (a, b) => { let n = 0; for (let w = 0; w < a.length; w++) n += popcount(a[w] & b[w]); return n; };
 const log2 = Math.log2;
 
+/** The last set bit of `m` before `i`, -1 when none. */
+export function prevBit(m, i) {
+  for (let j = i - 1; j >= 0; j = (j & ~31) - 1) {
+    const w = m[j >> 5] & (0xffffffff >>> (31 - (j & 31)));
+    if (w) return (j & ~31) + 31 - Math.clz32(w);
+  }
+  return -1;
+}
+/** The first set bit of `m` after `i`, `n` when none before it. */
+export function nextBit(m, i, n) {
+  for (let j = i + 1; j < n; j = (j | 31) + 1) {
+    const w = m[j >> 5] & (0xffffffff << (j & 31));
+    if (w) return Math.min(n, (j & ~31) + 31 - Math.clz32(w & -w));
+  }
+  return n;
+}
+
+/**
+ * The games that could change a run's length: the ones the definition can't
+ * decide (`p & ~m`: every chip passes or its data is missing, and the run
+ * isn't counted over it) inside the run or after a live one, which could
+ * extend it or break it, and the ones between the qualifying games on either
+ * side whose result would extend it (`joins(i)`). `m` holds the games the run is counted over
+ * (`startIdx`..`lastIdx` among them), `p` holds `m`. Pushes each into `out`
+ * when given; otherwise stops at the first. Returns how many it found.
+ */
+export function unsureGames(n, m, p, joins, startIdx, lastIdx, out) {
+  const to = nextBit(m, lastIdx, n);
+  let found = 0;
+  for (let i = prevBit(m, startIdx) + 1; i < to;) {
+    const w = p[i >> 5] & ~m[i >> 5] & (0xffffffff << (i & 31));
+    if (!w) { i = (i | 31) + 1; continue; }
+    const j = (i & ~31) + 31 - Math.clz32(w & -w);
+    if (j >= to) break;
+    if ((j > startIdx && (j < lastIdx || to === n)) || joins(j)) {
+      found++;
+      if (!out) return found;
+      out.push(j);
+    }
+    i = j + 1;
+  }
+  return found;
+}
+
+/**
+ * Whether a run's length is unsure: a game the definition can't decide could
+ * change it (unsureGames), or nothing qualifying precedes it and `open`, the
+ * team's games before the data's first season could have.
+ */
+export const unsureRun = (n, m, p, joins, startIdx, lastIdx, open) =>
+  (open && prevBit(m, startIdx) < 0) || unsureGames(n, m, p, joins, startIdx, lastIdx) > 0;
+
 /**
  * Whether definition `a` (chip indices, ascending) is simpler than `b`:
  * fewer chips; then fewer choices in all (`choices[i]` is log2 of the
@@ -51,25 +103,28 @@ export function simpler(a, b, choices) {
   for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return a[k] < b[k];
   return false;
 }
-const PLACING = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'rivals', 'everLen', 'everN'];
+const PLACING = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'unsure', 'live', 'rivals', 'everLen', 'everN'];
 const placingOf = (r) => { const t = {}; for (const k of PLACING) if (r[k] !== undefined) t[k] = r[k]; return t; };
 /**
  * Fold `cand`, one definition's placing of a run, into `held` under the
  * run's key: the fewest-conditions placing stays on top, `also` counts the rest, and
  * the highest placing (the lowest rank, then the fewest-conditions) rides along
  * as `highest` when it places higher than the top one. Used by the walk and,
- * across threads, by crowns.ts.
+ * across threads, by crowns.ts. `settle(cand)`, when given, fills in what
+ * costs a walk to know (`unsure`) on a candidate that is kept, as the top
+ * placing or the highest; most aren't.
  */
-export function collapseInto(held, key, cand, choices) {
+export function collapseInto(held, key, cand, choices, settle) {
   const prev = held.get(key);
-  if (!prev) { held.set(key, cand); return; }
+  if (!prev) { settle?.(cand); held.set(key, cand); return; }
   const also = prev.also + cand.also + 1;
   let top = prev, other = cand;
-  if (simpler(cand.chips, prev.chips, choices)) { top = cand; other = prev; held.set(key, cand); }
+  if (simpler(cand.chips, prev.chips, choices)) { settle?.(cand); top = cand; other = prev; held.set(key, cand); }
   top.also = also;
   const better = (x, y) => x.rank < y.rank || (x.rank === y.rank && simpler(x.chips, y.chips, choices));
   let best = null;
   for (const x of [other, prev.highest, cand.highest]) if (x && (!best || better(x, best))) best = x;
+  if (best === cand && top !== cand && best.rank < top.rank) settle?.(cand);
   top.highest = best && best.rank < top.rank ? placingOf(best) : undefined;
 }
 
@@ -87,7 +142,7 @@ function scan(td, q, results, wkOf, wFrom, W, floor, out) {
   // the state after the last game lands in slot W
   let dir = 0, len = 0, startIdx = -1;
   let unb = 0, unbStart = -1;
-  let prev = -1, firstIdx = -1;
+  let prev = -1;
   let wp = wFrom;
   let trailW = null, trailL = null, trailU = null; // set at the end
   let bestW = null, bestL = null, bestU = null;
@@ -96,7 +151,7 @@ function scan(td, q, results, wkOf, wFrom, W, floor, out) {
   const keep = (slot, l, s, e) => {
     // the longest run; on a tie the later one, as it sorts first on the all-time board
     if (!l) return slot;
-    if (!slot || l >= slot.len) return { len: l, startIdx: s, lastIdx: e, atEdge: false, live: false };
+    if (!slot || l >= slot.len) return { len: l, startIdx: s, lastIdx: e, live: false };
     return slot;
   };
   for (let w = 0; w < td.words; w++) {
@@ -105,7 +160,6 @@ function scan(td, q, results, wkOf, wFrom, W, floor, out) {
       if (!(q[w] & (1 << b))) continue;
       const i = (w << 5) | b;
       if (i >= td.n) continue;
-      if (firstIdx < 0) firstIdx = i;
       const gw = wkOf[i];
       // the recorded weeks this game is the first of or past: what the team carried in
       if (gw >= 0) {
@@ -120,14 +174,14 @@ function scan(td, q, results, wkOf, wFrom, W, floor, out) {
         if (dir === 1 || dir === 2) {
           const kept = keep(dir === 1 ? bestW : bestL, len, startIdx, prev);
           if (dir === 1) bestW = kept; else bestL = kept;
-          if (len >= floor && gw >= wFrom) ended.push({ kind: dir === 1 ? 0 : 1, len, startIdx, lastIdx: prev, enderIdx: i, w: gw, atEdge: startIdx === firstIdx });
+          if (len >= floor && gw >= wFrom) ended.push({ kind: dir === 1 ? 0 : 1, len, startIdx, lastIdx: prev, enderIdx: i, w: gw });
         }
         dir = r; len = 1; startIdx = i;
       }
       if (r !== 2) { if (!unb) unbStart = i; unb++; }
       else {
         bestU = keep(bestU, unb, unbStart, prev);
-        if (unb >= floor && gw >= wFrom) ended.push({ kind: 2, len: unb, startIdx: unbStart, lastIdx: prev, enderIdx: i, w: gw, atEdge: unbStart === firstIdx });
+        if (unb >= floor && gw >= wFrom) ended.push({ kind: 2, len: unb, startIdx: unbStart, lastIdx: prev, enderIdx: i, w: gw });
         unb = 0;
       }
       prev = i;
@@ -136,13 +190,13 @@ function scan(td, q, results, wkOf, wFrom, W, floor, out) {
   while (wp <= W) { entW[wp] = dir === 1 ? len : 0; entL[wp] = dir === 2 ? len : 0; entU[wp] = unb; wp++; }
   if (dir === 1 || dir === 2) { const kept = keep(dir === 1 ? bestW : bestL, len, startIdx, prev); if (dir === 1) bestW = kept; else bestL = kept; }
   bestU = keep(bestU, unb, unbStart, prev);
-  for (const best of [bestW, bestL, bestU]) if (best) { best.atEdge = best.startIdx === firstIdx; best.live = best.lastIdx === prev; }
+  for (const best of [bestW, bestL, bestU]) if (best) best.live = best.lastIdx === prev;
   // the trailing runs: the run of the latest result, and the undefeated run
   if (dir === 1 || dir === 2) {
-    const t = { len, startIdx, lastIdx: prev, atEdge: startIdx === firstIdx, live: true };
+    const t = { len, startIdx, lastIdx: prev, live: true };
     if (dir === 1) trailW = t; else trailL = t;
   }
-  if (unb) trailU = { len: unb, startIdx: unbStart, lastIdx: prev, atEdge: unbStart === firstIdx, live: true };
+  if (unb) trailU = { len: unb, startIdx: unbStart, lastIdx: prev, live: true };
   out.trail = [trailW, trailL, trailU];
   out.best = [bestW, bestL, bestU];
 }
@@ -184,6 +238,32 @@ export function mineCore(input) {
   const q = Array.from({ length: maxChips + 1 }, () => data.map((td) => new Uint32Array(td.words)));
   const alive = Array.from({ length: maxChips + 1 }, () => new Uint8Array(T));
   for (let t = 0; t < T; t++) { q[0][t].fill(0xffffffff); alive[0][t] = 1; }
+  // the games every chip so far passes or can't read (a superset of q): q's own buffer until a chip can miss data
+  const pBuf = Array.from({ length: maxChips + 1 }, () => data.map((td) => new Uint32Array(td.words)));
+  const p = Array.from({ length: maxChips + 1 }, (_, d) => q[d].slice());
+  const gappy = new Uint8Array(maxChips + 1);
+  // whether a chip so far can't hold before the data's first season (the poll's), so no run reaches back past it
+  const closed = new Uint8Array(maxChips + 1);
+  // a step down the walk: the AND with chip i at depth d, and how many teams keep a game
+  const step = (d, i) => {
+    let field = 0, able = 0;
+    gappy[d + 1] = gappy[d] | chips.gappy[i];
+    closed[d + 1] = closed[d] | chips.closes[i];
+    for (let t = 0; t < T; t++) {
+      alive[d + 1][t] = 0;
+      if (!alive[d][t]) continue;
+      const a = q[d][t], b = data[t].masks[i], o = q[d + 1][t];
+      let n = 0;
+      for (let w = 0; w < a.length; w++) { o[w] = a[w] & b[w]; n += popcount(o[w]); }
+      if (gappy[d + 1]) {
+        const pa = p[d][t], pb = data[t].poss[i] ?? b, po = pBuf[d + 1][t];
+        for (let w = 0; w < a.length; w++) po[w] = pa[w] & pb[w];
+        p[d + 1][t] = po;
+      } else p[d + 1][t] = o;
+      if (n) { alive[d + 1][t] = 1; field++; if (n >= LEN_FLOOR) able++; }
+    }
+    return field >= FIELD_FLOOR && able > 0;
+  };
   const lens = new Int32Array(T);
   // per team, per scan: the scan's output buffers, reused
   const outs = data.map(() => SCANS.map(() => ({ entW: new Int16Array(W + 1), entL: new Int16Array(W + 1), entU: new Int16Array(W + 1), lastGame: new Int32Array(W + 1).fill(-1), ended: [], trail: null, best: null })));
@@ -213,10 +293,26 @@ export function mineCore(input) {
     const gap = leadFloor == null ? len - second : Math.max(leadFloor, len - second);
     return len * b + leadW * gap * b - chanceW * chance - cost + (scope === 'active' ? spanA : spanAll) * log2(span);
   };
-  const collapse = (held, key, cand) => collapseInto(held, key, cand, chips.choices);
 
   const evaluate = (def, depth) => {
-    const qd = q[depth], ad = alive[depth];
+    const qd = q[depth], ad = alive[depth], pd = p[depth], shut = closed[depth];
+    // whether missing data could change a run's length (unsureRun): the scan's games, and whether a game's result would extend the run
+    const unsure = (t, s, k, run) => {
+      const td = data[t], seq = td[SCANS[s].seq];
+      // no chip can miss data and every game has the outcome's: only the data's first season can
+      if (!gappy[depth] && !SCANS[s].lined) return td.open && !shut && prevBit(qd[t], nextBit(qd[t], run.startIdx - 1, td.n)) < 0;
+      const want = k === 0 ? 1 : 2;
+      const joins = SCANS[s].lined
+        ? (i) => !(td.lined[i >> 5] >>> (i & 31) & 1) || seq[i] === want
+        : k === 2 ? (i) => seq[i] !== 2 : (i) => seq[i] === want;
+      const m = SCANS[s].lined ? linedBuf[t] : qd[t];
+      // a new leader's walk back can stop past its first game: start at the first one counted
+      return unsureRun(td.n, m, pd[t], joins, nextBit(m, run.startIdx - 1, td.n), run.lastIdx, td.open && !shut);
+    };
+    // the run being collapsed, for settle: its team, scan and kind; a candidate's `unsure` is worked out only when it's kept
+    let atT = 0, atS = 0, atK = 0;
+    const settle = (c) => { c.unsure = unsure(atT, atS, atK, c); };
+    const collapse = (held, key, cand) => collapseInto(held, key, cand, chips.choices, settle);
     const cost = conditionCost(def);
     const hist = def.length <= input.histChips;
     const wFrom = hist ? wFromHist : wFromDeep;
@@ -272,8 +368,9 @@ export function mineCore(input) {
             const second = places.other(run.len);
             const sc = score(scope, run.len, second, p, n, seasons(td, run.startIdx, run.lastIdx), cost);
             if (sc < KEEP_FLOOR && def.length) continue;
+            atT = t; atS = s; atK = k;
             collapse(runs[scope][t], dir + '|' + run.startIdx + '|' + run.lastIdx + '|' + run.len, {
-              chips: def, dir, scope, len: run.len, atEdge: run.atEdge, field, rank: places.rank(run.len), tied: places.tied(run.len), second,
+              chips: def, dir, scope, len: run.len, unsure: false, field, rank: places.rank(run.len), tied: places.tied(run.len), second,
               startIdx: run.startIdx, lastIdx: run.lastIdx, live: run.live, also: 0, p, n, ...teamHits(t, dir), ...rivalsOf(t, def),
             });
           }
@@ -314,8 +411,9 @@ export function mineCore(input) {
             if (sc < KEEP_FLOOR && def.length) continue;
             let rank = 1, tied = 0;
             for (let u = 0; u < T; u++) { const l = lenAt(u, w); if (l > run.len) rank++; else if (l === run.len) tied++; }
+            atT = t; atS = s; atK = k;
             collapse(runs.broken[t], dir + '|' + run.enderIdx + '|' + run.startIdx + '|' + run.len, {
-              chips: def, dir, scope: 'active', len: run.len, atEdge: run.atEdge, field: fieldN[w], rank, tied, second,
+              chips: def, dir, scope: 'active', len: run.len, unsure: false, field: fieldN[w], rank, tied, second,
               startIdx: run.startIdx, lastIdx: run.lastIdx, live: false, also: 0, p, n, ...teamHits(t, dir), ...rivalsOf(t, def), enderIdx: run.enderIdx, w, everLen, everN,
             });
           }
@@ -354,8 +452,9 @@ export function mineCore(input) {
           const second = secondLen[w + 1];
           const sc = score('active', len, second, p, n, seasons(td, idx, start), cost);
           if (sc < cutoff) continue;
+          atT = nt; atS = s; atK = k;
           collapse(runs.leaders[nt], dir + '|' + w + '|' + len, {
-            chips: def, dir, scope: 'active', len, atEdge: false, field: fieldN[w + 1], rank: 1, tied: 1, second,
+            chips: def, dir, scope: 'active', len, unsure: false, field: fieldN[w + 1], rank: 1, tied: 1, second,
             startIdx: idx, lastIdx: start, live: true, also: 0, p, n, ...teamHits(nt, dir), ...rivalsOf(nt, def), w, prevT: ot, prevLen: ot >= 0 ? lenAt(ot, w) : bestLen[w], causeT, causeIdx,
           });
         }
@@ -372,16 +471,7 @@ export function mineCore(input) {
       let ok = true;
       for (const j of chosen) if (chips.conflict[j * NP + i]) { ok = false; break; }
       if (!ok) continue;
-      let field = 0, able = 0;
-      for (let t = 0; t < T; t++) {
-        alive[depth + 1][t] = 0;
-        if (!alive[depth][t]) continue;
-        const a = q[depth][t], b = data[t].masks[i], o = q[depth + 1][t];
-        let n = 0;
-        for (let w = 0; w < a.length; w++) { o[w] = a[w] & b[w]; n += popcount(o[w]); }
-        if (n) { alive[depth + 1][t] = 1; field++; if (n >= LEN_FLOOR) able++; }
-      }
-      if (field < FIELD_FLOOR || !able) continue;
+      if (!step(depth, i)) continue;
       rec(i + 1, depth + 1, [...chosen, i]);
     }
   };
@@ -391,16 +481,7 @@ export function mineCore(input) {
     const i = prefix[d];
     if (chips.loose[i]) return empty();
     for (let e = 0; e < d; e++) if (chips.conflict[prefix[e] * NP + i]) return empty();
-    let field = 0, able = 0;
-    for (let t = 0; t < T; t++) {
-      alive[d + 1][t] = 0;
-      if (!alive[d][t]) continue;
-      const a = q[d][t], b = data[t].masks[i], o = q[d + 1][t];
-      let n = 0;
-      for (let w = 0; w < a.length; w++) { o[w] = a[w] & b[w]; n += popcount(o[w]); }
-      if (n) { alive[d + 1][t] = 1; field++; if (n >= LEN_FLOOR) able++; }
-    }
-    if (field < FIELD_FLOOR || !able) return empty();
+    if (!step(d, i)) return empty();
   }
   if (descend) rec(prefix.length ? prefix[prefix.length - 1] + 1 : 0, prefix.length, prefix);
   else evaluate(prefix, prefix.length);

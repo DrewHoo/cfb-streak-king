@@ -127,17 +127,17 @@ describe('claim', () => {
     expect(claim(r, chips('opener'), 'L')).toMatch(/ lost 1 straight season opener in \d{4}\.$/);
   });
 
-  test('a run reaching the window edge takes a plus and no start date', () => {
-    const r = allTimeBoard([], 'W', today).find((x) => x.s.atEdge && x.live);
+  test('a run missing data could change takes a dagger and no start date', () => {
+    const r = allTimeBoard([], 'W', today).find((x) => x.s.unsure && x.live);
     if (!r) return;
-    expect(claim(r, [], 'W')).toMatch(/ has won \d+\+ straight games\.$/);
+    expect(claim(r, [], 'W')).toMatch(/ has won \d+† straight games\.$/);
   });
 
   test('undefeated reads "is undefeated in" and "went undefeated in"', () => {
     const ended = allTimeBoard([], 'U', today).find((x) => x.ti === idx('alabama') && x.s.len === 31)!;
     expect(claim(ended, [], 'U')).toBe('Alabama went undefeated in 31 straight games, 1991–1993.');
     const live = activeBoard(chips('home'), 'U', today)[0];
-    expect(claim(live, chips('home'), 'U')).toMatch(/ is undefeated in \d+\+? straight games at home(, since [A-Z][a-z]{2} \d{4})?\.$/);
+    expect(claim(live, chips('home'), 'U')).toMatch(/ is undefeated in \d+†? straight games at home(, since [A-Z][a-z]{2} \d{4})?\.$/);
     expect(noClaim(idx('alabama'), [], 'U')).toBe('Alabama has no active undefeated streak in games.');
     expect(noClaim(idx('alabama'), [], 'C')).toBe('Alabama has no active covering streak in games.');
     expect(noClaim(idx('alabama'), [], 'N')).toBe('Alabama has no active not covering streak in games.');

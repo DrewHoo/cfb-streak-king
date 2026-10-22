@@ -21,7 +21,7 @@ import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { Chevron, LinkIcon } from './Icons.jsx';
 import { NavIcons } from './Dateline.jsx';
-import { streakWords, subsByParent, Subs, MoreButton, PAGE } from './StreakRow.jsx';
+import { streakWords, subsByParent, Subs, MoreButton, DaggerNote, PAGE } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 import { Picker } from './Picker.jsx';
 
@@ -90,6 +90,7 @@ function Broken({ broken, onOpen, onBoard, onLink }) {
           </Fragment>
         ))}
         <MoreButton shown={n} total={broken.more.length} onMore={() => setPaged({ wk: broken.wk, n: n + PAGE })} />
+        <DaggerNote rows={rows} />
       </div>
     </section>
   );
@@ -103,10 +104,10 @@ function AtRiskRow({ r, onGame }) {
   const bad = baseDir(r.s.dir) === 'L' || r.s.dir === 'N';
   return (
     <button className="bk" onClick={() => onGame({ ep: r.game.ep, home: r.game.home, away: r.game.away, neutral: r.game.neutral })}>
-      <span className={'bk-len' + (bad ? ' l' : '')}>{r.s.len}{r.s.atEdge ? '+' : ''}</span>
+      <span className={'bk-len' + (bad ? ' l' : '')}>{r.s.len}{r.s.unsure ? '†' : ''}</span>
       {t?.espn ? <TeamMark ti={r.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
       <span className="bk-txt">
-        <span>{t?.name} {VERB(r.s.dir)} {r.s.len}{r.s.atEdge ? '+' : ''} straight{marginWords(r.s.dir)}{r.s.chips.length ? ` ${streakWords(r.s.chips)}` : ''}</span>
+        <span>{t?.name} {VERB(r.s.dir)} {r.s.len}{r.s.unsure ? '†' : ''} straight{marginWords(r.s.dir)}{r.s.chips.length ? ` ${streakWords(r.s.chips)}` : ''}</span>
         <small>
           <b className="k">{Math.round(100 * r.p)}% to end</b>
           {' · '}{dayOf(r.row.ep)} {monthDay(r.row.ep)} {siteWord(r.row)} {opp?.name} {spreadText(r.row.sp)}
@@ -151,6 +152,7 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
           </Fragment>
         ))}
         <MoreButton shown={n} total={risk.more.length} onMore={() => setN(n + PAGE)} />
+        <DaggerNote rows={rows} />
       </div>
     </section>
   );
@@ -170,7 +172,7 @@ function ScheduledRow({ g, top, onGame }) {
       <span className="gm-line">{line}</span>
       {top && (
         <span className="gm-claim">
-          {teams[top.ti].name} {VERB(top.s.dir)} <b className={baseDir(top.s.dir) === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.atEdge ? '+' : ''}</b> straight{marginWords(top.s.dir)}{top.s.chips.length ? ` ${streakWords(top.s.chips)}` : ''}
+          {teams[top.ti].name} {VERB(top.s.dir)} <b className={baseDir(top.s.dir) === 'L' || top.s.dir === 'N' ? 'l' : ''}>{top.s.len}{top.s.unsure ? '†' : ''}</b> straight{marginWords(top.s.dir)}{top.s.chips.length ? ` ${streakWords(top.s.chips)}` : ''}
         </span>
       )}
       {top && <span className="gm-n">{top.n} on the line</span>}
@@ -200,7 +202,7 @@ function PlayedRow({ item, rows, onGame }) {
       <span className="gm-line">{n != null ? `${n} broken` : ''}</span>
       {top && (
         <span className="gm-claim">
-          {teams[top.ti].name} {PAST(top.dir)} <b className={baseDir(top.dir) === 'L' || top.dir === 'N' ? 'l' : ''}>{top.len}{top.atEdge ? '+' : ''}</b> straight{marginWords(top.dir)}{top.chips.length ? ` ${streakWords(top.chips)}` : ''}
+          {teams[top.ti].name} {PAST(top.dir)} <b className={baseDir(top.dir) === 'L' || top.dir === 'N' ? 'l' : ''}>{top.len}{top.unsure ? '†' : ''}</b> straight{marginWords(top.dir)}{top.chips.length ? ` ${streakWords(top.chips)}` : ''}
           <small> · {top.len >= top.everLen ? 'all-time longest' : 'longest active'}</small>
         </span>
       )}

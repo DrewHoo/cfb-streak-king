@@ -45,7 +45,7 @@ describe('asTeam', () => {
         const board = scope === 'all' ? allTimeBoard(def, dir, todayEp) : activeBoard(def, dir, todayEp);
         const mine = board.find((b) => b.ti === auburn && (scope !== 'all' || b.s.start!.ep === r.s.start!.ep));
         expect(mine, `${teams[r.vs!].name} ${dir} ${scope}`).toBeDefined();
-        expect([mine!.s.len, mine!.s.atEdge, mine!.s.last.ep]).toEqual([r.s.len, r.s.atEdge, r.s.last.ep]);
+        expect([mine!.s.len, mine!.s.unsure, mine!.s.last.ep]).toEqual([r.s.len, r.s.unsure, r.s.last.ep]);
       }
     }
   });
@@ -72,14 +72,14 @@ describe('asTeam', () => {
   });
 
   test('the lead sentence in words: ties, live runs, and an empty board', () => {
-    const row = (name: string, len: number, startEp: number, endEp: number, live = false, atEdge = false) => ({ name, len, atEdge, startEp, endEp, live });
+    const row = (name: string, len: number, startEp: number, endEp: number, live = false, unsure = false) => ({ name, len, unsure, startEp, endEp, live });
     const y = (yr: number) => Math.floor(Date.UTC(yr, 9, 1) / 86400000);
     expect(asLead('Auburn', 'L', [row('Georgia', 9, y(2017), y(2025)), row('Alabama', 9, y(1973), y(1981)), row('Florida', 7, y(1995), y(2000))], 1936))
       .toBe('Georgia and Alabama have each beaten Auburn 9 straight times, the longest winning streak any team has had against Auburn since 1936. Then Florida at 7.');
     expect(asLead('Auburn', 'L', [row('Alabama', 6, y(2020), y(2025), true)], 1936))
       .toBe('Alabama has beaten Auburn 6 straight times, since October 2020, the longest winning streak any team has had against Auburn since 1936.');
     expect(asLead('Auburn', 'W', [row('Chattanooga', 20, y(1942), y(2010), true, true), row('Kentucky', 15, y(1967), y(2005))], 1936))
-      .toBe("Auburn's longest winning streak against one opponent since 1936 is 20+ straight times over Chattanooga, 1942–2010, and still going. Then Kentucky at 15.");
+      .toBe("Auburn's longest winning streak against one opponent since 1936 is 20† straight times over Chattanooga, 1942–2010, and still going. Then Kentucky at 15.");
     expect(asLead('Auburn', 'W', [], 1936)).toBe('');
   });
 });

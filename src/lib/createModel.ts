@@ -8,6 +8,7 @@ import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
 import { activeRun, runsOf, decided, matches, againstSpread } from './streaks.ts';
 import { underFullMoon } from './moon.ts';
+import { daggerFor } from './dagger.ts';
 import { isPowerConf, isPowerOpp } from './power.ts';
 
 const DAY_MS = 86400000;
@@ -149,6 +150,8 @@ export function createModel(P: Payload) {
         hcCur: known(st) && known(cc) && st[0] === cc[0],
         hcNew: known(st) && !st[3] && firstSeasonOf(st) === se,
         vsNew: known(ost) && !ost[3] && firstSeasonOf(ost) === se,
+        hcKnown: known(st),
+        vsHcKnown: known(ost),
         us,
         them,
         r: us > them ? 'W' : us < them ? 'L' : 'T',
@@ -257,11 +260,12 @@ export function createModel(P: Payload) {
     for (const ti of fbsNow) {
       const qual = gamesOf(ti).filter((g) => filter(g) && decided(dir, g));
       if (!qual.length) continue;
-      const s = activeRun(qual, dir);
-      if (!s) continue;
+      const run = activeRun(qual, dir);
+      if (!run) continue;
+      const s = { ...run, unsure: daggerOf(ti, qual, active, dir).unsure(qual.length - run.len, qual.length - 1) };
       rows.push({ ti, s, qual, ...nextQualifying(ti, pre, todayEp) });
     }
-    const enderEp = (r: BoardRow) => (r.s.atEdge ? EDGE : r.s.ender!.ep);
+    const enderEp = (r: BoardRow) => (r.s.ender ? r.s.ender.ep : EDGE);
     rows.sort((a, b) => b.s.len - a.s.len || enderEp(a) - enderEp(b));
     return rows;
   }
@@ -278,10 +282,11 @@ export function createModel(P: Payload) {
     const pre = makePre(active);
     for (const ti of fbsNow) {
       const qual = gamesOf(ti).filter((g) => filter(g) && decided(dir, g));
+      const dagger = daggerOf(ti, qual, active, dir);
       for (const [startIdx, endIdx] of runsOf(qual, dir)) {
         const live = endIdx === qual.length - 1;
         const s = {
-          dir, len: endIdx - startIdx + 1, atEdge: startIdx === 0, last: qual[endIdx],
+          dir, len: endIdx - startIdx + 1, unsure: dagger.unsure(startIdx, endIdx), last: qual[endIdx],
           ender: startIdx > 0 ? qual[startIdx - 1] : null,
           start: qual[startIdx], end: qual[endIdx], startIdx, endIdx,
         };
@@ -311,16 +316,18 @@ export function createModel(P: Payload) {
       const qual = gamesOf(ti).filter((g) => g.oppIdx === vs && filter(g) && decided(dir, g));
       if (!qual.length) continue;
       const oppId = teams[vs].id;
+      const dagger = daggerOf(ti, qual, def, dir);
       if (scope === 'active') {
-        const s = activeRun(qual, dir);
-        if (!s) continue;
+        const run = activeRun(qual, dir);
+        if (!run) continue;
+        const s = { ...run, unsure: dagger.unsure(qual.length - run.len, qual.length - 1) };
         rows.push({ ti, vs, s, qual, ...nextQualifying(ti, pre, todayEp), key: `as:${oppId}` });
         continue;
       }
       for (const [startIdx, endIdx] of runsOf(qual, dir)) {
         const live = endIdx === qual.length - 1;
         const s = {
-          dir, len: endIdx - startIdx + 1, atEdge: startIdx === 0, last: qual[endIdx],
+          dir, len: endIdx - startIdx + 1, unsure: dagger.unsure(startIdx, endIdx), last: qual[endIdx],
           ender: startIdx > 0 ? qual[startIdx - 1] : null,
           start: qual[startIdx], end: qual[endIdx], startIdx, endIdx,
         };
@@ -329,7 +336,7 @@ export function createModel(P: Payload) {
       }
     }
     if (scope === 'active') {
-      const enderEp = (r: BoardRow) => (r.s.atEdge ? EDGE : r.s.ender!.ep);
+      const enderEp = (r: BoardRow) => (r.s.ender ? r.s.ender.ep : EDGE);
       rows.sort((a, b) => b.s.len - a.s.len || enderEp(a) - enderEp(b));
     } else {
       rows.sort((a, b) => b.s.len - a.s.len || b.s.end!.ep - a.s.end!.ep);
@@ -357,6 +364,19 @@ export function createModel(P: Payload) {
     return n ? { hit, n, from } : null;
   }
 
+  /** A team's runs under a definition, as the dagger reads them (dagger.ts). */
+  function daggerOf(ti: number, qual: GameRow[], active: ChipRef[], dir: Dir) {
+    const vs = active.find((a) => a.key === 'vsteam')?.param;
+    const all = vs == null ? gamesOf(ti) : gamesOf(ti).filter((g) => g.oppIdx === vs);
+    return daggerFor(all, qual, active, dir, windowStartOf(ti) === firstSeason, firstSeason);
+  }
+  /** What makes a board row's length unsure: the dagger's note reads it. `active` is the row's own definition (an "as" column's includes its opponent). */
+  function unsureWhy(row: BoardRow, active: ChipRef[], dir: Dir) {
+    const end = row.s.endIdx ?? row.qual.length - 1;
+    const start = row.s.startIdx ?? end - row.s.len + 1;
+    return daggerOf(row.ti, row.qual, active, dir).why(start, end);
+  }
+
   /**
    * Where a streak that reaches the start of a team's list actually stops:
    * the latest data floor among the definition's chips (kickoff times from
@@ -378,5 +398,5 @@ export function createModel(P: Payload) {
     };
   }
 
-  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, asBoard, baseRate, edgeFor };
+  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, asBoard, baseRate, edgeFor, unsureWhy };
 }

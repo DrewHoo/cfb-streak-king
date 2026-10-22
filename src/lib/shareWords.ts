@@ -124,12 +124,12 @@ export function gameFromShare(pathname: string, meta: ShareMeta): { date: string
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed', U: 'was undefeated in' } as Record<string, string>;
 const marginOfDir = (dir: string) => { const by = Number(dir.slice(1)); return by ? ` by ${by}+ points` : ''; };
 /** One row of a season file's game: the fields the words need. */
-export interface GameRowWords { team: string; chips: string; dir: string; len: number; atEdge: boolean; rank: number; tied?: number; field: number; since: number; leader?: boolean; everLen?: number; everN?: number }
+export interface GameRowWords { team: string; chips: string; dir: string; len: number; unsure: boolean; rank: number; tied?: number; field: number; since: number; leader?: boolean; everLen?: number; everN?: number }
 
 /** A season-file row's run in words: "14 straight by 10+ points at home · vs ranked opponents" (the file joins chips with '+'). */
 export function rowWords(r: GameRowWords, meta: ShareMeta): string {
   const w = defWords(r.chips ? r.chips.split('+').join(',') : 'all', meta) ?? [];
-  return `${r.len}${r.atEdge ? '+' : ''} straight${marginOfDir(r.dir)}${w.length ? ` ${w.join(' · ')}` : ''}`;
+  return `${r.len}${r.unsure ? '†' : ''} straight${marginOfDir(r.dir)}${w.length ? ` ${w.join(' · ')}` : ''}`;
 }
 
 /**

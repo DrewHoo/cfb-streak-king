@@ -308,8 +308,8 @@ for (const n of [...weekNums].sort((a, b) => a - b)) {
   if (broken) weekly.broken[n] = {
     wk: broken.wk, lo: broken.lo, hi: broken.hi, ofNote: broken.list.length, total: broken.list.length + broken.more.length,
     rows: broken.list.map((b) => ({
-      count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
-      claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`,
+      count: `${b.len}${b.unsure ? '†' : ''}`, team: teams[b.ti].id, bad: baseDir(b.dir) === 'L' || b.dir === 'N',
+      claim: `${teams[b.ti].name} ${PAST[baseDir(b.dir)]} ${b.len}${b.unsure ? '†' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`,
       sub: brokenSub(b),
     })),
   }
@@ -356,8 +356,8 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
     const url = `${SITE}games/at-risk/`
     const title = `College football streaks at stake in Week ${wk} (${SEASON}) · ${config.title}`
     const rows = risk.list.map((r) => ({
-      count: `${r.s.len}${r.s.atEdge ? '+' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N',
-      claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.atEdge ? '+' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips)}` : ''}`,
+      count: `${r.s.len}${r.s.unsure ? '†' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N',
+      claim: `${teams[r.ti].name} ${PRESENT[baseDir(r.s.dir)]} ${r.s.len}${r.s.unsure ? '†' : ''} straight${marginWords(r.s.dir)}${r.s.chips.length ? ` ${wordsOf(r.s.chips)}` : ''}`,
       sub: `${Math.round(100 * r.p)}% to end · ${monthDay(r.row.ep)} ${siteWord(r.row)} ${teams[r.row.oppIdx]?.name ?? '?'} ${spreadText(r.row.sp)}`,
     }))
     weekly.atRisk = { wk, lo: risk.lo, hi: risk.hi, rows, total: risk.list.length + risk.more.length }
@@ -415,7 +415,7 @@ const gameUrls = []
         const [hs, as] = scoreOf(item.played)
         const winner = hs > as ? `${home} ${hs}, ${away} ${as}` : as > hs ? `${away} ${as}, ${home} ${hs}` : `${away} ${as}, ${home} ${hs} (tie)`
         title = `${winner} (${when}) · ${config.title}`
-        const top = rows.ended.slice(0, 3).map((b) => `${teams[b.ti].name} ${PAST_ENDED[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`)
+        const top = rows.ended.slice(0, 3).map((b) => `${teams[b.ti].name} ${PAST_ENDED[baseDir(b.dir)]} ${b.len}${b.unsure ? '†' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${wordsOf(b.chips)}` : ''}`)
         const leaders = rows.leaders.slice(0, 2).map((l) => `${teams[l.ti].name} now leads: ${l.len} straight${marginWords(l.dir)}${l.chips.length ? ` ${wordsOf(l.chips)}` : ''}`)
         description = [...top, ...leaders].length
           ? `${[...top, ...leaders].join('. ')}. Every streak this college football game ended, and every field it handed a new leader.`
@@ -425,7 +425,7 @@ const gameUrls = []
         title = `${away} ${at} ${home}, ${when}: streaks on the line · ${config.title}`
         const top = digests.onLine[g.i]
         description = top
-          ? `${teams[top.ti].name} ${PRESENT[baseDir(top.s.dir)]} ${top.s.len}${top.s.atEdge ? '+' : ''} straight${marginWords(top.s.dir)}${top.s.chips.length ? ` ${wordsOf(top.s.chips)}` : ''}. Every streak on the line when ${away} play${key.neutral ? '' : ' at'} ${home}, ${when}.`
+          ? `${teams[top.ti].name} ${PRESENT[baseDir(top.s.dir)]} ${top.s.len}${top.s.unsure ? '†' : ''} straight${marginWords(top.s.dir)}${top.s.chips.length ? ` ${wordsOf(top.s.chips)}` : ''}. Every streak on the line when ${away} play${key.neutral ? '' : ' at'} ${home}, ${when}.`
           : `Every streak on the line when ${away} play ${at} ${home}, ${when}.`
       }
       const { html } = page({
@@ -536,7 +536,7 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
     const rows = breakRows(listBreaks(breakers.teams.get(s.ti) ?? [])).filter((b) => !b.subStreak)
     weekly.breaker[t.id] = {
       season: P.currentSeason, name: t.name, n: s.n, rank: breakers.ranks.get(s.ti) ?? 0,
-      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.atEdge ? '+' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: brokenSub(b) })),
+      rows: rows.slice(0, 7).map((b) => ({ count: `${b.len}${b.unsure ? '†' : ''}`, team: teams[b.ti].id, bad: false, claim: brokenClaim(b), sub: brokenSub(b) })),
     }
     const url = `${SITE}breakers/${t.id}/`
     const title = `Streaks ${t.name} broke in ${P.currentSeason} · ${config.title}`
@@ -630,7 +630,7 @@ const llmsAs = [] // each team's two pages and their lead sentences, for llms.tx
           '@graph': [
             webPage(url, title, description),
             breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [t.name, `${SITE}team/${t.id}/`], [h1, url]]),
-            itemList(h1, top.map((r) => [`${teams[r.vs].name}: ${r.s.len}${r.s.atEdge ? '+' : ''} straight`, fbsNow.has(r.vs) ? `${SITE}team/${teams[r.vs].id}/` : null])),
+            itemList(h1, top.map((r) => [`${teams[r.vs].name}: ${r.s.len}${r.s.unsure ? '†' : ''} straight`, fbsNow.has(r.vs) ? `${SITE}team/${teams[r.vs].id}/` : null])),
           ],
         },
       })
@@ -673,7 +673,7 @@ const llmsBoards = [] // each page's h1, address and lead sentence, for llms.txt
         '@graph': [
           webPage(url, title, description),
           breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [l.h1, url]]),
-          itemList(l.h1, rows.map((r) => [`${teams[r.ti].name}: ${r.s.len}${r.s.atEdge ? '+' : ''} straight`, `${SITE}team/${teams[r.ti].id}/`])),
+          itemList(l.h1, rows.map((r) => [`${teams[r.ti].name}: ${r.s.len}${r.s.unsure ? '†' : ''} straight`, `${SITE}team/${teams[r.ti].id}/`])),
         ],
       },
     })

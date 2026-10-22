@@ -10,12 +10,15 @@ import { PARAMS, swapChip, swapTargets, withChip, withParam } from './definition
 import { teamData, walkActive, walkLongest, spreadWalk, resultsBy } from './crowns.ts';
 import type { Run, TeamData } from './crowns.ts';
 import { baseDir, marginOf } from './outcome.ts';
+import { decided } from './streaks.ts';
+import { daggerFor } from './dagger.ts';
+import { firstSeason } from './model.ts';
 
 export interface King {
   tis: number[];
   len: number;
-  /** The run reaches the first qualifying game, so it may be longer. */
-  atEdge: boolean;
+  /** Missing data could change the run's length (dagger.ts). */
+  unsure: boolean;
   /** No later qualifying game has broken it. */
   live: boolean;
   startEp: number;
@@ -101,13 +104,20 @@ function best(active: ChipRef[], dir: Dir, scope: Scope) {
   return { len, tis, at };
 }
 
+// the king's run as the dagger reads it: its games are the qualifying ones a run of `dir` is counted over
+function unsureOf(td: TeamData, run: Run, active: ChipRef[], dir: Dir): boolean {
+  const qual = td.gs.filter((g) => active.every((a) => qualifies(chipByKey.get(a.key)!, g, a.param)) && decided(dir, g));
+  const pos = new Map(qual.map((g, k) => [g, k]));
+  return daggerFor(td.gs, qual, active, dir, td.open, firstSeason).unsure(pos.get(td.gs[run.startIdx])!, pos.get(td.gs[run.lastIdx])!);
+}
+
 /** The king of one definition, or null when no team holds a streak under it. */
 export function kingOf(active: ChipRef[], dir: Dir, scope: Scope): King | null {
   const { len, tis, at } = best(active, dir, scope);
   if (!at) return null;
   const record = scope === 'active' && best(active, dir, 'all').len <= len;
   return {
-    tis, len, atEdge: at.run.atEdge, live: at.run.live,
+    tis, len, unsure: unsureOf(at.td, at.run, active, dir), live: at.run.live,
     startEp: at.td.gs[at.run.startIdx].ep, endEp: at.td.gs[at.run.lastIdx].ep, record,
   };
 }

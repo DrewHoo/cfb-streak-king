@@ -3,10 +3,11 @@
 // next-game row to the matchup.
 
 import { useState } from 'react';
-import { teams, firstSeason } from '../lib/model.ts';
+import { teams, firstSeason, unsureWhy } from '../lib/model.ts';
+import { daggerNote } from '../lib/dagger.ts';
 import { streakGames, againstSpread } from '../lib/streaks.ts';
 import { claim, noClaim, ordinal } from '../lib/sentence.ts';
-import { siteWord, shortDate, dayOf, kickOf, yearOf, count, spreadText } from '../lib/format.ts';
+import { siteWord, shortDate, dayOf, kickOf, yearOf, spreadText } from '../lib/format.ts';
 import { seasonRecord, recordText } from '../lib/team.ts';
 import { unplayedInRun, classOf, KIND_WORDS } from '../lib/unplayed.ts';
 import { TeamMark } from './Chip.jsx';
@@ -109,17 +110,17 @@ function Ledger({ row, edge, cover, onGame }) {
         <button className="morebtn" onClick={() => setAll((v) => !v)}>{all ? 'fewer' : `${games.length - LEDGER_CAP} more`}</button>
       )}
       <Unplayed row={row} games={games} />
-      {row.s.atEdge
-        ? (
+      {row.s.ender
+        ? <LedgerRow ti={row.ti} g={row.s.ender} cls="ender-row" cover={cover} />
+        : (
           <div className="log-note">
             {edge.word
-              ? `earliest ${edge.word} data is ${edge.year}; this streak may be longer than we can show`
+              ? `earliest ${edge.word} data is ${edge.year}; no earlier game is known to qualify`
               : edge.joined
                 ? `${teams[row.ti].name} ${edge.year < 1978 ? 'became a major-college program' : 'joined FBS'} in ${edge.year}; every qualifying game since is in this streak, and its lower-division years don't count`
-                : `every qualifying game in the data (${firstSeason} on) is in this streak; the one before it is older than the data`}
+                : `no earlier game in the data (${firstSeason} on) is known to qualify`}
           </div>
-        )
-        : <LedgerRow ti={row.ti} g={row.s.ender} cls="ender-row" cover={cover} />}
+        )}
     </div>
   );
 }
@@ -149,12 +150,9 @@ export function TeamPanel({ ti, row, rank, field, active, dir, scope, edge, vs, 
             <span className="otl">could be broken {dayOf(row.next.ep)} {siteWord(row.next)} {row.next.oppRank > 0 ? `#${row.next.oppRank} ` : ''}{teams[row.next.oppIdx]?.name}</span>
           )}
           {row.live === false && `ended by ${teams[row.ended.oppIdx]?.name}, ${row.ended.us}–${row.ended.them}${againstSpread(dir) && row.ended.sp != null ? ` (${spreadText(row.ended.sp)})` : ''}`}
-          {row.s.atEdge && !row.onTheLine && row.live !== false && (edge?.joined
-            ? `${count(row.s)} means the streak runs back to ${t.name}'s first ${edge.year < 1978 ? 'major-college' : 'FBS'} season, ${edge.year}`
-            : `${count(row.s)} means the streak runs past the start of the data`)}
-          
         </p>
       )}
+      {row?.s.unsure && <p className="claim-meta">{daggerNote(unsureWhy(row, def, dir))}</p>}
       {row && <Ledger row={row} edge={edge} cover={againstSpread(dir)} onGame={onGame} />}
     </div>
   );

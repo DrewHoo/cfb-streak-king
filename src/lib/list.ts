@@ -215,7 +215,7 @@ export const admits = (t: Pick<Placing, 'rank' | 'everLen'>, len: number, w = LI
 /** A run is on a list when either of its placings admits it. */
 export const admitted = (c: MinedCrown, w = LIST) => admits(c, c.len, w) || (!!c.highest && admits(c.highest, c.len, w));
 
-const PLACING_KEYS = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'atEdge', 'live', 'rivals', 'everLen', 'everN'] as const;
+const PLACING_KEYS = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'unsure', 'live', 'rivals', 'everLen', 'everN'] as const;
 const placingOf = (c: Placing): Placing => {
   const t = {} as Record<string, unknown>;
   for (const k of PLACING_KEYS) if (c[k] !== undefined) t[k] = c[k];

@@ -23,9 +23,9 @@ describe('shareWords', () => {
   });
 
   test('a season-file row words its chips, joined with "+" in the file, and its margin', () => {
-    const row = { team: 'alabama', chips: 'road+ranked', dir: 'W', len: 14, atEdge: false, rank: 1, field: 17, since: 2007 };
+    const row = { team: 'alabama', chips: 'road+ranked', dir: 'W', len: 14, unsure: false, rank: 1, field: 17, since: 2007 };
     expect(rowWords(row, meta)).toBe('14 straight on the road · vs ranked opponents');
-    expect(rowWords({ ...row, chips: '', atEdge: true }, meta)).toBe('14+ straight');
+    expect(rowWords({ ...row, chips: '', unsure: true }, meta)).toBe('14† straight');
     expect(rowWords({ ...row, dir: 'W10' }, meta)).toMatch(/^14 straight by 10\+ .*on the road · vs ranked opponents$/);
   });
 

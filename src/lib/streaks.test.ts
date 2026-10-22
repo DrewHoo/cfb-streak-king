@@ -20,8 +20,8 @@ const randomResults = (rand: () => number, n: number) => Array.from({ length: n 
 
 describe('activeRun', () => {
   test('counts back from the last game', () => {
-    expect(activeRun(seq('LWWW'), 'W')).toMatchObject({ dir: 'W', len: 3, atEdge: false });
-    expect(activeRun(seq('WWW'), 'W')).toMatchObject({ dir: 'W', len: 3, atEdge: true, ender: null });
+    expect(activeRun(seq('LWWW'), 'W')).toMatchObject({ dir: 'W', len: 3, ender: expect.anything() });
+    expect(activeRun(seq('WWW'), 'W')).toMatchObject({ dir: 'W', len: 3, ender: null });
     expect(activeRun(seq('WLL'), 'L')!.ender!.i).toBe(0);
     expect(activeRun(seq('WLL'), 'W')).toBeNull();
     expect(activeRun([], 'W')).toBeNull();
@@ -34,8 +34,8 @@ describe('activeRun', () => {
   });
 
   test('a tie extends an unbeaten run; a loss ends it', () => {
-    expect(activeRun(seq('LWTWT'), 'U')).toMatchObject({ dir: 'U', len: 4, atEdge: false });
-    expect(activeRun(seq('TWW'), 'U')).toMatchObject({ len: 3, atEdge: true });
+    expect(activeRun(seq('LWTWT'), 'U')).toMatchObject({ dir: 'U', len: 4, ender: expect.anything() });
+    expect(activeRun(seq('TWW'), 'U')).toMatchObject({ len: 3, ender: null });
     expect(activeRun(seq('WWL'), 'U')).toBeNull();
   });
 
@@ -55,11 +55,11 @@ describe('activeRun', () => {
 describe('covering', () => {
   const g = (r: string, cover: string | null) => ({ r: r as Result, cover: cover as 'W' | 'L' | 'P' | null });
   test('a cover counts whatever the result; a push ends the run', () => {
-    expect(activeRun([g('L', 'P'), g('L', 'W'), g('W', 'W')], 'C')).toMatchObject({ len: 2, atEdge: false });
+    expect(activeRun([g('L', 'P'), g('L', 'W'), g('W', 'W')], 'C')).toMatchObject({ len: 2, ender: expect.anything() });
     expect(activeRun([g('W', 'W'), g('W', 'P')], 'C')).toBeNull();
   });
   test('not covering counts misses whatever the result; a push ends it', () => {
-    expect(activeRun([g('W', 'P'), g('W', 'L'), g('L', 'L')], 'N')).toMatchObject({ len: 2, atEdge: false });
+    expect(activeRun([g('W', 'P'), g('W', 'L'), g('L', 'L')], 'N')).toMatchObject({ len: 2, ender: expect.anything() });
     expect(activeRun([g('L', 'L'), g('L', 'P')], 'N')).toBeNull();
     expect(decided('N', g('L', null))).toBe(false);
   });
@@ -83,11 +83,11 @@ describe('by a margin', () => {
   const g = (r: string, margin: number) => ({ r: r as Result, margin });
   test('a win by less than the margin ends the run like a loss does', () => {
     const games = [g('W', 3), g('W', 14), g('W', 10), g('W', 21)];
-    expect(activeRun(games, 'W10')).toMatchObject({ len: 3, atEdge: false });
+    expect(activeRun(games, 'W10')).toMatchObject({ len: 3, ender: expect.anything() });
     expect(activeRun(games, 'W10')!.ender).toBe(games[0]);
-    expect(activeRun(games, 'W3')).toMatchObject({ len: 4, atEdge: true });
+    expect(activeRun(games, 'W3')).toMatchObject({ len: 4, ender: null });
     expect(activeRun(games, 'W14')).toMatchObject({ len: 1 });
-    expect(activeRun([g('W', 14), g('L', 3), g('W', 28)], 'W10')).toMatchObject({ len: 1, atEdge: false });
+    expect(activeRun([g('W', 14), g('L', 3), g('W', 28)], 'W10')).toMatchObject({ len: 1, ender: expect.anything() });
     expect(activeRun([g('W', 14), g('W', 7)], 'W10')).toBeNull();
   });
   test('a losing margin counts losses by that much; a tie ends it', () => {

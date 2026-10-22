@@ -78,7 +78,6 @@ describe('brokenWeeks', () => {
       for (let i = at - b.len; i < at; i++) expect(matches(b.dir, qual[i])).toBe(true);
       // maximal: the game before the run (if any) misses, and the run's start names it
       if (at - b.len > 0) expect(matches(b.dir, qual[at - b.len - 1])).toBe(false);
-      else expect(b.atEdge).toBe(true);
       expect(qual[at - b.len].ep).toBe(b.run);
       expect(qual[at - b.len].se).toBe(b.since);
     }

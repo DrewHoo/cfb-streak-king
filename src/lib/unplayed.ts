@@ -52,7 +52,7 @@ export interface PreservedStreak {
   ti: number;
   dir: Dir;
   len: number;
-  atEdge: boolean;
+  unsure: boolean;
   live: boolean;
   startSe: number;
   endSe: number;
@@ -109,7 +109,7 @@ export function preservedStreaks(cls: UnplayedClass, dir: Dir = 'W', todayEp = M
     }
     if (!hits.length) continue;
     out.push({
-      ti: row.ti, dir, len: row.s.len, atEdge: row.s.atEdge, live: !!row.live,
+      ti: row.ti, dir, len: row.s.len, unsure: row.s.unsure, live: !!row.live,
       startSe: row.s.start!.se, endSe: row.s.end!.se, run: row.s.start!.ep, seasons: hits,
     });
   }

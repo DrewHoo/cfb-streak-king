@@ -32,15 +32,14 @@ export const decided = (o: Dir, g: Played) => !againstSpread(o) || g.cover != nu
 /**
  * The run of `o` that ends at the latest game, or null when the latest game
  * doesn't match. games: ascending. `ender` is the game that ended the
- * previous run, null when the run reaches the start of the list (the window
- * edge).
+ * previous run, null when the run reaches the start of the list.
  */
 export function activeRun<T extends Played>(games: T[], o: Dir) {
   let i = games.length - 1;
   while (i >= 0 && matches(o, games[i])) i--;
   const len = games.length - 1 - i;
   if (!len) return null;
-  return { dir: o, len, atEdge: i < 0, last: games[games.length - 1], ender: i >= 0 ? games[i] : null };
+  return { dir: o, len, last: games[games.length - 1], ender: i >= 0 ? games[i] : null };
 }
 
 /** Every maximal run of `o`, as [startIdx, endIdx] into games. */

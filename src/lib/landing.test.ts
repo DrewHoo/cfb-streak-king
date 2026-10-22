@@ -76,27 +76,27 @@ describe('landing', () => {
     const ever = landingBySlug.get('longest-win-streaks-in-college-football-history')!;
     test('names the leader, the length, since when, and the next two', () => {
       expect(leadSentence(active, [
-        { name: 'Indiana', len: 22, atEdge: false, startEp: ep('2024-10-19') },
-        { name: 'Texas Tech', len: 16, atEdge: false },
-        { name: 'Oregon', len: 11, atEdge: false },
-        { name: 'BYU', len: 6, atEdge: false },
+        { name: 'Indiana', len: 22, unsure: false, startEp: ep('2024-10-19') },
+        { name: 'Texas Tech', len: 16, unsure: false },
+        { name: 'Oregon', len: 11, unsure: false },
+        { name: 'BYU', len: 6, unsure: false },
       ])).toBe('Indiana has the longest active win streak in FBS: 22 games, since October 2024. Then Texas Tech at 16 and Oregon at 11.');
     });
     test('a tie at the top is shared, and a lone row has no "then"', () => {
       expect(leadSentence(active, [
-        { name: 'Navy', len: 6, atEdge: false },
-        { name: 'Ohio State', len: 6, atEdge: false },
-        { name: 'Purdue', len: 4, atEdge: false },
+        { name: 'Navy', len: 6, unsure: false },
+        { name: 'Ohio State', len: 6, unsure: false },
+        { name: 'Purdue', len: 4, unsure: false },
       ])).toBe('Navy and Ohio State share the longest active win streak in FBS: 6 games. Then Purdue at 4.');
-      expect(leadSentence(active, [{ name: 'Navy', len: 1, atEdge: false }])).toBe('Navy has the longest active win streak in FBS: 1 game.');
+      expect(leadSentence(active, [{ name: 'Navy', len: 1, unsure: false }])).toBe('Navy has the longest active win streak in FBS: 1 game.');
       expect(leadSentence(active, [])).toBe('');
     });
     test('all-time gives the years, or says it is still going', () => {
       expect(leadSentence(ever, [
-        { name: 'Oklahoma', len: 47, atEdge: false, startEp: ep('1953-10-10'), endEp: ep('1957-11-09') },
-        { name: 'Toledo', len: 35, atEdge: false },
+        { name: 'Oklahoma', len: 47, unsure: false, startEp: ep('1953-10-10'), endEp: ep('1957-11-09') },
+        { name: 'Toledo', len: 35, unsure: false },
       ])).toBe('Oklahoma holds the longest win streak of any FBS team since 1936: 47 games, 1953–1957. Then Toledo at 35.');
-      expect(leadSentence(ever, [{ name: 'Indiana', len: 48, atEdge: false, startEp: ep('2024-08-31'), live: true }]))
+      expect(leadSentence(ever, [{ name: 'Indiana', len: 48, unsure: false, startEp: ep('2024-08-31'), live: true }]))
         .toBe('Indiana holds the longest win streak of any FBS team since 1936: 48 games, from 2024 and still going.');
     });
   });

@@ -7,7 +7,7 @@ const ctx = { teams: 136 };
 /** The classic weights: the field's rate alone, no rarity bonus, no margin cost, so a term can be read on its own. */
 const W = { ...LIST, rate: 0, rarityW: 0, marginCost: 0 };
 const crown = (o: Partial<MinedCrown> & { dir?: Dir; scope?: Scope } = {}): MinedCrown => ({
-  chips: [], dir: 'W', scope: 'active', len: 10, atEdge: false, field: 100, rank: 1, tied: 1, second: 5, startSe: 2020, endSe: 2020, live: true, also: 0, p: 0.5, n: 1000, hT: 50, nT: 100, gT: 100, ...o,
+  chips: [], dir: 'W', scope: 'active', len: 10, unsure: false, field: 100, rank: 1, tied: 1, second: 5, startSe: 2020, endSe: 2020, live: true, also: 0, p: 0.5, n: 1000, hT: 50, nT: 100, gT: 100, ...o,
 });
 const chance = Math.log2(136);
 
@@ -123,7 +123,7 @@ describe('sparsity and the rival discount', () => {
 
 describe('admit and pick', () => {
   test('a run admits by either placing; the fewest-conditions admitted placing shows, the other rides along', () => {
-    const plainSecond = crown({ rank: 2, second: 12, highest: { chips: ['nonconf'], field: 90, rank: 1, tied: 1, second: 8, p: 0.55, n: 400, hT: 20, nT: 30, atEdge: false, live: true } });
+    const plainSecond = crown({ rank: 2, second: 12, highest: { chips: ['nonconf'], field: 90, rank: 1, tied: 1, second: 8, p: 0.55, n: 400, hT: 20, nT: 30, unsure: false, live: true } });
     expect(admitted(plainSecond)).toBe(true);
     const shown = pick(plainSecond);
     expect(shown.chips).toEqual(['nonconf']);

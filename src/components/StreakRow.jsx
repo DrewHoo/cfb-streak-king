@@ -30,7 +30,7 @@ export function StreakRow({ s, onClick, next, tag, lead, mark }) {
   return (
     <Fragment>
     <button className={'srow' + (mt ? ' marked' : '')} onClick={onClick}>
-      <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.atEdge ? '+' : ''}</span>
+      <span className={'srow-len' + (bad(s.dir) ? ' l' : '')}>{s.len}{s.unsure ? '†' : ''}</span>
       {mt && (mt.espn ? <TeamMark ti={mark} className="srow-mark" /> : <b className="srow-mark gm-ini">{mt.name[0]}</b>)}
       <span className="srow-txt">
         <span>{gamesWord(s.dir, s.len)} · {streakWords(s.chips)}</span>
@@ -101,6 +101,11 @@ export const MoreButton = ({ shown, total, onMore }) => (total > shown
   ? <button className="morebtn" onClick={onMore}>see {Math.min(PAGE, total - shown)} more · {total - shown} left</button>
   : null);
 
+/** The dagger's footnote, under a list when a row it shows carries one (dagger.ts); a row is a run, or holds one in `s`. */
+export const DaggerNote = ({ rows }) => (rows.some((r) => r.unsure ?? r.s?.unsure)
+  ? <p className="dagger-note">† Missing data could change this streak’s length. Open it for what’s missing.</p>
+  : null);
+
 /**
  * A list of streaks: the standing rows up to `cap`, then "see more" pages
  * through the rest, PAGE at a time (a new list starts over); each row's
@@ -121,6 +126,7 @@ export function Tellings({ rows, cap, render, keyOf, order }) {
         </Fragment>
       ))}
       <MoreButton shown={n} total={standing.length} onMore={() => setPaged({ rows, n: n + PAGE })} />
+      <DaggerNote rows={list} />
     </Fragment>
   );
 }

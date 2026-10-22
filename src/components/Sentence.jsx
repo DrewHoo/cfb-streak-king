@@ -65,7 +65,7 @@ const holdsFor = (k, cur) => !!(k && cur && sameTeams(k.tis, cur.tis));
 function KingMark({ k, scope, stack }) {
   const tag = scope === 'all' ? (k.live ? 'active' : null) : (k.record ? 'all-time' : null);
   const tagEl = tag && <span className={'pk-tag ' + (scope === 'all' ? 'act' : 'rec')}>{tag}</span>;
-  const len = <b className="pk-len">{k.len}{k.atEdge ? '+' : ''}</b>;
+  const len = <b className="pk-len">{k.len}{k.unsure ? '†' : ''}</b>;
   if (stack) {
     return <><KingCrest k={k} />{len}<span className="pk-when"><span className="pk-yr">{yearSpan(k, yy)}</span>{tagEl}</span></>;
   }

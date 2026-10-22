@@ -10,8 +10,16 @@
 //             week" and the next game atop a live column. A post-hoc chip
 //             (score, clock, previous result) keeps a definition out of both.
 //   floor     the first season the chip's data exists, and what that data
-//             is called, for "this streak may be longer than we can show".
-//             chips.test.ts checks every floor against the payload.
+//             is called. chips.test.ts checks every floor against the payload.
+//   missing   whether a played game's data for the chip is missing (no
+//             kickoff time, no closing line), so whether it qualifies can't
+//             be told, and what the data is called. A game the definition
+//             can't decide next to a run makes its length unsure, and the
+//             run's count carries a dagger (dagger.ts). A chip whose `known`
+//             is a rule (no poll yet, no power conferences yet) has none.
+//   begins    the first season the condition can hold at all: the AP poll's
+//             1936, the power conferences' 1998. A run under it can't reach
+//             back past the data's first season.
 //   notWith   outcomes the chip can't define a streak of, because it nearly
 //             decides them: a one-score final, or a shootout's margin under
 //             10, mostly settles the cover.
@@ -36,6 +44,8 @@ interface ChipBase {
   exclusive?: boolean;
   param?: ParamKind;
   floor?: { season: number; what: string };
+  missing?: { test: (g: GameRow) => boolean; what: string };
+  begins?: number;
   notWith?: Dir[];
   marginCap?: number;
 }
@@ -60,9 +70,12 @@ const ownRankKnown = (g: GameContext) => g.ownRank != null;
 const lined = (g: GameRow) => g.sp != null;
 // an independent plays no conference game and no non-conference game either: neither chip can read its games that season
 const inConference = (g: GameContext) => g.ownConf !== 'Independent';
-const BETTING = { exclusive: true, known: lined, floor: { season: 1978, what: 'closing-line' } } as const;
-const HALF = { season: 2001, what: 'halftime-score' };
-const CLOCK = { season: 2004, what: 'possession' };
+const BETTING = { exclusive: true, known: lined, floor: { season: 1978, what: 'closing-line' }, missing: { test: (g: GameRow) => !lined(g), what: 'closing line' } } as const;
+const HALF = { floor: { season: 2001, what: 'halftime-score' }, missing: { test: (g: GameRow) => g.h1 == null, what: 'halftime score' } };
+const CLOCK = { floor: { season: 2004, what: 'possession' }, missing: { test: (g: GameRow) => g.pos == null, what: 'time of possession' } };
+// the AP poll began in 1936, the data's first season: no earlier game can be ranked or unranked
+const POLL = 1936;
+const OWN_COACH = { test: (g: GameRow) => !g.hcKnown, what: 'head coach' };
 
 export const CHIPS: Chip[] = [
   pre({ key: 'home', label: 'at home', group: 'site', exclusive: true, test: (x) => x.home && !x.neutral }),
@@ -71,12 +84,12 @@ export const CHIPS: Chip[] = [
   pre({ key: 'away', label: 'not at home', group: 'site', exclusive: true, test: (x) => !(x.home && !x.neutral) }),
   // a game in the team's own state is a home game with a worse pooled rate (the visitors' losses), so it never counts; "in Texas" is the trip there
   pre({ key: 'state', label: 'in [state]', group: 'site', param: 'state', test: (x, p) => x.vst === p && x.ownSt !== p }),
-  pre({ key: 'ranked', label: 'vs ranked opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank! > 0 }),
-  pre({ key: 'top10', label: 'vs top-10 opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank! >= 1 && x.oppRank! <= 10 }),
-  pre({ key: 'top5', label: 'vs top-5 opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank! >= 1 && x.oppRank! <= 5 }),
-  pre({ key: 'unranked', label: 'vs unranked opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, test: (x) => x.oppRank === 0 }),
-  pre({ key: 'whileranked', label: 'while ranked', group: 'own rank', exclusive: true, known: ownRankKnown, test: (x) => x.ownRank! > 0 }),
-  pre({ key: 'whileunranked', label: 'while unranked', group: 'own rank', exclusive: true, known: ownRankKnown, test: (x) => x.ownRank === 0 }),
+  pre({ key: 'ranked', label: 'vs ranked opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, begins: POLL, test: (x) => x.oppRank! > 0 }),
+  pre({ key: 'top10', label: 'vs top-10 opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, begins: POLL, test: (x) => x.oppRank! >= 1 && x.oppRank! <= 10 }),
+  pre({ key: 'top5', label: 'vs top-5 opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, begins: POLL, test: (x) => x.oppRank! >= 1 && x.oppRank! <= 5 }),
+  pre({ key: 'unranked', label: 'vs unranked opponents', group: 'opp rank', exclusive: true, known: oppRankKnown, begins: POLL, test: (x) => x.oppRank === 0 }),
+  pre({ key: 'whileranked', label: 'while ranked', group: 'own rank', exclusive: true, known: ownRankKnown, begins: POLL, test: (x) => x.ownRank! > 0 }),
+  pre({ key: 'whileunranked', label: 'while unranked', group: 'own rank', exclusive: true, known: ownRankKnown, begins: POLL, test: (x) => x.ownRank === 0 }),
   // a scheduled game's line moves until kickoff, so betting chips are post-hoc
   post({ key: 'fav', label: 'as the favorite', group: 'betting', ...BETTING, test: (x) => x.sp! < 0 }),
   post({ key: 'dog', label: 'as an underdog', group: 'betting', ...BETTING, test: (x) => x.sp! > 0 }),
@@ -87,9 +100,9 @@ export const CHIPS: Chip[] = [
   pre({ key: 'nonconf', label: 'in non-conference games', group: 'conference', exclusive: true, known: inConference, test: (x) => !x.conf }),
   pre({ key: 'vsconf', label: 'vs the [conference]', group: 'conference', param: 'conf', test: (x, p) => x.oppConf === p }),
   // era-aware (power.ts): BCS AQ 1998–2013, Power 5 2014–23, Power 4 since; Notre Dame counts throughout
-  pre({ key: 'power', label: 'vs power-conference opponents', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.oppPower, floor: { season: 1998, what: 'power-conference' } }),
+  pre({ key: 'power', label: 'vs power-conference opponents', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.oppPower, floor: { season: 1998, what: 'power-conference' }, begins: 1998 }),
   // membership, not the opponent rule: Notre Dame counts only in 2020, its one ACC season
-  pre({ key: 'member', label: 'as a power-conference member', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.ownPower, floor: { season: 1998, what: 'power-conference' } }),
+  pre({ key: 'member', label: 'as a power-conference member', group: 'conference', known: (x) => x.se >= 1998, test: (x) => x.ownPower, floor: { season: 1998, what: 'power-conference' }, begins: 1998 }),
   pre({ key: 'vsteam', label: 'vs [team]', group: 'opponent', param: 'team', test: (x, p) => x.oppIdx === p }),
   // mascot kinds and school colors come from data/ref rulings; a team the
   // rulings don't know never qualifies
@@ -97,9 +110,9 @@ export const CHIPS: Chip[] = [
   pre({ key: 'vscolor', label: 'vs [color] schools', group: 'opponent', param: 'color', test: (x, p) => typeof p === 'number' && x.oppColor === p }),
   pre({ key: 'rivalry', label: 'rivalry game', group: 'opponent', test: (x) => x.rv > 0 }),
   pre({ key: 'instate', label: 'in-state opponent', group: 'opponent', test: (x) => x.inState }),
-  pre({ key: 'curcoach', label: 'under current head coach', group: 'coach', test: (x) => x.hcCur }),
-  pre({ key: 'newcoach', label: 'in a coach’s first season', group: 'coach', test: (x) => x.hcNew }),
-  pre({ key: 'vsnewcoach', label: 'vs a first-year head coach', group: 'coach', test: (x) => x.vsNew }),
+  pre({ key: 'curcoach', label: 'under current head coach', group: 'coach', test: (x) => x.hcCur, missing: OWN_COACH }),
+  pre({ key: 'newcoach', label: 'in a coach’s first season', group: 'coach', test: (x) => x.hcNew, missing: OWN_COACH }),
+  pre({ key: 'vsnewcoach', label: 'vs a first-year head coach', group: 'coach', test: (x) => x.vsNew, missing: { test: (g) => !g.vsHcKnown, what: 'opposing head coach' } }),
   pre({ key: 'month', label: 'in [month]', group: 'calendar', param: 'month', test: (x, p) => x.month === p }),
   pre({ key: 'opener', label: 'season opener', group: 'calendar', test: (x) => !!x.opener }),
   pre({ key: 'finale', label: 'regular-season finale', group: 'calendar', test: (x) => !!x.finale }),
@@ -108,22 +121,23 @@ export const CHIPS: Chip[] = [
   post({ key: 'afterloss', label: 'after a loss', group: 'context', exclusive: true, test: (x) => x.prevR === 'L' }),
   post({ key: 'afterwin', label: 'after a win', group: 'context', exclusive: true, test: (x) => x.prevR === 'W' }),
   post({ key: 'afterbye', label: 'after a bye', group: 'context', test: (x) => x.rest != null && x.rest >= 13 }),
-  post({ key: 'leadhalf', label: 'leading at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! >= num(p), floor: HALF }),
-  post({ key: 'trailhalf', label: 'trailing at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! <= -num(p), floor: HALF }),
-  post({ key: 'wonpos', label: 'won the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! > 0.5, floor: CLOCK }),
-  post({ key: 'lostpos', label: 'lost the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! < 0.5, floor: CLOCK }),
+  post({ key: 'leadhalf', label: 'leading at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! >= num(p), ...HALF }),
+  post({ key: 'trailhalf', label: 'trailing at half', group: 'half', exclusive: true, param: 'hmargin', known: (x) => x.h1 != null, test: (x, p) => x.h1! <= -num(p), ...HALF }),
+  post({ key: 'wonpos', label: 'won the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! > 0.5, ...CLOCK }),
+  post({ key: 'lostpos', label: 'lost the clock', group: 'possession', exclusive: true, known: (x) => x.pos != null, test: (x) => x.pos! < 0.5, ...CLOCK }),
   post({ key: 'onescore', label: 'one-score game', group: 'shape', exclusive: true, notWith: ['C', 'N'], marginCap: 8, test: (x) => x.margin <= 8 }),
   // a shootout is high-scoring AND contested: 70+ combined (1σ above the
   // all-time mean of 51.0) decided by fewer than 10 — 4.9% of games. A 73-0
   // blowout is not a shootout. struggle keeps the 1σ low bound (~15% tail).
   post({ key: 'shootout', label: 'shootout (70+, decided by <10)', group: 'shape', exclusive: true, notWith: ['C', 'N'], marginCap: 9, test: (x) => x.total >= 70 && x.margin < 10 }),
   post({ key: 'struggle', label: 'rock fight (≤ 33)', group: 'shape', exclusive: true, test: (x) => x.total <= 33 }),
-  post({ key: 'overtime', label: 'overtime game', group: 'shape', known: (x) => x.ot >= 0, test: (x) => x.ot > 0, floor: { season: 2001, what: 'overtime' } }),
+  // FBS overtime began in 1996; no source here marks 1996–2000 overtime games
+  post({ key: 'overtime', label: 'overtime game', group: 'shape', known: (x) => x.ot >= 0, test: (x) => x.ot > 0, floor: { season: 2001, what: 'overtime' }, missing: { test: (g) => g.ot < 0 && g.se >= 1996, what: 'line score' }, begins: 1996 }),
   // weekend and weekday by the game date; a full moon within a day of its evening (moon.ts)
   pre({ key: 'weekend', label: 'on a weekend', group: 'almanac', exclusive: true, test: (x) => x.wday === 0 || x.wday === 6 }),
   pre({ key: 'weekday', label: 'on a weekday', group: 'almanac', exclusive: true, test: (x) => x.wday >= 1 && x.wday <= 5 }),
   pre({ key: 'fullmoon', label: 'under a full moon', group: 'almanac', test: (x) => x.moon }),
-  pre({ key: 'night', label: 'night game (6pm+)', group: 'kickoff', known: (x) => x.hh !== 31, test: (x) => x.hh >= 18, floor: { season: 2002, what: 'kickoff-time' } }),
+  pre({ key: 'night', label: 'night game (6pm+)', group: 'kickoff', known: (x) => x.hh !== 31, test: (x) => x.hh >= 18, floor: { season: 2002, what: 'kickoff-time' }, missing: { test: (g) => g.hh === 31, what: 'kickoff time' } }),
 ];
 
 export const chipByKey = new Map(CHIPS.map((c) => [c.key, c]));

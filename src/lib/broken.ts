@@ -153,8 +153,8 @@ export function brokenWeeks(mined: { broken: Map<number, BrokenRun[]>; teams: nu
 }
 
 /** The claim a broken run makes, in plain words: "Michigan had won 18 straight on the road vs Minnesota". */
-export function brokenClaim(b: { ti: number; dir: Dir; len: number; atEdge: boolean; chips: readonly string[] }): string {
+export function brokenClaim(b: { ti: number; dir: Dir; len: number; unsure: boolean; chips: readonly string[] }): string {
   const verb = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }[baseDir(b.dir) as 'W' | 'L' | 'C' | 'N'];
   const words = b.chips.map(chipLabel).join(' ');
-  return `${teams[b.ti]?.name} ${verb} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`;
+  return `${teams[b.ti]?.name} ${verb} ${b.len}${b.unsure ? '†' : ''} straight${marginWords(b.dir)}${words ? ` ${words}` : ''}`;
 }

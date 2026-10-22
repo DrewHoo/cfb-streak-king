@@ -53,12 +53,12 @@ function byOpponent(ti, dir, todayEp) {
 /** One opponent's row: the run's length, the opponent, its years, and the series now. */
 function OppRow({ ti, r, dir, onOpen }) {
   const o = teams[r.vs];
-  // the + on the length says a run at the window's edge may be older than the data; the years are the games in it
+  // the dagger on the length says missing data could change it (dagger.ts); the years are the games in it
   const years = yearOf(r.s.start.ep) === yearOf(r.s.end.ep) ? String(yearOf(r.s.end.ep)) : `${yearOf(r.s.start.ep)}–${yearOf(r.s.end.ep)}`;
   const now = r.live ? 'still going' : r.now > 0 ? `now ${r.now} straight` : null;
   return (
-    <button className="srow marked" onClick={() => onOpen(ti, dir, r)} aria-label={`${o.name}: ${r.s.len}${r.s.atEdge ? '+' : ''} straight, ${years}; the streak`}>
-      <span className={'srow-len' + (dir === 'L' ? ' l' : '')}>{r.s.len}{r.s.atEdge ? '+' : ''}</span>
+    <button className="srow marked" onClick={() => onOpen(ti, dir, r)} aria-label={`${o.name}: ${r.s.len}${r.s.unsure ? '†' : ''} straight, ${years}; the streak`}>
+      <span className={'srow-len' + (dir === 'L' ? ' l' : '')}>{r.s.len}{r.s.unsure ? '†' : ''}</span>
       {o.espn ? <TeamMark ti={r.vs} className="srow-mark" /> : <b className="srow-mark gm-ini">{o.name[0]}</b>}
       <span className="srow-txt">
         <span>{o.name}</span>

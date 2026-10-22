@@ -45,7 +45,7 @@ describe('before 1970', () => {
 
   test('a tie ends the run; the one before it is at the window edge', () => {
     const rows = m.allTimeBoard([], 'W', epOf('1960-01-01'));
-    const a = rows.filter((r) => r.ti === 0).map((r) => [r.s.len, r.s.atEdge, r.live]);
+    const a = rows.filter((r) => r.ti === 0).map((r) => [r.s.len, r.s.unsure, r.live]);
     expect(a).toEqual([[2, true, false], [1, false, true]]);
     // only a's latest result is a win
     expect(m.activeBoard([], 'W', 0).map((r) => r.ti)).toEqual([0]);

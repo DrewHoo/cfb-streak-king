@@ -37,7 +37,7 @@ const PastNote = ({ season }) => (season === P.currentSeason ? null : (
 
 // the break worth the most to a breaker, in words: "Alabama had won 14 straight at home vs ranked opponents"
 function bestWords(b) {
-  return `${teams[b.ti]?.name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
+  return `${teams[b.ti]?.name} ${PAST[baseDir(b.dir)]} ${b.len}${b.unsure ? '†' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
 }
 
 const Mark = ({ ti, className }) => (teams[ti].espn ? <TeamMark ti={ti} className={className} /> : <b className={className + ' gm-ini'} title={teams[ti].name}>{teams[ti].name[0]}</b>);

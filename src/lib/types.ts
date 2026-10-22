@@ -135,6 +135,9 @@ export interface GameRow extends GameContext {
   prevR: Result | null;
   /** Days since our previous game. */
   rest: number | null;
+  /** Whether our head coach, and the opponent's, are on record for the game. */
+  hcKnown: boolean;
+  vsHcKnown: boolean;
 }
 
 /** A scheduled game from one team's side. */
@@ -150,10 +153,10 @@ export interface ChipRef {
 export interface Streak {
   dir: Dir;
   len: number;
-  /** The run reaches the first qualifying game in the team's window. */
-  atEdge: boolean;
+  /** Missing data could change the run's length, so its count carries a dagger (dagger.ts). */
+  unsure: boolean;
   last: GameRow;
-  /** The game that ended the previous run; null at the window edge. */
+  /** The game that ended the previous run; null when no qualifying game precedes it. */
   ender: GameRow | null;
   start?: GameRow;
   end?: GameRow;
@@ -198,8 +201,8 @@ export interface Placing {
   /** The team's own hits and qualifying games under the definition. */
   hT: number;
   nT: number;
-  /** The run reaches the definition's first qualifying game in the team's window, and no later qualifying game broke it: both read the definition, so a placing carries its own. */
-  atEdge: boolean;
+  /** Missing data could change the run's length under the definition (dagger.ts): it reads the definition, so a placing carries its own. */
+  unsure: boolean;
   live: boolean;
   /** When the definition's opponent chip names one of the team's rivals: how many rivals it has (the choice the chip cost prices). */
   rivals?: number;

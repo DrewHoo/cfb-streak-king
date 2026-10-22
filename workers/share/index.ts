@@ -127,7 +127,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-20a';
+const CARD_VERSION = '2026-10-22a';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -189,7 +189,7 @@ function loadWeekly(): Promise<Weekly> {
 }
 
 /** dist/games/<season>.json: each game's rows, as seasonFile.ts encodes them (a crown row's fields by position). */
-// a run as the files carry it (crownsFile.ts CrownRow): [chips, dir, len, atEdge, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, gT, rivals, highest placing or 0]; the worker reads the first seven
+// a run as the files carry it (crownsFile.ts CrownRow): [chips, dir, len, unsure, field, rank, tied, second, startSe, endSe, live, also, p, n, hT, nT, gT, rivals, highest placing or 0]; the worker reads the first seven
 type SeasonCrown = [string, string, number, 0 | 1, number, number, number, number, number | null, number | null, 0 | 1, number, number, number, number, number, number, number, unknown];
 interface SeasonFile { season: number; games: Record<string, { ended: [number, SeasonCrown, number, number, number, number?, number?][]; leaders: [number, SeasonCrown, number, number | null][] }> }
 const seasonCache = new Map<number, { day: string; data: Promise<SeasonFile | null> }>();
@@ -214,7 +214,7 @@ async function gameRows(key: string, date: string): Promise<GameRowWords[]> {
     const file = await loadSeason(season);
     const g = file?.games[key];
     if (!g) continue;
-    const row = (team: number, c: SeasonCrown, since: number, leader: boolean, everLen?: number, everN?: number): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], atEdge: !!c[3], rank: c[5], tied: c[6], field: c[4], since, leader, everLen, everN });
+    const row = (team: number, c: SeasonCrown, since: number, leader: boolean, everLen?: number, everN?: number): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], unsure: !!c[3], rank: c[5], tied: c[6], field: c[4], since, leader, everLen, everN });
     // the full placings only: a sub-streak (subStreak) stays off the head and the card
     return [...g.ended.filter((r) => !isSubStreakRow(g.ended, r)).map(([t, c, since, , , everLen, everN]) => row(t, c, since, false, everLen, everN)), ...g.leaders.filter((r) => !isSubStreakRow(g.leaders, r)).map(([t, c, since]) => row(t, c, since, true))];
   }
@@ -319,7 +319,7 @@ function pastBreakers(se: number): Promise<PastBreaker[]> {
         const name = m.teams[opp]?.name ?? '?';
         s.breaks.push({
           victim: ti, cat, score: c[2],
-          row: { team: ids[ti], chips: c[0], dir, len: c[2], atEdge: !!c[3], rank: c[5], tied: c[6], field: c[4], since, everLen, everN },
+          row: { team: ids[ti], chips: c[0], dir, len: c[2], unsure: !!c[3], rank: c[5], tied: c[6], field: c[4], since, everLen, everN },
           ender: win ? `lost to ${name} ${ender.them}–${ender.us}` : `didn’t cover vs ${name}`,
         });
       }
@@ -370,7 +370,7 @@ async function pastBreakerCard(id: string | null, se: number): Promise<Response>
   if (own) {
     for (const b of own.breaks.slice(0, 7)) {
       const t = byIdx(b.victim);
-      rows.push({ count: `${b.row.len}${b.row.atEdge ? '+' : ''}`, name: `${t?.name ?? '?'} had won ${rowWords(b.row, meta)}`, sub: `${ledeOf(b.row)} · since ${b.row.since} · ${b.ender}`, bad: false, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
+      rows.push({ count: `${b.row.len}${b.row.unsure ? '†' : ''}`, name: `${t?.name ?? '?'} had won ${rowWords(b.row, meta)}`, sub: `${ledeOf(b.row)} · since ${b.row.since} · ${b.ender}`, bad: false, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
     }
   } else {
     for (const s of list.slice(0, 7)) {
@@ -450,7 +450,7 @@ async function gameCard(key: string): Promise<Response> {
     const t = byId.get(r.team);
     const verb = r.leader ? 'now leads' : ({ W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' } as Record<string, string>)[r.dir[0]] ?? 'had won';
     cards.push({
-      count: `${r.len}${r.atEdge ? '+' : ''}`, name: `${t?.name ?? r.team} ${verb}${r.leader ? ':' : ''} ${rowWords(r, meta)}`,
+      count: `${r.len}${r.unsure ? '†' : ''}`, name: `${t?.name ?? r.team} ${verb}${r.leader ? ':' : ''} ${rowWords(r, meta)}`,
       sub: r.leader ? `sole leader of ${r.field} · since ${r.since}` : `${ledeOf(r)} · since ${r.since}`,
       bad: r.dir[0] === 'L' || r.dir[0] === 'N', live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?',
     });
@@ -506,7 +506,7 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
     // a by-opponent board's row is named for the opponent
     const who = m.teams[r.vs ?? r.ti];
     cardRows.push({
-      count: `${r.s.len}${r.s.atEdge ? '+' : ''}`,
+      count: `${r.s.len}${r.s.unsure ? '†' : ''}`,
       name: who.name,
       span: live ? `since ${yy(startEp)}` : `${yy(startEp)}–${yy(endEp)}`,
       live,

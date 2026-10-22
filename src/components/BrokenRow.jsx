@@ -34,14 +34,14 @@ const leadWords = (b) => everText(b) ?? (b.tied > 1 ? 'was tied for the longest 
 /** `onOpen(b)` opens the run at its team; `onBoard(b)` its definition's all-time board, no team open. */
 export function BrokenRow({ b, onOpen, onBoard }) {
   const t = teams[b.ti];
-  const claim = `${t?.name} ${PAST[baseDir(b.dir)]} ${b.len}${b.atEdge ? '+' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
+  const claim = `${t?.name} ${PAST[baseDir(b.dir)]} ${b.len}${b.unsure ? '†' : ''} straight${marginWords(b.dir)}${b.chips.length ? ` ${streakWords(b.chips)}` : ''}`;
   const ever = everText(b);
   const { on: tuning } = useTune();
   return (
     <>
     <div className="bk">
       <button className="bk-hit" onClick={() => onOpen(b)} aria-label={claim} />
-      <span className={'bk-len' + (baseDir(b.dir) === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.atEdge ? '+' : ''}</span>
+      <span className={'bk-len' + (baseDir(b.dir) === 'L' || b.dir === 'N' ? ' l' : '')}>{b.len}{b.unsure ? '†' : ''}</span>
       {t?.espn ? <TeamMark ti={b.ti} className="bk-logo" /> : <b className="bk-logo gm-ini">{t?.name?.[0] ?? '?'}</b>}
       <span className="bk-txt">
         <span>{claim}</span>

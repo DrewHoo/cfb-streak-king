@@ -192,14 +192,14 @@ const span = (y0: number, y1: number) => (y0 === y1 ? ` in ${y0}` : `, ${y0}–$
 export function claim(row: BoardRow, active: ChipRef[], dir: Dir): string {
   const t = teams[row.ti];
   const phrase = definitionPhrase(active, dir);
-  const n = `${row.s.len}${row.s.atEdge ? '+' : ''} straight ${row.s.len === 1 && !row.s.atEdge ? singular(phrase) : phrase}`;
+  const n = `${row.s.len}${row.s.unsure ? '†' : ''} straight ${row.s.len === 1 && !row.s.unsure ? singular(phrase) : phrase}`;
   const live = row.live ?? true;
   if (!live) {
     // "in 2012" for a run inside one year, "2007–2021" across years
     return `${t.name} ${VERBS[baseDir(dir)][1]} ${n}${span(year(row.s.start!.ep), year(row.s.end!.ep))}.`;
   }
   const first = row.qual[row.qual.length - row.s.len];
-  const since = row.s.atEdge ? '' : `, since ${monYear(first.ep)}`;
+  const since = row.s.unsure ? '' : `, since ${monYear(first.ep)}`;
   return `${t.name} ${VERBS[baseDir(dir)][0]} ${n}${since}.`;
 }
 

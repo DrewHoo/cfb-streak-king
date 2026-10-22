@@ -36,7 +36,7 @@ import { conflicts, fitsDir, qualifies } from './chips.ts';
 import { MINED_CHIPS, choicesOf } from './minedChips.ts';
 import type { MinedCrown, Placing } from './types.ts';
 import { LIST, conditionCost } from './list.ts';
-import { P, fbsNow, gamesOf, teams } from './model.ts';
+import { P, fbsNow, firstSeason, gamesOf, teams, windowStartOf } from './model.ts';
 import { MINED_OUTCOMES } from './streaks.ts';
 import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { completedWeeks, weekIdx } from './weeks.ts';
@@ -49,9 +49,9 @@ import { SHEET_DIRS } from './team.ts';
  * 10+, T neither, so the same walks find margin runs), with the masks the
  * pooled rates count.
  */
-export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; r: Result[]; rM: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array; wonM: Uint32Array; lostM: Uint32Array }
+export interface TeamData { ti: number; gs: GameRow[]; n: number; words: number; masks: Uint32Array[]; poss: (Uint32Array | null)[]; open: boolean; r: Result[]; rM: Result[]; won: Uint32Array; lost: Uint32Array; lined: Uint32Array; covered: Uint32Array; missed: Uint32Array; wonM: Uint32Array; lostM: Uint32Array }
 // live: no later qualifying game broke the run
-export interface Run { len: number; atEdge: boolean; lastIdx: number; startIdx: number; live: boolean }
+export interface Run { len: number; lastIdx: number; startIdx: number; live: boolean }
 export type Runs = Partial<Record<Dir, Run>>;
 
 export const LEN_FLOOR = 4;
@@ -95,6 +95,13 @@ function buildData(): TeamData[] {
       for (let i = 0; i < n; i++) if (qualifies(c, gs[i])) m[i >> 5] |= 1 << (i & 31);
       return m;
     });
+    // the games a chip passes or can't read (dagger.ts), for the chips that can miss data
+    const poss = NP.map((c, k) => {
+      if (!c.missing) return null;
+      const m = masks[k].slice();
+      for (let i = 0; i < n; i++) if (c.missing.test(gs[i])) m[i >> 5] |= 1 << (i & 31);
+      return m;
+    });
     // spread streaks run over lined games only; covered = beat the spread,
     // missed = failed to (a push is neither)
     const lined = new Uint32Array(words);
@@ -114,7 +121,7 @@ function buildData(): TeamData[] {
       if (gs[i].cover === 'W') covered[i >> 5] |= 1 << (i & 31);
       if (gs[i].cover === 'L') missed[i >> 5] |= 1 << (i & 31);
     }
-    return { ti, gs, n, words, masks, r: gs.map((x) => x.r), rM, won, lost, lined, covered, missed, wonM, lostM };
+    return { ti, gs, n, words, masks, poss, open: windowStartOf(ti) === firstSeason, r: gs.map((x) => x.r), rM, won, lost, lined, covered, missed, wonM, lostM };
   });
 }
 
@@ -152,9 +159,8 @@ export function walkActive(td: TeamData, q: Uint32Array, results: Result[] = td.
     }
   }
   const out: Runs = {};
-  // a run still open after the scan reached the first qualifying game
-  if (r0 && r0 !== 'T' && same) out[r0] = { len: same, atEdge: sameOpen, lastIdx, startIdx: sameStart, live: true };
-  if (unb) out.U = { len: unb, atEdge: unbOpen, lastIdx, startIdx: unbStart, live: true };
+  if (r0 && r0 !== 'T' && same) out[r0] = { len: same, lastIdx, startIdx: sameStart, live: true };
+  if (unb) out.U = { len: unb, lastIdx, startIdx: unbStart, live: true };
   return out;
 }
 
@@ -164,12 +170,11 @@ export function walkLongest(td: TeamData, q: Uint32Array, results: Result[] = td
   const best: Runs = {};
   const keep = (o: Dir, len: number, startIdx: number, lastIdx: number) => {
     const b = best[o];
-    if (len && (!b || len >= b.len)) best[o] = { len, atEdge: false, lastIdx, startIdx, live: false };
+    if (len && (!b || len >= b.len)) best[o] = { len, lastIdx, startIdx, live: false };
   };
   let dir: Result | null = null;
   let len = 0, startIdx = -1;
   let unb = 0, unbStart = -1;
-  let firstIdx = -1;
   let prev = -1;
   for (let w = 0; w < td.words; w++) {
     if (!q[w]) continue;
@@ -177,7 +182,6 @@ export function walkLongest(td: TeamData, q: Uint32Array, results: Result[] = td
       if (!(q[w] & (1 << b))) continue;
       const i = (w << 5) | b;
       if (i >= td.n) continue;
-      if (firstIdx < 0) firstIdx = i;
       const r = results[i];
       if (r === dir) len++;
       else {
@@ -191,12 +195,7 @@ export function walkLongest(td: TeamData, q: Uint32Array, results: Result[] = td
   }
   if (dir === 'W' || dir === 'L') keep(dir, len, startIdx, prev);
   keep('U', unb, unbStart, prev);
-  // a run that starts at the first qualifying game may run past the window
-  for (const run of Object.values(best)) {
-    if (!run) continue;
-    run.atEdge = run.startIdx === firstIdx;
-    run.live = run.lastIdx === prev;
-  }
+  for (const run of Object.values(best)) if (run) run.live = run.lastIdx === prev;
   return best;
 }
 
@@ -215,14 +214,14 @@ export function spreadWalk(td: TeamData, q: Uint32Array, hit: Uint32Array, scope
     let k = idx.length - 1;
     while (k >= 0 && bit(hit, idx[k])) k--;
     const len = idx.length - 1 - k;
-    return len ? { len, atEdge: k < 0, lastIdx: idx[idx.length - 1], startIdx: idx[k + 1], live: true } : null;
+    return len ? { len, lastIdx: idx[idx.length - 1], startIdx: idx[k + 1], live: true } : null;
   }
   let best: Run | null = null;
   let run = 0;
   for (let k = 0; k < idx.length; k++) {
     if (bit(hit, idx[k])) {
       run++;
-      if (!best || run >= best.len) best = { len: run, atEdge: k + 1 === run, lastIdx: idx[k], startIdx: idx[k - run + 1], live: k === idx.length - 1 };
+      if (!best || run >= best.len) best = { len: run, lastIdx: idx[k], startIdx: idx[k - run + 1], live: k === idx.length - 1 };
     } else run = 0;
   }
   return best;
@@ -301,7 +300,7 @@ function mineInput(data: TeamData[]) {
   NP.forEach((c, i) => MINED_OUTCOMES.forEach((d, k) => { if (fitsDir(c, d)) fits[i * 7 + k] = 1; }));
   return {
     teams: data.map((td) => ({
-      n: td.n, words: td.words, masks: td.masks,
+      n: td.n, words: td.words, masks: td.masks, poss: td.poss, open: td.open,
       r: Int8Array.from(td.r, code), rM: Int8Array.from(td.rM, code),
       rC: Int8Array.from(td.gs, (g) => (g.cover === 'W' ? 1 : g.cover === 'L' ? 2 : 0)),
       lined: td.lined, won: td.won, lost: td.lost, covered: td.covered, missed: td.missed, wonM: td.wonM, lostM: td.lostM,
@@ -311,6 +310,8 @@ function mineInput(data: TeamData[]) {
     chips: {
       n, conflict, fits,
       loose: Uint8Array.from(NP, (_, i) => (loose.has(i) ? 1 : 0)),
+      gappy: Uint8Array.from(NP, (c) => (c.missing ? 1 : 0)),
+      closes: Uint8Array.from(NP, (c) => (c.begins != null ? 1 : 0)),
       cost: Float64Array.from(NP, (c) => conditionCost([c.key])),
       choices: Float64Array.from(NP, (c) => Math.log2(choicesOf(c.key))),
       ...rivalInput(data),
@@ -346,8 +347,8 @@ interface Piece { prefix: number[]; descend: boolean }
 const SPLIT_ROOTS = 16;
 
 // what mineCore returns: per team, per reading, the candidates with chip indices and game indices
-interface CorePlacing { chips: number[]; field: number; rank: number; tied: number; second: number; p: number; n: number; hT: number; nT: number; atEdge: boolean; live: boolean; rivals?: number; everLen?: number; everN?: number }
-interface CoreRun extends CorePlacing { dir: Dir; scope: Scope; len: number; atEdge: boolean; startIdx: number; lastIdx: number; live: boolean; also: number; gT: number; highest?: CorePlacing; enderIdx?: number; w?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
+interface CorePlacing { chips: number[]; field: number; rank: number; tied: number; second: number; p: number; n: number; hT: number; nT: number; unsure: boolean; live: boolean; rivals?: number; everLen?: number; everN?: number }
+interface CoreRun extends CorePlacing { dir: Dir; scope: Scope; len: number; unsure: boolean; startIdx: number; lastIdx: number; live: boolean; also: number; gT: number; highest?: CorePlacing; enderIdx?: number; w?: number; prevT?: number; prevLen?: number; causeT?: number; causeIdx?: number }
 interface CoreOut { active: CoreRun[][]; all: CoreRun[][]; broken: CoreRun[][]; leaders: CoreRun[][] }
 
 // the threads' outputs, merged: the identical run found in two subtrees collapses as it would in one
@@ -364,11 +365,11 @@ function merge(data: TeamData[], parts: CoreOut[]): Mined {
       }
       const gs = td.gs;
       const placing = (x: CorePlacing): Placing => ({
-        chips: x.chips.map((i) => NP[i].key), field: x.field, rank: x.rank, tied: x.tied, second: x.second, p: x.p, n: x.n, hT: x.hT, nT: x.nT, atEdge: x.atEdge, live: x.live,
+        chips: x.chips.map((i) => NP[i].key), field: x.field, rank: x.rank, tied: x.tied, second: x.second, p: x.p, n: x.n, hT: x.hT, nT: x.nT, unsure: x.unsure, live: x.live,
         ...(x.rivals ? { rivals: x.rivals } : {}), ...(x.everLen != null ? { everLen: x.everLen, everN: x.everN } : {}),
       });
       const base = (r: CoreRun): MinedCrown => ({
-        ...placing(r), dir: r.dir, scope: r.scope, len: r.len, atEdge: r.atEdge, gT: r.gT,
+        ...placing(r), dir: r.dir, scope: r.scope, len: r.len, unsure: r.unsure, gT: r.gT,
         startSe: gs[r.startIdx]?.se, endSe: gs[r.lastIdx]?.se, live: r.live, also: r.also, ...(r.highest ? { highest: placing(r.highest) } : {}),
       });
       const rows = [...held.values()];
@@ -467,7 +468,7 @@ const fnv = (s: string) => {
 
 /** What a raw mine depends on: the payload's build time, the chips walked (count and a hash of their keys), the keep floor and the history depth. */
 /** The mine's row shape; bump it when a reading gains a field, so an older file re-mines. */
-export const MINE_FORMAT = 7;
+export const MINE_FORMAT = 8;
 export const MINE_STAMP = `payload ${P.builtAt} · chips ${NP.length}/${fnv(NP.map((c) => c.key).join(','))} · keep ${KEEP_FLOOR} · hist ${HIST_CHIPS} · v${MINE_FORMAT}`;
 
 export const encodeMined = (m: Mined): MinedFile => ({ stamp: MINE_STAMP, teams: m.teams, active: [...m.active], all: [...m.all], broken: [...m.broken], leaders: [...m.leaders] });
