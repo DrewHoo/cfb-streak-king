@@ -13,20 +13,41 @@ export function Notes() {
       <h2>What to read next</h2>
       <div className="notes">
         <p>
+          <a href="https://drewhoover.com/nfl-comparator/">NFL Comparator</a> — compare NFL players at the same
+          point in their careers, every career since 1999, with a page for every player and what he leads.
+        </p>
+        <p>
+          <a href="https://drewhoover.com/nba-comparator/">NBA Comparator</a> — the same comparator over every
+          NBA career since 1946-47, Wilt and Jordan included, with a page for every player and what he leads.
+        </p>
+        <p>
+          <a href="https://drewhoover.com/wnba-comparator/">WNBA Comparator</a> — the same comparator over every
+          WNBA career since 1997.
+        </p>
+        <p>
+          <a href="https://drewhoover.com/nhl-comparator/">NHL Comparator</a> — the same comparator over every
+          NHL career since 1917-18, Gretzky and Howe included.
+        </p>
+        <p>
+          <a href="https://drewhoover.com/cfb-comparator/">College Football Comparator</a> — every coach, team and
+          player at the same point in their careers, since 1869, with the best players of each position at every
+          school and conference.
+        </p>
+        <p>
           <a href="https://drewhoover.com/hostile-territory/">Hostile Territory</a> — every head
-          coach's true road record against AP top-10 teams since 1990.
+          coach's true road record against AP top-10 teams since 1936.
         </p>
         <p>
           <a href="https://drewhoover.com/how-many-rings/">How Many Rings?</a> — every person on a
           national-championship staff since 1990, ranked by the number of rings they can claim.
         </p>
         <p>
-          <a href="https://drewhoover.com/cfb-all-time-records/football">All-time FBS records</a> — all
-          136 programs ranked by total wins, win percentage and bowl record.
+          <a href="https://drewhoover.com/collegiate-championships/">Collegiate Championships</a> — which schools
+          have won the most NCAA championships, across 33 sports.
         </p>
         <p>
-          <a href="https://drewhoover.com/nhl-comparator/">NHL Comparator</a> — compare NHL players at the same
-          point in their careers, every career since 1917-18, Gretzky and Howe included.
+          <a href="https://drewhoover.com/cfb-all-time-records/">CFB All-Time Records</a> — all-time win-loss, bowl
+          and national-title records for every FBS program.
         </p>
       </div>
 
