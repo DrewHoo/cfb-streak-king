@@ -112,7 +112,7 @@ function page({ initial, body, url, title, description, image, imageAlt, jsonLd,
     <meta name="twitter:image" content="${image}" />
 
     <!-- Cross-site chrome served by the index site: back bar, comments, analytics. -->
-    <script src="${ORIGIN}/embed/back-bar.js" async></script>
+    <script src="${ORIGIN}/embed/back-bar.js" data-section="sports" async></script>
     <script src="${ORIGIN}/embed/giscus.js" async></script>
     <script src="${ORIGIN}/embed/analytics.js" async></script>
 
