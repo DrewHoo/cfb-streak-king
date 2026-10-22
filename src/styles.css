@@ -296,7 +296,12 @@ h2 { font-family: Georgia, 'Source Serif 4', 'Times New Roman', serif; font-weig
 .notes li { margin-bottom: 6px; }
 .notes li ul { margin: 4px 0 0; padding-left: 18px; }
 .notes li li { margin-bottom: 3px; }
-.notes summary { cursor: pointer; color: var(--ink); }
+/* the Method folds into sections: a summary reads as a small heading */
+.notes details { margin: 10px 0; }
+.notes summary { cursor: pointer; color: var(--ink); font-weight: 600; font-size: 15px; list-style: none; display: flex; align-items: center; gap: 8px; }
+.notes summary::-webkit-details-marker { display: none; }
+.notes summary::before { content: ''; width: 6px; height: 6px; border-right: 1px solid var(--ink-faint); border-bottom: 1px solid var(--ink-faint); transform: rotate(-45deg); transition: transform 0.15s; flex: none; }
+.notes details[open] > summary::before { transform: rotate(45deg); }
 .notes summary:hover { color: var(--cream); }
 .notes details[open] > summary { margin-bottom: 4px; }
 

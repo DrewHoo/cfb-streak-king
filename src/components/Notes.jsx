@@ -63,19 +63,19 @@ export function Notes() {
         </p>
       </div>
 
-      <h2>Method</h2>
-      <div className="notes">
-        <ul>
-          <li>
-            Window: {firstSeason}–{P.currentSeason}, from the first AP poll, {P.games.se.length.toLocaleString()} games.
-          </li>
-          <li>
-            Teams: The teams are this season's FBS teams. There was no FBS before 1978; before then a team counts in the
-            seasons James Howell lists it as a 'major' college program. A team's games count only from its latest
-            move up (Temple's from 1971, Appalachian State's from 2014).
-          </li>
-          <li>
-            <details>
+      <section id="method">
+        <h2>Method</h2>
+        <div className="notes">
+          <p>
+            Every streak here is counted from {P.games.se.length.toLocaleString()} games, {firstSeason}–{P.currentSeason},
+            from the first AP poll. The teams are this season's FBS teams. There was no FBS before 1978; before then a team
+            counts in the seasons James Howell lists it as a 'major' college program. A team's games count only from its
+            latest move up (Temple's from 1971, Appalachian State's from 2014). The games come from Warren Repole's
+            Sunshine Forecast files, James Howell's historical scores and cfbfastR (ESPN), the polls from College Poll
+            Archive and the coaches from CollegeFootballData; Sources says which supplies what.
+          </p>
+
+          <details>
             <summary>Streak rules</summary>
             <ul>
               <li>
@@ -99,18 +99,22 @@ export function Notes() {
                 games where it didn't: a push ends either, and a game without a line (every game before 1978, and a few
                 after) doesn't count at all.
               </li>
-              
-          <li>The {PLAIN_CHIPS.length} conditions make{' '}
-            {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible streak definitions, {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting
-            winning, losing, undefeated, covering, not covering, and winning or losing by 10+ separately; the conditions that take a parameter
-            (a state, conference, opponent, month, team color, or mascot) push that past {Math.floor(ALL_DEFINITIONS / 1e6)} million.
-          </li>
-          <li>The odds shown are the chance that luck alone produces a streak that long: every team (or, all-time,
-            every place a run could start) gets that many tries at the field's rate.
-          </li>
               <li>
-            A team's page lists every definition under which it has the longest active streak (or, all-time, the longest ever); a streak counts as broken under the same rule, when a win ended the longest active or all-time longest run. Each list is ordered by a complicated and imperfect heuristic that takes into account the streak occurring by chance, among other factors. You can read it in the source code if you're so inclined (open a PR if you disagree with me!). 
-            </li>
+                The {PLAIN_CHIPS.length} conditions make {PLAIN_DEFINITIONS.toLocaleString('en-US')} possible streak
+                definitions, {PLAIN_STREAK_KINDS.toLocaleString('en-US')} counting winning, losing, undefeated, covering,
+                not covering, and winning or losing by 10+ separately; the conditions that take a parameter (a state,
+                conference, opponent, month, team color, or mascot) push that past {Math.floor(ALL_DEFINITIONS / 1e6)}{' '}
+                million.
+              </li>
+              <li>
+                A team's page lists every definition under which it has the longest active streak (or, all-time, the longest ever); a streak counts as broken under the same rule, when a win ended the longest active or all-time longest run. Each list is ordered by a complicated and imperfect heuristic that takes into account the streak occurring by chance, among other factors. You can read it in the source code if you're so inclined (open a PR if you disagree with me!).
+              </li>
+            </ul>
+          </details>
+
+          <details>
+            <summary>What the words mean</summary>
+            <ul>
               <li>
                 'Power conference' means: the six BCS automatic-qualifying conferences from 1998, the Power 5 from 2014, the Power 4 from 2024.
                 <ul>
@@ -134,27 +138,33 @@ export function Notes() {
                 A team's regular off-campus home field (Legion Field for Alabama, War Memorial Stadium in Little
                 Rock for Arkansas, and similar) counts as a home game, except in some circumstances like the Iron Bowl.
               </li>
-              
-              <li>
-            The rate under the streak definition pools today's {fbsNow.size} FBS teams' games, each from that team's side. A
-            game between two of them counts once each way and comes out even; a game against anyone else (an FCS
-            team, a program that has since dropped out) counts once, and FBS teams win most of those. So a
-            condition that favors neither side, like a full moon, can sit a little above 50%. I haven't found a neutral condition that disfavors FBS teams, but would love to hear about one!
-          </li>
             </ul>
-            </details>
-          </li>
-          
-          <li>
-            <details>
+          </details>
+
+          <details>
+            <summary>The odds and the rate</summary>
+            <ul>
+              <li>
+                The odds shown are the chance that luck alone produces a streak that long: every team (or, all-time,
+                every place a run could start) gets that many tries at the field's rate.
+              </li>
+              <li>
+                The rate under the streak definition pools today's {fbsNow.size} FBS teams' games, each from that team's side. A
+                game between two of them counts once each way and comes out even; a game against anyone else (an FCS
+                team, a program that has since dropped out) counts once, and FBS teams win most of those. So a
+                condition that favors neither side, like a full moon, can sit a little above 50%. I haven't found a neutral condition that disfavors FBS teams, but would love to hear about one!
+              </li>
+            </ul>
+          </details>
+
+          <details>
             <summary>Sources</summary>
             <ul>
               <li>
                 Scores, sites and closing spreads for 1978–2013 come from Warren Repole's{' '}
                 <a href="https://web.archive.org/web/2022/http://www.repole.com/sun4cast/data.html">Sunshine Forecast</a>{' '}
                 files. His site is gone; the files survive only in the Internet Archive's Wayback Machine, which is
-                worth <a href="https://archive.org/donate">a donation</a>. The 78 rows we found wrong and the 38 games
-                the files lack are published as <a href="https://github.com/DrewHoo/repole-errata">repole-errata</a>, CC0.
+                worth <a href="https://archive.org/donate">a donation</a>.
               </li>
               <li>
                 <a href="http://www.jhowell.net/cf/scores/ScoresIndex.htm">James Howell's historical scores</a> supply
@@ -176,6 +186,16 @@ export function Notes() {
                 <a href="https://collegefootballdata.com/">CollegeFootballData</a> supplies head-coach tenures,
                 halftime scores (2001 on) and time of possession (2004 on).
               </li>
+            </ul>
+          </details>
+
+          <details>
+            <summary>Where a published number differs, and why</summary>
+            <ul>
+              <li>
+                The 78 rows we found wrong in Repole's files and the 38 games the files lack are published as{' '}
+                <a href="https://github.com/DrewHoo/repole-errata">repole-errata</a>, CC0.
+              </li>
               <li>
                 Readers catch what the sources miss. r/CFB's{' '}
                 <a href="https://www.reddit.com/r/CFB/comments/1wxgi5x/comment/pdv075e/">HurricaneRex</a> spotted that
@@ -184,10 +204,9 @@ export function Notes() {
                 look like a mid-season hire. If a streak here looks wrong to you, it might be — say so.
               </li>
             </ul>
-            </details>
-          </li>
-        </ul>
-      </div>
+          </details>
+        </div>
+      </section>
     </>
   );
 }
