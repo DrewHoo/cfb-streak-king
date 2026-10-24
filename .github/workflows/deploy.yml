@@ -37,12 +37,17 @@ jobs:
           cache: 'npm'
       - run: npm ci
       # Refresh the in-progress season (schedule + AP poll) onto the committed
-      # payload base. If the fetch fails, the committed payload still builds.
-      - run: node scripts/data/build-current.mjs
-        continue-on-error: true
+      # payload base — only on the scheduled/manual refreshes. A push ships the
+      # committed payload and spends no CFBD calls (October 2026: 78 push
+      # deploys at ~17 calls each ate the key's 1,000-call monthly quota, and
+      # three refreshes silently shipped stale data). A refresh that can't
+      # fetch fails the run, so a dead key is an email, not a quiet stale week.
+      - if: github.event_name != 'push'
+        run: node scripts/data/build-current.mjs
         env:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
-      # Check and test the payload that ships, whichever one the step above left.
+      # Check and test the payload that ships: the refreshed one on a
+      # schedule/dispatch run, the committed one on a push.
       - run: npm run typecheck
       # Every ruling-file receipt against its committed page (data/research/pages)
       - run: npm run check:receipts
