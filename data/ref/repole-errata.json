@@ -1,7 +1,7 @@
 {
  "version": 1,
- "updated": "2026-09-29",
- "note": "Corrections to Warren Repole's Sunshine Forecast files (cfbYYYYlines.xml, bowlYYYYlines.xml), keyed by date + visitor + home exactly as the file names them. 'score' is visitor-home. a row may carry both. 'swapHome' means the file lists the visitor under tnum 2. Each entry's receipts name the datasets that agree against the file ('sources': howell, cfbfastr, cfbd); the receipt is the vote, not a quotable line, and the full comparison is in the 'Repole data corrections' doc linked from README.md. parse-repole.mjs applies these and fails if an entry no longer matches a row. 'homeSpread' replaces the line (negative = the file's home team favored). 'newDate' moves a game the file dates wrong.",
+ "updated": "2026-10-24",
+ "note": "Corrections to Warren Repole's Sunshine Forecast files (cfbYYYYlines.xml, bowlYYYYlines.xml), keyed by date + visitor + home exactly as the file names them. 'score' is visitor-home. a row may carry both. 'swapHome' means the file lists the visitor under tnum 2. Each entry's receipts name the datasets that agree against the file ('sources': howell, cfbfastr, cfbd); the receipt is the vote, not a quotable line, unless the datasets can't settle it (a designated home team at a neutral site), when the row carries a page receipt { url, quote } instead; the full comparison is in the 'Repole data corrections' doc linked from README.md. parse-repole.mjs applies these and fails if an entry no longer matches a row. 'homeSpread' replaces the line (negative = the file's home team favored). 'newDate' moves a game the file dates wrong.",
  "rows": [
   {
    "date": "1979-09-08",
@@ -108,6 +108,25 @@
      "sources": [
       "howell"
      ]
+    }
+   ]
+  },
+  {
+   "date": "1990-12-01",
+   "visitor": "Alabama",
+   "home": "Auburn",
+   "swapHome": true,
+   "note": "the file has Auburn as the home team; 1990 was Alabama's designated home game at Legion Field. Howell writes 'vs.' for every Legion Field Iron Bowl, so he can't vote; the receipt is Wikipedia's Iron Bowl article.",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Iron_Bowl",
+     "quote": "In Birmingham's Legion Field, tickets were evenly divided between the two schools. In even years, Alabama was designated as home team and Auburn was the home team in odd-numbered years.",
+     "retrieved": "2026-10-24"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/Iron_Bowl",
+     "quote": "the schools agreed that Auburn could play their home games for the Iron Bowl at Jordan-Hare starting in 1989 (with the exception of 1991) and Alabama would continue to play its \"home\" games at Legion Field.",
+     "retrieved": "2026-10-24"
     }
    ]
   },

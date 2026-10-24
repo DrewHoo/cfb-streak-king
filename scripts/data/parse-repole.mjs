@@ -5,7 +5,8 @@
 // Regular-season files: <site>V|H</site> on campus games; off-campus games
 // instead carry info="@ City ST" or a championship-game name. Bowl files
 // carry info="<Bowl Name>" and are always neutral. Off-campus games are
-// neutral unless (home team, city) is ruled a home site in data/ref/alt-home.json.
+// neutral unless (home team, city) is ruled a home site in data/ref/alt-home.json,
+// or the game itself is ruled home there ('games': the 1991 Iron Bowl).
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,9 +17,11 @@ const RAW = path.join(ROOT, 'data', 'raw', 'repole');
 const errata = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ref', 'repole-errata.json'), 'utf8')).rows;
 const errataBy = new Map(errata.map((e) => [`${e.date}|${e.visitor}|${e.home}`, e]));
 const errataHit = new Set();
-const altHome = JSON.parse(
-  fs.readFileSync(path.join(ROOT, 'data', 'ref', 'alt-home.json'), 'utf8'),
-).pairs;
+const altHomeDoc = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'ref', 'alt-home.json'), 'utf8'));
+const altHome = altHomeDoc.pairs;
+// single games ruled home where the team's pairs don't reach, by date|home
+const altGameBy = new Map((altHomeDoc.games ?? []).map((g) => [`${g.date}|${g.home}`, g]));
+const altGameHit = new Set();
 
 const games = [];
 let unscored = 0;
@@ -89,6 +92,11 @@ function parseFile(file, season, seasonType) {
         if (city) {
           cityPairs.set(`${home}|${city}`, (cityPairs.get(`${home}|${city}`) ?? 0) + 1);
           neutral = !(altHome[home] ?? []).includes(city);
+          const ruled = altGameBy.get(`${gameDate}|${home}`);
+          if (ruled && ruled.city === city && teamId(v.name) === ruled.away) {
+            altGameHit.add(`${gameDate}|${home}`);
+            neutral = false;
+          }
         } else {
           // championship games, kickoff classics named without '@'
           infoOddities.set(info, (infoOddities.get(info) ?? 0) + 1);
@@ -132,6 +140,9 @@ for (let season = 1978; season <= 2013; season++) {
 const stale = errata.filter((e) => !errataHit.has(`${e.date}|${e.visitor}|${e.home}`));
 if (stale.length) throw new Error(`repole-errata: ${stale.length} entries matched no row: ${stale.map((e) => `${e.date} ${e.visitor}@${e.home}`).join(', ')}`);
 console.log(`repole-errata: ${errataHit.size} corrections applied`);
+const staleAlt = [...altGameBy.keys()].filter((k) => !altGameHit.has(k));
+if (staleAlt.length) throw new Error(`alt-home games: ${staleAlt.length} entries matched no off-campus game: ${staleAlt.join(', ')}`);
+console.log(`alt-home games: ${altGameHit.size} ruled home`);
 
 games.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 

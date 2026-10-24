@@ -147,6 +147,9 @@ line files, and the documented sign convention (homeSpread negative = home favor
 4. **Alternate-home overrides file**: Legion Field, Little Rock, Jackson, Memphis, and
    similar off-campus "home" sites. Neither source rules these; we do, per game,
    versioned, per the receipts pattern.
+   The designated home team is the home team, even at Legion Field (Drew,
+   2026-10-24): the 1990 Iron Bowl is Alabama's home game, 1991 Auburn's; the
+   Birmingham Iron Bowls through 1988 stay neutral.
 5. **FBS membership by season**: jhowell byconf.htm year ranges, cross-checked against
    CFBD /teams/fbs.
 6. **Conference by season**: CFBD /conferences/affiliations (one call, interval rows).

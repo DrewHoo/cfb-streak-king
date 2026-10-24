@@ -20,6 +20,16 @@ const by = new Map(src.rows.map((e) => [`${e.date}|${e.visitor}|${e.home}`, e]))
 const fill = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'build', 'howell-fill-in.json'), 'utf8'))
   .sort((a, b) => a.date.localeCompare(b.date) || a.home.localeCompare(b.home));
 
+// the entry's receipt is a vote across named datasets; print it the way the
+// published files always have ("Howell + cfbfastR + CFBD", a receipt's note in
+// parentheses). A page receipt (a designated home team no dataset records)
+// prints as its page's site, and the JSON carries its url and quote.
+const SOURCE_NAMES = { howell: 'Howell', cfbfastr: 'cfbfastR', cfbd: 'CFBD', 'en.wikipedia.org': 'Wikipedia' };
+const confirmedBy = (r) => [...new Set((r.receipts ?? []).map((x) => {
+  const names = (x.sources ?? (x.url ? [new URL(x.url).host] : [])).map((s) => SOURCE_NAMES[s] ?? s).join(' + ');
+  return x.note ? `${names} (${x.note})` : names;
+}))].join(' + ');
+
 // the published values, scanned from the raw XML
 const rows = [];
 const seen = new Set();
@@ -53,7 +63,12 @@ function scan(file) {
       if (!e) continue;
       if (seen.has(k)) throw new Error(`errata key matched twice: ${k}`);
       seen.add(k);
-      rows.push({ file: path.basename(file), ...e, published: { score: `${v.score}-${h.score}`, visitorLine: v.line, homeLine: h.line, info } });
+      const { receipts, note, ...fix } = e;
+      const pages = receipts.filter((x) => x.url).map(({ url, quote }) => ({ url, quote }));
+      rows.push({
+        file: path.basename(file), ...fix, source: confirmedBy(e), ...(note ? { note } : {}), ...(pages.length ? { receipts: pages } : {}),
+        published: { score: `${v.score}-${h.score}`, visitorLine: v.line, homeLine: h.line, info },
+      });
     }
   }
 }
@@ -67,10 +82,6 @@ for (let s = 1978; s <= 2013; s++) {
 const missed = src.rows.filter((e) => !seen.has(`${e.date}|${e.visitor}|${e.home}`));
 if (missed.length) throw new Error(`${missed.length} errata rows matched no XML row: ${missed.map((e) => `${e.date} ${e.visitor}@${e.home}`).join(', ')}`);
 
-// the entry's receipt is a vote across named datasets; print it the way the
-// published CSV always has ("Howell + cfbfastR + CFBD")
-const SOURCE_NAMES = { howell: 'Howell', cfbfastr: 'cfbfastR', cfbd: 'CFBD' };
-const confirmedBy = (r) => (r.receipts ?? []).flatMap((x) => x.sources ?? []).map((s) => SOURCE_NAMES[s] ?? s).join(' + ');
 const q = (v) => (v == null ? '' : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
 const csv = (cols, rs) => [cols.join(','), ...rs.map((r) => cols.map((c) => q(r[c])).join(','))].join('\n') + '\n';
 const blank = (r) => r.published.score.startsWith('-') || r.published.score.endsWith('-');
@@ -85,7 +96,7 @@ const flat = rows.map((r) => ({
   file: r.file, date: r.date, visitor: r.visitor, home: r.home, fix: kind(r),
   published_score: blank(r) ? '' : r.published.score, corrected_score: r.score ?? '',
   published_home_line: r.published.homeLine, corrected_home_line: r.homeSpread ?? '',
-  swap_home: r.swapHome ? 'yes' : '', corrected_date: r.newDate ?? '', confirmed_by: confirmedBy(r), note: r.note ?? '',
+  swap_home: r.swapHome ? 'yes' : '', corrected_date: r.newDate ?? '', confirmed_by: r.source, note: r.note ?? '',
 }));
 fs.writeFileSync(path.join(OUT, 'repole-errata.csv'), csv(Object.keys(flat[0]), flat));
 fs.writeFileSync(path.join(OUT, 'repole-errata.json'), JSON.stringify({
