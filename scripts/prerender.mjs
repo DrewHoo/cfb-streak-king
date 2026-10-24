@@ -926,7 +926,7 @@ ${llmsAs.map((t) => `- ${t.name}: [${t.L.h1}](${t.L.url})${t.L.lead ? ` ${t.L.le
 
 ## What to read next
 
-${SIBLINGS.map((s) => `- [${s.name}](${s.url}) — ${s.words}.`).join('\n')}
+${SIBLINGS.map((s) => `- [${s.name}](${s.url})${s.links ? ':' : ' —'} ${s.words}.${s.links ? ' ' + s.links.map((l) => `[${l.name}](${l.url})`).join(' | ') : ''}`).join('\n')}
 
 ## Optional
 
