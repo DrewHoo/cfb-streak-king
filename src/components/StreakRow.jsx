@@ -107,6 +107,25 @@ export const DaggerNote = ({ rows }) => (rows.some((r) => r.unsure ?? r.s?.unsur
   : null);
 
 /**
+ * The trivia streaks a list leaves out (list.ts Part), folded into one line:
+ * "and 12 trivia streaks ended this week" opens them, a Tellings of their
+ * own. `what` finishes the sentence; nothing when there are none.
+ */
+export function TriviaFold({ rows, what, cap, render, keyOf, order }) {
+  const [open, setOpen] = useState(false);
+  const n = rows.filter((r) => !r.subStreak).length;
+  if (!n) return null;
+  return (
+    <div className="trivia-fold">
+      <button className="morebtn trivia-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        {open ? 'hide the trivia streaks' : `and ${n.toLocaleString('en-US')} trivia ${n === 1 ? 'streak' : 'streaks'}${what ? ` ${what}` : ''}`}
+      </button>
+      {open && <div className="trivia-rows"><Tellings rows={rows} cap={cap} render={render} keyOf={keyOf} order={order} /></div>}
+    </div>
+  );
+}
+
+/**
  * A list of streaks: the standing rows up to `cap`, then "see more" pages
  * through the rest, PAGE at a time (a new list starts over); each row's
  * sub-streaks grouped beneath it. `keyOf` names a row.

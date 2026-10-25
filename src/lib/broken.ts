@@ -11,8 +11,8 @@ import type { Dir, GameRow, MinedCrown, Crown } from './types.ts';
 import { teams } from './model.ts';
 import { chipLabel } from './minedChips.ts';
 import { baseDir, isMargin } from './outcome.ts';
-import { CTX, LIST, admitted, byOrder, finish, markSubStreaksByTeam, pick } from './list.ts';
-import type { Knobs, RankContext } from './list.ts';
+import { CTX, LIST, admitted, byOrder, finish, markSubStreaksByTeam, partOfByTeam, pick } from './list.ts';
+import type { Knobs, Part, RankContext } from './list.ts';
 import { FILE_RANK } from './crowns.ts';
 import type { BrokenRun } from './crowns.ts';
 import { teamData } from './crowns.ts';
@@ -66,6 +66,8 @@ export interface BrokenWeek {
   more: BrokenStreak[];
   /** The sub-streaks (subStreak), behind their own button. */
   subStreaks: BrokenStreak[];
+  /** The trivia streaks the week ended (list.ts Part), folded into one line that opens them. */
+  trivia: BrokenStreak[];
 }
 
 export const BROKEN_CAP = 6;
@@ -102,19 +104,22 @@ const coveredByMarginRun = (list: readonly Pick<BrokenStreak, 'ti' | 'dir' | 'le
  * the admitted runs under their picked definition, scored, the ones a by-10 run covers dropped, each
  * team's rows flagged against its own a game at a time (so a game page, the
  * week's digest and the breakers group the same sub-streaks and their counts
- * nest), best first.
+ * nest), best first. `part`: the simple runs (every list but trivia's), the trivia, or both.
  */
-export function listBroken(rows: readonly BrokenInput[], ctx: RankContext = CTX, w: Knobs = LIST): BrokenStreak[] {
+export function listBroken(rows: readonly BrokenInput[], ctx: RankContext = CTX, w: Knobs = LIST, part: Part = 'simple'): BrokenStreak[] {
   const shown = rows.filter((c) => admitted(c, w)).map((c) => finish(pick(c, w), ctx, w)) as unknown as Omit<BrokenStreak, 'subStreak'>[];
   const covered = coveredByMarginRun(shown as BrokenStreak[]);
-  const out = markSubStreaksByTeam(shown.filter((b) => !covered(b as BrokenStreak)), w, (b) => `${b.ti}|${b.ender.i}`) as BrokenStreak[];
-  return out.sort(byOrder(w));
+  const groupOf = (b: Pick<BrokenStreak, 'ti' | 'ender'>) => `${b.ti}|${b.ender.i}`;
+  const out = markSubStreaksByTeam(shown.filter((b) => !covered(b as BrokenStreak)), w, groupOf) as BrokenStreak[];
+  return partOfByTeam(out, part, w, groupOf).sort(byOrder(w));
 }
 
-/** A week's digest from its rows: the rule's order, the first few of note, one per team. */
+/** A week's digest from its rows: the rule's order, the first few of note, one per team; the trivia streaks it ended on their own line. */
 export function brokenDigest(week: BrokenWeekRows, ctx: RankContext = CTX, w: Knobs = LIST): BrokenWeek {
-  const { list, more, subStreaks } = digestOf(listBroken(week.rows, ctx, w), (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
-  return { wk: week.wk, lo: week.lo, hi: week.hi, list, more, subStreaks };
+  const all = listBroken(week.rows, ctx, w, 'any');
+  const simple = partOfByTeam(all, 'simple', w);
+  const { list, more, subStreaks } = digestOf(simple, (b) => b.score >= BROKEN_CUTOFF, BROKEN_CAP);
+  return { wk: week.wk, lo: week.lo, hi: week.hi, list, more, subStreaks, trivia: partOfByTeam(all, 'trivia', w, (b) => `${b.ti}|${b.ender.i}`) };
 }
 
 /** Whether the build keeps a broken run for the lists: a place the admit knob can reach, or the all-time longest. */

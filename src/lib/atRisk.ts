@@ -17,7 +17,7 @@ import { baseDir, marginOf } from './outcome.ts';
 import { teamStreaks, streaksOn } from './team.ts';
 import type { ScheduledGame, TeamRun, TeamStreak } from './team.ts';
 import { digestOf } from './broken.ts';
-import { CTX, LIST, admitted, finish, coveredByStricterOutcome, markSubStreaksByTeam, pick } from './list.ts';
+import { CTX, LIST, admitted, finish, coveredByStricterOutcome, markSubStreaksByTeam, partOfByTeam, pick } from './list.ts';
 import type { Knobs, RankContext } from './list.ts';
 
 export const SPREAD_SIGMA = 13.5;
@@ -76,6 +76,8 @@ export interface AtRiskWeek {
   more: AtRisk[];
   /** The sub-streaks (subStreak), behind their own button. */
   subStreaks: AtRisk[];
+  /** The trivia streaks on the line (list.ts Part), folded into one line that opens them. */
+  trivia: AtRisk[];
 }
 
 /**
@@ -116,7 +118,11 @@ export function atRiskWeek(at: AtRiskRows, ctx: RankContext = CTX, w: Knobs = LI
   // the group reads the streak's words: each team's rows flagged against its own
   const flags = markSubStreaksByTeam(shown.map((r, i) => ({ i, ti: r.ti, chips: r.s.chips, dir: r.s.dir, len: r.s.len, scope: r.s.scope, startSe: r.s.startSe, endSe: r.s.endSe })), w);
   const subOf = new Map(flags.map((f) => [f.i, f.subStreak]));
-  const rows: AtRisk[] = shown.map((r, i) => { const subStreak = subOf.get(i)!; return { ...r, s: { ...r.s, subStreak }, stake: r.s.score * r.p, subStreak }; });
+  // the simple runs are the digest, the trivia ones a folded line (list.ts Part)
+  const simple = new Set(partOfByTeam(flags, 'simple', w).map((f) => f.i));
+  const trivia = new Set(partOfByTeam(flags, 'trivia', w).map((f) => f.i));
+  const rows = shown.map((r, i): AtRisk & { i: number } => { const subStreak = subOf.get(i)!; return { ...r, i, s: { ...r.s, subStreak }, stake: r.s.score * r.p, subStreak }; });
   rows.sort((a, b) => b.stake - a.stake || b.s.len - a.s.len);
-  return digestOf(rows, () => true, AT_RISK_CAP);
+  const strip = ({ i: _i, ...r }: AtRisk & { i: number }): AtRisk => r;
+  return { ...digestOf(rows.filter((r) => simple.has(r.i)).map(strip), () => true, AT_RISK_CAP), trivia: rows.filter((r) => trivia.has(r.i)).map(strip) };
 }

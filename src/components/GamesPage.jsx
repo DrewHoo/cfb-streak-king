@@ -13,15 +13,15 @@ import { P, teams } from '../lib/model.ts';
 import { lineText } from '../lib/team.ts';
 import { boardUrl, hrefOf } from '../lib/url.ts';
 import { seasons, seasonWeeks, scoreOf, keyString } from '../lib/game.ts';
-import { brokenDigest, listBroken } from '../lib/broken.ts';
-import { atRiskWeek } from '../lib/atRisk.ts';
+import { BROKEN_CAP, brokenDigest, listBroken } from '../lib/broken.ts';
+import { AT_RISK_CAP, atRiskWeek } from '../lib/atRisk.ts';
 import { useKnobs } from '../tune.ts';
 import { dayOf, monthDay, kickOf, marginWords, siteWord, spreadText } from '../lib/format.ts';
 import { baseDir } from '../lib/outcome.ts';
 import { TeamMark } from './Chip.jsx';
 import { Chevron, LinkIcon } from './Icons.jsx';
 import { NavIcons } from './Dateline.jsx';
-import { streakWords, subsByParent, Subs, MoreButton, DaggerNote, PAGE } from './StreakRow.jsx';
+import { streakWords, subsByParent, Subs, MoreButton, DaggerNote, PAGE, TriviaFold } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 import { Picker } from './Picker.jsx';
 
@@ -91,6 +91,7 @@ function Broken({ broken, onOpen, onBoard, onLink }) {
         ))}
         <MoreButton shown={n} total={broken.more.length} onMore={() => setPaged({ wk: broken.wk, n: n + PAGE })} />
         <DaggerNote rows={rows} />
+        <TriviaFold key={broken.wk} rows={broken.trivia} what="ended this week" cap={BROKEN_CAP} keyOf={keyOf} render={(b) => <BrokenRow b={b} onOpen={onOpen} onBoard={onBoard} />} />
       </div>
     </section>
   );
@@ -117,6 +118,8 @@ function AtRiskRow({ r, onGame }) {
     </button>
   );
 }
+
+const byStake = (a, b) => b.stake - a.stake || b.s.len - a.s.len;
 
 // the week's streaks most at risk, above its games: what the games can take
 // away (atRisk.ts, worked out by the build for the first scheduled week),
@@ -153,6 +156,7 @@ function AtRisk({ wk, lo, hi, risk, onGame, onLink, focus }) {
         ))}
         <MoreButton shown={n} total={risk.more.length} onMore={() => setN(n + PAGE)} />
         <DaggerNote rows={rows} />
+        <TriviaFold rows={risk.trivia.map(flat)} what="on the line this week" cap={AT_RISK_CAP} order={byStake} keyOf={keyOf} render={(r) => <AtRiskRow r={r} onGame={onGame} />} />
       </div>
     </section>
   );

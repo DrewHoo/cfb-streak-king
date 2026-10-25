@@ -12,6 +12,7 @@ import { CHIPS, chipByKey, conflicts, fitsDir } from '../lib/chips.ts';
 import { GROUPS, GROUP_NOTES, PARAMS, chipWord, MAX_CHIPS, swapTargets } from '../lib/definition.ts';
 import { dirWord, yearOf, yy } from '../lib/format.ts';
 import { MARGINS, marginDir } from '../lib/outcome.ts';
+import { MAX_SIMPLE, conditionsOf, isTrivia, isTriviaChip } from '../lib/trivia.ts';
 import { teams } from '../lib/model.ts';
 import { useAddKings, useChipKings } from '../hooks/useAddKings.ts';
 import { Caret } from './Icons.jsx';
@@ -81,20 +82,20 @@ function KingCrest({ k }) {
   );
 }
 
-/** One constraint as a pill: its label and the king it would crown. */
-function ChipPill({ c, k, cur, scope, disabled, onSelect, Item: I }) {
+/** One constraint as a pill: its label and the king it would crown; `trivia` marks a chip that makes the streak trivia. */
+function ChipPill({ c, k, cur, scope, disabled, onSelect, trivia, Item: I }) {
   const holds = holdsFor(k, cur);
   const cls = 'pill' + (holds ? ' holds' : '') + (k && k.len < 4 ? ' weak' : '');
   return (
     <I className={cls} title={k ? kingTitle(k, holds) : undefined} disabled={disabled} onSelect={onSelect}>
-      <span className="pk-l">{c.label}</span>
+      <span className="pk-l">{c.label}{trivia && <i className="pk-triv"> trivia</i>}</span>
       {k && <KingMark k={k} scope={scope} />}
     </I>
   );
 }
 
-/** Chips as pills, one group per heading. */
-function PillGroups({ chips, kingOf, cur, scope, isDisabled, onPick, Item: I, Heading: H, Group: G }) {
+/** Chips as pills, one group per heading; `marked` picks the chips that wear a "trivia" tag. */
+function PillGroups({ chips, kingOf, cur, scope, isDisabled, onPick, marked, Item: I, Heading: H, Group: G }) {
   return GROUPS.map((grp) => {
     const inGroup = chips.filter((c) => c.group === grp);
     if (!inGroup.length) return null;
@@ -103,7 +104,7 @@ function PillGroups({ chips, kingOf, cur, scope, isDisabled, onPick, Item: I, He
         <H title={GROUP_NOTES[grp]}>{grp}{GROUP_NOTES[grp] ? ' ⓘ' : ''}</H>
         {inGroup.map((c) => {
           const disabled = isDisabled?.(c) ?? false;
-          return <ChipPill key={c.key} c={c} k={disabled ? null : kingOf(c.key)} cur={cur} scope={scope} disabled={disabled} onSelect={() => onPick(c.key)} Item={I} />;
+          return <ChipPill key={c.key} c={c} k={disabled ? null : kingOf(c.key)} cur={cur} scope={scope} disabled={disabled} onSelect={() => onPick(c.key)} trivia={!!marked?.(c.key)} Item={I} />;
         })}
       </G>
     );
@@ -180,11 +181,16 @@ function AddBody({ active, dir, scope, week, weekCount, weekDay, as, kings, on, 
   const chips = CHIPS.filter((c) => !active.some((a) => a.key === c.key) && fitsDir(c, dir) && !(as != null && c.key === 'vsteam'));
   // at four constraints only a swap for an exclusive group-mate still fits
   const swaps = (c) => active.some((a) => conflicts(chipByKey.get(a.key), c));
+  // a simple definition says, at the moment of adding, what makes it trivia (trivia.ts)
+  const def = { chips: active.map((a) => a.key), dir };
+  const simple = !isTrivia(def);
+  const atMost = simple && conditionsOf(def) >= MAX_SIMPLE;
   return (
     <>
+      {atMost && <p className="menu-note">A third condition makes this a trivia streak.</p>}
       <PillGroups
         chips={chips} kingOf={(key) => kings?.byKey.get(key)} cur={kings?.cur} scope={scope}
-        isDisabled={(c) => full && !swaps(c)} onPick={on.add} Item={I} Heading={H} Group={G}
+        isDisabled={(c) => full && !swaps(c)} onPick={on.add} Item={I} Heading={H} Group={G} marked={simple && !atMost ? isTriviaChip : null}
       />
       {scope === 'active' && weekCount > 0 && !week && (
         <G>
@@ -298,7 +304,8 @@ export function Sentence({ active, dir, scope, week, weekCount, weekDay, as, isM
           </DM.Group>
         ))}
       </Word>
-      <span>streaks</span>
+      {/* three or more conditions, or a trivia chip, make a trivia streak (trivia.ts) */}
+      <span>{isTrivia({ chips: active.map((a) => a.key), dir }) ? 'trivia streaks' : 'streaks'}</span>
       {active.map((a) => <ChipWord key={a.key} a={a} active={active} dir={dir} scope={scope} as={as} on={on} />)}
       {as != null && <AsWord ti={as} on={on} isMobile={isMobile} />}
       {week && (

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { Dir, MinedCrown, Scope } from './types.ts';
-import { LIST, chanceOf, crownScore, scoreParts, rateOf, listCrowns, listRuns, tierOf, conditionCost, isSubStreak, markSubStreaks, pick, admitted, withKnobs, byOrder } from './list.ts';
+import { LIST, chanceOf, crownScore, scoreParts, rateOf, listCrowns, listRuns, tierOf, conditionCost, isSubStreak, isSimple, markSubStreaks, pick, admitted, withKnobs, byOrder } from './list.ts';
 import { choicesOf } from './minedChips.ts';
 
 const ctx = { teams: 136 };
@@ -202,11 +202,11 @@ describe('listCrowns', () => {
     const afterWin = crown({ scope: 'all', chips: ['afterwin'], len: 46, startSe: 1953, endSe: 1957, second: 34, n: 50000 });
     const big8 = crown({ scope: 'all', chips: ['vsconf:Big 8'], len: 44, startSe: 1952, endSe: 1959, second: 27, p: 0.47, n: 4400 });
     expect(crownScore(big8, ctx, W)).toBeGreaterThan(crownScore(plain, ctx, W)); // the field is small and the lead big
-    const out = listCrowns([plain, afterWin, big8], ctx, W);
+    const out = listCrowns([plain, afterWin, big8], ctx, W, 'any');
     expect(keys(out)).toEqual(['W vsconf:Big 8', 'W ']);
     expect(out.map((c) => c.subStreak)).toEqual([false, false]);
     // without the direction, the better-scoring Big 8 run eats the plain 47, and the 47's own run a stricter outcome covers outlives it
-    expect(keys(listCrowns([plain, afterWin, big8], ctx, { ...W, sameYears: { directed: false, overlap: 50 }, olderStands: false }))).toEqual(['W vsconf:Big 8', 'W afterwin']);
+    expect(keys(listCrowns([plain, afterWin, big8], ctx, { ...W, sameYears: { directed: false, overlap: 50 }, olderStands: false }, 'any'))).toEqual(['W vsconf:Big 8', 'W afterwin']);
   });
 
   test('same years alone don\'t make one story: another outcome or an unrelated definition stands', () => {
@@ -220,9 +220,9 @@ describe('listCrowns', () => {
     const chancy = crown({ chips: ['home', 'fullmoon'], len: 5, second: 5 });
     const plain = crown({ dir: 'L', len: 4, second: 4 });
     const trailing = crown({ dir: 'L', len: 9, rank: 2, second: 12 });
-    expect(keys(listCrowns([chancy, plain, trailing], ctx, W))).toEqual(['L ', 'W home+fullmoon']);
-    expect(keys(listCrowns([chancy, plain, trailing], ctx, withKnobs({ 'admit.rank': 2 })))).toContain('L ');
-    expect(listCrowns([chancy, plain, trailing], ctx, withKnobs({ 'admit.rank': 2 })).length).toBe(3);
+    expect(keys(listCrowns([chancy, plain, trailing], ctx, W, 'any'))).toEqual(['L ', 'W home+fullmoon']);
+    expect(keys(listCrowns([chancy, plain, trailing], ctx, withKnobs({ 'admit.rank': 2 }), 'any'))).toContain('L ');
+    expect(listCrowns([chancy, plain, trailing], ctx, withKnobs({ 'admit.rank': 2 }), 'any').length).toBe(3);
   });
 
   test('a bucket sorts by score band, then rarity, then length; 0 is pure score', () => {
@@ -245,6 +245,44 @@ describe('listCrowns', () => {
     expect(out.bits).toBeCloseTo(rateOf(crown()).b, 12);
     expect(out.subStreak).toBe(false);
     expect('highest' in out).toBe(false);
+  });
+
+  test('simple and trivia: two conditions at most, a margin counting as one, no trivia chip; the rest are trivia, and both parts together are every admitted row', () => {
+    const rows = [
+      crown({ chips: ['home', 'unranked'], len: 20 }), // simple: two conditions
+      crown({ chips: ['home', 'unranked', 'nonconf'], len: 25 }), // three: trivia (longer, so not a sub-streak of the two)
+      crown({ dir: 'W10', chips: ['home', 'unranked'], len: 9, p: 0.3 }), // a margin is the third
+      crown({ dir: 'W10', chips: ['road'], len: 8, p: 0.3 }), // a margin and one chip: simple
+      crown({ chips: ['fullmoon'], len: 7 }), // a trivia chip at any count
+      crown({ chips: ['afterbye'], len: 6 }), // rest is a real condition
+      crown({ chips: ['month:9', 'vsmascot:animal'], len: 5 }), // they have landing pages
+      crown({ chips: ['leadhalf:1'], len: 5, startSe: 2020 }), // win-more
+    ];
+    const simple = keys(listCrowns(rows, ctx, W));
+    const trivia = keys(listCrowns(rows, ctx, W, 'trivia'));
+    expect(simple.sort()).toEqual(['W afterbye', 'W home+unranked', 'W month:9+vsmascot:animal', 'W10 road'].sort());
+    expect(trivia.sort()).toEqual(['W fullmoon', 'W home+unranked+nonconf', 'W leadhalf:1', 'W10 home+unranked'].sort());
+    expect(listCrowns(rows, ctx, W, 'any').length).toBe(rows.length);
+    expect(listCrowns(rows, ctx, W).every((c) => isSimple(c))).toBe(true);
+    // the knobs: a third condition admitted to the simple list, or the trivia chips by count alone
+    expect(keys(listCrowns(rows, ctx, withKnobs({ 'admit.maxConditions': 3 })))).toContain('W home+unranked+nonconf');
+    expect(keys(listCrowns(rows, ctx, withKnobs({ 'admit.triviaChips': false })))).toContain('W fullmoon');
+  });
+
+  test('a run fewest-worded as trivia is told under its simple placing when both admit, so the medal rule never moves it off the simple list', () => {
+    const run = crown({ chips: ['weekend'], len: 9, rank: 2, highest: { ...crown({ chips: ['road', 'vsmascot:wildcats'], len: 9 }) } });
+    expect(listCrowns([run], ctx, W)).toHaveLength(1); // only the simple placing admits at 1
+    const medal = listCrowns([run], ctx, withKnobs({ 'admit.rank': 3 }));
+    expect(keys(medal)).toEqual(['W road+vsmascot:wildcats']);
+    expect(medal[0].other?.chips).toEqual(['weekend']);
+  });
+
+  test('a trivia row that is a sub-streak of a simple one is that row\'s story: off the trivia list too', () => {
+    const run = crown({ chips: ['home'], len: 20 });
+    const sub = crown({ chips: ['home', 'fullmoon'], len: 9 });
+    const own = crown({ chips: ['road', 'fullmoon'], len: 9 });
+    expect(keys(listCrowns([run, sub, own], ctx, W, 'trivia'))).toEqual(['W road+fullmoon']);
+    expect(listCrowns([run, sub, own], ctx, W, 'any').find((c) => c.chips.includes('home') && c.chips.length === 2)?.subStreak).toBe(true);
   });
 
   test('listRuns tells, scores and flags many teams\' rows against each team\'s own', () => {

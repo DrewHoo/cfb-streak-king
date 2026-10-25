@@ -55,7 +55,7 @@ export function knobsSource(k: Knobs): string {
   const tiers = `{ brag: ${k.tiers.brag}, plain: ${k.tiers.plain}, trivia: ${k.tiers.trivia}, ingame: ${k.tiers.ingame} }`;
   return [
     'export const LIST = {',
-    `  admit: { rank: ${k.admit.rank} },`,
+    `  admit: { rank: ${k.admit.rank}, maxConditions: ${k.admit.maxConditions}, triviaChips: ${k.admit.triviaChips} },`,
     `  pick: '${k.pick}' as PickRule,`,
     `  rate: ${k.rate},`,
     `  rateShrink: ${k.rateShrink},`,

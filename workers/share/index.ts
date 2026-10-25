@@ -26,7 +26,7 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords, teamName, pastWeekText } from '../../src/lib/shareWords.ts';
+import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords, teamName, pastWeekText, isTriviaBoard, streaksWord } from '../../src/lib/shareWords.ts';
 import { landingFromPath } from '../../src/lib/landing.ts';
 import { asFromPath } from '../../src/lib/asTeam.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
@@ -36,6 +36,7 @@ import type { Payload, BoardRow, Dir } from '../../src/lib/types.ts';
 import { dirWord, yy, siteWord, monthDay } from '../../src/lib/format.ts';
 import { parseDir } from '../../src/lib/outcome.ts';
 import { BREAK, breakCat, breakPoints, rankOrder } from '../../src/lib/breakScore.ts';
+import { isTrivia } from '../../src/lib/trivia.ts';
 import { renderCard } from './card.ts';
 import type { CardRow } from './card.ts';
 
@@ -127,7 +128,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-22a';
+const CARD_VERSION = '2026-10-25a';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -215,8 +216,9 @@ async function gameRows(key: string, date: string): Promise<GameRowWords[]> {
     const g = file?.games[key];
     if (!g) continue;
     const row = (team: number, c: SeasonCrown, since: number, leader: boolean, everLen?: number, everN?: number): GameRowWords => ({ team: ids[team], chips: c[0], dir: c[1], len: c[2], unsure: !!c[3], rank: c[5], tied: c[6], field: c[4], since, leader, everLen, everN });
-    // the full placings only: a sub-streak (subStreak) stays off the head and the card
-    return [...g.ended.filter((r) => !isSubStreakRow(g.ended, r)).map(([t, c, since, , , everLen, everN]) => row(t, c, since, false, everLen, everN)), ...g.leaders.filter((r) => !isSubStreakRow(g.leaders, r)).map(([t, c, since]) => row(t, c, since, true))];
+    // the full placings only: a sub-streak (subStreak) stays off the head and the card, and so does a trivia streak (trivia.ts), as on the page
+    const simple = <T extends [number, SeasonCrown, ...unknown[]]>(r: T) => !isTrivia({ chips: r[1][0] ? r[1][0].split('+') : [], dir: r[1][1] as Dir });
+    return [...g.ended.filter((r) => simple(r) && !isSubStreakRow(g.ended, r)).map(([t, c, since, , , everLen, everN]) => row(t, c, since, false, everLen, everN)), ...g.leaders.filter((r) => simple(r) && !isSubStreakRow(g.leaders, r)).map(([t, c, since]) => row(t, c, since, true))];
   }
   return [];
 }
@@ -283,7 +285,7 @@ const pastCache = new Map<number, { day: string; data: Promise<PastBreaker[]> }>
 /**
  * A past season's streak-breakers from its season file, scored the way
  * breakers.ts scores them (breakScore.ts): a winning run ended by a loss to
- * the breaker, the full placings only, ranked by points then breaks.
+ * the breaker, the full placings only and no trivia streak, ranked by points then breaks.
  */
 function pastBreakers(se: number): Promise<PastBreaker[]> {
   const day = dayKey();
@@ -300,6 +302,7 @@ function pastBreakers(se: number): Promise<PastBreaker[]> {
         if (isSubStreakRow(g.ended, row)) continue;
         const dir = c[1];
         const chips = c[0] ? c[0].split('+') : [];
+        if (isTrivia({ chips, dir: dir as Dir })) continue; // trivia is off the breakers board (trivia.ts)
         const b = { len: c[2], everLen: everLen ?? 0, rank: c[5], chips };
         const cat = breakCat(b);
         if (!cat) continue;
@@ -516,7 +519,8 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
     });
   }
   const res = renderCard({
-    heading: `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks${asTi >= 0 ? ` as ${m.teams[asTi].name}` : ''}`,
+    // a trivia definition says so (trivia.ts); a by-opponent board's opponent is its axis, not a condition
+    heading: `Longest ${scope === 'all' ? 'all-time' : 'active'} ${streaksWord(dirWord(dir), asTi < 0 && isTriviaBoard(q.get('c') ?? DEFAULT_C, dir))}${asTi >= 0 ? ` as ${m.teams[asTi].name}` : ''}`,
     words: asTi >= 0 ? `${m.teams[asTi].name} against each opponent · ${words.length ? words.join(' · ') : 'all games'}` : words.length ? words.join(' · ') : 'all games, no conditions',
     logo: asTi >= 0 ? await logoUri(m.teams[asTi].espn) : null,
     rows: cardRows,

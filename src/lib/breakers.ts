@@ -3,7 +3,10 @@
 // the breaker; a covering run ended by a miss counts only under BREAK.covers.
 // Only two kinds of run count, worth different points: the all-time longest
 // under its definition (by any team), and the longest active one as the week
-// began (ties included); a run under fewer conditions is worth more. The
+// began (ties included); a run under fewer conditions is worth more. Only a
+// simple run counts (list.ts Part, trivia.ts): a trivia break earns nothing,
+// isn't counted and isn't listed, though the rows stay in the file for a team
+// page's folded line. The
 // points order the teams, and the page shows only the order: a team's Streak
 // King Rank (SKR). A season's breaks come from its season-file rows, the
 // ones the schedule and a game page read: the build writes the running

@@ -9,6 +9,7 @@ import { viewReducer, initialView, isOpen, columnOf } from './lib/view.ts';
 import { findGame, keyOf, keyString, seasonWeeks } from './lib/game.ts';
 import { refsOf } from './lib/minedChips.ts';
 import { dirWord, dayOf, rowKey } from './lib/format.ts';
+import { isTrivia } from './lib/trivia.ts';
 import { track } from './lib/analytics.ts';
 import { writeUrl, absoluteUrl } from './urlState.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
@@ -232,7 +233,7 @@ export default function App({ initial } = {}) {
     track('lead apply', { chips: l.c, dir: l.dir, scope: l.scope, from: 'landing' });
   }
   function shareView(sentence) {
-    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks in ${definitionPhrase(active, dir)}${as != null ? ` as ${teams[as].name}` : ''}`;
+    const text = sentence || `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} ${isTrivia({ chips: active.map((a) => a.key), dir }) ? 'trivia ' : ''}streaks in ${definitionPhrase(active, dir)}${as != null ? ` as ${teams[as].name}` : ''}`;
     track('share', { chips: encodeChips(active) || 'overall', dir, team: team != null ? teams[team].id : null, ...(as != null ? { as: teams[as].id } : {}) });
     share(text, window.location.href);
   }

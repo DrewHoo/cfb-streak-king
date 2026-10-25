@@ -74,7 +74,7 @@ export function Notes() {
                 million.
               </li>
               <li>
-                A team's page lists every definition under which it has the longest active streak (or, all-time, the longest ever); a streak counts as broken under the same rule, when a win ended the longest active or all-time longest run. Each list is ordered by a complicated and imperfect heuristic that takes into account the streak occurring by chance, among other factors. You can read it in the source code if you're so inclined (open a PR if you disagree with me!).
+                A team's page lists every simple definition under which it has the longest active streak (or, all-time, the longest ever): one or two conditions, a margin counting as one, none of them trivia. The rest, three or four conditions or a trivia condition (a full moon, a weekday, a team color, a state, after a win, the halftime score, the clock), are under trivia; the schedule and the game pages fold them into one line, and the streak-breakers don't count them. A streak counts as broken under the same rule, when a win ended the longest active or all-time longest run. Each list is ordered by a complicated and imperfect heuristic that takes into account the streak occurring by chance, among other factors. You can read it in the source code if you're so inclined (open a PR if you disagree with me!).
               </li>
             </ul>
           </details>

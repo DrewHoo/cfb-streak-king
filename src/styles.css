@@ -816,3 +816,11 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .colini { font-family: 'Graduate', serif; font-size: 18px; color: var(--ink-muted); text-align: center; line-height: 26px; }
 /* the team picker's first row, when it can pick no team ("as [team]" off) */
 .tp-clear { color: var(--ink-muted); font-style: italic; }
+
+/* the trivia streaks a list leaves out, one folded line under it (StreakRow.jsx TriviaFold) */
+.trivia-fold { display: flex; flex-direction: column; }
+.trivia-btn { align-self: flex-start; padding-left: 0; }
+.trivia-rows { margin-top: 4px; padding-left: 10px; border-left: 2px dotted var(--line, rgba(239,230,217,0.12)); }
+/* the add menu: what makes a definition trivia */
+.menu-note { margin: 0; padding: 8px 10px 4px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.04em; color: var(--ink-faint); }
+.pk-triv { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }

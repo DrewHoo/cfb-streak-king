@@ -15,9 +15,13 @@
 //
 //   admit  which runs are on any list: the team's place under either placing
 //          is `admit.rank` or better (ties included); a broken run also when
-//          it is the all-time longest under its definition
+//          it is the all-time longest under its definition. A list is one
+//          part (`Part`): simple, the runs whose picked definition has at most
+//          `admit.maxConditions` conditions (a margin outcome counts as one)
+//          and no trivia chip (trivia.ts's list), or trivia, every other admitted run
 //   pick   which definition a run is shown under: the fewest-conditions
-//          placing that admits it (`pick: 'fewest'`), or the one the team
+//          placing that admits it, a simple one before a trivia one
+//          (`pick: 'fewest'`), or the one the team
 //          places highest under (`'highest'`); the other placing is kept on
 //          the row as `other`
 //   order  the score, in bits:
@@ -66,13 +70,19 @@ import type { Crown, Dir, MinedCrown, Scope, Placing } from './types.ts';
 import { baseDir, isMargin } from './outcome.ts';
 import { baseKey, choicesOf } from './minedChips.ts';
 import { fbsNow } from './model.ts';
+import { MAX_SIMPLE, isTrivia } from './trivia.ts';
 
 export type Tier = 'brag' | 'plain' | 'trivia' | 'ingame';
 export type PickRule = 'fewest' | 'highest';
+/** Which part of the admitted runs a list shows: the simple ones (every list but trivia), the trivia, or both (`any`). */
+export type Part = 'simple' | 'trivia' | 'any';
 
 export const LIST = {
-  /** The worst place a run may hold, under either placing, and be on a list; 1 is the field's leader, 3 the medal rule. */
-  admit: { rank: 1 },
+  /**
+   * The worst place a run may hold, under either placing, and be on a list; 1 is the field's leader, 3 the medal rule.
+   * A simple run has at most `maxConditions` conditions (a margin counts as one) and, with `triviaChips`, no trivia chip (trivia.ts); the rest are trivia.
+   */
+  admit: { rank: 1, maxConditions: MAX_SIMPLE, triviaChips: true },
   /** Which of a run's placings a list shows: the fewest-conditions that admits, or the best-placed. */
   pick: 'fewest' as PickRule,
   /** How much a run is measured against the team's own rate under the definition (0 the field's, 1 the team's). */
@@ -104,7 +114,10 @@ export const LIST = {
 };
 export type Knobs = typeof LIST;
 
-// each catalog chip's tier; a derived chip ("vsteam:alabama") goes by its catalog key
+// each catalog chip's tier; a derived chip ("vsteam:alabama") goes by its catalog key.
+// The tiers are prices, and the miner's keep floor reads them (crowns.ts), so
+// moving a chip between tiers re-mines; which chips make a streak trivia is
+// trivia.ts's list, not the trivia tier.
 const TIERS: Record<Tier, string[]> = {
   brag: ['home', 'road', 'confgame', 'ranked', 'top10', 'top5', 'rivalry', 'postseason', 'night', 'dog', 'dog7', 'dog14', 'afterloss', 'vsteam', 'vsconf'],
   plain: ['unranked', 'whileranked', 'whileunranked', 'nonconf', 'power', 'member', 'instate', 'neutral', 'away', 'fav', 'close', 'curcoach', 'newcoach', 'opener', 'finale', 'leadhalf', 'trailhalf'],
@@ -214,6 +227,22 @@ export function markSubStreaksByTeam<T extends Words & { ti: number }>(rows: T[]
 export const admits = (t: Pick<Placing, 'rank' | 'everLen'>, len: number, w = LIST) => t.rank <= w.admit.rank || (t.everLen != null && len >= t.everLen);
 /** A run is on a list when either of its placings admits it. */
 export const admitted = (c: MinedCrown, w = LIST) => admits(c, c.len, w) || (!!c.highest && admits(c.highest, c.len, w));
+/** A definition is simple: at most `admit.maxConditions` conditions, a margin counting as one, and (`admit.triviaChips`) no trivia chip. */
+export const isSimple = (d: { chips: readonly string[]; dir: Dir }, w = LIST) => !isTrivia(d, w.admit.maxConditions, w.admit.triviaChips);
+/**
+ * A list's part of its rows, judged on the definition each is shown under.
+ * Flag sub-streaks over every admitted row first: a trivia row that is a
+ * sub-streak of a simple one is that row's story, so the trivia part leaves
+ * it out.
+ */
+export function partOf<T extends Words & { subStreak: boolean }>(rows: T[], part: Part, w = LIST): T[] {
+  if (part === 'any') return rows;
+  const simple = rows.filter((r) => isSimple(r, w));
+  if (part === 'simple') return simple;
+  return rows.filter((r) => !isSimple(r, w) && !(r.subStreak && isSubStreak(r, simple, w)));
+}
+/** How many rows of a list stand (a sub-streak counts with its run): what "and N trivia streaks" counts. */
+export const standingCount = (rows: readonly { subStreak?: boolean }[]) => rows.reduce((n, r) => n + (r.subStreak ? 0 : 1), 0);
 
 const PLACING_KEYS = ['chips', 'field', 'rank', 'tied', 'second', 'p', 'n', 'hT', 'nT', 'unsure', 'live', 'rivals', 'everLen', 'everN'] as const;
 const placingOf = (c: Placing): Placing => {
@@ -228,13 +257,17 @@ const under = <T extends MinedCrown>(c: T, shown: Placing, other: Placing | null
 };
 /**
  * The placing a list shows: with `pick: 'fewest'` the run's fewest-conditions
- * placing when it admits, else its highest; with `'highest'` the highest
- * whenever it places higher.
+ * placing when it admits, else its highest, and the highest when both admit
+ * and only it is simple (a run fewest-worded as trivia stays on the simple
+ * list under its simple words); with `'highest'` the highest whenever it
+ * places higher.
  */
 export function pick<T extends MinedCrown>(c: T, w = LIST): Omit<T, 'highest'> & { other?: Placing } {
   const plain = placingOf(c);
   if (!c.highest) return under(c, plain, null);
-  const useHighest = w.pick === 'highest' ? c.highest.rank < c.rank : !admits(c, c.len, w) && admits(c.highest, c.len, w);
+  const both = admits(c, c.len, w) && admits(c.highest, c.len, w);
+  const useHighest = w.pick === 'highest' ? c.highest.rank < c.rank
+    : both ? !isSimple(c, w) && isSimple({ chips: c.highest.chips, dir: c.dir }, w) : admits(c.highest, c.len, w);
   return useHighest ? under(c, c.highest, plain) : under(c, plain, c.highest);
 }
 
@@ -282,7 +315,7 @@ export const coveredByStricterOutcome = (c: Run, rows: readonly Run[]) => (
  * "won 12 straight" and more); all-time, a run that repeats another run of
  * the same years goes too.
  */
-export function listCrowns(list: readonly MinedCrown[], ctx: RankContext = CTX, w = LIST): Crown[] {
+export function listCrowns(list: readonly MinedCrown[], ctx: RankContext = CTX, w = LIST, part: Part = 'simple'): Crown[] {
   const rows = list.filter((c) => admitted(c, w)).map((c) => finish(pick(c, w), ctx, w));
   let kept = rows.filter((c) => !coveredByStricterOutcome(c, rows));
   kept.sort(byOrder(w));
@@ -301,7 +334,7 @@ export function listCrowns(list: readonly MinedCrown[], ctx: RankContext = CTX, 
     }
     kept = firsts;
   }
-  return markSubStreaks(kept, w);
+  return partOf(markSubStreaks(kept, w), part, w);
 }
 
 /**
@@ -309,10 +342,20 @@ export function listCrowns(list: readonly MinedCrown[], ctx: RankContext = CTX, 
  * the admitted ones under their picked definition, scored, flagged against
  * each team's own, best first. `order` replaces the score order when a view weights the rows.
  */
-export function listRuns<T extends MinedCrown & { ti: number }>(rows: readonly T[], ctx: RankContext = CTX, w = LIST, order?: (a: Omit<T, 'highest'> & Crown, b: Omit<T, 'highest'> & Crown) => number): (Omit<T, 'highest'> & Crown)[] {
+export function listRuns<T extends MinedCrown & { ti: number }>(rows: readonly T[], ctx: RankContext = CTX, w = LIST, order?: (a: Omit<T, 'highest'> & Crown, b: Omit<T, 'highest'> & Crown) => number, part: Part = 'simple'): (Omit<T, 'highest'> & Crown)[] {
   const shown = rows.filter((c) => admitted(c, w)).map((c) => finish(pick(c, w), ctx, w)) as unknown as (Omit<T, 'highest'> & Omit<Crown, 'subStreak'>)[];
   const out = markSubStreaksByTeam(shown, w) as unknown as (Omit<T, 'highest'> & Crown)[];
-  return out.sort(order ?? byOrder(w));
+  return partOfByTeam(out, part, w).sort(order ?? byOrder(w));
+}
+
+/** `partOf` a team at a time (`groupOf` as markSubStreaksByTeam's), for rows of many teams. */
+export function partOfByTeam<T extends Words & { ti: number; subStreak: boolean }>(rows: T[], part: Part, w = LIST, groupOf: (r: T) => string | number = (r) => r.ti): T[] {
+  if (part !== 'trivia') return partOf(rows, part, w);
+  const byTeam = new Map<string | number, T[]>();
+  for (const r of rows) (byTeam.get(groupOf(r)) ?? byTeam.set(groupOf(r), []).get(groupOf(r))!).push(r);
+  const keep = new Set<T>();
+  for (const list of byTeam.values()) for (const r of partOf(list, part, w)) keep.add(r);
+  return rows.filter((r) => keep.has(r));
 }
 
 /** The knobs with overrides laid over LIST, a path at a time ("tiers.brag", "admit.rank"). */

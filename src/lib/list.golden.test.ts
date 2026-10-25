@@ -5,17 +5,18 @@
 // silently break another.
 
 import { describe, expect, test } from 'vitest';
-import type { Crown } from './types.ts';
+import type { Crown, Dir } from './types.ts';
 import { P, teams, builtEpochDay } from './model.ts';
 import { mineCrowns, mineBroken } from './crowns.ts';
-import { LIST, listCrowns, withKnobs, admits } from './list.ts';
+import { LIST, listCrowns, withKnobs, admits, isSimple } from './list.ts';
 import type { Knobs } from './list.ts';
 import { brokenWeeks, brokenDigest, listBroken } from './broken.ts';
 import { buildSeasons } from './seasons.ts';
 import { atRiskRows, atRiskWeek } from './atRisk.ts';
 import { scheduledGames } from './team.ts';
 import { keyOf, keyString } from './game.ts';
-import { breakersFromSeason, listBreaks, breakRows } from './breakers.ts';
+import { breakersFromSeason, listBreaks, breakRows, breakRanking } from './breakers.ts';
+import { listLeaders } from './seasonFile.ts';
 import { baseDir, isMargin } from './outcome.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -85,6 +86,77 @@ describe('golden orderings', () => {
         expect(m!.chips.length).toBeLessThanOrEqual(c.chips.length);
       }
     }
+  });
+});
+
+describe('simple and trivia (specs/trivia.spec.md)', () => {
+  const season = buildSeasons(mined).get(P.currentSeason);
+  const weeks = brokenWeeks(mined);
+  const games = scheduledGames();
+  const week = games.filter((g) => g.wk === games[0]?.wk);
+
+  test('no simple list carries a row past the rule: a team page, a game page, the digests, the breakers', () => {
+    const past = (c: { chips: string[]; dir: Dir }) => !isSimple(c);
+    for (const m of [active, all]) for (const [ti, rows] of m) for (const c of listCrowns(rows)) expect(past(c), `${teams[ti].id} ${words(c)}`).toBe(false);
+    if (season) {
+      for (const [k, g] of season.games) {
+        for (const b of listBroken(g.ended)) expect(past(b), `${k} ${words(b)}`).toBe(false);
+        for (const l of listLeaders(g.leaders)) expect(past(l), `${k} ${words(l)}`).toBe(false);
+      }
+      const breakers = breakersFromSeason(season);
+      for (const [, rows] of breakers.teams) for (const b of listBreaks(rows)) expect(past(b), words(b)).toBe(false);
+    }
+    for (const w of weeks.values()) {
+      const d = brokenDigest(w);
+      for (const b of [...d.list, ...d.more, ...d.subStreaks]) expect(past(b), words(b)).toBe(false);
+    }
+    if (week.length) {
+      const r = atRiskWeek(atRiskRows(week, today, (ti) => active.get(ti) ?? []));
+      for (const x of [...r.list, ...r.more, ...r.subStreaks]) expect(past(x.s), words(x.s)).toBe(false);
+    }
+  }, 180_000);
+
+  test('a trivia row is never shown with fewer conditions than makes it trivia, and the two parts cover every standing row', () => {
+    for (const m of [active, all]) {
+      for (const [ti, rows] of m) {
+        const trivia = listCrowns(rows, undefined, LIST, 'trivia');
+        for (const c of trivia) expect(isSimple(c), `${teams[ti].id} ${words(c)}`).toBe(false);
+        // every standing row of the whole list is on one of the two
+        const simple = listCrowns(rows);
+        const key = (c: Crown) => `${c.dir}|${c.chips.join()}|${c.len}|${c.startSe}`;
+        const parts = new Set([...simple, ...trivia].map(key));
+        for (const c of listCrowns(rows, undefined, LIST, 'any')) if (!c.subStreak) expect(parts.has(key(c)), `${teams[ti].id} ${words(c)}`).toBe(true);
+      }
+    }
+  }, 180_000);
+
+  test('trivia is off the breakers board: a trivia break earns nothing and counts nowhere', () => {
+    if (!season) return;
+    const breakers = breakersFromSeason(season);
+    const triviaBreaks = [...breakers.teams.values()].flatMap((rows) => listBroken(rows, undefined, LIST, 'trivia'));
+    expect(triviaBreaks.length).toBeGreaterThan(0); // the file still carries them, for a team page's folded line
+    for (const s of breakRanking(breakers)) {
+      const rows = breakRows(listBreaks(breakers.teams.get(s.ti)!)).filter((b) => !b.subStreak);
+      expect(s.n).toBe(rows.length);
+    }
+  });
+
+  test('a game\'s rows nest in its week\'s digest, part by part: every simple row is in the simple digest, every trivia row in its trivia line', () => {
+    const last = [...weeks.values()].at(-1);
+    if (!last || !season) return;
+    const d = brokenDigest(last);
+    const id = (b: { ti: number; dir: string; len: number; run: number; chips: string[] }) => `${b.ti}|${b.dir}|${b.len}|${b.run}|${b.chips.join()}`;
+    const simple = new Set([...d.list, ...d.more, ...d.subStreaks].map(id));
+    const trivia = new Set(d.trivia.map(id));
+    const keys = new Set(last.rows.map((b) => keyString(keyOf(b.ti, b.ender))));
+    let n = 0;
+    for (const k of keys) {
+      const g = season.games.get(k);
+      if (!g) continue;
+      for (const b of listBroken(g.ended)) { expect(simple.has(id(b)), `${k} ${words(b)}`).toBe(true); n++; }
+      for (const b of listBroken(g.ended, undefined, LIST, 'trivia')) expect(trivia.has(id(b)), `${k} ${words(b)}`).toBe(true);
+    }
+    expect(n).toBeGreaterThan(0);
   });
 });
 
