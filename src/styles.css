@@ -456,8 +456,7 @@ button.xrow:hover, button.xrow:focus-visible { background: rgba(243, 226, 188, 0
 .nc-h { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rust); }
 .nc-h span + span { color: var(--ink-muted); display: inline-flex; align-items: center; gap: 6px; }
 .nc-row { display: flex; align-items: center; gap: 10px; }
-.nc-row > i { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--rust); }
-.nc-logo { width: 36px; height: 36px; flex: none; }
+.nc-opp b > i { font-style: normal; font-weight: 400; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--rust); }
 .nc-opp { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 17px; line-height: 1.25; }
 .nc-opp b { font-weight: 600; }
 .nc-opp em { font-style: normal; font-weight: 400; color: var(--rust); }

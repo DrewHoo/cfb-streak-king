@@ -111,10 +111,9 @@ function NextCard({ ti, game, onLine, onGame }) {
     <button className="nextcard" onClick={() => onGame(ti, game)} aria-label={`${teams[ti].name} ${game.home ? 'vs' : 'at'} ${opp?.name}: the matchup`}>
       <span className="nc-h"><span>next · {dayOf(game.ep)} {monthDay(game.ep)}{kickOf(game) ? ` · ${kickOf(game)}` : ''}</span><span>matchup <Chevron /></span></span>
       <span className="nc-row">
-        <i>{game.neutral ? 'vs' : game.home ? 'vs' : 'at'}</i>
-        {opp?.espn ? <TeamMark ti={game.oppIdx} className="nc-logo" /> : <b className="nc-logo mu-ini">{opp?.name?.[0]}</b>}
+        {/* "at #18 LSU", no mark: a wordmark (LSU's) would say the name twice */}
         <span className="nc-opp">
-          <b>{game.oppRank > 0 && <em>#{game.oppRank} </em>}{opp?.name}</b>
+          <b><i>{game.neutral ? 'vs' : game.home ? 'vs' : 'at'}</i> {game.oppRank > 0 && <em>#{game.oppRank} </em>}{opp?.name}</b>
           <small>{recordText(r)} · {atsText(r)} ATS{game.oppRank === 0 ? ' · unranked' : ''}</small>
         </span>
         <span className="nc-line">
