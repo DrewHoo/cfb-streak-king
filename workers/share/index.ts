@@ -55,12 +55,12 @@ const DEFAULT_C = 'unranked'; // definition.ts DEFAULT_CHIPS, as the c param spe
 // index site's project (the public token its embed carries; a project token
 // only writes). The client embed never sees an unfurl, because the bot that
 // fetches a shared link runs no script, so this is the only place a share
-// can be counted. Nothing personal goes: the crawler's name, its user agent
-// only when it is a crawler (a person's browser string never goes, and
-// neither does an IP: ip=0 tells Mixpanel not to geolocate), the country
-// Cloudflare saw, the URL itself and its words. A browser's visit is the
-// embed's to count, so the head rewrite reports crawlers only; the card is
-// reported whoever asked for it.
+// can be counted. Nothing personal goes: the unfurler's name and user agent
+// (never an IP: ip=0 tells Mixpanel not to geolocate), the country Cloudflare
+// saw, the URL itself and its words. Only a link preview reports, the page or
+// its card: a search engine, an AI crawler or any other bot sends nothing,
+// and a browser's visit is the embed's to count (Drew, 2026-10-26: crawlers
+// were showing up as shares).
 const MIXPANEL_TOKEN = '1c6a0f45b8a5768185a8d9a2f4d65452';
 const AGENTS: [RegExp, string][] = [
   [/Slackbot|Slack-ImgProxy/i, 'slack'],
@@ -71,6 +71,7 @@ const AGENTS: [RegExp, string][] = [
   [/redditbot/i, 'reddit'],
   [/Bluesky/i, 'bluesky'],
   [/Mastodon/i, 'mastodon'],
+  [/GoogleMessages/i, 'google-messages'],
   [/Facebot.*Twitterbot|Twitterbot.*Facebot/i, 'imessage'],
   [/Twitterbot/i, 'twitter'],
   [/facebookexternalhit|Facebot/i, 'facebook'],
@@ -80,12 +81,15 @@ const AGENTS: [RegExp, string][] = [
   [/bot|crawler|spider|preview|fetch|embed|scraper/i, 'other-bot'],
 ];
 const agentOf = (ua: string | null): string => AGENTS.find(([re]) => re.test(ua ?? ''))?.[1] ?? 'browser';
+const PREVIEWS = new Set(['slack', 'discord', 'telegram', 'whatsapp', 'linkedin', 'reddit', 'bluesky', 'mastodon', 'google-messages', 'imessage', 'twitter', 'facebook']);
 
+/** Reports a link preview's request; a browser's or a crawler's reports nothing. */
 function report(env: Env, ctx: ExecutionContext, request: Request, event: string, props: Record<string, unknown>) {
   if (env.NO_REPORT) return; // a local run never reaches the project
   try {
     const ua = request.headers.get('user-agent');
     const agent = agentOf(ua);
+    if (!PREVIEWS.has(agent)) return;
     const body = [{
       event,
       properties: {
@@ -95,9 +99,7 @@ function report(env: Env, ctx: ExecutionContext, request: Request, event: string
         time: Math.floor(Date.now() / 1000),
         site: 'cfb-streak-king',
         agent,
-        // the crawler's own string, so an unrecognized one ('other-bot') can
-        // be named and added to AGENTS; a browser's string stays private
-        crawler: agent === 'browser' ? null : (ua ?? '').slice(0, 200),
+        crawler: (ua ?? '').slice(0, 200),
         country: (request as Request & { cf?: { country?: string } }).cf?.country ?? null,
         ...props,
       },
@@ -607,7 +609,7 @@ export default {
         const shell = await fetch(`${ORIGIN}${BASE}/404.html?d=${dayKey()}`, edge(3600));
         if (!shell.ok) { await shell.body?.cancel(); return new Response('not found', { status: 404 }); }
         res = new Response(shell.body, { status: 200, headers: shell.headers });
-        if (agentOf(request.headers.get('user-agent')) !== 'browser') report(env, ctx, request, 'share unfurl', urlProps(url));
+        report(env, ctx, request, 'share unfurl', urlProps(url));
         const bkSe = bk ? (bk[2] ? Number(bk[2]) : (await loadModel()).P.currentSeason) : null;
         const bkId = bk?.[3] ?? null;
         const text = game
@@ -640,7 +642,7 @@ export default {
       if (!(res.headers.get('content-type') ?? '').includes('text/html')) return res;
       const text = shareText(url.pathname, url.searchParams, meta);
       if (!text) return res;
-      if (agentOf(request.headers.get('user-agent')) !== 'browser') report(env, ctx, request, 'share unfurl', urlProps(url));
+      report(env, ctx, request, 'share unfurl', urlProps(url));
       const board = !/\/team\//.test(url.pathname);
       let out = new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(text.title); } })
