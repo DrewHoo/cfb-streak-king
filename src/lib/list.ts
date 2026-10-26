@@ -208,12 +208,47 @@ const overlap = (a: Words, b: Words) => a.endSe == null || b.endSe == null || a.
 export function isSubStreak(r: Words, rows: readonly Words[], w = LIST): boolean {
   return rows.some((o) => flagsSub(o, r, w));
 }
+
+// Rows by outcome and condition set, so a run is checked only against runs
+// under a strict subset of its conditions (at most 15 for four chips) and not
+// every row of a list: a team's all-time file is ~7,500 rows, and the pairwise
+// checks made listing it take seconds on a phone.
+const chipsKey = (chips: readonly string[]) => [...chips].sort().join('+');
+function strictSubsetKeys(chips: readonly string[]): string[] | null {
+  if (chips.length > 8) return null; // more than the miner ever walks: the caller scans
+  const sorted = [...chips].sort();
+  const out: string[] = [];
+  for (let m = 0; m < (1 << sorted.length) - 1; m++) out.push(sorted.filter((_, i) => m & (1 << i)).join('+'));
+  return out;
+}
+/** Words indexed by outcome and condition set, for the lookups above. */
+class ByWords<T extends Words> {
+  private m = new Map<string, T[]>();
+  add(r: T) { const k = `${r.dir}|${chipsKey(r.chips)}`; (this.m.get(k) ?? this.m.set(k, []).get(k)!).push(r); }
+  /** The rows of r's outcome under a strict subset of its conditions; null when r has too many to enumerate. */
+  under(r: Words): T[] | null {
+    const keys = strictSubsetKeys(r.chips);
+    if (!keys) return null;
+    const out: T[] = [];
+    for (const k of keys) { const got = this.m.get(`${r.dir}|${k}`); if (got) out.push(...got); }
+    return out;
+  }
+}
+/** Each row's sub-streak flag against the rows (isSubStreak for every row), through the index. */
+function subStreakFlags(rows: readonly Words[], w = LIST): boolean[] {
+  const idx = new ByWords<Words>();
+  for (const r of rows) idx.add(r);
+  return rows.map((r) => (idx.under(r) ?? rows).some((o) => flagsSub(o, r, w)));
+}
 /** Whether row `o` makes `r` a sub-streak (isSubStreak's test, one pair). */
 const flagsSub = (o: Words, r: Words, w = LIST) => o !== r && o.dir === r.dir && subsetOf(o, r) && o.len >= r.len
   && (r.scope !== 'all' || overlap(o, r))
   && !(w.olderStands && r.startSe != null && o.startSe != null && r.startSe < o.startSe);
 /** Each row with its `subStreak` flag set against the others. */
-export const markSubStreaks = <T extends Words>(rows: T[], w = LIST): (T & { subStreak: boolean })[] => rows.map((r) => ({ ...r, subStreak: isSubStreak(r, rows, w) }));
+export const markSubStreaks = <T extends Words>(rows: T[], w = LIST): (T & { subStreak: boolean })[] => {
+  const flags = subStreakFlags(rows, w);
+  return rows.map((r, i) => ({ ...r, subStreak: flags[i] }));
+};
 /** Each team's rows flagged against its own (`ti` names the team; `groupOf` narrows a team's group further, a game at a time for broken runs). */
 export function markSubStreaksByTeam<T extends Words & { ti: number }>(rows: T[], w = LIST, groupOf: (r: T) => string | number = (r) => r.ti): (T & { subStreak: boolean })[] {
   const byTeam = new Map<string | number, T[]>();
@@ -304,9 +339,11 @@ const sameRun = (a: Run, b: Run) => a.ti === b.ti && a.len === b.len && a.startS
  * identical to one by its margin ("won 12 straight by 10+" says "won 12
  * straight" and more). Every list of runs drops these the same way.
  */
-export const coveredByStricterOutcome = (c: Run, rows: readonly Run[]) => (
+export const coveredByStricterOutcome = (c: Run, rows: readonly Run[], w = LIST) => (
   (c.dir === 'U' && rows.some((o) => o.dir === 'W' && sameRun(o, c)))
-  || ((c.dir === 'W' || c.dir === 'L') && rows.some((o) => isMargin(o.dir) && baseDir(o.dir) === c.dir && sameRun(o, c)))
+  // a by-10 run is one condition more, so it covers a plain run only in the same part: "won 12 straight at home and in
+  // November" stays on the simple list though "won 12 straight by 10+ at home and in November" is trivia
+  || ((c.dir === 'W' || c.dir === 'L') && rows.some((o) => isMargin(o.dir) && baseDir(o.dir) === c.dir && sameRun(o, c) && isSimple(o, w) === isSimple(c, w)))
 );
 
 /**
@@ -319,12 +356,19 @@ export const coveredByStricterOutcome = (c: Run, rows: readonly Run[]) => (
  */
 export function listCrowns(list: readonly MinedCrown[], ctx: RankContext = CTX, w = LIST, part: Part = 'simple'): Crown[] {
   const rows = list.filter((c) => admitted(c, w)).map((c) => finish(pick(c, w), ctx, w));
-  let kept = rows.filter((c) => !coveredByStricterOutcome(c, rows));
+  // the same run under another outcome, looked up instead of scanned (sameRun's fields)
+  const runKey = (c: Run) => `${c.ti}|${c.len}|${c.startSe}|${c.endSe}|${chipsKey(c.chips)}`;
+  const byRun = new Map<string, Run[]>();
+  for (const c of rows) (byRun.get(runKey(c)) ?? byRun.set(runKey(c), []).get(runKey(c))!).push(c);
+  let kept = rows.filter((c) => !coveredByStricterOutcome(c, byRun.get(runKey(c))!, w));
   kept.sort(byOrder(w));
   if (kept[0]?.scope === 'all') {
     const firsts: typeof kept = [];
+    // directed, only a run under a strict subset of c's conditions can absorb it: look those up
+    const idx = new ByWords<(typeof kept)[number]>();
     for (const c of kept) {
-      const same = firsts.some((e) => {
+      const near = (w.sameYears.directed && idx.under(c)) || firsts;
+      const same = near.some((e) => {
         // unrelated definitions in the same years are different stories
         if (e.dir !== c.dir || !(subsetOf(e, c) || subsetOf(c, e))) return false;
         if (w.sameYears.directed && !(subsetOf(e, c) && e.len >= c.len)) return false;
@@ -332,7 +376,7 @@ export function listCrowns(list: readonly MinedCrown[], ctx: RankContext = CTX, 
         const shared = Math.min(e.endSe!, c.endSe!) - Math.max(e.startSe!, c.startSe!) + 1;
         return shared > 0 && shared / Math.min(seasons(e), seasons(c)) >= w.sameYears.overlap / 100;
       });
-      if (!same) firsts.push(c);
+      if (!same) { firsts.push(c); idx.add(c); }
     }
     kept = firsts;
   }
@@ -350,27 +394,17 @@ export function listRuns<T extends MinedCrown & { ti: number }>(rows: readonly T
   return partOfByTeam(out, part, w).sort(order ?? byOrder(w));
 }
 
-/** How many standing rows a team page's section shows by default. */
-export const TOP_ROWS = 5;
-/** A list's first `n` standing rows, with the sub-streaks that group under them (each one's conditions a superset of a top row's, its run no longer): what a section shows. */
-export function topListed<T extends Words & { subStreak: boolean }>(listed: readonly T[], n = TOP_ROWS): T[] {
-  const top = listed.filter((c) => !c.subStreak).slice(0, n);
-  return listed.filter((c) => (c.subStreak ? top.some((p) => p.dir === c.dir && p.len >= c.len && subsetOf(p, c)) : top.includes(c)));
-}
 /**
- * The mined runs behind a list's top (`topListed` of the simple list): the
- * rows a page needs to list them the same way, so the build can embed a
- * section's rows without the whole file. Listing the slice gives the same
- * top: a standing row has no shorter-worded run at least as long in the full
- * list, so none in the slice; a sub-streak brings the runs that make it one
- * (which can be older runs outside the top, ranked below it, so never shown).
+ * The mined runs behind a list's simple part: the rows a page needs to list
+ * them the same way, so the build can embed a team's all-time simple list
+ * without the whole file (Alabama's: 230 of 7,572 rows). Listing them gives
+ * the same simple list: a simple row's sub-streak parents and the runs that
+ * cover it are simple too (their conditions are a subset of its own, under
+ * the same outcome), so the slice has them.
  */
-export function topRuns(list: readonly MinedCrown[], n = TOP_ROWS, ctx: RankContext = CTX, w = LIST): MinedCrown[] {
+export function simpleRuns(list: readonly MinedCrown[], ctx: RankContext = CTX, w = LIST): MinedCrown[] {
   const key = (c: Run) => `${c.dir}|${c.len}|${c.startSe}|${c.endSe}|${c.chips.join('+')}`;
-  const listed = listCrowns(list, ctx, w);
-  const need = new Set(topListed(listed, n));
-  for (const r of need) if (r.subStreak) for (const o of listed) if (flagsSub(o, r, w)) need.add(o); // a Set iterates what it gains
-  const want = new Set([...need].map(key));
+  const want = new Set(listCrowns(list, ctx, w).map(key));
   return list.filter((c) => admitted(c, w) && want.has(key(pick(c, w))));
 }
 

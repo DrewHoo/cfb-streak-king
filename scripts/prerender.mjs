@@ -42,7 +42,7 @@ const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModul
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
 const { SIBLINGS } = await vite.ssrLoadModule('/src/lib/siblings.ts')
 const { completedWeeks, brokenClaim, everText, brokenDigest, listBroken } = await vite.ssrLoadModule('/src/lib/broken.ts')
-const { listCrowns, topRuns, standingCount } = await vite.ssrLoadModule('/src/lib/list.ts')
+const { listCrowns, simpleRuns, standingCount } = await vite.ssrLoadModule('/src/lib/list.ts')
 const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
 const { listLeaders } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
@@ -191,12 +191,12 @@ console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root
 const t0 = Date.now()
 const [crownsActive, crownsAll, minedBroken] = await Promise.all([mineCrowns('active'), mineCrowns('all'), mineBroken()])
 // three files per team: the active runs (a team page embeds them, a game page fetches each side's), the all-time ones (the
-// All-time section's trivia button fetches them) and the all-time top (the runs behind that section's first rows, list.ts
-// topRuns, with how many all-time trivia streaks there are: a team page embeds it, so crawlers read the section)
+// All-time section's trivia pill fetches them) and the all-time simple list's runs (list.ts simpleRuns, with how many
+// all-time trivia streaks there are: a team page embeds it, so crawlers read the section and "see more" is instant)
 const allOf = (ti) => encodeCrowns('all', crownsAll.get(ti) ?? [])
 const activeOf = (ti) => encodeCrowns('active', crownsActive.get(ti) ?? [])
-const topCache = new Map()
-const topOf = (ti) => topCache.get(ti) ?? topCache.set(ti, { ...encodeCrowns('all', topRuns(crownsAll.get(ti) ?? [])), trivia: standingCount(listCrowns(crownsAll.get(ti) ?? [], undefined, undefined, 'trivia')) }).get(ti)
+const simpleCache = new Map()
+const allSimpleOf = (ti) => simpleCache.get(ti) ?? simpleCache.set(ti, { ...encodeCrowns('all', simpleRuns(crownsAll.get(ti) ?? [])), trivia: standingCount(listCrowns(crownsAll.get(ti) ?? [], undefined, undefined, 'trivia')) }).get(ti)
 fs.mkdirSync(path.join(ROOT, 'dist', 'crowns'), { recursive: true })
 let crownBytes = 0
 for (const ti of fbsNow) {
@@ -206,9 +206,9 @@ for (const ti of fbsNow) {
   fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.all.json`), jsonAll)
   crownBytes += json.length
   fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.json`), json)
-  const jsonTop = JSON.stringify(topOf(ti))
-  crownBytes += jsonTop.length
-  fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.top.json`), jsonTop)
+  const jsonSimple = JSON.stringify(allSimpleOf(ti))
+  crownBytes += jsonSimple.length
+  fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.all.simple.json`), jsonSimple)
 }
 console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} teams, three files each under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
 
@@ -583,8 +583,8 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: { active: decodeCrowns(activeOf(ti)).rows, top: { rows: decodeCrowns(topOf(ti)).rows, trivia: topOf(ti).trivia }, all: null }, breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
-    embed: { active: activeOf(ti), top: topOf(ti) },
+    initial: { page: ti, crowns: { active: decodeCrowns(activeOf(ti)).rows, allSimple: { rows: decodeCrowns(allSimpleOf(ti)).rows, trivia: allSimpleOf(ti).trivia }, all: null }, breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
+    embed: { active: activeOf(ti), allSimple: allSimpleOf(ti) },
     breakers: encodeBreakers(breakersSlice(breakers, ti)),
     url,
     title,

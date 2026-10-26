@@ -71,7 +71,7 @@ describe('prerender + hydrate', () => {
     // any crowns will do: this checks the render, crowns.test covers their contents
     const crown = (chips, dir, len) => ({ chips, dir, scope: 'active', len, unsure: false, field: 40, rank: 1, tied: 1, second: 3, startSe: 2024, live: true, also: 0, p: 0.5, n: 1000, hT: 10, nT: 20, gT: 20 });
     const record = { ...crown(['home'], 'W', 30), scope: 'all', startSe: 1978, endSe: 1982, live: false };
-    const crowns = { active: [crown(['road'], 'W', 9), crown(['ranked'], 'W', 5), crown(['night'], 'L', 4), crown(['home', 'fullmoon'], 'W', 6)], top: { rows: [record], trivia: 12 }, all: null };
+    const crowns = { active: [crown(['road'], 'W', 9), crown(['ranked'], 'W', 5), crown(['night'], 'L', 4), crown(['home', 'fullmoon'], 'W', 6)], allSimple: { rows: [record], trivia: 12 }, all: null };
     const { html, errors, unmount } = await hydrate({ page: ti, crowns }, '/cfb-streak-king/team/alabama/');
     expect(html).toContain('Alabama');
     // the sections in order, each section's default rows in the prerender (crawlers read them), the schedule last
@@ -82,10 +82,10 @@ describe('prerender + hydrate', () => {
     expect(at('Active streaks')).toBeLessThan(at('Streaks broken this season'));
     expect(at('Streaks broken this season')).toBeLessThan(at(' schedule</h2>')); // "{season} schedule", the season its own text node
     expect(html).toContain('ended 1982');
-    // each section's trivia button: the all-time count from the top file, the active one from the active file
-    expect(html).toContain('and 12 trivia streaks');
-    expect(html).toContain('and 1 trivia streak<');
-    expect(html).not.toContain('tpg-tabs');
+    // each section's simple | trivia switch, the simple list showing; the active section's from the active file's one trivia row
+    expect(html.match(/aria-label="Simple or trivia [a-z-]+ streaks"/g)).toEqual(['aria-label="Simple or trivia all-time streaks"', 'aria-label="Simple or trivia active streaks"']);
+    expect(html).toContain('at home'); // the all-time simple row, in the prerender (with 'ended 1982' above)
+    expect(html).not.toContain('under a full moon'); // the trivia row, behind its switch
     expect(html).toContain('pick another team');
     expect(html).not.toContain('<h1>Streak King</h1>');
     // the page's one list: the team's streaks, crowns grouped in; no King-of list of its own

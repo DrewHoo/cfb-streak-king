@@ -114,7 +114,7 @@ export function atRiskWeek(at: AtRiskRows, ctx: RankContext = CTX, w: Knobs = LI
   const all = at.rows.filter((r) => admitted(r.s, w)).map((r) => ({ ...r, s: finish(pick(r.s, w), ctx, w) }));
   // what a team's own list drops too: a run another of its rows covers with a stricter outcome (undefeated by winning, plain by its margin)
   const runs = all.map((r) => ({ ...r.s, ti: r.ti }));
-  const shown = all.filter((r) => !coveredByStricterOutcome({ ...r.s, ti: r.ti }, runs));
+  const shown = all.filter((r) => !coveredByStricterOutcome({ ...r.s, ti: r.ti }, runs, w));
   // the group reads the streak's words: each team's rows flagged against its own
   const flags = markSubStreaksByTeam(shown.map((r, i) => ({ i, ti: r.ti, chips: r.s.chips, dir: r.s.dir, len: r.s.len, scope: r.s.scope, startSe: r.s.startSe, endSe: r.s.endSe })), w);
   const subOf = new Map(flags.map((f) => [f.i, f.subStreak]));

@@ -4,7 +4,7 @@
 // any other team. A streak row opens that streak on the board; a scheduled
 // game opens its matchup.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams, confOf, gamesOf, upcomingOf, asBoard, windowStartOf } from '../lib/model.ts';
 import { asH1, asLead } from '../lib/asTeam.ts';
 import { leadRows } from '../lib/landing.ts';
@@ -21,13 +21,16 @@ import { useTeamCrowns } from '../hooks/useCrowns.ts';
 import { track } from '../lib/analytics.ts';
 import { breakOrder, breakRows, breakSummary, listBreaks } from '../lib/breakers.ts';
 import { listBroken } from '../lib/broken.ts';
-import { TOP_ROWS, listCrowns, standingCount, topListed } from '../lib/list.ts';
+import { listCrowns, standingCount } from '../lib/list.ts';
 import { useKnobs } from '../tune.ts';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 import { SkrInfo } from './BreakersPage.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 
+const STREAKS_CAP = 10;
 const BREAKS_CAP = 6;
+// what makes a definition trivia (trivia.ts), for a section's note
+const TRIVIA_WHAT = 'definitions of three or four conditions, or with a trivia condition (a full moon, a weekday, the halftime score, the clock)';
 const OPP_CAP = 5;
 const BASE = import.meta.env.BASE_URL;
 
@@ -127,32 +130,37 @@ function NextCard({ ti, game, onLine, onGame }) {
 }
 
 /**
- * One of a team's streak sections (All-time, Active): its first simple rows
- * and nothing past them, then a button that opens the section's trivia
- * streaks in place, a page at a time. `rows` and `trivia` are null while
- * they load; `count` is how many trivia streaks there are (0 hides the button).
+ * One of a team's streak sections (All-time, Active): its simple streaks,
+ * STREAKS_CAP at a time behind "see more", and a simple | trivia switch in
+ * the heading for the rest, when there are any (`count`). `rows` is the list
+ * the switch picks, null while it loads; `onIntent` says the trivia streaks
+ * may be wanted soon (the section in view, the switch hovered or focused).
  */
-function StreakSection({ title, note, rows, empty, loading, trivia, count, open, onTrivia, keyOf, render }) {
+function StreakSection({ title, scope, trivia, count, onTrivia, onIntent, note, rows, loading, empty, keyOf, render }) {
+  // `onIntent` also fires once the section is in view, so a phone's tap finds the trivia streaks ready
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!onIntent || !count || typeof IntersectionObserver === 'undefined' || !ref.current) return;
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { onIntent(); io.disconnect(); } }, { rootMargin: '200px' });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [onIntent, count]);
   return (
     <>
-      <h2>{title}</h2>
+      <h2 className="tpg-h2-tabs" ref={ref}>
+        {title}
+        {count > 0 && (
+          <span className="tpg-tabs" role="group" aria-label={`Simple or trivia ${scope} streaks`}>
+            <button className={'pill' + (trivia ? '' : ' on')} aria-pressed={!trivia} onClick={() => onTrivia(false)}>simple</button>
+            <button className={'pill' + (trivia ? ' on' : '')} aria-pressed={trivia} onClick={() => onTrivia(true)} onPointerEnter={onIntent} onPointerDown={onIntent} onFocus={onIntent}>trivia</button>
+          </span>
+        )}
+      </h2>
       <p className="tpg-note">{note}</p>
       <div className="tpg-streaks">
         {rows === null && <p className="empty">{loading}</p>}
         {rows !== null && rows.length === 0 && <p className="empty">{empty}</p>}
-        {rows !== null && <Tellings rows={rows} cap={TOP_ROWS} keyOf={keyOf} render={render} />}
-        {count > 0 && (
-          <div className="trivia-fold">
-            <button className="morebtn trivia-btn" onClick={onTrivia} aria-expanded={open}>
-              {open ? 'hide the trivia streaks' : `and ${count.toLocaleString('en-US')} trivia ${count === 1 ? 'streak' : 'streaks'}`}
-            </button>
-            {open && (
-              <div className="trivia-rows">
-                {trivia === null ? <p className="empty">finding the trivia streaks…</p> : <Tellings rows={trivia} cap={TOP_ROWS} keyOf={keyOf} render={render} />}
-              </div>
-            )}
-          </div>
-        )}
+        {rows !== null && <Tellings rows={rows} cap={STREAKS_CAP} keyOf={keyOf} render={render} />}
       </div>
     </>
   );
@@ -160,24 +168,27 @@ function StreakSection({ title, note, rows, empty, loading, trivia, count, open,
 
 export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copied, on, nav }) {
   const t = teams[ti];
-  // which sections have their trivia streaks open, by team and scope ("12|all")
-  const [opened, setOpened] = useState(() => new Set());
-  const isOpen = (scope) => opened.has(`${ti}|${scope}`);
-  const toggleTrivia = (scope) => {
+  // which sections show their trivia streaks, by team and scope ("12|all"); the all-time file loads at the first sign of wanting them
+  const [shown, setShown] = useState(() => new Set());
+  const [intent, setIntent] = useState(null);
+  const onTrivia = (scope) => shown.has(`${ti}|${scope}`);
+  const showTrivia = (scope, on) => {
     const k = `${ti}|${scope}`;
-    if (!opened.has(k)) track('team trivia', { scope });
-    setOpened((cur) => { const next = new Set(cur); if (next.has(k)) next.delete(k); else next.add(k); return next; });
+    if (on === shown.has(k)) return;
+    if (on) track('team trivia', { scope });
+    setShown((cur) => { const next = new Set(cur); if (on) next.add(k); else next.delete(k); return next; });
   };
-  // the active file and the all-time top arrive with the page; the all-time file loads when its trivia opens
-  const raw = useTeamCrowns(ti, isOpen('all'), initial);
+  const wantAll = useCallback(() => setIntent(ti), [ti]);
+  // the active file and the all-time simple list arrive with the page; the all-time file loads when its trivia is wanted
+  const raw = useTeamCrowns(ti, onTrivia('all') || intent === ti, initial);
   // the list rule over the team's files, under the knobs in force (the shipped ones, or the tuner's)
   const knobs = useKnobs();
   const crowns = useMemo(() => ({
     active: raw.active && listCrowns(raw.active, undefined, knobs),
     activeTrivia: raw.active && listCrowns(raw.active, undefined, knobs, 'trivia'),
-    top: raw.top && listCrowns(raw.top.rows, undefined, knobs),
+    allSimple: raw.allSimple && listCrowns(raw.allSimple.rows, undefined, knobs),
     allTrivia: raw.all && listCrowns(raw.all, undefined, knobs, 'trivia'),
-  }), [raw.active, raw.top, raw.all, knobs]);
+  }), [raw.active, raw.allSimple, raw.all, knobs]);
   // the streaks the team broke this season (breakers.ts), the all-time longest first; opened from the breakers page, the section scrolls into view
   const breaks = useMemo(() => (breakers ? breakRows(listBreaks(breakers.teams.get(ti) ?? [], undefined, knobs)) : null), [breakers, ti, knobs]);
   // the trivia ones count for nothing on the breakers board; one folded line here
@@ -188,19 +199,18 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
   const scrolledTo = useRef(null);
   // once the streaks above it have loaded too, so the section doesn't move after the scroll
   useEffect(() => {
-    if (focus !== 'breaks' || !breaks || crowns.active === null || crowns.top === null || scrolledTo.current === ti) return;
+    if (focus !== 'breaks' || !breaks || crowns.active === null || crowns.allSimple === null || scrolledTo.current === ti) return;
     scrolledTo.current = ti;
     breaksRef.current?.scrollIntoView({ block: 'start' });
-  }, [focus, breaks, crowns.active, crowns.top, ti]);
+  }, [focus, breaks, crowns.active, crowns.allSimple, ti]);
   const r = seasonRecord(ti);
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
-  // every simple active streak (what the next game puts on the line); the section shows the first few
+  // every simple active streak (the section's list, and what the next game puts on the line)
   const streaks = useMemo(() => teamStreaks(ti, todayEp, crowns.active), [ti, todayEp, crowns.active]);
-  const activeTop = useMemo(() => (crowns.active ? topListed(streaks) : null), [crowns.active, streaks]);
   const activeTrivia = useMemo(() => (crowns.activeTrivia ? teamStreaks(ti, todayEp, crowns.activeTrivia) : null), [ti, todayEp, crowns.activeTrivia]);
   // all-time: the runs it holds the record for, live or ended
-  const records = useMemo(() => (crowns.top ? topListed(crowns.top).map((c) => ({ ...c, since: c.startSe })) : null), [crowns.top]);
+  const records = useMemo(() => (crowns.allSimple ? crowns.allSimple.map((c) => ({ ...c, since: c.startSe })) : null), [crowns.allSimple]);
   const allTrivia = useMemo(() => (crowns.allTrivia ? crowns.allTrivia.map((c) => ({ ...c, since: c.startSe })) : null), [crowns.allTrivia]);
   const played = gamesOf(ti).filter((g) => g.se === P.currentSeason);
   const ahead = upcomingOf(ti);
@@ -234,23 +244,25 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
       <ByOpponent ti={ti} todayEp={todayEp} on={on} />
 
       <StreakSection
-        title="All-time streaks"
-        note={<>The definitions of one or two conditions under which a run of {t.name}’s is the longest ever, the ones furthest past chance first.</>}
-        rows={records} loading={`finding the streaks ${t.name} holds…`}
+        title="All-time streaks" scope="all-time"
+        trivia={onTrivia('all')} count={allTrivia ? standingCount(allTrivia) : raw.allSimple?.trivia ?? 0}
+        onTrivia={(on) => showTrivia('all', on)} onIntent={wantAll}
+        note={onTrivia('all') ? <>Trivia: the {TRIVIA_WHAT} under which a run of {t.name}’s is the longest ever.</> : <>Every definition of one or two conditions under which a run of {t.name}’s is the longest ever, the ones furthest past chance first.</>}
+        rows={onTrivia('all') ? allTrivia : records}
+        loading={onTrivia('all') ? 'finding the trivia streaks…' : `finding the streaks ${t.name} holds…`}
         empty={`${t.name} doesn’t hold an all-time longest streak under any simple definition.`}
-        trivia={allTrivia} count={allTrivia ? standingCount(allTrivia) : raw.top?.trivia ?? 0}
-        open={isOpen('all')} onTrivia={() => toggleTrivia('all')}
         keyOf={(s) => `${s.dir}${s.chips.join()}|${s.startSe}`}
         render={(s) => <StreakRow s={s} tag={s.live ? 'still going' : `ended ${s.endSe}`} onClick={() => on.streak(s, ti)} />}
       />
 
       <StreakSection
-        title="Active streaks"
-        note={<>The definitions of one or two conditions under which {t.name}’s current run is the longest active one, the ones furthest past chance first.</>}
-        rows={activeTop} loading={`finding every streak ${t.name} leads…`}
+        title="Active streaks" scope="active"
+        trivia={onTrivia('active')} count={activeTrivia ? standingCount(activeTrivia) : 0}
+        onTrivia={(on) => showTrivia('active', on)}
+        note={onTrivia('active') ? <>Trivia: the {TRIVIA_WHAT} under which {t.name}’s current run is the longest active one.</> : <>Every definition of one or two conditions under which {t.name}’s current run is the longest active one, the ones furthest past chance first.</>}
+        rows={onTrivia('active') ? activeTrivia : crowns.active && streaks}
+        loading={`finding every streak ${t.name} leads…`}
         empty={`${t.name} doesn’t have the longest active streak under any simple definition.`}
-        trivia={activeTrivia} count={activeTrivia ? standingCount(activeTrivia) : 0}
-        open={isOpen('active')} onTrivia={() => toggleTrivia('active')}
         keyOf={(s) => s.dir + s.chips.join()}
         render={(s) => <StreakRow s={s} next onClick={() => on.streak(s, ti)} />}
       />

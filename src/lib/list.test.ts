@@ -277,6 +277,16 @@ describe('listCrowns', () => {
     expect(medal[0].other?.chips).toEqual(['weekend']);
   });
 
+  test('a by-10 run covers its plain twin only in the same part: a trivia by-10 run leaves the plain run on the simple list', () => {
+    const plain = crown({ chips: ['home', 'unranked'], len: 12 });
+    const by10 = crown({ dir: 'W10', chips: ['home', 'unranked'], len: 12, p: 0.3 });
+    expect(keys(listCrowns([plain, by10], ctx, W))).toEqual(['W home+unranked']);
+    expect(keys(listCrowns([plain, by10], ctx, W, 'trivia'))).toEqual(['W10 home+unranked']);
+    // both simple: the by-10 run says it and more, as before
+    const one = crown({ chips: ['home'], len: 12 });
+    expect(keys(listCrowns([one, { ...by10, chips: ['home'] }], ctx, W))).toEqual(['W10 home']);
+  });
+
   test('a trivia row that is a sub-streak of a simple one is that row\'s story: off the trivia list too', () => {
     const run = crown({ chips: ['home'], len: 20 });
     const sub = crown({ chips: ['home', 'fullmoon'], len: 9 });

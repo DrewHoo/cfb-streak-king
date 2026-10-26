@@ -11,7 +11,7 @@ import type { Dir, GameRow, MinedCrown, Crown } from './types.ts';
 import { teams } from './model.ts';
 import { chipLabel } from './minedChips.ts';
 import { baseDir, isMargin } from './outcome.ts';
-import { CTX, LIST, admitted, byOrder, finish, markSubStreaksByTeam, partOfByTeam, pick } from './list.ts';
+import { CTX, LIST, admitted, byOrder, finish, isSimple, markSubStreaksByTeam, partOfByTeam, pick } from './list.ts';
 import type { Knobs, Part, RankContext } from './list.ts';
 import { FILE_RANK } from './crowns.ts';
 import type { BrokenRun } from './crowns.ts';
@@ -94,9 +94,11 @@ export function digestOf<T extends { ti: number; subStreak?: boolean }>(ranked: 
 
 // a plain run its by-10 run covers: same team, chips, start and ender ("had
 // won 12 straight by 10+" says "had won 12 straight" and more)
-const coveredByMarginRun = (list: readonly Pick<BrokenStreak, 'ti' | 'dir' | 'len' | 'chips' | 'ender'>[]) => (b: Pick<BrokenStreak, 'ti' | 'dir' | 'len' | 'chips' | 'ender'>) => (
+const coveredByMarginRun = (list: readonly Pick<BrokenStreak, 'ti' | 'dir' | 'len' | 'chips' | 'ender'>[], w: Knobs = LIST) => (b: Pick<BrokenStreak, 'ti' | 'dir' | 'len' | 'chips' | 'ender'>) => (
   !isMargin(b.dir) && (b.dir === 'W' || b.dir === 'L') && list.some((m) => isMargin(m.dir) && baseDir(m.dir) === b.dir
-    && m.ti === b.ti && m.ender.i === b.ender.i && m.len === b.len && m.chips.length === b.chips.length && m.chips.every((k) => b.chips.includes(k)))
+    && m.ti === b.ti && m.ender.i === b.ender.i && m.len === b.len && m.chips.length === b.chips.length && m.chips.every((k) => b.chips.includes(k))
+    // the by-10 run is one condition more: it covers only in the same part (list.ts coveredByStricterOutcome)
+    && isSimple(m, w) === isSimple(b, w))
 );
 
 /**
@@ -108,7 +110,7 @@ const coveredByMarginRun = (list: readonly Pick<BrokenStreak, 'ti' | 'dir' | 'le
  */
 export function listBroken(rows: readonly BrokenInput[], ctx: RankContext = CTX, w: Knobs = LIST, part: Part = 'simple'): BrokenStreak[] {
   const shown = rows.filter((c) => admitted(c, w)).map((c) => finish(pick(c, w), ctx, w)) as unknown as Omit<BrokenStreak, 'subStreak'>[];
-  const covered = coveredByMarginRun(shown as BrokenStreak[]);
+  const covered = coveredByMarginRun(shown as BrokenStreak[], w);
   const groupOf = (b: Pick<BrokenStreak, 'ti' | 'ender'>) => `${b.ti}|${b.ender.i}`;
   const out = markSubStreaksByTeam(shown.filter((b) => !covered(b as BrokenStreak)), w, groupOf) as BrokenStreak[];
   return partOfByTeam(out, part, w, groupOf).sort(byOrder(w));
