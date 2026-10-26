@@ -25,6 +25,8 @@ const seasonRows = document.getElementById('season-data')
 const breakers = document.getElementById('breakers-data')
 // a team's by-opponent page (/team/<id>/losing-streaks-by-opponent/), prerendered on that board
 const asPage = page == null && !game ? asTeamFromPath(window.location.pathname) : null
+// a team page's embed: its active file and its all-time top (scripts/prerender.mjs)
+const crownsOf = ({ active, top }) => ({ active: decodeCrowns(active).rows, top: top ? { rows: decodeCrowns(top).rows, trivia: top.trivia ?? 0 } : null, all: null })
 const initial = {
   page,
   game,
@@ -39,7 +41,7 @@ const initial = {
   landing: page == null && !game ? landingFromPath(window.location.pathname)?.slug ?? null : null,
   as: asPage?.ti ?? null,
   asDir: asPage?.dir ?? null,
-  crowns: page != null && embedded ? { active: decodeCrowns(JSON.parse(embedded.textContent)).rows, all: null } : null,
+  crowns: page != null && embedded ? crownsOf(JSON.parse(embedded.textContent)) : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
   seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,
   breaks: breakers ? decodeBreakers(JSON.parse(breakers.textContent)) : null,

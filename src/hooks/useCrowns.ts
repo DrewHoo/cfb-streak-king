@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react';
-import type { MinedCrown, Scope } from '../lib/types.ts';
-import type { TeamCrowns } from '../lib/crownsFile.ts';
-import { loadCrowns } from '../lib/loadCrowns.ts';
+import type { MinedCrown } from '../lib/types.ts';
+import type { CrownsKind, TeamCrowns } from '../lib/crownsFile.ts';
+import { loadCrowns, loadTop } from '../lib/loadCrowns.ts';
 
 /**
- * One team's runs for its page, a scope at a time, as its crowns files keep
- * them (the page lists them with the list rule). A team page arrives with its
- * active list in `initial` (so the prerender and the hydrate agree); the
- * all-time file loads when `scope` asks for it (trivia reads both files),
- * another team's active file when it opens. Null while loading.
+ * One team's runs for its page, as its crowns files keep them (the page lists
+ * them with the list rule). A team page arrives with its active list and its
+ * all-time top in `initial` (so the prerender and the hydrate agree); another
+ * team's load when it opens, and the all-time file when `wantAll` (the
+ * All-time section's trivia button) asks for it. Null while loading.
  */
-export function useTeamCrowns(ti: number, scope: Scope | 'trivia', initial?: { page?: number | null; crowns?: TeamCrowns | null }): { active: MinedCrown[] | null; all: MinedCrown[] | null; crowns: MinedCrown[] | null } {
+export function useTeamCrowns(ti: number, wantAll: boolean, initial?: { page?: number | null; crowns?: TeamCrowns | null }): { active: MinedCrown[] | null; top: TeamCrowns['top'] | null; all: MinedCrown[] | null } {
   const [sets, setSets] = useState<Record<number, Partial<TeamCrowns>>>(() => (
     initial?.crowns && initial.page != null ? { [initial.page]: initial.crowns } : {}
   ));
   const have = sets[ti];
-  const missing: Scope | null = !have?.active ? 'active' : scope !== 'active' && !have.all ? 'all' : null;
+  const missing: CrownsKind | null = !have?.active ? 'active' : !have.top ? 'top' : wantAll && !have.all ? 'all' : null;
   useEffect(() => {
     if (!missing) return;
     let live = true;
-    loadCrowns(ti, missing).then((rows) => { if (live) setSets((cur) => ({ ...cur, [ti]: { ...cur[ti], [missing]: rows } })); });
+    const got = missing === 'top' ? loadTop(ti) : loadCrowns(ti, missing);
+    got.then((rows) => { if (live) setSets((cur) => ({ ...cur, [ti]: { ...cur[ti], [missing]: rows } })); });
     return () => { live = false; };
   }, [ti, missing]);
-  return { active: have?.active ?? null, all: have?.all ?? null, crowns: (scope === 'all' ? have?.all : have?.active) ?? null };
+  return { active: have?.active ?? null, top: have?.top ?? null, all: have?.all ?? null };
 }
 
 /**

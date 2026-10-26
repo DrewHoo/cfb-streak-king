@@ -8,7 +8,7 @@ import { describe, expect, test } from 'vitest';
 import type { Crown, Dir } from './types.ts';
 import { P, teams, builtEpochDay } from './model.ts';
 import { mineCrowns, mineBroken } from './crowns.ts';
-import { LIST, listCrowns, withKnobs, admits, isSimple } from './list.ts';
+import { LIST, listCrowns, withKnobs, admits, isSimple, topListed, topRuns } from './list.ts';
 import type { Knobs } from './list.ts';
 import { brokenWeeks, brokenDigest, listBroken } from './broken.ts';
 import { buildSeasons } from './seasons.ts';
@@ -126,6 +126,16 @@ describe('simple and trivia (specs/trivia.spec.md)', () => {
         const key = (c: Crown) => `${c.dir}|${c.chips.join()}|${c.len}|${c.startSe}`;
         const parts = new Set([...simple, ...trivia].map(key));
         for (const c of listCrowns(rows, undefined, LIST, 'any')) if (!c.subStreak) expect(parts.has(key(c)), `${teams[ti].id} ${words(c)}`).toBe(true);
+      }
+    }
+  }, 180_000);
+
+  test('every team: the all-time top a team page embeds lists the same rows, words, scores and flags as the whole file\'s top', () => {
+    const shown = (c: Crown) => `${words(c)}|${c.startSe}|${c.rank}|${c.score.toFixed(9)}|${c.subStreak}`;
+    for (const m of [all, active]) {
+      for (const [ti, rows] of m) {
+        const full = topListed(listCrowns(rows)).map(shown);
+        expect(topListed(listCrowns(topRuns(rows))).map(shown), teams[ti].id).toEqual(full);
       }
     }
   }, 180_000);

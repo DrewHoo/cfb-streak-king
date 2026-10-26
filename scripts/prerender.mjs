@@ -42,7 +42,7 @@ const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModul
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
 const { SIBLINGS } = await vite.ssrLoadModule('/src/lib/siblings.ts')
 const { completedWeeks, brokenClaim, everText, brokenDigest, listBroken } = await vite.ssrLoadModule('/src/lib/broken.ts')
-const { listCrowns } = await vite.ssrLoadModule('/src/lib/list.ts')
+const { listCrowns, topRuns, standingCount } = await vite.ssrLoadModule('/src/lib/list.ts')
 const { atRiskWeek } = await vite.ssrLoadModule('/src/lib/atRisk.ts')
 const { listLeaders } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
 const { scheduledGames, rankText } = await vite.ssrLoadModule('/src/lib/team.ts')
@@ -190,10 +190,13 @@ console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root
 // --- crowns: mined here, one file per team ---
 const t0 = Date.now()
 const [crownsActive, crownsAll, minedBroken] = await Promise.all([mineCrowns('active'), mineCrowns('all'), mineBroken()])
-// two files per team: the active runs (a team page embeds them, a game page fetches each side's) and the all-time ones (the Streaks switch fetches them)
+// three files per team: the active runs (a team page embeds them, a game page fetches each side's), the all-time ones (the
+// All-time section's trivia button fetches them) and the all-time top (the runs behind that section's first rows, list.ts
+// topRuns, with how many all-time trivia streaks there are: a team page embeds it, so crawlers read the section)
 const allOf = (ti) => encodeCrowns('all', crownsAll.get(ti) ?? [])
-// what a team page embeds: the active list only; the all-time list is fetched when the switch asks for it
 const activeOf = (ti) => encodeCrowns('active', crownsActive.get(ti) ?? [])
+const topCache = new Map()
+const topOf = (ti) => topCache.get(ti) ?? topCache.set(ti, { ...encodeCrowns('all', topRuns(crownsAll.get(ti) ?? [])), trivia: standingCount(listCrowns(crownsAll.get(ti) ?? [], undefined, undefined, 'trivia')) }).get(ti)
 fs.mkdirSync(path.join(ROOT, 'dist', 'crowns'), { recursive: true })
 let crownBytes = 0
 for (const ti of fbsNow) {
@@ -203,8 +206,11 @@ for (const ti of fbsNow) {
   fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.all.json`), jsonAll)
   crownBytes += json.length
   fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.json`), json)
+  const jsonTop = JSON.stringify(topOf(ti))
+  crownBytes += jsonTop.length
+  fs.writeFileSync(path.join(ROOT, 'dist', 'crowns', `${teams[ti].id}.top.json`), jsonTop)
 }
-console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} teams, two files each under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
+console.log(`mined crowns in ${Date.now() - t0}ms: ${fbsNow.size} teams, three files each under dist/crowns/, ${(crownBytes / 1e6).toFixed(2)} MB`)
 
 // --- the raw mine, for the tests: mineRaw() reads this file instead of
 // mining when STREAK_MINED names it (CI sets it for the build and the tests
@@ -577,8 +583,8 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
   const hasImage = fs.existsSync(path.join(ROOT, 'public', 'og', 'team', `${t.id}.png`))
   const { html } = page({
     // rendered from the same decoded file the page embeds, so the hydrate matches
-    initial: { page: ti, crowns: { active: decodeCrowns(activeOf(ti)).rows, all: null }, breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
-    embed: activeOf(ti),
+    initial: { page: ti, crowns: { active: decodeCrowns(activeOf(ti)).rows, top: { rows: decodeCrowns(topOf(ti)).rows, trivia: topOf(ti).trivia }, all: null }, breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
+    embed: { active: activeOf(ti), top: topOf(ti) },
     breakers: encodeBreakers(breakersSlice(breakers, ti)),
     url,
     title,

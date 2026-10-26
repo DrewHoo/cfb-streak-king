@@ -206,10 +206,12 @@ const overlap = (a: Words, b: Words) => a.endSe == null || b.endSe == null || a.
  * and `r` started first.
  */
 export function isSubStreak(r: Words, rows: readonly Words[], w = LIST): boolean {
-  return rows.some((o) => o !== r && o.dir === r.dir && subsetOf(o, r) && o.len >= r.len
-    && (r.scope !== 'all' || overlap(o, r))
-    && !(w.olderStands && r.startSe != null && o.startSe != null && r.startSe < o.startSe));
+  return rows.some((o) => flagsSub(o, r, w));
 }
+/** Whether row `o` makes `r` a sub-streak (isSubStreak's test, one pair). */
+const flagsSub = (o: Words, r: Words, w = LIST) => o !== r && o.dir === r.dir && subsetOf(o, r) && o.len >= r.len
+  && (r.scope !== 'all' || overlap(o, r))
+  && !(w.olderStands && r.startSe != null && o.startSe != null && r.startSe < o.startSe);
 /** Each row with its `subStreak` flag set against the others. */
 export const markSubStreaks = <T extends Words>(rows: T[], w = LIST): (T & { subStreak: boolean })[] => rows.map((r) => ({ ...r, subStreak: isSubStreak(r, rows, w) }));
 /** Each team's rows flagged against its own (`ti` names the team; `groupOf` narrows a team's group further, a game at a time for broken runs). */
@@ -346,6 +348,30 @@ export function listRuns<T extends MinedCrown & { ti: number }>(rows: readonly T
   const shown = rows.filter((c) => admitted(c, w)).map((c) => finish(pick(c, w), ctx, w)) as unknown as (Omit<T, 'highest'> & Omit<Crown, 'subStreak'>)[];
   const out = markSubStreaksByTeam(shown, w) as unknown as (Omit<T, 'highest'> & Crown)[];
   return partOfByTeam(out, part, w).sort(order ?? byOrder(w));
+}
+
+/** How many standing rows a team page's section shows by default. */
+export const TOP_ROWS = 5;
+/** A list's first `n` standing rows, with the sub-streaks that group under them (each one's conditions a superset of a top row's, its run no longer): what a section shows. */
+export function topListed<T extends Words & { subStreak: boolean }>(listed: readonly T[], n = TOP_ROWS): T[] {
+  const top = listed.filter((c) => !c.subStreak).slice(0, n);
+  return listed.filter((c) => (c.subStreak ? top.some((p) => p.dir === c.dir && p.len >= c.len && subsetOf(p, c)) : top.includes(c)));
+}
+/**
+ * The mined runs behind a list's top (`topListed` of the simple list): the
+ * rows a page needs to list them the same way, so the build can embed a
+ * section's rows without the whole file. Listing the slice gives the same
+ * top: a standing row has no shorter-worded run at least as long in the full
+ * list, so none in the slice; a sub-streak brings the runs that make it one
+ * (which can be older runs outside the top, ranked below it, so never shown).
+ */
+export function topRuns(list: readonly MinedCrown[], n = TOP_ROWS, ctx: RankContext = CTX, w = LIST): MinedCrown[] {
+  const key = (c: Run) => `${c.dir}|${c.len}|${c.startSe}|${c.endSe}|${c.chips.join('+')}`;
+  const listed = listCrowns(list, ctx, w);
+  const need = new Set(topListed(listed, n));
+  for (const r of need) if (r.subStreak) for (const o of listed) if (flagsSub(o, r, w)) need.add(o); // a Set iterates what it gains
+  const want = new Set([...need].map(key));
+  return list.filter((c) => admitted(c, w) && want.has(key(pick(c, w))));
 }
 
 /** `partOf` a team at a time (`groupOf` as markSubStreaksByTeam's), for rows of many teams. */

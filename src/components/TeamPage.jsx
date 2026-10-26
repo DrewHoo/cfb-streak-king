@@ -21,13 +21,12 @@ import { useTeamCrowns } from '../hooks/useCrowns.ts';
 import { track } from '../lib/analytics.ts';
 import { breakOrder, breakRows, breakSummary, listBreaks } from '../lib/breakers.ts';
 import { listBroken } from '../lib/broken.ts';
-import { listCrowns } from '../lib/list.ts';
+import { TOP_ROWS, listCrowns, standingCount, topListed } from '../lib/list.ts';
 import { useKnobs } from '../tune.ts';
 import { LedgerHead, LedgerRow, NextRow } from './TeamPanel.jsx';
 import { SkrInfo } from './BreakersPage.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 
-const STREAKS_CAP = 10;
 const BREAKS_CAP = 6;
 const OPP_CAP = 5;
 const BASE = import.meta.env.BASE_URL;
@@ -128,25 +127,58 @@ function NextCard({ ti, game, onLine, onGame }) {
   );
 }
 
-/** Beside an empty list: how many trivia streaks the team has, a button to them. */
-function TriviaCount({ rows, onOpen }) {
-  const n = rows ? rows.filter((r) => !r.subStreak).length : 0;
-  return n ? <> <button className="lnk gp-wk" onClick={onOpen}>{n.toLocaleString('en-US')} trivia {n === 1 ? 'streak' : 'streaks'} ›</button></> : null;
+/**
+ * One of a team's streak sections (All-time, Active): its first simple rows
+ * and nothing past them, then a button that opens the section's trivia
+ * streaks in place, a page at a time. `rows` and `trivia` are null while
+ * they load; `count` is how many trivia streaks there are (0 hides the button).
+ */
+function StreakSection({ title, note, rows, empty, loading, trivia, count, open, onTrivia, keyOf, render }) {
+  return (
+    <>
+      <h2>{title}</h2>
+      <p className="tpg-note">{note}</p>
+      <div className="tpg-streaks">
+        {rows === null && <p className="empty">{loading}</p>}
+        {rows !== null && rows.length === 0 && <p className="empty">{empty}</p>}
+        {rows !== null && <Tellings rows={rows} cap={TOP_ROWS} keyOf={keyOf} render={render} />}
+        {count > 0 && (
+          <div className="trivia-fold">
+            <button className="morebtn trivia-btn" onClick={onTrivia} aria-expanded={open}>
+              {open ? 'hide the trivia streaks' : `and ${count.toLocaleString('en-US')} trivia ${count === 1 ? 'streak' : 'streaks'}`}
+            </button>
+            {open && (
+              <div className="trivia-rows">
+                {trivia === null ? <p className="empty">finding the trivia streaks…</p> : <Tellings rows={trivia} cap={TOP_ROWS} keyOf={keyOf} render={render} />}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
 }
 
 export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copied, on, nav }) {
   const t = teams[ti];
-  // the streaks the team leads its field with: active (the default), all-time, or the trivia ones of both (list.ts Part)
-  const [scope, setScope] = useState('active');
-  const raw = useTeamCrowns(ti, scope, initial);
+  // which sections have their trivia streaks open, by team and scope ("12|all")
+  const [opened, setOpened] = useState(() => new Set());
+  const isOpen = (scope) => opened.has(`${ti}|${scope}`);
+  const toggleTrivia = (scope) => {
+    const k = `${ti}|${scope}`;
+    if (!opened.has(k)) track('team trivia', { scope });
+    setOpened((cur) => { const next = new Set(cur); if (next.has(k)) next.delete(k); else next.add(k); return next; });
+  };
+  // the active file and the all-time top arrive with the page; the all-time file loads when its trivia opens
+  const raw = useTeamCrowns(ti, isOpen('all'), initial);
   // the list rule over the team's files, under the knobs in force (the shipped ones, or the tuner's)
   const knobs = useKnobs();
   const crowns = useMemo(() => ({
     active: raw.active && listCrowns(raw.active, undefined, knobs),
     activeTrivia: raw.active && listCrowns(raw.active, undefined, knobs, 'trivia'),
-    all: raw.all && listCrowns(raw.all, undefined, knobs),
+    top: raw.top && listCrowns(raw.top.rows, undefined, knobs),
     allTrivia: raw.all && listCrowns(raw.all, undefined, knobs, 'trivia'),
-  }), [raw.active, raw.all, knobs]);
+  }), [raw.active, raw.top, raw.all, knobs]);
   // the streaks the team broke this season (breakers.ts), the all-time longest first; opened from the breakers page, the section scrolls into view
   const breaks = useMemo(() => (breakers ? breakRows(listBreaks(breakers.teams.get(ti) ?? [], undefined, knobs)) : null), [breakers, ti, knobs]);
   // the trivia ones count for nothing on the breakers board; one folded line here
@@ -157,22 +189,20 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
   const scrolledTo = useRef(null);
   // once the streaks above it have loaded too, so the section doesn't move after the scroll
   useEffect(() => {
-    if (focus !== 'breaks' || !breaks || crowns.active === null || scrolledTo.current === ti) return;
+    if (focus !== 'breaks' || !breaks || crowns.active === null || crowns.top === null || scrolledTo.current === ti) return;
     scrolledTo.current = ti;
     breaksRef.current?.scrollIntoView({ block: 'start' });
-  }, [focus, breaks, crowns.active, ti]);
+  }, [focus, breaks, crowns.active, crowns.top, ti]);
   const r = seasonRecord(ti);
   const rank = apRank(ti, todayEp);
   const next = nextGameOf(ti, todayEp);
+  // every simple active streak (what the next game puts on the line); the section shows the first few
   const streaks = useMemo(() => teamStreaks(ti, todayEp, crowns.active), [ti, todayEp, crowns.active]);
+  const activeTop = useMemo(() => (crowns.active ? topListed(streaks) : null), [crowns.active, streaks]);
+  const activeTrivia = useMemo(() => (crowns.activeTrivia ? teamStreaks(ti, todayEp, crowns.activeTrivia) : null), [ti, todayEp, crowns.activeTrivia]);
   // all-time: the runs it holds the record for, live or ended
-  const records = useMemo(() => (crowns.all ? crowns.all.map((c) => ({ ...c, since: c.startSe })) : null), [crowns.all]);
-  // trivia: both files' trivia rows in one list, each marked with its scope
-  const trivia = useMemo(() => (crowns.activeTrivia && crowns.allTrivia
-    ? [...teamStreaks(ti, todayEp, crowns.activeTrivia), ...crowns.allTrivia.map((c) => ({ ...c, since: c.startSe }))].sort((a, b) => b.score - a.score || b.len - a.len)
-    : null), [ti, todayEp, crowns.activeTrivia, crowns.allTrivia]);
-  const triviaOf = { active: crowns.activeTrivia, all: crowns.allTrivia };
-  const pickScope = (s) => { setScope(s); track('team streaks scope', { scope: s }); };
+  const records = useMemo(() => (crowns.top ? topListed(crowns.top).map((c) => ({ ...c, since: c.startSe })) : null), [crowns.top]);
+  const allTrivia = useMemo(() => (crowns.allTrivia ? crowns.allTrivia.map((c) => ({ ...c, since: c.startSe })) : null), [crowns.allTrivia]);
   const played = gamesOf(ti).filter((g) => g.se === P.currentSeason);
   const ahead = upcomingOf(ti);
   const meta = [confOf(ti, P.currentSeason), coachLine(ti)].filter(Boolean).join(' · ');
@@ -202,49 +232,29 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
 
       {next && <NextCard ti={ti} game={next} onLine={streaksOn(streaks, next).length} onGame={on.game} />}
 
-      {(played.length > 0 || ahead.length > 0) && (
-        <>
-          <h2>{P.currentSeason} schedule</h2>
-          <div className="ledger tpg-sched">
-            <LedgerHead />
-            {played.map((g) => <LedgerRow key={g.i} ti={ti} g={g} onGame={on.game} />)}
-            {ahead.map((g) => <NextRow key={g.i} ti={ti} g={g} onGame={on.game} />)}
-          </div>
-        </>
-      )}
-
-      <h2 className="tpg-h2-tabs">
-        Streaks
-        <span className="tpg-tabs" role="group" aria-label="Active, all-time or trivia streaks">
-          <button className={'pill' + (scope === 'active' ? ' on' : '')} aria-pressed={scope === 'active'} onClick={() => pickScope('active')}>active</button>
-          <button className={'pill' + (scope === 'all' ? ' on' : '')} aria-pressed={scope === 'all'} onClick={() => pickScope('all')}>all-time</button>
-          <button className={'pill' + (scope === 'trivia' ? ' on' : '')} aria-pressed={scope === 'trivia'} onClick={() => pickScope('trivia')}>trivia</button>
-        </span>
-      </h2>
-      <p className="tpg-note">
-        {scope === 'active'
-          ? <>Every definition of one or two conditions under which {t.name}’s current run is the longest active one, the ones furthest past chance first.</>
-          : scope === 'all'
-            ? <>Every definition of one or two conditions under which a run of {t.name}’s is the longest ever, the ones furthest past chance first.</>
-            : <>The rest, active and all-time: definitions of three or four conditions, or with a trivia condition (a full moon, a weekday, the halftime score, the clock).</>}
-      </p>
-      <div className="tpg-streaks">
-        {(scope === 'active' ? crowns.active : scope === 'all' ? records : trivia) === null && <p className="empty">finding every streak {t.name} leads…</p>}
-        {scope === 'active' && crowns.active !== null && streaks.length === 0 && <p className="empty">{t.name} doesn’t have the longest active streak under any simple definition.<TriviaCount rows={triviaOf.active} onOpen={() => pickScope('trivia')} /></p>}
-        {scope === 'all' && records !== null && records.length === 0 && <p className="empty">{t.name} doesn’t hold an all-time longest streak under any simple definition.<TriviaCount rows={triviaOf.all} onOpen={() => pickScope('trivia')} /></p>}
-        {scope === 'trivia' && trivia !== null && trivia.length === 0 && <p className="empty">{t.name} doesn’t lead under any trivia definition either.</p>}
-        {scope === 'active' && <Tellings rows={streaks} cap={STREAKS_CAP} keyOf={(s) => s.dir + s.chips.join()} render={(s) => <StreakRow s={s} next onClick={() => on.streak(s, ti)} />} />}
-        {scope === 'all' && records && <Tellings rows={records} cap={STREAKS_CAP} keyOf={(s) => `${s.dir}${s.chips.join()}|${s.startSe}`} render={(s) => (
-          <StreakRow s={s} tag={s.live ? 'still going' : `ended ${s.endSe}`} onClick={() => on.streak(s, ti)} />
-        )} />}
-        {scope === 'trivia' && trivia && <Tellings rows={trivia} cap={STREAKS_CAP} keyOf={(s) => `${s.scope}|${s.dir}${s.chips.join()}|${s.startSe}`} render={(s) => (
-          s.scope === 'active'
-            ? <StreakRow s={s} next tag="active" onClick={() => on.streak(s, ti)} />
-            : <StreakRow s={s} tag={`all-time · ${s.live ? 'still going' : `ended ${s.endSe}`}`} onClick={() => on.streak(s, ti)} />
-        )} />}
-      </div>
-
       <ByOpponent ti={ti} todayEp={todayEp} on={on} />
+
+      <StreakSection
+        title="All-time streaks"
+        note={<>The definitions of one or two conditions under which a run of {t.name}’s is the longest ever, the ones furthest past chance first.</>}
+        rows={records} loading={`finding the streaks ${t.name} holds…`}
+        empty={`${t.name} doesn’t hold an all-time longest streak under any simple definition.`}
+        trivia={allTrivia} count={allTrivia ? standingCount(allTrivia) : raw.top?.trivia ?? 0}
+        open={isOpen('all')} onTrivia={() => toggleTrivia('all')}
+        keyOf={(s) => `${s.dir}${s.chips.join()}|${s.startSe}`}
+        render={(s) => <StreakRow s={s} tag={s.live ? 'still going' : `ended ${s.endSe}`} onClick={() => on.streak(s, ti)} />}
+      />
+
+      <StreakSection
+        title="Active streaks"
+        note={<>The definitions of one or two conditions under which {t.name}’s current run is the longest active one, the ones furthest past chance first.</>}
+        rows={activeTop} loading={`finding every streak ${t.name} leads…`}
+        empty={`${t.name} doesn’t have the longest active streak under any simple definition.`}
+        trivia={activeTrivia} count={activeTrivia ? standingCount(activeTrivia) : 0}
+        open={isOpen('active')} onTrivia={() => toggleTrivia('active')}
+        keyOf={(s) => s.dir + s.chips.join()}
+        render={(s) => <StreakRow s={s} next onClick={() => on.streak(s, ti)} />}
+      />
 
       <h2 ref={breaksRef}>Streaks broken this season</h2>
       <p className="tpg-note bkr-note">
@@ -263,6 +273,16 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
         )} />}
       </div>
 
+      {(played.length > 0 || ahead.length > 0) && (
+        <>
+          <h2>{P.currentSeason} schedule</h2>
+          <div className="ledger tpg-sched">
+            <LedgerHead />
+            {played.map((g) => <LedgerRow key={g.i} ti={ti} g={g} onGame={on.game} />)}
+            {ahead.map((g) => <NextRow key={g.i} ti={ti} g={g} onGame={on.game} />)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
