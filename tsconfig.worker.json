@@ -7,5 +7,7 @@
     "lib": ["ES2023"],
     "types": ["@cloudflare/workers-types"]
   },
-  "include": ["workers/share/**/*.ts"]
+  "include": ["workers/share/**/*.ts"],
+  // the worker's tests run in Node under vitest, not in the Workers runtime
+  "exclude": ["workers/share/**/*.test.ts"]
 }
