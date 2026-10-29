@@ -6,24 +6,26 @@ import { P, teams, fbsNow, gamesOf } from './model.ts';
 import { qualifies } from './chips.ts';
 import { minedChipByKey, refsOf } from './minedChips.ts';
 import { matches, decided } from './streaks.ts';
-import { LEN_FLOOR, SHEET_DIRS } from './team.ts';
+import { LEN_FLOOR, SHEET_DIRS, scheduledGames } from './team.ts';
 
 // the module's week grid: Tuesday through Monday, 1970-01-06 a Tuesday
 const weekIdx = (ep: number) => Math.floor((ep - 5) / 7);
 
 const weeks = brokenWeeks(await mineBroken());
-const lastWk = completedWeeks().at(-1)?.wk ?? null;
+// the last finished week: midweek results put the running week on the list before it has much to break
+const running = scheduledGames()[0]?.wk;
+const lastWk = completedWeeks().filter((w) => w.wk !== running).at(-1)?.wk ?? null;
 // the last week's digest as the page shows it: the list rule over the build's rows
 const broken = lastWk == null || !weeks.get(lastWk) ? null : brokenDigest(weeks.get(lastWk)!);
 const allRows = broken ? [...broken.list, ...broken.more] : [];
 
 describe('brokenWeeks', () => {
-  test('the last week covers the last completed week: current-season games, all in one Tuesday–Monday span', () => {
+  test('the last week covers the last completed game, and the last finished week is current-season games in one Tuesday–Monday span', () => {
     if (!broken) return; // a preseason payload has no completed week
     const se = P.games.se;
     const last = P.games.ep[se.length - 1];
     expect(se[se.length - 1]).toBe(P.currentSeason);
-    expect(broken.hi).toBe(last);
+    expect(weeks.get(completedWeeks().at(-1)!.wk!)!.hi).toBe(last);
     expect(weekIdx(broken.lo)).toBe(weekIdx(broken.hi));
     expect(allRows.length).toBeGreaterThan(0);
     for (const b of allRows) {

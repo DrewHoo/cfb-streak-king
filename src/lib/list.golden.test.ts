@@ -11,6 +11,7 @@ import { mineCrowns, mineBroken } from './crowns.ts';
 import { LIST, listCrowns, withKnobs, admits, isSimple, simpleRuns } from './list.ts';
 import type { Knobs } from './list.ts';
 import { brokenWeeks, brokenDigest, listBroken } from './broken.ts';
+import type { BrokenWeekRows } from './broken.ts';
 import { buildSeasons } from './seasons.ts';
 import { atRiskRows, atRiskWeek } from './atRisk.ts';
 import { scheduledGames } from './team.ts';
@@ -18,6 +19,9 @@ import { keyOf, keyString } from './game.ts';
 import { breakersFromSeason, listBreaks, breakRows, breakRanking } from './breakers.ts';
 import { listLeaders } from './seasonFile.ts';
 import { baseDir, isMargin } from './outcome.ts';
+
+// the last finished week: midweek results put the running week on the list before it has much to break
+const lastFinished = (weeks: Map<number, BrokenWeekRows>) => [...weeks.values()].filter((w) => w.wk !== scheduledGames()[0]?.wk).at(-1);
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const [active, all, mined] = await Promise.all([mineCrowns('active'), mineCrowns('all'), mineBroken()]);
@@ -151,7 +155,7 @@ describe('simple and trivia (specs/trivia.spec.md)', () => {
   });
 
   test('a game\'s rows nest in its week\'s digest, part by part: every simple row is in the simple digest, every trivia row in its trivia line', () => {
-    const last = [...weeks.values()].at(-1);
+    const last = lastFinished(weeks);
     if (!last || !season) return;
     const d = brokenDigest(last);
     const id = (b: { ti: number; dir: string; len: number; run: number; chips: string[] }) => `${b.ti}|${b.dir}|${b.len}|${b.run}|${b.chips.join()}`;
@@ -191,7 +195,7 @@ describe('every view nests in the rule', () => {
   });
 
   test.each(KNOBS)('a week’s broken digest, under %s: each row is on its game’s page with the same words, score and flag', (_n, w) => {
-    const last = [...weeks.values()].at(-1);
+    const last = lastFinished(weeks);
     if (!last || !season) return;
     const d = brokenDigest(last, undefined, w);
     expect(d.list.length).toBeGreaterThan(0);
