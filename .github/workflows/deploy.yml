@@ -8,9 +8,18 @@ on:
   # morning so the at-risk page and its post draft from that morning's lines,
   # and Friday after MACtion. build-current.mjs fetches the current schedules
   # and AP poll and layers them onto the committed payload base.
+  # December and January build every morning instead, at the Thursday hour:
+  # bowls are played most days from mid-December, and the playoff's title game
+  # is a Monday in January. About 17 CFBD calls a run, so a daily month is
+  # about 530 of the key's 1,000. Rivalry week, conference title weekend and
+  # Army-Navy are Friday and Saturday games, which the Sunday run already has.
+  # (Cron reads a day of the month and a day of the week as either one, so the
+  # weekly runs are limited by month and the daily ones by date.)
   schedule:
-    - cron: '0 14 * * 0,5'
-    - cron: '0 13 * * 4'
+    - cron: '0 14 * 2-11 0,5'
+    - cron: '0 13 * 2-11 4'
+    - cron: '0 13 * 12 *'
+    - cron: '0 13 1-27 1 *'
 
 permissions:
   contents: read

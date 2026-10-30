@@ -24,6 +24,6 @@ survive the feed: `/cfb-streak-king/games/at-risk/`, `/cfb-streak-king/game/2026
 `/cfb-streak-king/team/alabama/`, `/cfb-streak-king/longest-home-win-streaks/`.
 
 Cadence: the Thursday post is the week's at-risk streaks, drafted after the Thursday rebuild
-(`deploy.yml` builds Thursday 13:00 UTC, so the lines are that morning's); the Sunday post is what
+(`deploy.yml` builds Thursday 13:00 UTC, every day at that hour in December and January, so the lines are that morning's); the Sunday post is what
 the week's results broke, after the Sunday rebuild. `/games/at-risk/` and `/games/week/<n>/`
 hold the rows; the post is the prose over them.
