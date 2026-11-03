@@ -2,7 +2,8 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { P, teams, firstSeason, activeBoard, allTimeBoard, asBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
-import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
+import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, seriesUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
+import { seriesH1 } from './lib/seriesWords.ts';
 import { landingBySlug, leadSentence, leadRows } from './lib/landing.ts';
 import { asPageDir, asH1, asLead, asDescription } from './lib/asTeam.ts';
 import { viewReducer, initialView, isOpen, columnOf } from './lib/view.ts';
@@ -27,6 +28,7 @@ import { TeamPanel } from './components/TeamPanel.jsx';
 import { TeamPage } from './components/TeamPage.jsx';
 import { GamesPage, defaultWeek } from './components/GamesPage.jsx';
 import { GamePage } from './components/GamePage.jsx';
+import { SeriesPage } from './components/SeriesPage.jsx';
 import { Starred } from './components/Starred.jsx';
 import { Landings } from './components/Landings.jsx';
 import { Notes, KOFI_URL } from './components/Notes.jsx';
@@ -42,14 +44,15 @@ const BASE = import.meta.env.BASE_URL;
 // that game with its season's rows; /games/ starts on the schedule, and
 // /games/week/<n>/ on that week; a landing page (/<slug>/, `landing`) on
 // that named definition's board; a by-opponent page (`as`, `asDir`) on that
-// team's all-time board by opponent.
+// team's all-time board by opponent; a series page (`series`: { ti, oi }) on
+// that series.
 export default function App({ initial } = {}) {
   const [view, dispatch] = useReducer(viewReducer, initial, (i) => {
     const l = i?.landing ? landingBySlug.get(i.landing) : null;
-    const def = l ? landingView(l) : i?.as != null ? { as: i.as, dir: i.asDir ?? 'L', scope: 'all', active: [] } : {};
+    const def = l ? landingView(l) : i?.as != null ? { as: i.as, dir: i.asDir ?? 'L', scope: 'all', active: [] } : i?.series ? { series: i.series.ti, seriesOpp: i.series.oi } : {};
     return initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null, def);
   });
-  const { active, dir, scope, week, team, as, run, limit, page, game, games, bwk, season, risk, breakers, breaker } = view;
+  const { active, dir, scope, week, team, as, run, limit, page, game, games, bwk, season, risk, breakers, breaker, series, seriesOpp } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -115,14 +118,14 @@ export default function App({ initial } = {}) {
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.breakers !== breakers || was.breaker !== breaker);
+    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.breakers !== breakers || was.breaker !== breaker || was.series !== series || was.seriesOpp !== seriesOpp);
     const opened = !!was && (page == null && game == null && team != null && was.team == null);
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
     if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
-    if (page == null && game == null && !games) track('definition', { chips: encodeChips(active) || 'overall', dir, scope, ...(as != null ? { as: teams[as].id } : {}) });
+    if (page == null && game == null && !games && series == null) track('definition', { chips: encodeChips(active) || 'overall', dir, scope, ...(as != null ? { as: teams[as].id } : {}) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, as, run, page, game, games, bwk, season, risk, breakers, breaker, hydrated]);
+  }, [active, dir, scope, week, team, as, run, page, game, games, bwk, season, risk, breakers, breaker, series, seriesOpp, hydrated]);
 
   // Closing a panel: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -200,6 +203,15 @@ export default function App({ initial } = {}) {
   function shareBreakers() {
     track('share', { breakers: true, season: breakSeason });
     share(`Top Streak-Breakers: the college football teams that broke the most streaks ${seasonWord(breakSeason)}`, absoluteUrl(BASE, breakersUrl(null, breakSeason)));
+  }
+  // a series, from one team's side
+  function openSeries(ti, oi, from) {
+    track('series', { team: teams[ti].id, opp: teams[oi].id, from });
+    dispatch({ type: 'series', team: ti, opp: oi });
+  }
+  function shareSeries(ti, oi) {
+    track('share', { series: true, team: teams[ti].id, opp: teams[oi].id });
+    share(seriesH1(teams[ti].name, teams[oi].name), absoluteUrl(BASE, seriesUrl(ti, oi)));
   }
   // a game's page, from a row that describes it from one team's side
   function openGame(ti, g, from) {
@@ -289,7 +301,20 @@ export default function App({ initial } = {}) {
             streak: (s, ti) => openStreak(s, ti, 'team page'),
             allTime: (b) => openAllTime(b, 'team page all-time'),
             as: (ti, d, row) => openAs(ti, d, row, 'team page'),
+            series: (ti, oi) => openSeries(ti, oi, 'team page'),
             share: shareTeam,
+          }}
+          nav={nav}
+        />
+      ) : series != null ? (
+        <SeriesPage
+          ti={series} oi={seriesOpp} todayEp={todayEp} isMobile={isMobile} copied={copied}
+          on={{
+            team: (ti) => openTeam(ti, 'series'),
+            game: (ti, g) => openGame(ti, g, 'series'),
+            series: (ti, oi) => openSeries(ti, oi, 'series'),
+            as: (ti, d) => openAs(ti, d, null, 'series'),
+            share: shareSeries,
           }}
           nav={nav}
         />

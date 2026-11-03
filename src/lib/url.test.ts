@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { P, teams, fbsNow, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, asUrl, hrefOf, landingFromPath, landingOf } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, asUrl, seriesUrl, hrefOf, landingFromPath, landingOf } from './url.ts';
 import type { View } from './url.ts';
 import { LANDINGS } from './landing.ts';
 
@@ -200,3 +200,19 @@ describe('url: the by-opponent board ("as [team]", asTeam.ts)', () => {
     expect(parseUrl('/cfb-streak-king/', '?as=auburn&t=' + teams.find((t) => t.name === 'Chattanooga')!.id)).toMatchObject({ as: auburn, team: teams.findIndex((t) => t.name === 'Chattanooga') });
   });
 });
+
+describe('url: a series (series.ts)', () => {
+  test('/team/<id>/vs/<opp>/ is the series from that side, for two teams with a page', () => {
+    const al = idx('alabama'), ut = idx('tennessee');
+    expect(seriesUrl(al, ut)).toMatchObject({ path: 'team/alabama/vs/tennessee/', params: { t: null, c: null } });
+    expect(parseUrl('/cfb-streak-king/team/alabama/vs/tennessee/', '')).toMatchObject({ series: al, seriesOpp: ut, page: null, game: null, as: null, team: null });
+    expect(parseUrl('/cfb-streak-king/team/tennessee/vs/alabama/', '')).toMatchObject({ series: ut, seriesOpp: al });
+    expect(teamFromPath('/cfb-streak-king/team/alabama/vs/tennessee/')).toBeNull();
+    expect(landingFromPath('/cfb-streak-king/team/alabama/vs/tennessee/')).toBeNull();
+    // two teams that haven't met often enough have no page, and the address isn't the board's either
+    expect(parseUrl('/cfb-streak-king/team/alabama/vs/hawaii/', '')).toMatchObject({ series: null, seriesOpp: null, as: null });
+    // the board's own params don't ride on a series
+    expect(toUrl({ ...DEFAULT_VIEW, series: al, seriesOpp: ut, team: al }).params.t).toBeNull();
+  });
+});
+

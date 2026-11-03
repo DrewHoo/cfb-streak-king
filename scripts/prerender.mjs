@@ -37,6 +37,8 @@ const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
 const { P, teams, fbsNow, allTimeBoard, asBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { AS_SLUGS, asPath, asH1, asTitle, asDescription, asLead } = await vite.ssrLoadModule('/src/lib/asTeam.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
+const { seriesOf, seriesOpponents, SERIES_MIN } = await vite.ssrLoadModule('/src/lib/series.ts')
+const { seriesPath, seriesH1, seriesTitle, seriesLead, seriesDescription } = await vite.ssrLoadModule('/src/lib/seriesWords.ts')
 const { claim } = await vite.ssrLoadModule('/src/lib/sentence.ts')
 const { mineRaw, mineCrowns, mineBroken, encodeMined } = await vite.ssrLoadModule('/src/lib/crowns.ts')
 const { encodeCrowns, decodeCrowns } = await vite.ssrLoadModule('/src/lib/crownsFile.ts')
@@ -653,6 +655,45 @@ const llmsAs = [] // each team's two pages and their lead sentences, for llms.tx
   console.log(`prerendered ${n} by-opponent pages under dist/team/<id>/`)
 }
 
+// --- a page per series (series.ts), from each side: two FBS teams that have
+// met SERIES_MIN times, "Alabama vs Tennessee all-time record", the record
+// from the first meeting jhowell.net has. The card is the worker's series card ---
+const llmsSeries = [] // each series once, from the side that leads it, for llms.txt below
+{
+  let n = 0
+  for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
+    for (const { oi } of seriesOpponents(ti)) {
+      const s = seriesOf(ti, oi)
+      const t = teams[ti], o = teams[oi]
+      const url = `${SITE}${seriesPath(t.id, o.id)}`
+      const lead = seriesLead(t.name, o.name, s.rec, s.since, s.now, s.games[s.games.length - 1])
+      const h1 = seriesH1(t.name, o.name)
+      const title = `${seriesTitle(t.name, o.name, s.rec, s.since)} · ${config.title}`
+      const description = seriesDescription(lead, t.name, o.name)
+      const { html } = page({
+        initial: { series: { ti, oi } },
+        url, title, description,
+        image: `${SITE}share/og.png?series=${t.id}&amp;vs=${o.id}`,
+        imageAlt: `${h1}: ${t.name} and ${o.name}'s record, and their last ten games, on a dark board.`,
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@graph': [
+            webPage(url, title, description),
+            breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], [t.name, `${SITE}team/${t.id}/`], [h1, url]]),
+          ],
+        },
+      })
+      const dir_ = path.join(ROOT, 'dist', seriesPath(t.id, o.id))
+      fs.mkdirSync(dir_, { recursive: true })
+      fs.writeFileSync(path.join(dir_, 'index.html'), html)
+      urls.push(url)
+      if (s.rec[0] > s.rec[1] || (s.rec[0] === s.rec[1] && t.name < o.name)) llmsSeries.push({ h1, url, lead })
+      n++
+    }
+  }
+  console.log(`prerendered ${n} series pages under dist/team/<id>/vs/`)
+}
+
 // --- the named definition pages (landing.ts): the board on each, at its
 // own path, titled the way people search for it; its card is the worker's
 // board card for the definition ---
@@ -920,6 +961,12 @@ Two pages per team: who has beaten it the most times in a row (every opponent's 
 
 ${llmsAs.map((t) => `- ${t.name}: [${t.L.h1}](${t.L.url})${t.L.lead ? ` ${t.L.lead}` : ''} [${t.W.h1}](${t.W.url})${t.W.lead ? ` ${t.W.lead}` : ''}`).join('\n')}
 
+## Series (every pair of FBS teams that has met ${SERIES_MIN} times or more)
+
+Each series has a page from each side at ${SITE}team/<team>/vs/<opponent>/, with every game; one line each here, from the side that leads. The record is the scores as played, from the first meeting the ledger has (jhowell.net's team pages before 1936).
+
+${llmsSeries.map((x) => `- [${x.h1}](${x.url}): ${x.lead}`).join('\n')}
+
 ## This season
 
 - [This week's games](${SITE}games/): the week's FBS games, each with the streaks it puts on the line; a played week lists the streaks its results broke.
@@ -940,6 +987,6 @@ ${SIBLINGS.map((s) => `- [${s.name}](${s.url})${s.links ? ':' : ' —'} ${s.word
 - [Past seasons](${SITE}games/2025/): every week of every season since 1936 at ${SITE}games/<season>/week/<n>/, with the streaks each week's results broke.
 `
   fs.writeFileSync(path.join(ROOT, 'dist', 'llms.txt'), txt)
-  console.log(`llms.txt: ${llmsBoards.length} definition pages, ${llmsAs.length} teams' by-opponent pages`)
+  console.log(`llms.txt: ${llmsBoards.length} definition pages, ${llmsAs.length} teams' by-opponent pages, ${llmsSeries.length} series`)
 }
 await vite.close()

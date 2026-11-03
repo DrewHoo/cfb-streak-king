@@ -8,7 +8,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams, confOf, gamesOf, upcomingOf, asBoard, windowStartOf } from '../lib/model.ts';
 import { asH1, asLead } from '../lib/asTeam.ts';
 import { leadRows } from '../lib/landing.ts';
-import { asUrl, hrefOf } from '../lib/url.ts';
+import { asUrl, hrefOf, seriesUrl } from '../lib/url.ts';
+import { seriesOpponents, seriesOf, SERIES_MIN } from '../lib/series.ts';
+import { recText } from '../lib/seriesWords.ts';
 import { yearOf } from '../lib/format.ts';
 import { seasonRecord, recordText, atsText, apRank, nextGameOf, teamStreaks, streaksOn } from '../lib/team.ts';
 import { dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
@@ -95,6 +97,31 @@ function ByOpponent({ ti, todayEp, on }) {
           {W.rows.length > OPP_CAP && <>{link('W', `all ${W.rows.length} opponents ›`)} · </>}
           {link('L', `${asH1(t.name, 'L')} ›`)}
         </p>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Its all-time series: every FBS opponent it has played SERIES_MIN times,
+ * most meetings first, the record and a link to the series page, the
+ * "Alabama vs Tennessee all-time record" people search for.
+ */
+function AllSeries({ ti, on }) {
+  const rows = useMemo(() => seriesOpponents(ti).map(({ oi }) => ({ oi, s: seriesOf(ti, oi) })), [ti]);
+  if (!rows.length) return null;
+  return (
+    <>
+      <h2>All-time series <span>{rows.length}</span></h2>
+      <p className="tpg-note">Every FBS opponent {teams[ti].name} has played {SERIES_MIN} times or more, most meetings first.</p>
+      <div className="tpg-series">
+        {rows.map(({ oi, s }) => (
+          <a key={oi} className="tpg-ser" href={hrefOf(BASE, seriesUrl(ti, oi))} onClick={(e) => { e.preventDefault(); on.series(ti, oi); }}>
+            {teams[oi].espn ? <TeamMark ti={oi} className="srow-mark" hidden /> : <b className="srow-mark gm-ini">{teams[oi].name[0]}</b>}
+            <span>vs {teams[oi].name}</span>
+            <b className={s.rec[0] > s.rec[1] ? 'w' : s.rec[0] < s.rec[1] ? 'l' : undefined}>{recText(s.rec)}</b>
+          </a>
+        ))}
       </div>
     </>
   );
@@ -242,6 +269,8 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
       {next && <NextCard ti={ti} game={next} onLine={streaksOn(streaks, next).length} onGame={on.game} />}
 
       <ByOpponent ti={ti} todayEp={todayEp} on={on} />
+
+      <AllSeries ti={ti} on={on} />
 
       <StreakSection
         title="All-time streaks" scope="all-time"

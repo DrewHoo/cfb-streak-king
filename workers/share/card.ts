@@ -116,3 +116,64 @@ export function renderCard(card: Card): Response {
     ],
   });
 }
+
+export interface SeriesCard {
+  /** "Alabama", "Tennessee": the side the record is read from first. */
+  name: string;
+  opp: string;
+  logo: string | null;
+  oppLogo: string | null;
+  /** "61-40-7" */
+  record: string;
+  /** "ALABAMA'S RECORD SINCE 1903 · 108 GAMES" */
+  sub: string;
+  /** the lead's second sentence: who won the last one */
+  words: string;
+  /** the last ten meetings, oldest first, from the first side */
+  last: { r: 'W' | 'L' | 'T'; year: number }[];
+  footer: string;
+}
+
+/** A series card: both marks, the record in Graduate numbers, the last ten meetings as the board's squares. */
+export function renderSeriesCard(c: SeriesCard): Response {
+  const mark = (src: string | null, name: string) => (src
+    ? `<img src="${src}" width="84" height="84" />`
+    : `<div style="display:flex; justify-content:center; align-items:center; width:84px; height:84px; font-family:'Graduate'; font-size:40px; color:${MUTED};">${esc(name[0] ?? '?')}</div>`);
+  const square = (g: { r: string; year: number }) => {
+    const box = g.r === 'W' ? `background-color:${CREAM};` : g.r === 'L' ? `background-color:#322a30; border:1px solid ${LINE};` : `border:1px dashed ${FAINT};`;
+    return `<div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+      <div style="display:flex; justify-content:center; align-items:center; width:56px; height:56px; border-radius:4px; ${box} font-family:'Graduate'; font-size:22px; color:${g.r === 'W' ? '#241d12' : MUTED};">${g.r}</div>
+      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:12px; color:${FAINT};">${g.year}</div>
+    </div>`;
+  };
+  const html = `
+  <div style="display:flex; flex-direction:column; align-items:center; width:1200px; height:630px; background-color:${BG}; padding:40px 0 32px;
+              background-image: radial-gradient(circle at 600px -126px, rgba(243,226,188,0.13) 0%, rgba(243,226,188,0) 65%);">
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; letter-spacing:4px; color:${RUST};">COLLEGE FOOTBALL STREAK KING · ALL-TIME SERIES</div>
+    <div style="display:flex; flex-direction:row; align-items:center; justify-content:center; gap:28px; margin-top:22px; width:720px;">
+      ${mark(c.logo, c.name)}
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div style="display:flex; font-family:'Graduate'; font-size:96px; line-height:1; color:${CREAM};">${esc(c.record)}</div>
+        <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${MUTED}; margin-top:10px; white-space:nowrap;">${esc(c.sub.toUpperCase())}</div>
+      </div>
+      ${mark(c.oppLogo, c.opp)}
+    </div>
+    <div style="display:flex; font-family:'Source Serif 4'; font-size:24px; color:${INK}; margin-top:18px; max-width:720px; text-align:center;">${esc(c.words)}</div>
+    <div style="display:flex; flex-direction:column; align-items:center; flex-grow:1; justify-content:center;">
+      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:3px; color:${FAINT}; margin-bottom:10px;">THE LAST ${c.last.length} · ${esc(c.name.toUpperCase())}'S SIDE</div>
+      <div style="display:flex; flex-direction:row; gap:10px;">${c.last.map(square).join('')}</div>
+    </div>
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${FAINT};">${esc(c.footer.toUpperCase())}</div>
+  </div>`;
+  return new ImageResponse(html, {
+    width: 1200,
+    height: 630,
+    fonts: [
+      { name: 'Graduate', data: graduate as ArrayBuffer, weight: 400, style: 'normal' },
+      { name: 'IBM Plex Mono', data: mono as ArrayBuffer, weight: 400, style: 'normal' },
+      { name: 'IBM Plex Mono', data: monoBold as ArrayBuffer, weight: 600, style: 'normal' },
+      { name: 'Source Serif 4', data: serif as ArrayBuffer, weight: 400, style: 'normal' },
+    ],
+  });
+}
+

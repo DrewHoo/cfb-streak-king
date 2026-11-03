@@ -168,3 +168,17 @@ describe('view: the by-opponent board ("as [team]")', () => {
     expect(viewReducer(v, { type: 'streak', chips: ['home'], dir: 'W', scope: 'active', team: 1 }).as).toBeNull();
   });
 });
+
+describe('view: a series', () => {
+  test('opens in place of whatever is showing, and any other page closes it; loading one keeps the board in memory', () => {
+    const board = { ...initialView(), active: [{ key: 'road' }] };
+    const open = viewReducer({ ...board, page: 3 }, { type: 'series', team: 1, opp: 2 });
+    expect(open).toMatchObject({ series: 1, seriesOpp: 2, page: null, game: null, games: false, breakers: false, active: [{ key: 'road' }] });
+    expect(viewReducer(open, { type: 'page', team: 2 })).toMatchObject({ page: 2, series: null, seriesOpp: null });
+    expect(viewReducer(open, { type: 'board' })).toMatchObject({ series: null, seriesOpp: null });
+    expect(viewReducer(open, { type: 'games' })).toMatchObject({ games: true, series: null });
+    const loaded = viewReducer(board, { type: 'load', view: { ...initialView(), series: 1, seriesOpp: 2 } });
+    expect(loaded).toMatchObject({ series: 1, seriesOpp: 2, active: [{ key: 'road' }] });
+  });
+});
+

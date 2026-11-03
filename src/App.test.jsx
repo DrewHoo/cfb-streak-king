@@ -242,6 +242,27 @@ describe('prerender + hydrate', () => {
     await page.unmount();
   });
 
+  test("a series page hydrates from one team's side, says the record and the last meeting, and links the other side; a team page lists its series", async () => {
+    const al = teams.findIndex((t) => t.id === 'alabama'), ut = teams.findIndex((t) => t.id === 'tennessee');
+    const { root, errors, unmount } = await hydrate({ series: { ti: al, oi: ut } }, '/team/alabama/vs/tennessee/');
+    expect(errors).toEqual([]);
+    expect(root.querySelector('h1').textContent).toBe('Alabama vs Tennessee all-time record');
+    expect(root.querySelector('.ser-lead').textContent).toMatch(/^Alabama leads Tennessee \d+-\d+-7 in \d+ games since 1903\./);
+    // every game is a square and a ledger row; the ones since 1936 open their game pages
+    const n = root.querySelectorAll('.ser-squares .sq').length;
+    expect(n).toBeGreaterThanOrEqual(108);
+    expect(root.querySelectorAll('.ser-ledger .xrow').length).toBe(n);
+    expect(root.querySelectorAll('.ser-ledger button.game-row').length).toBeGreaterThan(80);
+    expect(root.querySelector('.tpg-opp-more a[href="/team/tennessee/vs/alabama/"]').textContent).toBe('Tennessee vs Alabama all-time record ›');
+    expect(window.location.pathname).toBe('/team/alabama/vs/tennessee/');
+    await unmount();
+    const page = await hydrate({ page: al, crowns: { active: [], all: [] } }, '/team/alabama/');
+    expect(page.errors).toEqual([]);
+    const link = page.root.querySelector('.tpg-series a[href="/team/alabama/vs/tennessee/"]');
+    expect(link.textContent).toMatch(/^vs Tennessee\d+-\d+-7$/);
+    await page.unmount();
+  });
+
   test('on desktop the open streak is a card in the grid; ← → move it along the columns and Escape closes it', async () => {
     const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?t=alabama');
     expect(errors).toEqual([]);

@@ -19,6 +19,9 @@
 //                   the by-opponent board (asTeam.ts) on its two named
 //                   definitions: the team's all-time losing or winning
 //                   streaks against each opponent, no conditions
+//   /team/<id>/vs/<opp>/
+//                   a series (series.ts): every meeting of two FBS teams
+//                   that have met SERIES_MIN times, the record from <id>'s side
 //   ?as=<id>        the by-opponent board in any other state: the team whose
 //                   opponents are the columns; `c` absent means no conditions
 //   ?t=<id>         the board: the team whose streak is open in the panel
@@ -42,6 +45,8 @@ import type { GameKey } from './game.ts';
 import { landingFromPath as landingAt, landingFor } from './landing.ts';
 import type { Landing } from './landing.ts';
 import { asFromPath, asPageDir, asPath } from './asTeam.ts';
+import { seriesIdsFromPath, seriesPath } from './seriesWords.ts';
+import { hasSeries } from './series.ts';
 
 export interface View {
   active: ChipRef[];
@@ -68,9 +73,12 @@ export interface View {
   season: number | null;
   /** The schedule, opened on the week's at-risk streaks: /games/at-risk/. */
   risk: boolean;
+  /** A series, /team/<id>/vs/<opp>/: the team whose side it's read from, and the opponent. */
+  series: number | null;
+  seriesOpp: number | null;
 }
 
-export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, as: null, run: null, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null };
+export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, as: null, run: null, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null };
 
 const teamById = (id: string | null) => {
   const ti = id ? teams.findIndex((t) => t.id === id) : -1;
@@ -125,8 +133,14 @@ export function asTeamFromPath(pathname: string): { ti: number; dir: 'W' | 'L' }
   const ti = a ? teamById(a.id) : null;
   return a && ti != null ? { ti, dir: a.dir } : null;
 }
+/** The series at a path like /cfb-streak-king/team/alabama/vs/tennessee/ (series.ts): the team and the opponent; null elsewhere, and for two teams without a series page. */
+export function seriesFromPath(pathname: string): { ti: number; oi: number } | null {
+  const ids = seriesIdsFromPath(pathname);
+  const ti = ids ? teamById(ids.id) : null, oi = ids ? teamById(ids.opp) : null;
+  return ti != null && oi != null && hasSeries(ti, oi) ? { ti, oi } : null;
+}
 /** The named definition at a path like /cfb-streak-king/longest-home-win-streaks/ (landing.ts); null for every other address. */
-export const landingFromPath = (pathname: string): Landing | null => (teamFromPath(pathname) != null || gameFromPath(pathname) || gamesFromPath(pathname) || breakersFromPath(pathname) || asFromPath(pathname) ? null : landingAt(pathname));
+export const landingFromPath = (pathname: string): Landing | null => (teamFromPath(pathname) != null || gameFromPath(pathname) || gamesFromPath(pathname) || breakersFromPath(pathname) || asFromPath(pathname) || seriesIdsFromPath(pathname) ? null : landingAt(pathname));
 /** The definition a landing opens on. */
 export const landingView = (l: Landing): Pick<View, 'active' | 'dir' | 'scope'> => ({ active: chipsFromParam(l.c), dir: l.dir, scope: l.scope });
 /** The landing a board is on, when its definition has one. */
@@ -150,8 +164,9 @@ export function parseUrl(pathname: string, search: string): View {
   // a link that carries a definition still opens the panel
   const oldPanel = inPath != null && !matchup && ['c', 'dir', 'scope', 'run', 'week'].some((k) => q.has(k));
   const page = oldPanel || game ? null : inPath;
+  const series = inPath == null && !game ? seriesFromPath(pathname) : null;
   // the by-opponent board: its two pages' paths, or ?as= on the board; a param on a page still wins
-  const board = inPath == null && !game && !gamesFromPath(pathname) && !breakersFromPath(pathname);
+  const board = inPath == null && !game && !series && !seriesIdsFromPath(pathname) && !gamesFromPath(pathname) && !breakersFromPath(pathname);
   const asPage = board ? asTeamFromPath(pathname) : null;
   const as = asPage?.ti ?? (board ? teamById(q.get('as')) : null);
   // a named definition's path is its definition; a param on it still wins
@@ -174,6 +189,8 @@ export function parseUrl(pathname: string, search: string): View {
     risk: inPath == null && !game && riskFromPath(pathname),
     breakers: inPath == null && !game && breakersFromPath(pathname),
     breaker: inPath == null && !game ? breakerFromPath(pathname) : null,
+    series: series?.ti ?? null,
+    seriesOpp: series?.oi ?? null,
   };
 }
 
@@ -182,13 +199,13 @@ export interface UrlParts { path: string; params: Record<string, string | null> 
 /** The path under the site base and the params; null params are removed. */
 export function toUrl(v: View): UrlParts {
   // a team page or a game page is its own address; the board's definition stays in memory
-  const board = v.page == null && v.game == null && !v.games && !v.breakers;
+  const board = v.page == null && v.game == null && !v.games && !v.breakers && v.series == null;
   // a board on a named definition is at that definition's path, which says the definition
   const landing = board && v.as == null ? landingOf(v) : null;
   // a by-opponent board on one of its two named definitions is at that page's path (asTeam.ts)
   const asPage = board && v.as != null ? asPageDir(v.active.length, v.dir, v.scope) : null;
   return {
-    path: v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : asPage ? asPath(teams[v.as!].id, asPage) : landing ? `${landing.slug}/` : '',
+    path: v.series != null && v.seriesOpp != null ? seriesPath(teams[v.series].id, teams[v.seriesOpp].id) : v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : asPage ? asPath(teams[v.as!].id, asPage) : landing ? `${landing.slug}/` : '',
     params: {
       vs: null, // the old matchup param
       as: board && v.as != null && !asPage ? teams[v.as].id : null,
@@ -230,6 +247,9 @@ export const breakersUrl = (breaker: number | null = null, season: number | null
 export function teamUrl(ti: number): UrlParts {
   return toUrl({ ...DEFAULT_VIEW, page: ti });
 }
+
+/** The link to a series, from ti's side. */
+export const seriesUrl = (ti: number, oi: number): UrlParts => toUrl({ ...DEFAULT_VIEW, series: ti, seriesOpp: oi });
 
 /** The link to a game's page. */
 export const gameUrl = (k: GameKey): UrlParts => toUrl({ ...DEFAULT_VIEW, game: k });

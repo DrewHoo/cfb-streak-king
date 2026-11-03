@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath, asTeamFromPath } from './lib/url.ts'
+import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath, asTeamFromPath, seriesFromPath } from './lib/url.ts'
 import { gameFromPath } from './lib/game.ts'
 import { decodeSeason } from './lib/seasonFile.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
@@ -18,6 +18,8 @@ import './styles.css'
 // comes from the path here, not from a post-mount effect
 const game = gameFromPath(window.location.pathname)
 const page = game ? null : teamFromPath(window.location.pathname)
+// a series (/team/<id>/vs/<opp>/), prerendered from the payload and the early games the bundle carries
+const series = page == null && !game ? seriesFromPath(window.location.pathname) : null
 // a team page embeds that team's crowns, a games page the schedule's digests, a game page its season's rows (scripts/prerender.mjs)
 const embedded = document.getElementById('crowns-data')
 const digests = document.getElementById('digests-data')
@@ -40,6 +42,7 @@ const initial = {
   // a named definition's board (/longest-home-win-streaks/), prerendered on that definition
   landing: page == null && !game ? landingFromPath(window.location.pathname)?.slug ?? null : null,
   as: asPage?.ti ?? null,
+  series,
   asDir: asPage?.dir ?? null,
   crowns: page != null && embedded ? crownsOf(JSON.parse(embedded.textContent)) : null,
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,

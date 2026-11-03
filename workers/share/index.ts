@@ -37,7 +37,10 @@ import { dirWord, yy, siteWord, monthDay } from '../../src/lib/format.ts';
 import { parseDir } from '../../src/lib/outcome.ts';
 import { BREAK, breakCat, breakPoints, rankOrder } from '../../src/lib/breakScore.ts';
 import { isTrivia } from '../../src/lib/trivia.ts';
-import { renderCard } from './card.ts';
+import { renderCard, renderSeriesCard } from './card.ts';
+import { createSeries } from '../../src/lib/seriesCore.ts';
+import { seriesLead, recText } from '../../src/lib/seriesWords.ts';
+import early from '../../src/data/series-early.json';
 import type { CardRow } from './card.ts';
 
 // Set per request from the deploy's vars: `npm run worker:dev` points it at a
@@ -130,7 +133,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-10-25a';
+const CARD_VERSION = '2026-11-02a';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -485,6 +488,34 @@ async function logoUri(espn: string | null | undefined): Promise<string | null> 
   } catch { return null; }
 }
 
+// the series on a model, made once per model
+const seriesBy = new WeakMap<Model, ReturnType<typeof createSeries>>();
+/** A series card (series.ts): ?series=<id>&vs=<opp>, the record from the first team's side and the last ten meetings. */
+async function seriesCard(id: string, oppId: string): Promise<Response> {
+  const m = await loadModel();
+  const ti = m.teams.findIndex((t) => t.id === id), oi = m.teams.findIndex((t) => t.id === oppId);
+  const S = seriesBy.get(m) ?? seriesBy.set(m, createSeries(m, early)).get(m)!;
+  const s = ti >= 0 && oi >= 0 && S.hasSeries(ti, oi) ? S.seriesOf(ti, oi) : null;
+  if (!s) throw new Error(`no series ${id} vs ${oppId}`);
+  const t = m.teams[ti], o = m.teams[oi];
+  const last = s.games[s.games.length - 1];
+  const lead = seriesLead(t.name, o.name, s.rec, s.since, s.now, last);
+  return buffered(renderSeriesCard({
+    name: t.name, opp: o.name, logo: await logoUri(t.espn), oppLogo: await logoUri(o.espn),
+    record: recText(s.rec),
+    sub: `${t.name}'s record since ${s.since} · ${s.games.length} games`,
+    words: lead.slice(lead.indexOf('. ') + 2),
+    last: s.games.slice(-10).map((g) => ({ r: g.r, year: g.se })),
+    footer: 'drewhoover.com/cfb-streak-king',
+  }));
+}
+/** render, buffered: workers-og streams lazily, and a mid-stream failure would otherwise ship a 200 with an empty body */
+async function buffered(res: Response): Promise<Response> {
+  const png = await res.arrayBuffer();
+  if (!png.byteLength) throw new Error('empty render');
+  return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
+}
+
 /** The board card for a definition URL's og image; with `as`, the by-opponent board of that team (asTeam.ts), its columns the opponents. */
 async function ogCard(q: URLSearchParams): Promise<Response> {
   const m = await loadModel();
@@ -567,14 +598,17 @@ export default {
         const cached = await caches.default.match(key);
         const week = url.searchParams.get('broken') ?? url.searchParams.get('risk');
         const game = url.searchParams.get('game');
+        const series = url.searchParams.get('series');
         const breaker = url.searchParams.get('breaker');
         const breakers = url.searchParams.has('breakers') || (breaker != null && /^[a-z0-9-]+$/.test(breaker));
         // the season: ?breakers=<season>, or a team's ?breaker=<id>&season=<season>; absent, the running one
         const seParam = url.searchParams.get('season') ?? url.searchParams.get('breakers');
         const breakSe = seParam && /^\d{4}$/.test(seParam) ? Number(seParam) : null;
-        report(env, ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
+        report(env, ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: series ? 'series' : game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
-        const res = game
+        const res = series && /^[a-z0-9-]+$/.test(series) && /^[a-z0-9-]+$/.test(url.searchParams.get('vs') ?? '')
+          ? await seriesCard(series, url.searchParams.get('vs')!)
+          : game
           ? await gameCard(game)
           : breakers
             ? await breakerCard(breaker, breakSe)
