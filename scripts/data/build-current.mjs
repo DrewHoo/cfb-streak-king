@@ -281,20 +281,27 @@ for (const r of statsRaw26 ?? []) {
 }
 
 const lineByKey = new Map();
+const totalByKey = new Map();
 for (const l of linesRaw ?? []) {
-  const spreads = (l.lines ?? []).map((x) => Number(x.spread)).filter(Number.isFinite);
-  if (!spreads.length || !l.startDate) continue;
+  // a book's line can be blank: Number(null) is 0, so keep only the ones it posted
+  const posted = (k) => (l.lines ?? []).filter((x) => x[k] != null && x[k] !== '').map((x) => Number(x[k])).filter(Number.isFinite);
+  const spreads = posted('spread');
+  const totals = posted('overUnder');
+  if ((!spreads.length && !totals.length) || !l.startDate) continue;
   const h = canon(l.homeTeam, 'cfbd-lines') ?? `x:${slug(l.homeTeam)}`;
   const a = canon(l.awayTeam, 'cfbd-lines') ?? `x:${slug(l.awayTeam)}`;
   const ep = epochDay(String(l.startDate).slice(0, 10));
-  for (const d of [ep - 1, ep, ep + 1]) lineByKey.set(`${h}|${a}|${d}`, median(spreads));
+  for (const d of [ep - 1, ep, ep + 1]) {
+    if (spreads.length) lineByKey.set(`${h}|${a}|${d}`, median(spreads));
+    if (totals.length) totalByKey.set(`${h}|${a}|${d}`, median(totals));
+  }
 }
 
 // --- current-season games ---
 const rows = parseCsv(schedCsv).map(mapScheduleRow).filter(Boolean);
 const res26 = new Map(); // ti -> ['W','L','T'...] in date order, for coach splits
 const cols = base.games;
-const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [], vs: [], sp: [] };
+const upcoming = { ep: [], hi: [], ai: [], fl: [], hr: [], ar: [], hh: [], rv: [], wk: [], vs: [], sp: [], ou: [] };
 const stateIdxOf = (code) => {
   if (!code) return 0;
   const i = base.states.indexOf(code);
@@ -356,6 +363,8 @@ for (let r of rows.sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')))
     // the line as of this build; it moves until kickoff, so the client shows it and no chip reads it
     const usp = lineByKey.get(`${r.home}|${r.away}|${ep}`);
     upcoming.sp.push(usp == null ? NO_LINE : Math.round(usp * 2));
+    const uou = totalByKey.get(`${r.home}|${r.away}|${ep}`);
+    upcoming.ou.push(uou == null ? NO_LINE : Math.round(uou * 2));
   }
 }
 
@@ -475,5 +484,5 @@ ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
 if (!REPLAY && !CACHE) fs.writeFileSync(path.join(ROOT, 'data', 'build', 'current-inputs.json'), JSON.stringify(inputs));
 console.log(
-  `payload: +${added} completed ${SEASON} games (${lined26} lined, ${fromCfbd} final in CFBD ahead of cfbfastR), ${upcoming.ep.length} upcoming (${upcoming.sp.filter((s) => s !== NO_LINE).length} lined), ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
+  `payload: +${added} completed ${SEASON} games (${lined26} lined, ${fromCfbd} final in CFBD ahead of cfbfastR), ${upcoming.ep.length} upcoming (${upcoming.sp.filter((s) => s !== NO_LINE).length} lined, ${upcoming.ou.filter((s) => s !== NO_LINE).length} with a total), ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );

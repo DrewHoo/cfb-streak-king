@@ -36,6 +36,8 @@ export interface UpcomingCols {
   hh: number[]; rv: number[]; wk: number[]; vs: number[];
   /** The line as of the build, encoded like games.sp; absent in payloads built before it was added. */
   sp?: number[];
+  /** The total as of the build, the books' median over/under in half-points, NO_LINE where none; absent in payloads built before it was added. */
+  ou?: number[];
 }
 
 export interface Payload {

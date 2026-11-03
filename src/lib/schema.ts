@@ -4,7 +4,7 @@
 /** Bits of games.fl and upcoming.fl. */
 export const FLAG = { neutral: 1, conf: 2, post: 4 } as const;
 
-/** games.sp: no closing line. Lines are stored in half-points, home side. */
+/** games.sp / upcoming.sp / upcoming.ou: no line. Lines are stored in half-points, spreads home side. */
 export const NO_LINE = 9999;
 /** games.hh / upcoming.hh: kickoff hour unknown. */
 export const NO_HOUR = 31;
