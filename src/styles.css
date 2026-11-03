@@ -445,6 +445,12 @@ button.xrow:hover, button.xrow:focus-visible { background: rgba(243, 226, 188, 0
 .tpg-stats b { font-family: 'Graduate', serif; font-weight: 400; font-size: 24px; letter-spacing: 0; line-height: 1.15; color: var(--ink); }
 .tpg h2 { margin-top: 30px; scroll-margin-top: 56px; }
 .tpg-note { margin: 0 0 6px; font-size: 13.5px; color: var(--ink-faint); }
+.tpg-note a, .tpg-pun a { color: var(--ink-muted); text-decoration: underline dotted; text-underline-offset: 3px; }
+.tpg-note a:hover, .tpg-pun a:hover { color: var(--cream); text-decoration-style: solid; }
+/* a team's record book on Putting Up Numbers, under the stats */
+.tpg-pun { margin: 10px 0 0; font-size: 13.5px; color: var(--ink-faint); }
+.tpg-pun a { color: var(--ink); }
+.gp-pun { margin-top: 12px; }
 .tpg-streaks { display: flex; flex-direction: column; }
 .tpg .ledger { max-width: none; }
 .tpg .leads { margin-top: 30px; }

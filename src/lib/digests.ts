@@ -94,12 +94,20 @@ export function encodeDigests(d: Digests): DigestsFile {
   };
 }
 
+/**
+ * The file in the page. The at-risk rows and the picks per game name a game by
+ * its index in the payload's scheduled games, which a rebuild renumbers, so a
+ * file from another build than the page's payload (a page loaded before a
+ * deploy that then fetches the new file) has neither: its picks would land on
+ * other games.
+ */
 export function decodeDigests(f: DigestsFile): Digests {
+  const same = f.builtAt === P.builtAt;
   return {
     builtAt: f.builtAt,
     broken: Object.fromEntries(Object.entries(f.broken).map(([wk, w]) => [wk, { wk: w.wk, lo: w.lo, hi: w.hi, rows: w.rows.map(decodeBroken).filter((b): b is BrokenInput => b != null) }])),
-    atRisk: f.atRisk ? { wk: f.atRisk.wk, lo: f.atRisk.lo, hi: f.atRisk.hi, rows: f.atRisk.rows.map(fromRisk).filter((r): r is AtRiskInput => r != null) } : null,
-    onLine: Object.fromEntries(Object.entries(f.onLine).map(([i, [ti, c, n]]) => [i, { ti, s: fromStreak(ti, c, Number(i)), n: n ?? 1 }])),
+    atRisk: same && f.atRisk ? { wk: f.atRisk.wk, lo: f.atRisk.lo, hi: f.atRisk.hi, rows: f.atRisk.rows.map(fromRisk).filter((r): r is AtRiskInput => r != null) } : null,
+    onLine: same ? Object.fromEntries(Object.entries(f.onLine).map(([i, [ti, c, n]]) => [i, { ti, s: fromStreak(ti, c, Number(i)), n: n ?? 1 }] as const).filter(([, t]) => t.s.next != null)) : {},
   };
 }
 

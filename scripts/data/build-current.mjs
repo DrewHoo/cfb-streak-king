@@ -4,6 +4,11 @@
 // copies under data/raw/ for offline runs). No other raw source is needed,
 // so the deploy workflow works from the committed base alone.
 //
+// A live run also writes everything it fetched to data/build/current-inputs.json.
+// REPLAY=<that file> builds from it instead of the network: the deploy caches
+// a refresh's inputs and a push replays them onto its own committed base, so
+// a push ships the refresh's week without spending CFBD calls.
+//
 // Adds: completed current-season games (same columnar arrays), an `upcoming`
 // block for the This Week panel / on-the-line markers, and current-season
 // polls for rank chips. Spreads for the current season are 9999 (no free
@@ -20,6 +25,17 @@ import { FLAG, NO_LINE, NO_HOUR, UNKNOWN, UNRANKED, RANK_UNKNOWN } from '../../s
 
 const SEASON = 2026;
 const CACHE = process.env.CACHE === '1';
+const REPLAY = process.env.REPLAY ? JSON.parse(fs.readFileSync(process.env.REPLAY, 'utf8')) : null;
+if (REPLAY) {
+  // a payload built after the fetch (a local build-current, committed) is the newer one
+  const committed = readIfExists(path.join(ROOT, 'src', 'data', 'payload.json'))?.match(/"builtAt":"([^"]+)"/)?.[1] ?? '';
+  if (committed >= REPLAY.fetchedAt) {
+    console.log(`the committed payload (${committed}) is newer than the inputs fetched ${REPLAY.fetchedAt}; keeping it`);
+    process.exit(0);
+  }
+}
+// what a live run fetched, for a later REPLAY
+const inputs = { fetchedAt: new Date().toISOString(), schedCsv: '', pollPages: [], cfbd: {} };
 const base = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'payload-base.json'), 'utf8'));
 const teamInfo = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'data', 'ref', 'team-info.json'), 'utf8'),
@@ -34,7 +50,10 @@ async function fetchText(url) {
 // --- inputs ---
 let schedCsv;
 let pollPages = []; // [{id, label, html}]
-if (CACHE) {
+if (REPLAY) {
+  ({ schedCsv, pollPages } = REPLAY);
+  console.log(`replaying the inputs fetched ${REPLAY.fetchedAt}`);
+} else if (CACHE) {
   schedCsv = fs.readFileSync(path.join(ROOT, 'data', 'raw', 'cfbfastr', `cfb_schedules_${SEASON}.csv`), 'utf8');
   const dir = path.join(ROOT, 'data', 'raw', 'ap-polls');
   const manifest = JSON.parse(fs.readFileSync(path.join(dir, '_manifest.json'), 'utf8'));
@@ -71,6 +90,7 @@ if (CACHE) {
       pollPages.push({ id, label: '', html });
     }
   }
+  Object.assign(inputs, { schedCsv, pollPages });
 }
 
 // --- polls ---
@@ -137,6 +157,7 @@ const CFBD_KEY = process.env.CFBD_API_KEY;
 fs.mkdirSync(path.join(ROOT, 'data', 'raw'), { recursive: true });
 async function cfbd(pathq, cacheFile) {
   const f = path.join(ROOT, 'data', 'raw', cacheFile);
+  if (REPLAY) return REPLAY.cfbd[cacheFile] ?? null;
   if (CACHE) {
     const t = readIfExists(f);
     return t ? JSON.parse(t) : null;
@@ -149,6 +170,7 @@ async function cfbd(pathq, cacheFile) {
     if (!res.ok) throw new Error(`http ${res.status}`);
     const j = await res.json();
     fs.writeFileSync(f, JSON.stringify(j));
+    inputs.cfbd[cacheFile] = j;
     return j;
   } catch (e) {
     console.error(`cfbd ${pathq} failed: ${e.message} (continuing without)`);
@@ -183,7 +205,9 @@ const gamesRaw26 = await cfbd(`/games?year=${SEASON}`, `cfbd-games-${SEASON}.jso
 let statsRaw26 = null;
 {
   const f = path.join(ROOT, 'data', 'raw', `cfbd-teamstats-${SEASON}.json`);
-  if (CACHE) {
+  if (REPLAY) {
+    statsRaw26 = REPLAY.cfbd[`cfbd-teamstats-${SEASON}.json`] ?? null;
+  } else if (CACHE) {
     const t = readIfExists(f);
     statsRaw26 = t ? JSON.parse(t) : null;
   } else if (CFBD_KEY) {
@@ -200,6 +224,7 @@ let statsRaw26 = null;
       }
       statsRaw26 = all;
       fs.writeFileSync(f, JSON.stringify(all));
+      inputs.cfbd[`cfbd-teamstats-${SEASON}.json`] = all;
     } catch (e) {
       console.error(`cfbd teamstats failed: ${e.message} (continuing without)`);
     }
@@ -429,7 +454,8 @@ const out = {
   coachNames,
   coachIds,
   currentSeason: SEASON,
-  builtAt: new Date().toISOString(),
+  // a replay is as fresh as its fetch
+  builtAt: REPLAY?.fetchedAt ?? inputs.fetchedAt,
   upcoming,
   games: cols,
   teams,
@@ -447,6 +473,7 @@ if (added && !lined26) {
 }
 ensureDir(path.join(ROOT, 'src', 'data'));
 fs.writeFileSync(path.join(ROOT, 'src', 'data', 'payload.json'), JSON.stringify(out));
+if (!REPLAY && !CACHE) fs.writeFileSync(path.join(ROOT, 'data', 'build', 'current-inputs.json'), JSON.stringify(inputs));
 console.log(
   `payload: +${added} completed ${SEASON} games (${lined26} lined, ${fromCfbd} final in CFBD ahead of cfbfastR), ${upcoming.ep.length} upcoming (${upcoming.sp.filter((s) => s !== NO_LINE).length} lined), ${polls.length} ${SEASON} polls (latest ${polls.at(-1)?.date}), total ${cols.se.length} games, ${(fs.statSync(path.join(ROOT, 'src', 'data', 'payload.json')).size / 1e6).toFixed(2)} MB`,
 );

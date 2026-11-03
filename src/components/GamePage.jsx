@@ -19,6 +19,8 @@ import { useActiveCrowns } from '../hooks/useCrowns.ts';
 import { TeamMark } from './Chip.jsx';
 import { Chevron } from './Icons.jsx';
 import { NavIcons } from './Dateline.jsx';
+import { punTeamUrl } from '../lib/siblings.ts';
+import { track } from '../lib/analytics.ts';
 import { StreakRow, Tellings, TriviaFold } from './StreakRow.jsx';
 
 const CAP = { phone: 4, desk: 6 };
@@ -129,6 +131,14 @@ export function GamePage({ found, season, todayEp, isMobile, copied, on, nav }) 
         </span>
         <Side ti={key.home} rank={homeRank} score={hs} onTeam={on.team} />
       </div>
+      {fbsNow.has(key.away) || fbsNow.has(key.home) ? (
+        <p className="tpg-pun gp-pun">
+          Record books on Putting Up Numbers:{' '}
+          {[key.away, key.home].filter((ti) => fbsNow.has(ti)).map((ti, i) => (
+            <span key={ti}>{i ? ' · ' : ''}<a href={punTeamUrl(teams[ti].id)} onClick={() => track('pun', { from: 'game' })}>{teams[ti].name}</a></span>
+          ))}
+        </p>
+      ) : null}
 
       {played ? (
         <>

@@ -55,8 +55,29 @@ jobs:
         run: node scripts/data/build-current.mjs
         env:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+      # A push replays the newest refresh's inputs onto its own committed base,
+      # with no CFBD calls: without this a push shipped the committed payload
+      # and rolled the live site back to the week it was committed (November
+      # 2026: a Tuesday push put week 9 back on the schedule as unplayed).
+      - if: github.event_name != 'push'
+        uses: actions/cache/save@v4
+        with:
+          path: data/build/current-inputs.json
+          key: current-inputs-${{ github.run_id }}
+      - if: github.event_name == 'push'
+        id: inputs
+        uses: actions/cache/restore@v4
+        with:
+          path: data/build/current-inputs.json
+          key: current-inputs-${{ github.run_id }}
+          restore-keys: current-inputs-
+      - if: github.event_name == 'push' && steps.inputs.outputs.cache-matched-key != ''
+        run: node scripts/data/build-current.mjs
+        env:
+          REPLAY: data/build/current-inputs.json
       # Check and test the payload that ships: the refreshed one on a
-      # schedule/dispatch run, the committed one on a push.
+      # schedule/dispatch run, the replayed one on a push (the committed one
+      # when no refresh is cached or the commit is newer).
       - run: npm run typecheck
       # Every ruling-file receipt against its committed page (data/research/pages)
       - run: npm run check:receipts

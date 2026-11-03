@@ -21,6 +21,7 @@ import { TeamPicker } from './TeamPicker.jsx';
 import { StreakRow, Tellings, TriviaFold } from './StreakRow.jsx';
 import { useTeamCrowns } from '../hooks/useCrowns.ts';
 import { track } from '../lib/analytics.ts';
+import { punTeamUrl } from '../lib/siblings.ts';
 import { breakOrder, breakRows, breakSummary, listBreaks } from '../lib/breakers.ts';
 import { listBroken } from '../lib/broken.ts';
 import { listCrowns, standingCount } from '../lib/list.ts';
@@ -265,6 +266,10 @@ export function TeamPage({ ti, todayEp, initial, breakers, focus, isMobile, copi
         <span><b>{atsText(r)}</b>vs spread</span>
         <span><b>{rank == null ? '—' : rank > 0 ? `#${rank}` : 'NR'}</b>AP poll</span>
       </div>
+      <p className="tpg-pun">
+        <a href={punTeamUrl(t.id)} onClick={() => track('pun', { from: 'team page' })}>{t.name} record book ›</a>{' '}
+        the most in a career, a season and a game, on Putting Up Numbers
+      </p>
 
       {next && <NextCard ti={ti} game={next} onLine={streaksOn(streaks, next).length} onGame={on.game} />}
 

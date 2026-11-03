@@ -24,6 +24,8 @@ import { NavIcons } from './Dateline.jsx';
 import { streakWords, subsByParent, Subs, MoreButton, DaggerNote, PAGE, TriviaFold } from './StreakRow.jsx';
 import { BrokenRow } from './BrokenRow.jsx';
 import { Picker } from './Picker.jsx';
+import { PUN_CFB } from '../lib/siblings.ts';
+import { track } from '../lib/analytics.ts';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const monthName = (ep) => MONTHS[new Date(ep * 86400000).getUTCMonth()];
@@ -286,7 +288,7 @@ export function GamesPage({ digests, seasonRows, season, bwk, risk, copied, on, 
       </h1>
       <p className="tpg-note">
         {current
-          ? <>Every game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild.</>
+          ? <>Every game with an FBS team, the line as of {monthDay(Math.floor(Date.parse(P.builtAt) / 86400000))}, and the streak most on the line in it. Results land with the weekly rebuild. Who’s setting records this week: <a href={PUN_CFB} onClick={() => track('pun', { from: 'games' })}>Putting Up Numbers</a>.</>
           : <>Every game with a current FBS team, and the streaks it ended: the runs of up to two conditions whose team led the field.</>}
       </p>
       {loading && <p className="empty">finding the week’s streaks…</p>}

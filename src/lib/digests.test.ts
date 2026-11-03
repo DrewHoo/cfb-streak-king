@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
-import { builtEpochDay } from './model.ts';
+import { P, builtEpochDay, fbsNow } from './model.ts';
 import { mineBroken, mineCrowns } from './crowns.ts';
 import { buildDigests, encodeDigests, decodeDigests } from './digests.ts';
+import type { DigestsFile } from './digests.ts';
 import { scheduledGames } from './team.ts';
 import { listCrowns } from './list.ts';
 
@@ -50,3 +51,17 @@ test('the schedule’s digests survive the file encoding', async () => {
     expect(y.n).toBe(top.n);
   }
 }, 600000);
+
+test('a file from another build keeps no picks per game: a rebuild renumbers the games', () => {
+  const g = scheduledGames()[0];
+  const row: DigestsFile['onLine'][number][1] = ['home', 'W', 5, 0, 40, 1, 1, 4, 2025, null, 1, 0, 0.6, 20, 0, 0, 0, 0, 0];
+  const f = (builtAt: string): DigestsFile => ({ v: 2, builtAt, broken: {}, atRisk: { wk: g.wk, lo: g.ep, hi: g.ep, rows: [] }, onLine: { [g.i]: [g.sides[0].ti, row, 1] } });
+  const stale = decodeDigests(f('2001-01-01T00:00:00.000Z'));
+  expect(stale.onLine).toEqual({});
+  expect(stale.atRisk).toBeNull();
+  // a pick whose team doesn't play the game is dropped too
+  const fresh = f(P.builtAt);
+  const other = [...fbsNow].find((ti) => !g.sides.some((x) => x.ti === ti))!;
+  fresh.onLine[g.i][0] = other;
+  expect(decodeDigests(fresh).onLine).toEqual({});
+});
