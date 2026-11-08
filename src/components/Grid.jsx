@@ -150,6 +150,8 @@ function useColumnGlide(ref, mode) {
     last.current = { pos: next, mode };
     if (!pos || was === mode || mode === 'rail' || was === 'rail') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // jsdom has no Web Animations API, so the tests' hydration glides nothing (2026-11-07: a row new to the board failed npm test)
+    if (typeof Element.prototype.animate !== 'function') return;
     for (const el of root.querySelectorAll('[data-flip]')) {
       const from = pos.get(el.dataset.flip);
       const to = next.get(el.dataset.flip);
