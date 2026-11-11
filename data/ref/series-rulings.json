@@ -1,0 +1,219 @@
+{
+  "note": "Rulings for the series pages (scripts/data/build-series-early.mjs, src/lib/seriesCore.ts, series.known.test.ts). `programs`: a team id's games before a season belong to another school, so no series counts them (the exceptions are games the opponent counts, Drew's superset ruling). `drop`: a jhowell.net game whose opponent Howell joined to the wrong school. `games`: a forfeit (`w` its winner) or a vacated win (`w` null) the Wikipedia marks miss; `void: true` takes one of theirs back. `known`: a series whose rivalry-article infobox we've ruled wrong, the field, our value and why.",
+  "programs": [
+    {
+      "team": "florida-state",
+      "before": 1947,
+      "why": "Florida State College (1902–04) isn't the program FSU counts: its football starts in 1947, and Florida–Florida State starts in 1958. Wikipedia files the FSC seasons in FSU's category, and Howell's names join them to FSU.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1382110278",
+          "quote": "First meeting November 22, 1958"
+        }
+      ]
+    },
+    {
+      "team": "florida",
+      "before": 1906,
+      "except": [
+        {
+          "date": "1904-10-15",
+          "opp": "georgia",
+          "why": "Georgia counts the 1904 game against the Lake City school, and Florida doesn't (the infobox's per-UGA count)."
+        }
+      ],
+      "why": "The 1904 team at Lake City (Florida Agricultural College) isn't the program UF counts, which starts in 1906 (Wikipedia's Florida category starts there). Alabama–Florida starts in 1916.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1383471920",
+          "quote": "First meeting October 21, 1916"
+        },
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1383956182",
+          "quote": "First meeting October 15, 1904 Georgia, 52–0 (per UGA)"
+        }
+      ]
+    }
+  ],
+  "drop": [
+    {
+      "date": "1908-10-23",
+      "a": "mississippi-state",
+      "b": "louisiana",
+      "why": "Mississippi A&M's 5–6 loss that day was to Southwestern Presbyterian, not Southwestern Louisiana.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1337178688",
+          "quote": "October 23 Southwestern Presbyterian*"
+        }
+      ]
+    },
+    {
+      "date": "1911-10-21",
+      "a": "tulane",
+      "b": "louisiana-tech",
+      "why": "Tulane's 45–0 win that day was over Louisiana Normal (now Northwestern State), not Louisiana Industrial.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1339153427",
+          "quote": "October 21 Louisiana Normal*"
+        }
+      ]
+    },
+    {
+      "date": "1918-11-30",
+      "a": "california",
+      "b": "stanford",
+      "why": "Cal's 67–0 win over Stanford's Student Army Training Corps team isn't counted in the Big Game series by either school.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1379215097",
+          "quote": "The 1918 game, in which Cal prevailed 67–0, is not considered an official game"
+        }
+      ]
+    }
+  ],
+  "games": [],
+  "known": [
+    {
+      "title": "Battle for the Bones",
+      "field": "first",
+      "ours": "1997",
+      "why": "The infobox's first meeting (1984) is the schools' first in any sport; their first football game is 1997, the first row of the article's football table.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1379690865",
+          "quote": "Sport Football, basketball, others First meeting 1984"
+        }
+      ]
+    },
+    {
+      "title": "I-35 Rivalry",
+      "field": "first",
+      "ours": "2012",
+      "why": "The infobox's first meeting (1991) is basketball's; UTSA started football in 2011 and first played Texas State in 2012.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1374791044",
+          "quote": "First meeting 1991"
+        }
+      ]
+    },
+    {
+      "title": "Battle for the Valley",
+      "field": "record",
+      "ours": "48-38-3",
+      "why": "Fresno State won the 1979 game by forfeit after losing 35–22 on the field; the infobox counts the field result, and the page counts forfeits (Drew, 2026-11-10).",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1382749872",
+          "quote": "Fresno State leads, 47–39–3"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/1979_Fresno_State_Bulldogs_football_team",
+          "quote": "22–35 (forfeit win)"
+        }
+      ]
+    },
+    {
+      "title": "Iowa–Iowa State football rivalry",
+      "field": "record",
+      "ours": "47-25-0",
+      "why": "Iowa's 2023 win (20–13) was vacated; the infobox still counts it, and the page counts a vacated win in neither team's record.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/2023_Iowa_Hawkeyes_football_team",
+          "quote": "The four games Iowa vacated were the wins over Utah State, Iowa State"
+        }
+      ]
+    },
+    {
+      "title": "SMU–TCU football rivalry",
+      "field": "record",
+      "ours": "42-54-7",
+      "why": "SMU's 1998 win (10–6) is marked vacated in SMU's season article; the infobox still counts it.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/wiki/1998_SMU_Mustangs_football_team",
+          "quote": "TCU Cotton Bowl Dallas, TX (rivalry) W 10–6 (vacated)"
+        }
+      ]
+    },
+    {
+      "title": "Tennessee–Vanderbilt football rivalry",
+      "field": "record",
+      "ours": "79-34-5",
+      "why": "Tennessee's 2019 and 2020 wins are vacated, which the infobox's 79 Tennessee wins reflect; but its record (79–33–5) adds to 117, and with the two vacated games that's 119 of its own 120 meetings. The article's table has 34 Vanderbilt wins.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1384604418",
+          "quote": "Tennessee leads, 79–33–5"
+        }
+      ]
+    },
+    {
+      "title": "Oregon–USC football rivalry",
+      "field": "meetings",
+      "ours": "66",
+      "why": "The infobox's 65 leaves out the game whose win was vacated, which its own record notes; the page counts that game as a meeting.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1384069256",
+          "quote": "USC leads, 38–25–2 (+1 Vacated Win)"
+        }
+      ]
+    },
+    {
+      "title": "Rivalry in Dixie",
+      "field": "meetings",
+      "ours": "54",
+      "why": "The infobox's record (36–18) adds to 54, and so does the article's table; its 55 meetings is a miscount.",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1366965309",
+          "quote": "Southern Miss leads 36–18"
+        }
+      ]
+    },
+    {
+      "title": "Big Game (American football)",
+      "field": "meetings",
+      "ours": "128",
+      "why": "The infobox stops at 2024, the 127th Big Game; its latest meeting is the 2025 game, Stanford's win, which makes 128 (1918's game isn't counted).",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1379215097",
+          "quote": "Cal to host Stanford in 127th Big Game"
+        }
+      ]
+    },
+    {
+      "title": "Big Game (American football)",
+      "field": "record",
+      "ours": "51-66-11",
+      "why": "The infobox stops at 2024, the 127th Big Game; its latest meeting is the 2025 game, Stanford's win, which makes 128 (1918's game isn't counted).",
+      "receipts": [
+        {
+          "url": "https://en.wikipedia.org/w/index.php?oldid=1379215097",
+          "quote": "Cal to host Stanford in 127th Big Game"
+        }
+      ]
+    },
+    {
+      "title": "Battle of the Brothers",
+      "field": "meetings",
+      "ours": "114",
+      "why": "The infobox's uncited 115 (81–30–4) through 2025 matches no source. Utah State's opponent history lists 114 games through the 2026 game (Utah 81–29–4 with it), game for game the page's list; Utah's 2023 media guide has 79–29–4 through 2023, and the article's own table agrees.",
+      "receipts": [
+        {
+          "url": "https://utahstateaggies.com/sports/football/opponent-history/university-of-utah/46",
+          "quote": "Football History vs University of Utah from Nov 25, 1892 - Sep 19, 2026"
+        },
+        {
+          "url": "https://s3.us-east-2.amazonaws.com/sidearm.nextgen.sites/utahutes.com/documents/2023/7/19/COMP_2023_Utah_Football_Media_Guide.pdf",
+          "quote": "UTAH STATE (79-29-4)"
+        }
+      ]
+    }
+  ]
+}

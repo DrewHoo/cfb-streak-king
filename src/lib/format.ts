@@ -26,6 +26,11 @@ export const shortDate = (ep: number) => {
   const d = new Date(ep * 86400000);
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${String(d.getUTCFullYear()).slice(2)}`;
 };
+/** "10/25/1922": a series spans a century, so its dates carry the whole year. */
+export const fullDate = (ep: number) => {
+  const d = new Date(ep * 86400000);
+  return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
+};
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 /** "September 2025". */
 export const monthYear = (ep: number) => { const d = new Date(ep * 86400000); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };

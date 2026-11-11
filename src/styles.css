@@ -838,21 +838,86 @@ button.mu-side:hover, button.mu-side:focus-visible { background: rgba(243, 226, 
 .tpg-ser b.w { color: var(--cream); }
 .tpg-ser b.l { color: var(--rust); }
 .tpg-ser:hover, .tpg-ser:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
-.ser-head { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; gap: 14px; margin-top: 18px; }
-.ser-logo { width: 56px; height: 56px; }
-.ser-h1 { margin: 0; font-size: clamp(24px, 5.6vw, 36px); line-height: 1.1; text-align: center; }
-.ser-lead { margin-top: 12px; }
-.ser-stats { grid-template-columns: repeat(4, 1fr); }
-.ser-stats span { text-align: center; align-items: center; }
-.ser-stats b { white-space: nowrap; }
-.ser-runs p { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; align-items: baseline; margin: 6px 0; font-size: 14.5px; }
-.ser-next { max-width: none; margin-top: 14px; }
-.ser-squares { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 14px; }
-.ser-ledger { max-width: none; }
-.ser-note { margin-top: 18px; }
+/* the series' page: the record as a scoreboard, each team beside its count */
+.ser-h1 { margin: 20px 0 0; font-size: clamp(24px, 5.6vw, 36px); line-height: 1.1; text-align: center; }
+.ser-score { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto minmax(0, 1fr); align-items: center; gap: 14px; margin-top: 18px; padding: 12px 0; border-block: 1px dotted var(--line); }
+.ser-side { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; color: var(--ink); font-size: 14.5px; text-decoration: none; }
+.ser-side span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: underline dotted var(--ink-faint); text-underline-offset: 3px; }
+.ser-side:hover span, .ser-side:focus-visible span { color: var(--cream); text-decoration-color: var(--cream); }
+.ser-side:focus-visible { outline: none; }
+.ser-logo { width: 52px; height: 52px; display: block; }
+.ser-score > b { font-family: 'Graduate', serif; font-weight: 400; font-size: 46px; line-height: 1; color: var(--ink-muted); }
+.ser-score > b.hi { color: var(--cream); }
+.ser-mid { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); white-space: nowrap; }
+.ser-ini { display: inline-flex; align-items: center; justify-content: center; font-family: 'Graduate', serif; font-weight: 400; color: var(--ink-muted); }
+b.ser-logo.ser-ini { font-size: 30px; }
+.ser-lead { margin-top: 12px; text-align: center; }
+.ser-next {
+  display: flex; align-items: baseline; gap: 10px; width: 100%; margin-top: 14px; padding: 8px 10px;
+  background: transparent; border: 1px dashed var(--rust); border-radius: 6px; color: var(--ink); font: inherit; font-size: 14.5px; text-align: left; cursor: pointer;
+}
+.ser-next:hover, .ser-next:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
+.ser-nh { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rust); }
+.ser-nw { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+.ser-next svg { margin-left: auto; color: var(--ink-faint); align-self: center; }
+
+/* Games: the line a mark shows its game in, then the calendar of winners' marks */
+.ser-line {
+  display: flex; align-items: baseline; gap: 10px; min-height: 34px; margin: 4px 0 10px; padding: 6px 0;
+  border-block: 1px dotted var(--line); color: var(--ink-muted); font-size: 14.5px; text-decoration: none; white-space: nowrap;
+}
+a.ser-line:hover, a.ser-line:focus-visible { background: rgba(243, 226, 188, 0.05); outline: none; }
+.ser-ld, .ser-ls { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); flex: none; }
+.ser-lt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ser-lt strong { color: var(--cream); font-weight: 600; }
+.ser-lt em { font-style: normal; color: var(--rust); font-size: 12px; }
+.ser-lt small { color: var(--ink-faint); font-size: inherit; }
+.ser-line svg { margin-left: auto; color: var(--ink-faint); align-self: center; flex: none; }
+.ser-grid { display: flex; flex-direction: column; gap: 5px; }
+.ser-dec { display: flex; align-items: center; gap: 4px; }
+.ser-dl { width: 46px; flex: none; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink-faint); }
+.ser-gap { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink-faint); letter-spacing: 0.04em; padding: 3px 0; }
+.ser-slot { min-width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; flex: none; }
+/* a season with two meetings holds both marks a size down, so its row stays inside a phone */
+.ser-slot.two .ser-mk { width: 19px; }
+.ser-slot.two .ser-mono { width: 17px; height: 17px; }
+.ser-none { width: 3px; height: 3px; border-radius: 50%; background: var(--line); }
+.ser-mk {
+  width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; flex: none; position: relative;
+  border-radius: 4px; color: var(--ink-muted); text-decoration: none; cursor: pointer; touch-action: manipulation;
+}
+.ser-mk.early { cursor: default; }
+.ser-mk.on { background: rgba(243, 226, 188, 0.1); box-shadow: 0 0 0 1px var(--rust); }
+.ser-mk:focus-visible { outline: 1px solid var(--cream); outline-offset: 1px; }
+.ser-mk.tie::before { content: ''; width: 16px; height: 16px; border: 1px dashed var(--ink-faint); border-radius: 3px; box-sizing: border-box; }
+.ser-mk.vac .ser-mono, .ser-mk.vac .ser-ini { opacity: 0.3; }
+.ser-mono { width: 20px; height: 20px; display: block; background: var(--cream); -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.ser-mk .ser-ini { font-size: 13px; color: var(--cream); }
+
+/* By site: a row per team, a column per site, the larger count cream */
+.ser-site { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.ser-site th, .ser-site td { padding: 6px 0 6px 10px; border-top: 1px dotted var(--line); text-align: right; }
+.ser-site thead th { border-top: 0; padding-bottom: 4px; font-family: 'IBM Plex Mono', monospace; font-weight: 400; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); vertical-align: bottom; }
+.ser-site tbody th { padding-left: 0; text-align: left; font-weight: 400; font-size: 15px; color: var(--ink); white-space: nowrap; }
+.ser-site tbody th > * { vertical-align: middle; margin-right: 8px; }
+.ser-site td { font-family: 'Graduate', serif; font-size: 20px; color: var(--ink-muted); width: 18%; }
+.ser-site td.hi { color: var(--cream); }
+.ser-site .ties th { padding-left: 30px; font-size: 14px; color: var(--ink-faint); }
+.ser-site .ties td { font-size: 15px; color: var(--ink-faint); }
+.ser-tlogo { width: 22px; height: 22px; display: inline-block; flex: none; }
+b.ser-tlogo.ser-ini { font-size: 14px; }
+
+.ser-runs p { display: grid; grid-template-columns: 34px 22px minmax(0, 1fr); gap: 8px; align-items: center; margin: 6px 0; font-size: 14.5px; }
+.ser-runs p > b:first-child { font-family: 'Graduate', serif; font-weight: 400; font-size: 20px; color: var(--cream); }
 @media (max-width: 520px) {
   .tpg-series { grid-template-columns: minmax(0, 1fr); }
-  .ser-stats { grid-template-columns: repeat(2, 1fr); row-gap: 10px; }
-  .ser-head { grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 8px; }
+  .ser-score { gap: 8px; }
+  .ser-score > b { font-size: 36px; }
   .ser-logo { width: 40px; height: 40px; }
+  .ser-line { flex-wrap: wrap; row-gap: 0; min-height: 54px; white-space: normal; }
+  .ser-lt { flex-basis: 100%; order: 3; white-space: nowrap; }
+  .ser-line svg { order: 2; }
+  .ser-site thead th { font-size: 8.5px; letter-spacing: 0.04em; }
+  .ser-site td { font-size: 18px; }
+  .ser-site tbody th { font-size: 14px; }
 }

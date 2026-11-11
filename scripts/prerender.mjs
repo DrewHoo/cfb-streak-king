@@ -666,7 +666,7 @@ const llmsSeries = [] // each series once, from the side that leads it, for llms
       const s = seriesOf(ti, oi)
       const t = teams[ti], o = teams[oi]
       const url = `${SITE}${seriesPath(t.id, o.id)}`
-      const lead = seriesLead(t.name, o.name, s.rec, s.since, s.now, s.games[s.games.length - 1])
+      const lead = seriesLead(t.name, o.name, s.rec, s.games.length, s.since, s.now, s.games[s.games.length - 1])
       const h1 = seriesH1(t.name, o.name)
       const title = `${seriesTitle(t.name, o.name, s.rec, s.since)} · ${config.title}`
       const description = seriesDescription(lead, t.name, o.name)

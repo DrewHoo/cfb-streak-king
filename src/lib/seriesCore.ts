@@ -1,10 +1,10 @@
 // A series: every meeting of two teams, the record from one side, at each
 // site, the run it's on, the longest run each way, and the next meeting.
-// The games since the payload's first season (1936) are the payload's; the
-// ones before are jhowell.net's (scripts/data/build-series-early.mjs), back to
-// the first season Howell counts a team as major, so a series reads from the
-// first meeting the ledger has, which the page says. A page exists for two
-// teams in FBS now that have met SERIES_MIN times.
+// The payload has the games since its first season (1936) in which either
+// team was major. The early file has the rest (scripts/data/build-series-early.mjs):
+// jhowell.net's before 1936, and Wikipedia's season articles for a season
+// when neither team was major, so a series reads from the first meeting. A
+// page exists for two teams in FBS now that have met SERIES_MIN times.
 //
 // No model import: createSeries takes the model's parts and the early file,
 // so the share worker can build one on its own model. series.ts is the app's.
@@ -25,11 +25,13 @@ export interface SeriesGame {
   post: boolean;
   ownRank: number | null;
   oppRank: number | null;
-  /** Before the payload's first season: no game page, no ranks. */
+  /** From the early file, not the payload: no game page, no ranks. */
   early: boolean;
   /** The payload's row, null for an early game; from `side`'s side, which is the opponent's when the team's own list starts after the game (gamesOf skips a team's seasons before its FBS stint). */
   row: GameRow | null;
   side: number | null;
+  /** The official result isn't the score as played: `r` is the forfeit's (the score stays as played), or the win was vacated and the game is in neither team's record. */
+  ruling: 'forfeit' | 'vacated' | null;
 }
 
 export interface Run { r: 'W' | 'L'; len: number; from: number; to: number }
@@ -45,12 +47,15 @@ export interface Series {
   /** The longest run each way, the earliest when two are as long; null when the side never won. */
   longest: { W: Run | null; L: Run | null };
   next: UpcomingRow | null;
+  /** The year the first meeting was played. */
   since: number;
 }
 
 export interface EarlyGames {
   teams: string[];
   games: { se: number[]; ep: number[]; hi: number[]; ai: number[]; hs: number[]; as: number[]; fl: number[] };
+  /** Games whose official result isn't the score: `w` the forfeit's winner, or -1 for a vacated win; teams index `teams`, any game of the pair within a few days of `ep`. */
+  rulings?: { ep: number[]; a: number[]; b: number[]; w: number[] };
 }
 export interface SeriesModel {
   teams: Team[];
@@ -61,6 +66,25 @@ export interface SeriesModel {
 
 export function createSeries({ teams, fbsNow, gamesOf, upcomingOf }: SeriesModel, early: EarlyGames) {
   const idIdx = new Map(teams.map((t, i) => [t.id, i]));
+  // the rulings by team pair: [ep, the forfeit's winner or -1 for vacated]
+  const ruledBy = new Map<string, [number, number][]>();
+  if (early.rulings) {
+    const r = early.rulings;
+    for (let i = 0; i < r.ep.length; i++) {
+      const a = idIdx.get(early.teams[r.a[i]]), b = idIdx.get(early.teams[r.b[i]]);
+      if (a == null || b == null) continue;
+      const w = r.w[i] < 0 ? -1 : idIdx.get(early.teams[r.w[i]]) ?? -1;
+      for (const k of [`${a}|${b}`, `${b}|${a}`]) (ruledBy.get(k) ?? ruledBy.set(k, []).get(k)!).push([r.ep[i], w]);
+    }
+  }
+  /** A game with its ruling applied, from ti's side. */
+  const rule = (ti: number, oi: number, g: SeriesGame): SeriesGame => {
+    const hit = ruledBy.get(`${ti}|${oi}`)?.find(([ep]) => Math.abs(ep - g.ep) <= 3);
+    if (!hit) return g;
+    if (hit[1] < 0) return { ...g, ruling: 'vacated' };
+    return { ...g, ruling: 'forfeit', r: hit[1] === ti ? 'W' : 'L' };
+  };
+
   // the early games by team pair, from both sides
   const earlyBy = new Map<string, SeriesGame[]>();
   {
@@ -72,7 +96,7 @@ export function createSeries({ teams, fbsNow, gamesOf, upcomingOf }: SeriesModel
       for (const [ti, oi, us, them, site] of [[h, a, g.hs[i], g.as[i], neutral ? 'neutral' : 'home'], [a, h, g.as[i], g.hs[i], neutral ? 'neutral' : 'away']] as const) {
         const key = `${ti}|${oi}`;
         (earlyBy.get(key) ?? earlyBy.set(key, []).get(key)!).push({
-          ep: g.ep[i], se: g.se[i], us, them, r: us > them ? 'W' : us < them ? 'L' : 'T', site, post: false, ownRank: null, oppRank: null, early: true, row: null, side: null,
+          ep: g.ep[i], se: g.se[i], us, them, r: us > them ? 'W' : us < them ? 'L' : 'T', site, post: false, ownRank: null, oppRank: null, early: true, row: null, side: null, ruling: null,
         });
       }
     }
@@ -85,18 +109,18 @@ export function createSeries({ teams, fbsNow, gamesOf, upcomingOf }: SeriesModel
     const theirs = gamesOf(oi).filter((g) => g.oppIdx === ti && !seen.has(g.ep));
     const late = [
       ...own.map((g): SeriesGame => ({
-        ep: g.ep, se: g.se, us: g.us, them: g.them, r: g.r, site: g.neutral ? 'neutral' : g.home ? 'home' : 'away', post: g.post, ownRank: g.ownRank, oppRank: g.oppRank, early: false, row: g, side: ti,
+        ep: g.ep, se: g.se, us: g.us, them: g.them, r: g.r, site: g.neutral ? 'neutral' : g.home ? 'home' : 'away', post: g.post, ownRank: g.ownRank, oppRank: g.oppRank, early: false, row: g, side: ti, ruling: null,
       })),
       ...theirs.map((g): SeriesGame => ({
-        ep: g.ep, se: g.se, us: g.them, them: g.us, r: g.r === 'W' ? 'L' : g.r === 'L' ? 'W' : 'T', site: g.neutral ? 'neutral' : g.home ? 'away' : 'home', post: g.post, ownRank: g.oppRank, oppRank: g.ownRank, early: false, row: g, side: oi,
+        ep: g.ep, se: g.se, us: g.them, them: g.us, r: g.r === 'W' ? 'L' : g.r === 'L' ? 'W' : 'T', site: g.neutral ? 'neutral' : g.home ? 'away' : 'home', post: g.post, ownRank: g.oppRank, oppRank: g.ownRank, early: false, row: g, side: oi, ruling: null,
       })),
     ].sort((a, b) => a.ep - b.ep);
-    return [...(earlyBy.get(`${ti}|${oi}`) ?? []), ...late];
+    return [...(earlyBy.get(`${ti}|${oi}`) ?? []), ...late].sort((a, b) => a.ep - b.ep).map((g) => rule(ti, oi, g));
   }
 
   const tally = (gs: SeriesGame[]): Rec => {
     const r: Rec = [0, 0, 0];
-    for (const g of gs) r[g.r === 'W' ? 0 : g.r === 'L' ? 1 : 2]++;
+    for (const g of gs) if (g.ruling !== 'vacated') r[g.r === 'W' ? 0 : g.r === 'L' ? 1 : 2]++;
     return r;
   };
 
@@ -104,15 +128,17 @@ export function createSeries({ teams, fbsNow, gamesOf, upcomingOf }: SeriesModel
   function seriesOf(ti: number, oi: number): Series | null {
     const games = seriesGames(ti, oi);
     if (!games.length) return null;
-    const last = games[games.length - 1];
+    // the runs skip a vacated win, the way the record does
+    const counted = games.filter((g) => g.ruling !== 'vacated');
+    const last = counted[counted.length - 1] ?? games[games.length - 1];
     let len = 0;
-    for (let i = games.length - 1; i >= 0 && games[i].r === last.r; i--) len++;
+    for (let i = counted.length - 1; i >= 0 && counted[i].r === last.r; i--) len++;
     const longest: Series['longest'] = { W: null, L: null };
-    for (let i = 0; i < games.length;) {
+    for (let i = 0; i < counted.length;) {
       let j = i;
-      while (j + 1 < games.length && games[j + 1].r === games[i].r) j++;
-      const r = games[i].r;
-      if (r !== 'T' && (!longest[r] || j - i + 1 > longest[r]!.len)) longest[r] = { r, len: j - i + 1, from: games[i].se, to: games[j].se };
+      while (j + 1 < counted.length && counted[j + 1].r === counted[i].r) j++;
+      const r = counted[i].r;
+      if (r !== 'T' && (!longest[r] || j - i + 1 > longest[r]!.len)) longest[r] = { r, len: j - i + 1, from: counted[i].se, to: counted[j].se };
       i = j + 1;
     }
     return {
@@ -122,7 +148,8 @@ export function createSeries({ teams, fbsNow, gamesOf, upcomingOf }: SeriesModel
       now: { r: last.r, len },
       longest,
       next: upcomingOf(ti).find((u) => u.oppIdx === oi) ?? null,
-      since: games[0].se,
+      // the year of the first meeting's date, the way it's known: the first Iron Bowl was February 1893, in the 1892 season
+      since: new Date(games[0].ep * 86400000).getUTCFullYear(),
     };
   }
 

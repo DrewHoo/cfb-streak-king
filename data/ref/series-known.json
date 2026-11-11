@@ -1,0 +1,6940 @@
+{
+ "source": "Wikipedia rivalry articles, infobox lines quoted",
+ "rows": [
+  {
+   "title": "100 Miles of Hate",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384385816",
+   "a": "middle-tennessee",
+   "b": "western-kentucky",
+   "first": {
+    "quote": "October 10, 1914 / Middle Tennessee, 47–0",
+    "dates": [
+     "1914-10-10"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "November 7, 2026 / Middle Tennessee, 51–42",
+    "date": "2026-11-07"
+   },
+   "meetings": {
+    "quote": "76",
+    "n": [
+     76
+    ]
+   },
+   "series": {
+    "quote": "Western Kentucky, 39–36–1 ()"
+   },
+   "recent": [
+    [
+     "2026-11-07",
+     51,
+     42,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Air Force–Colorado State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374897487",
+   "a": "air-force",
+   "b": "colorado-state",
+   "first": {
+    "quote": "November 30, 1957 / Colorado State, 20–7",
+    "dates": [
+     "1957-11-30"
+    ],
+    "years": [
+     1957
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / Air Force, 42–21",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "63",
+    "n": [
+     63
+    ]
+   },
+   "series": {
+    "quote": "Air Force leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Air Force–Hawaii football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378438155",
+   "a": "air-force",
+   "b": "hawaii",
+   "first": {
+    "quote": "October 8, 1966 / Air Force, 54–0",
+    "dates": [
+     "1966-10-08"
+    ],
+    "years": [
+     1966
+    ]
+   },
+   "latest": {
+    "quote": "September 27, 2025 / Hawaii, 44–35",
+    "date": "2025-09-27"
+   },
+   "meetings": {
+    "quote": "24",
+    "n": [
+     24
+    ]
+   },
+   "series": {
+    "quote": "Air Force leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Alabama–Clemson football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379780874",
+   "a": "alabama",
+   "b": "clemson",
+   "first": {
+    "quote": "November 29, 1900 / Clemson, 35–0",
+    "dates": [
+     "1900-11-29"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "January 7, 2019 / Clemson, 44–16",
+    "date": "2019-01-07"
+   },
+   "meetings": {
+    "quote": "19",
+    "n": [
+     19
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 14–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Alabama–Florida football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383471920",
+   "a": "alabama",
+   "b": "florida",
+   "first": {
+    "quote": "October 21, 1916 / Alabama, 16–0",
+    "dates": [
+     "1916-10-21"
+    ],
+    "years": [
+     1916
+    ]
+   },
+   "latest": {
+    "quote": "September 18, 2021 / Alabama, 31–29",
+    "date": "2021-09-18"
+   },
+   "meetings": {
+    "quote": "42",
+    "n": [
+     42
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 27–14 (1 Alabama win vacated)"
+   },
+   "recent": []
+  },
+  {
+   "title": "Alabama–Georgia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383366046",
+   "a": "alabama",
+   "b": "georgia",
+   "first": {
+    "quote": "November 2, 1895 / Georgia, 30–6",
+    "dates": [
+     "1895-11-02"
+    ],
+    "years": [
+     1895
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Georgia, 20–17",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "77",
+    "n": [
+     77
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 45–28–4"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     17,
+     20,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Alabama–Georgia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379780152",
+   "a": "alabama",
+   "b": "georgia-tech",
+   "first": {
+    "quote": "November 27, 1902 / Alabama, 26–0",
+    "dates": [
+     "1902-11-27"
+    ],
+    "years": [
+     1902
+    ]
+   },
+   "latest": {
+    "quote": "September 15, 1984 / Georgia Tech, 16–6",
+    "date": "1984-09-15"
+   },
+   "meetings": {
+    "quote": "52",
+    "n": [
+     52
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 28–21–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Alabama–LSU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384394133",
+   "a": "alabama",
+   "b": "lsu",
+   "first": {
+    "quote": "November 18, 1895 / LSU, 12–6",
+    "dates": [
+     "1895-11-18"
+    ],
+    "years": [
+     1895
+    ]
+   },
+   "latest": {
+    "quote": "November 7, 2026 / Alabama, 31–13",
+    "date": "2026-11-07"
+   },
+   "meetings": {
+    "quote": "91",
+    "n": [
+     91
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 59–27–5"
+   },
+   "recent": [
+    [
+     "2026-11-07",
+     31,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Alabama–Mississippi State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378366269",
+   "a": "alabama",
+   "b": "mississippi-state",
+   "first": {
+    "quote": "November 14, 1896 / Alabama, 20–0",
+    "dates": [
+     "1896-11-14"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Alabama, 56–23",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "109",
+    "n": [
+     109
+    ]
+   },
+   "series": {
+    "quote": "87–18–3 / Alabama leads 89–17–3 on the field, but two wins were vacated or forfeited."
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     56,
+     23,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Alabama–Ole Miss football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366943915",
+   "a": "alabama",
+   "b": "ole-miss",
+   "first": {
+    "quote": "October 27, 1894 / Ole Miss, 6–0",
+    "dates": [
+     "1894-10-27"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "September 23, 2023 / Alabama, 24–10",
+    "date": "2023-09-23"
+   },
+   "meetings": {
+    "quote": "71",
+    "n": [
+     71
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 55–10–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Alabama–Penn State football series",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1372526951",
+   "a": "alabama",
+   "b": "penn-state",
+   "first": {
+    "quote": "December 19, 1959 / Penn State, 7–0",
+    "dates": [
+     "1959-12-19"
+    ],
+    "years": [
+     1959
+    ]
+   },
+   "latest": {
+    "quote": "September 10, 2011 / Alabama, 27–11",
+    "date": "2011-09-10"
+   },
+   "meetings": {
+    "quote": "15",
+    "n": [
+     15
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 10–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Anniversary Award",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382749081",
+   "a": "bowling-green",
+   "b": "kent-state",
+   "first": {
+    "quote": "November 6, 1920 / Bowling Green, 7–0",
+    "dates": [
+     "1920-11-06"
+    ],
+    "years": [
+     1920
+    ]
+   },
+   "latest": {
+    "quote": "October 25, 2025 / Kent State, 24–21",
+    "date": "2025-10-25"
+   },
+   "meetings": {
+    "quote": "93",
+    "n": [
+     93
+    ]
+   },
+   "series": {
+    "quote": "Bowling Green leads, 62–25–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Appalachian State–Georgia Southern football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383150999",
+   "a": "appalachian-state",
+   "b": "georgia-southern",
+   "first": {
+    "quote": "November 25, 1932 / South Georgia Teachers, 33–0",
+    "dates": [
+     "1932-11-25"
+    ],
+    "years": [
+     1932
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Georgia Southern, 19–3",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "42",
+    "n": [
+     42
+    ]
+   },
+   "series": {
+    "quote": "Appalachian State leads, 21–20–1"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     3,
+     19,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Appalachian State–Marshall football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366944268",
+   "a": "appalachian-state",
+   "b": "marshall",
+   "first": {
+    "quote": "October 1, 1977 / Appalachian State, 28–20",
+    "dates": [
+     "1977-10-01"
+    ],
+    "years": [
+     1977
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / Appalachian State, 26–24",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "28",
+    "n": [
+     28
+    ]
+   },
+   "series": {
+    "quote": "Appalachian State leads, 17–11"
+   },
+   "recent": []
+  },
+  {
+   "title": "Apple Cup",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384254815",
+   "a": "washington",
+   "b": "washington-state",
+   "first": {
+    "quote": "November 29, 1900 / Tie, 5–5",
+    "dates": [
+     "1900-11-29"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "September 6, 2026 / Washington, / 24–10",
+    "date": "2026-09-06"
+   },
+   "meetings": {
+    "quote": "118",
+    "n": [
+     118
+    ]
+   },
+   "series": {
+    "quote": "Washington leads, /"
+   },
+   "recent": [
+    [
+     "2026-09-06",
+     10,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Arizona–Arizona State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381081817",
+   "a": "arizona",
+   "b": "arizona-state",
+   "first": {
+    "quote": "November 30, 1899 / Normal School of Arizona, 11–2",
+    "dates": [
+     "1899-11-30"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / Arizona, 23–7",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "99",
+    "n": [
+     99
+    ]
+   },
+   "series": {
+    "quote": "Arizona leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Arizona–New Mexico football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366944476",
+   "a": "arizona",
+   "b": "new-mexico",
+   "first": {
+    "quote": "November 26, 1908 / Arizona, 10–5",
+    "dates": [
+     "1908-11-26"
+    ],
+    "years": [
+     1908
+    ]
+   },
+   "latest": {
+    "quote": "August 31, 2024 / Arizona, 61–39",
+    "date": "2024-08-31"
+   },
+   "meetings": {
+    "quote": "68",
+    "n": [
+     68
+    ]
+   },
+   "series": {
+    "quote": "Arizona leads, 45–20–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Arkansas–LSU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382521389",
+   "a": "arkansas",
+   "b": "lsu",
+   "first": {
+    "quote": "December 6, 1901 / LSU, 15–0",
+    "dates": [
+     "1901-12-06"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "November 15, 2025 / LSU, 23–22",
+    "date": "2025-11-15"
+   },
+   "meetings": {
+    "quote": "71",
+    "n": [
+     71
+    ]
+   },
+   "series": {
+    "quote": "LSU leads, 44–23–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Arkansas–Ole Miss football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377103900",
+   "a": "arkansas",
+   "b": "ole-miss",
+   "first": {
+    "quote": "October 10, 1908 / Arkansas, 33–0",
+    "dates": [
+     "1908-10-10"
+    ],
+    "years": [
+     1908
+    ]
+   },
+   "latest": {
+    "quote": "September 13, 2025 / Ole Miss, 41–35",
+    "date": "2025-09-13"
+   },
+   "meetings": {
+    "quote": "72",
+    "n": [
+     72
+    ]
+   },
+   "series": {
+    "quote": "Arkansas leads, 38–31–1 (per Arkansas) / Arkansas leads, 37–32–1 (per Ole Miss)"
+   },
+   "recent": []
+  },
+  {
+   "title": "Arkansas–Texas A&M football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381350614",
+   "a": "arkansas",
+   "b": "texas-am",
+   "first": {
+    "quote": "October 31, 1903 / Texas A&M, 6–0",
+    "dates": [
+     "1903-10-31"
+    ],
+    "years": [
+     1903
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Texas A&M, 34–7",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "83",
+    "n": [
+     83
+    ]
+   },
+   "series": {
+    "quote": "Arkansas leads, 42–38–3"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     7,
+     34,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Arkansas–Texas football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366944549",
+   "a": "arkansas",
+   "b": "texas",
+   "first": {
+    "quote": "November 29, 1894 / Texas 54, Arkansas 0",
+    "dates": [
+     "1894-11-29"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / Texas 52, Arkansas 37",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "81",
+    "n": [
+     81
+    ]
+   },
+   "series": {
+    "quote": "Texas leads, 58–23 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Arkansas–Texas Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378547965",
+   "a": "arkansas",
+   "b": "texas-tech",
+   "first": {
+    "quote": "November 23, 1957 / Arkansas, 47–26",
+    "dates": [
+     "1957-11-23"
+    ],
+    "years": [
+     1957
+    ]
+   },
+   "latest": {
+    "quote": "December 27, 2024 / Arkansas, 39–26",
+    "date": "2024-12-27"
+   },
+   "meetings": {
+    "quote": "38",
+    "n": [
+     38
+    ]
+   },
+   "series": {
+    "quote": "Arkansas leads, 30–8"
+   },
+   "recent": []
+  },
+  {
+   "title": "Army–Navy Game",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384837348",
+   "a": "army",
+   "b": "navy",
+   "first": {
+    "quote": "November 29, 1890 / Navy, 24–0",
+    "dates": [
+     "1890-11-29"
+    ],
+    "years": [
+     1890
+    ]
+   },
+   "latest": {
+    "quote": "December 13, 2025 / Navy, 17–16",
+    "date": "2025-12-13"
+   },
+   "meetings": {
+    "quote": "126",
+    "n": [
+     126
+    ]
+   },
+   "series": {
+    "quote": "Navy leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Army–Notre Dame football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366944699",
+   "a": "army",
+   "b": "notre-dame",
+   "first": {
+    "quote": "November 1, 1913 / Notre Dame, 35–13",
+    "dates": [
+     "1913-11-01"
+    ],
+    "years": [
+     1913
+    ]
+   },
+   "latest": {
+    "quote": "November 23, 2024 / Notre Dame, 49–14",
+    "date": "2024-11-23"
+   },
+   "meetings": {
+    "quote": "52",
+    "n": [
+     52
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 40–8–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Auburn–Clemson football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376236619",
+   "a": "auburn",
+   "b": "clemson",
+   "first": {
+    "quote": "October 28, 1899 / Auburn, 34–0",
+    "dates": [
+     "1899-10-28"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "September 9, 2017 / Clemson, 14–6",
+    "date": "2017-09-09"
+   },
+   "meetings": {
+    "quote": "51",
+    "n": [
+     51
+    ]
+   },
+   "series": {
+    "quote": "Auburn leads, 34–15–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Auburn–Florida football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383623964",
+   "a": "auburn",
+   "b": "florida",
+   "first": {
+    "quote": "October 12, 1912 / Auburn, 27–13",
+    "dates": [
+     "1912-10-12"
+    ],
+    "years": [
+     1912
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Florida, 44–39",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "85",
+    "n": [
+     85
+    ]
+   },
+   "series": {
+    "quote": "Auburn leads, 43–40–2"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     39,
+     44,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Auburn–Georgia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374135372",
+   "a": "auburn",
+   "b": "georgia-tech",
+   "first": {
+    "quote": "November 25, 1892 / Auburn, 26–0",
+    "dates": [
+     "1892-11-25"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "September 3, 2005 / Georgia Tech, 23–14",
+    "date": "2005-09-03"
+   },
+   "meetings": {
+    "quote": "92",
+    "n": [
+     92
+    ]
+   },
+   "series": {
+    "quote": "Auburn leads, 47–41–4 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Auburn–LSU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381884885",
+   "a": "auburn",
+   "b": "lsu",
+   "first": {
+    "quote": "November 20, 1901 / Auburn, 28–0",
+    "dates": [
+     "1901-11-20"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "October 24, 2026 / LSU, 38–17",
+    "date": "2026-10-24"
+   },
+   "meetings": {
+    "quote": "59",
+    "n": [
+     59
+    ]
+   },
+   "series": {
+    "quote": "LSU leads, 31–24–1"
+   },
+   "recent": [
+    [
+     "2026-10-24",
+     17,
+     38,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Auburn–Ole Miss football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383065315",
+   "a": "auburn",
+   "b": "ole-miss",
+   "first": {
+    "quote": "October 20, 1928 / Ole Miss, 19–0",
+    "dates": [
+     "1928-10-20"
+    ],
+    "years": [
+     1928
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Ole Miss, 45–15",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "49",
+    "n": [
+     49
+    ]
+   },
+   "series": {
+    "quote": "Auburn leads, 35–13"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     15,
+     45,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Auburn–Tennessee football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378336967",
+   "a": "auburn",
+   "b": "tennessee",
+   "first": {
+    "quote": "November 10, 1900 / Auburn, 23–0",
+    "dates": [
+     "1900-11-10"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Tennessee, 24–14",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "55",
+    "n": [
+     55
+    ]
+   },
+   "series": {
+    "quote": "Auburn leads, 29–23–3"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     14,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Auburn–Tulane football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366945027",
+   "a": "auburn",
+   "b": "tulane",
+   "first": {
+    "quote": "November 25, 1902 / Tie, 0–0",
+    "dates": [
+     "1902-11-25"
+    ],
+    "years": [
+     1902
+    ]
+   },
+   "latest": {
+    "quote": "September 7, 2019 / Auburn, 24–6",
+    "date": "2019-09-07"
+   },
+   "meetings": {
+    "quote": "38",
+    "n": [
+     38
+    ]
+   },
+   "series": {
+    "quote": "Tulane leads, 17–15–6 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle for the Bell (Marshall–Ohio)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366945494",
+   "a": "marshall",
+   "b": "ohio",
+   "first": {
+    "quote": "November 11, 1905 / Marshall, 6–5",
+    "dates": [
+     "1905-11-11"
+    ],
+    "years": [
+     1905
+    ]
+   },
+   "latest": {
+    "quote": "September 14, 2019 / Marshall, 33–31",
+    "date": "2019-09-14"
+   },
+   "meetings": {
+    "quote": "60",
+    "n": [
+     60
+    ]
+   },
+   "series": {
+    "quote": "Ohio leads, 33–21–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle for the Bell (Southern Miss–Tulane)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377020774",
+   "a": "southern-miss",
+   "b": "tulane",
+   "first": {
+    "quote": "October 13, 1979 / Tulane, 20–19",
+    "dates": [
+     "1979-10-13"
+    ],
+    "years": [
+     1979
+    ]
+   },
+   "latest": {
+    "quote": "September 16, 2026 / Tulane, 24–20",
+    "date": "2026-09-16"
+   },
+   "meetings": {
+    "quote": "35",
+    "n": [
+     35
+    ]
+   },
+   "series": {
+    "quote": "Southern Miss leads 24–11"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     21,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Battle for the Bones",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379690865",
+   "a": "memphis",
+   "b": "uab",
+   "first": {
+    "quote": "1984",
+    "dates": null,
+    "years": [
+     1984
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     38,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Battle for the Ol' School Bell",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382749865",
+   "a": "jacksonville-state",
+   "b": "troy",
+   "first": {
+    "quote": "November 27, 1924 / Jacksonville State, 14–9",
+    "dates": [
+     "1924-11-27"
+    ],
+    "years": [
+     1924
+    ]
+   },
+   "latest": {
+    "quote": "December 16, 2025 / Jacksonville State, 17–13",
+    "date": "2025-12-16"
+   },
+   "meetings": {
+    "quote": "64",
+    "n": [
+     64
+    ]
+   },
+   "series": {
+    "quote": "Jacksonville State leads, 34–28–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle for the Palladium",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382749805",
+   "a": "middle-tennessee",
+   "b": "troy",
+   "first": {
+    "quote": "October 9, 1936 / Middle Tennessee, 19–0",
+    "dates": [
+     "1936-10-09"
+    ],
+    "years": [
+     1936
+    ]
+   },
+   "latest": {
+    "quote": "November 21, 2020 / Middle Tennessee, 20–17",
+    "date": "2020-11-21"
+   },
+   "meetings": {
+    "quote": "22",
+    "n": [
+     22
+    ]
+   },
+   "series": {
+    "quote": "Middle Tennessee leads 13–9"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle for the Rag",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366945626",
+   "a": "lsu",
+   "b": "tulane",
+   "first": {
+    "quote": "November 25, 1893 / Tulane, 34–0",
+    "dates": [
+     "1893-11-25"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2009 / LSU, 42–0",
+    "date": "2009-10-31"
+   },
+   "meetings": {
+    "quote": "98",
+    "n": [
+     98
+    ]
+   },
+   "series": {
+    "quote": "LSU leads, 69–22–7 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle for the Valley",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382749872",
+   "a": "fresno-state",
+   "b": "san-jose-state",
+   "first": {
+    "quote": "November 19, 1921 / San Jose State, 14–2",
+    "dates": [
+     "1921-11-19"
+    ],
+    "years": [
+     1921
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Fresno State, 26–10",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "89",
+    "n": [
+     89
+    ]
+   },
+   "series": {
+    "quote": "Fresno State leads, 47–39–3"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     26,
+     10,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Battle Line Rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383131108",
+   "a": "arkansas",
+   "b": "missouri",
+   "first": {
+    "quote": "November 10, 1906 / Missouri, 11–0",
+    "dates": [
+     "1906-11-10"
+    ],
+    "years": [
+     1906
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Missouri, 34–10",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "18",
+    "n": [
+     18
+    ]
+   },
+   "series": {
+    "quote": "Missouri leads, 13–4"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     10,
+     34,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Battle of I-10",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1372054174",
+   "a": "new-mexico-state",
+   "b": "utep",
+   "first": {
+    "quote": "October 31, 1914 / New Mexico A&M 19, Texas State M&M 0",
+    "dates": [
+     "1914-10-31"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / New Mexico State 34, UTEP 31",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "102",
+    "n": [
+     102
+    ]
+   },
+   "series": {
+    "quote": "UTEP leads 60–40–2 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle of the Blue Ridge",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382748800",
+   "a": "james-madison",
+   "b": "liberty",
+   "first": {
+    "quote": "October 11, 1980 / James Madison, 30–14",
+    "dates": [
+     "1980-10-11"
+    ],
+    "years": [
+     1980
+    ]
+   },
+   "latest": {
+    "quote": "September 5, 2026 / James Madison, 20–13",
+    "date": "2026-09-05"
+   },
+   "meetings": {
+    "quote": "20",
+    "n": [
+     20
+    ]
+   },
+   "series": {
+    "quote": "James Madison, 14–6"
+   },
+   "recent": [
+    [
+     "2026-09-05",
+     20,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Battle of the Brazos",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379222700",
+   "a": "baylor",
+   "b": "texas-am",
+   "first": {
+    "quote": "November 30, 1899 / Texas A&M, 33–0",
+    "dates": [
+     "1899-11-30"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "October 15, 2011 / Texas A&M, 55–28",
+    "date": "2011-10-15"
+   },
+   "meetings": {
+    "quote": "108",
+    "n": [
+     108
+    ]
+   },
+   "series": {
+    "quote": "Texas A&M leads, 68–31–9"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle of the Bricks",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366946007",
+   "a": "miami-oh",
+   "b": "ohio",
+   "first": {
+    "quote": "October 17, 1908 / Miami, 5–0",
+    "dates": [
+     "1908-10-17"
+    ],
+    "years": [
+     1908
+    ]
+   },
+   "latest": {
+    "quote": "November 4, 2025 / Ohio, 24–20",
+    "date": "2025-11-04"
+   },
+   "meetings": {
+    "quote": "102",
+    "n": [
+     102
+    ]
+   },
+   "series": {
+    "quote": "Miami leads, 56–44–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Battle of the Brothers",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1375773749",
+   "a": "utah",
+   "b": "utah-state",
+   "first": {
+    "quote": "November 25, 1892 / Utah Agricultural, 12–0",
+    "dates": [
+     "1892-11-25"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Utah, 33–0",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "115",
+    "n": [
+     115
+    ]
+   },
+   "series": {
+    "quote": "Utah leads, / 81–30–4"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     33,
+     0,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Battle on the Bayou",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382975032",
+   "a": "louisiana",
+   "b": "louisiana-monroe",
+   "first": {
+    "quote": "September 15, 1951 / Northeast Louisiana State, 13–7",
+    "dates": [
+     "1951-09-15"
+    ],
+    "years": [
+     1951
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Louisiana, 30–27<sup>OT</sup>",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "61",
+    "n": [
+     61
+    ]
+   },
+   "series": {
+    "quote": "Louisiana leads, 34–26"
+   },
+   "recent": []
+  },
+  {
+   "title": "Baylor–Houston football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384589537",
+   "a": "baylor",
+   "b": "houston",
+   "first": {
+    "quote": "September 30, 1950 / Baylor 34, Houston 7",
+    "dates": [
+     "1950-09-30"
+    ],
+    "years": [
+     1950
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Houston 31, Baylor 24",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "31",
+    "n": [
+     31
+    ]
+   },
+   "series": {
+    "quote": "Tied: 15–15–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Baylor–Rice football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384410018",
+   "a": "baylor",
+   "b": "rice",
+   "first": {
+    "quote": "November 20, 1914 / Rice, 14–13",
+    "dates": [
+     "1914-11-20"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "September 21, 2019 / Baylor, 21–13",
+    "date": "2019-09-21"
+   },
+   "meetings": {
+    "quote": "82",
+    "n": [
+     82
+    ]
+   },
+   "series": {
+    "quote": "Baylor leads 50–30–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Baylor–TCU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381081362",
+   "a": "baylor",
+   "b": "tcu",
+   "first": {
+    "quote": "October 24, 1899 / Tie, 0–0",
+    "dates": [
+     "1899-10-24"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / TCU, 17–6",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "122",
+    "n": [
+     122
+    ]
+   },
+   "series": {
+    "quote": "TCU leads 61–54–7"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     6,
+     17,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Baylor–Texas football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366946244",
+   "a": "baylor",
+   "b": "texas",
+   "first": {
+    "quote": "October 29, 1901 / Texas, 23–0",
+    "dates": [
+     "1901-10-29"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "September 23, 2023 / Texas, 38–6",
+    "date": "2023-09-23"
+   },
+   "meetings": {
+    "quote": "113",
+    "n": [
+     113
+    ]
+   },
+   "series": {
+    "quote": "Texas leads 81–28–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Baylor–Texas Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381081651",
+   "a": "baylor",
+   "b": "texas-tech",
+   "first": {
+    "quote": "November 2, 1929 / Baylor, 34–0",
+    "dates": [
+     "1929-11-02"
+    ],
+    "years": [
+     1929
+    ]
+   },
+   "latest": {
+    "quote": "October 19, 2024 / Baylor, 59–35",
+    "date": "2024-10-19"
+   },
+   "meetings": {
+    "quote": "83",
+    "n": [
+     83
+    ]
+   },
+   "series": {
+    "quote": "Baylor leads 42–40–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Bedlam Series",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383754269",
+   "a": "oklahoma",
+   "b": "oklahoma-state",
+   "first": {
+    "quote": "1904 (football)",
+    "dates": null,
+    "years": [
+     1904
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Big Game (American football)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379215097",
+   "a": "california",
+   "b": "stanford",
+   "first": {
+    "quote": "March 19, 1892 / Stanford, 14–10",
+    "dates": [
+     "1892-03-19"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / Stanford, 31–10",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "127",
+    "n": [
+     127
+    ]
+   },
+   "series": {
+    "quote": "Stanford leads, 65–51–11 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Bill Walsh Legacy Game",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366955155",
+   "a": "san-jose-state",
+   "b": "stanford",
+   "first": {
+    "quote": "October 11, 1900 / Stanford, 35–0",
+    "dates": [
+     "1900-10-11"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "September 27, 2025 / Stanford, 30–29",
+    "date": "2025-09-27"
+   },
+   "meetings": {
+    "quote": "69",
+    "n": [
+     69
+    ]
+   },
+   "series": {
+    "quote": "Stanford leads, 53–15–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Black and Blue Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366955250",
+   "a": "memphis",
+   "b": "southern-miss",
+   "first": {
+    "quote": "October 26, 1935 / Mississippi State Teachers, 12–0",
+    "dates": [
+     "1935-10-26"
+    ],
+    "years": [
+     1935
+    ]
+   },
+   "latest": {
+    "quote": "November 24, 2012 / Memphis, 42–24",
+    "date": "2012-11-24"
+   },
+   "meetings": {
+    "quote": "63",
+    "n": [
+     63
+    ]
+   },
+   "series": {
+    "quote": "Southern Miss, 40–22–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Boise State–Fresno State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382363632",
+   "a": "boise-state",
+   "b": "fresno-state",
+   "first": {
+    "quote": "September 17, 1977 / Fresno State, 42–7",
+    "dates": [
+     "1977-09-17"
+    ],
+    "years": [
+     1977
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Boise State, 38–31",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "28",
+    "n": [
+     28
+    ]
+   },
+   "series": {
+    "quote": "Boise State, 18–10 ()"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     38,
+     31,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Boise State–Nevada football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1372435550",
+   "a": "boise-state",
+   "b": "nevada",
+   "first": {
+    "quote": "September 25, 1971 / Boise State, 17–10",
+    "dates": [
+     "1971-09-25"
+    ],
+    "years": [
+     1971
+    ]
+   },
+   "latest": {
+    "quote": "October 24, 2025 / Boise State, 24–3",
+    "date": "2025-10-24"
+   },
+   "meetings": {
+    "quote": "47",
+    "n": [
+     47
+    ]
+   },
+   "series": {
+    "quote": "Boise State leads, 33–14 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Border War (Colorado State–Wyoming rivalry)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1373972225",
+   "a": "colorado-state",
+   "b": "wyoming",
+   "first": {
+    "quote": "November 30, 1899 / Colorado Agricultural, 12–0 (forfeit)",
+    "dates": [
+     "1899-11-30"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "September 5, 2026 / Colorado State, 35–13",
+    "date": "2026-09-05"
+   },
+   "meetings": {
+    "quote": "118",
+    "n": [
+     118
+    ]
+   },
+   "series": {
+    "quote": "Colorado State leads, 61–52–5"
+   },
+   "recent": [
+    [
+     "2026-09-05",
+     35,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Boston College–UMass football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378843202",
+   "a": "boston-college",
+   "b": "umass",
+   "first": {
+    "quote": "November 28, 1901 / Massachusetts, 11–0",
+    "dates": [
+     "1901-11-28"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "September 11, 2021 / Boston College, 45–28",
+    "date": "2021-09-11"
+   },
+   "meetings": {
+    "quote": "27",
+    "n": [
+     27
+    ]
+   },
+   "series": {
+    "quote": "Boston College leads, 22–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Boston College–Virginia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376884141",
+   "a": "boston-college",
+   "b": "virginia-tech",
+   "first": {
+    "quote": "November 6, 1993 / Boston College, 48–34",
+    "dates": [
+     "1993-11-06"
+    ],
+    "years": [
+     1993
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / Virginia Tech, 21–14",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "34",
+    "n": [
+     34
+    ]
+   },
+   "series": {
+    "quote": "Virginia Tech leads, 23–11"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     14,
+     21,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Bowling Green–Toledo football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1373944042",
+   "a": "bowling-green",
+   "b": "toledo",
+   "first": {
+    "quote": "October 3, 1919 / Toledo, 6–0",
+    "dates": [
+     "1919-10-03"
+    ],
+    "years": [
+     1919
+    ]
+   },
+   "latest": {
+    "quote": "October 11, 2025 / Bowling Green, 28–23",
+    "date": "2025-10-11"
+   },
+   "meetings": {
+    "quote": "90",
+    "n": [
+     90
+    ]
+   },
+   "series": {
+    "quote": "Series Tied, 43–43–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Bronze Stalk Trophy",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382749799",
+   "a": "ball-state",
+   "b": "northern-illinois",
+   "first": {
+    "quote": "October 4, 1941 / Ball State 6, Northern Illinois 6",
+    "dates": [
+     "1941-10-04"
+    ],
+    "years": [
+     1941
+    ]
+   },
+   "latest": {
+    "quote": "October 25, 2025 / Ball State 7, Northern Illinois 21",
+    "date": "2025-10-25"
+   },
+   "meetings": {
+    "quote": "53",
+    "n": [
+     53
+    ]
+   },
+   "series": {
+    "quote": "NIU, 26–25–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "BYU–Utah State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1372946556",
+   "a": "byu",
+   "b": "utah-state",
+   "first": {
+    "quote": "October 7, 1922 / Utah A.C., 42–3",
+    "dates": [
+     "1922-10-07"
+    ],
+    "years": [
+     1922
+    ]
+   },
+   "latest": {
+    "quote": "September 29, 2022 / BYU, 38–26",
+    "date": "2022-09-29"
+   },
+   "meetings": {
+    "quote": "91",
+    "n": [
+     91
+    ]
+   },
+   "series": {
+    "quote": "BYU leads, 51–37–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "California–UCLA football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382496026",
+   "a": "california",
+   "b": "ucla",
+   "first": {
+    "quote": "/ Tie, 0–0",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "September 5, 2026 / UCLA, 45–24",
+    "date": "2026-09-05"
+   },
+   "meetings": {
+    "quote": "95",
+    "n": [
+     95
+    ]
+   },
+   "series": {
+    "quote": "UCLA leads, 58–35–1"
+   },
+   "recent": [
+    [
+     "2026-09-05",
+     24,
+     45,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "California–USC football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1373617629",
+   "a": "california",
+   "b": "usc",
+   "first": {
+    "quote": "November 28, 1912 / California, 18–0",
+    "dates": [
+     "1912-11-28"
+    ],
+    "years": [
+     1912
+    ]
+   },
+   "latest": {
+    "quote": "October 28, 2023 / USC, 50–49",
+    "date": "2023-10-28"
+   },
+   "meetings": {
+    "quote": "112",
+    "n": [
+     112
+    ]
+   },
+   "series": {
+    "quote": "USC leads, 72–32–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Central Michigan–Eastern Michigan football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383856738",
+   "a": "central-michigan",
+   "b": "eastern-michigan",
+   "first": {
+    "quote": "November 1, 1902 / Central Michigan, 10–0",
+    "dates": [
+     "1902-11-01"
+    ],
+    "years": [
+     1902
+    ]
+   },
+   "latest": {
+    "quote": "November 4, 2026 / Central Michigan, 35–7",
+    "date": "2026-11-04"
+   },
+   "meetings": {
+    "quote": "104",
+    "n": [
+     104
+    ]
+   },
+   "series": {
+    "quote": "CMU leads 66–32–6"
+   },
+   "recent": [
+    [
+     "2026-11-04",
+     35,
+     7,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Central Michigan–Western Michigan football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380780377",
+   "a": "central-michigan",
+   "b": "western-michigan",
+   "first": {
+    "quote": "October 19, 1907 / Western State, 29–0",
+    "dates": [
+     "1907-10-19"
+    ],
+    "years": [
+     1907
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Western Michigan, 21–14",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "97",
+    "n": [
+     97
+    ]
+   },
+   "series": {
+    "quote": "WMU leads 55–40–2"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     14,
+     21,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Cincinnati–Memphis rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366956771",
+   "a": "cincinnati",
+   "b": "memphis",
+   "first": {
+    "quote": "1966",
+    "dates": null,
+    "years": [
+     1966
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Cincinnati–UCF football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366956785",
+   "a": "cincinnati",
+   "b": "ucf",
+   "first": {
+    "quote": "October 31, 2015 / Cincinnati 52, UCF 7",
+    "dates": [
+     "2015-10-31"
+    ],
+    "years": [
+     2015
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2025 / Cincinnati 20, UCF 11",
+    "date": "2025-10-10"
+   },
+   "meetings": {
+    "quote": "11",
+    "n": [
+     11
+    ]
+   },
+   "series": {
+    "quote": "Cincinnati, 6–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Cincinnati–West Virginia rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381081680",
+   "a": "cincinnati",
+   "b": "west-virginia",
+   "first": {
+    "quote": "1921",
+    "dates": null,
+    "years": [
+     1921
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     42,
+     45,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Clean, Old-Fashioned Hate",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383498895",
+   "a": "georgia",
+   "b": "georgia-tech",
+   "first": {
+    "quote": "November 4, 1893 / Georgia Tech, 28–6",
+    "dates": [
+     "1893-11-04"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / Georgia, 16–9",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "119",
+    "n": [
+     119
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads, 73–41–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Clemson–Florida State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383129425",
+   "a": "clemson",
+   "b": "florida-state",
+   "first": {
+    "quote": "November 7, 1970 / Florida State, 38–13",
+    "dates": [
+     "1970-11-07"
+    ],
+    "years": [
+     1970
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Clemson, 36–24",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "39",
+    "n": [
+     39
+    ]
+   },
+   "series": {
+    "quote": "Florida State leads, 21–18"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     36,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Clemson–Georgia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376172122",
+   "a": "clemson",
+   "b": "georgia",
+   "first": {
+    "quote": "October 9, 1897 / Georgia, 24–0",
+    "dates": [
+     "1897-10-09"
+    ],
+    "years": [
+     1897
+    ]
+   },
+   "latest": {
+    "quote": "August 31, 2024 / Georgia, 34–3",
+    "date": "2024-08-31"
+   },
+   "meetings": {
+    "quote": "66",
+    "n": [
+     66
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads, 44–18–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Clemson–Georgia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374135501",
+   "a": "clemson",
+   "b": "georgia-tech",
+   "first": {
+    "quote": "November 24, 1898 / Clemson, 23–0",
+    "dates": [
+     "1898-11-24"
+    ],
+    "years": [
+     1898
+    ]
+   },
+   "latest": {
+    "quote": "September 13, 2025 / Georgia Tech, 24–21",
+    "date": "2025-09-13"
+   },
+   "meetings": {
+    "quote": "90",
+    "n": [
+     90
+    ]
+   },
+   "series": {
+    "quote": "Georgia Tech leads, 51–36–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Clemson–South Carolina rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378990762",
+   "a": "clemson",
+   "b": "south-carolina",
+   "first": {
+    "quote": "November 12, 1896 / South Carolina, 12–6",
+    "dates": [
+     "1896-11-12"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Clemson, 28–14",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "122",
+    "n": [
+     122
+    ]
+   },
+   "series": {
+    "quote": "Clemson leads, 74–44–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Coastal Carolina–Liberty football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378120419",
+   "a": "coastal-carolina",
+   "b": "liberty",
+   "first": {
+    "quote": "November 14, 2003 / Liberty, 38–21",
+    "dates": [
+     "2003-11-14"
+    ],
+    "years": [
+     2003
+    ]
+   },
+   "latest": {
+    "quote": "September 24, 2026 / Liberty, 34–17",
+    "date": "2026-09-24"
+   },
+   "meetings": {
+    "quote": "16",
+    "n": [
+     16
+    ]
+   },
+   "series": {
+    "quote": "Liberty, 9–7"
+   },
+   "recent": [
+    [
+     "2026-09-24",
+     17,
+     34,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Colorado–Kansas State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383080228",
+   "a": "colorado",
+   "b": "kansas-state",
+   "first": {
+    "quote": "November 16, 1912 / Kansas State 14, Colorado 6",
+    "dates": [
+     "1912-11-16"
+    ],
+    "years": [
+     1912
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Colorado 27, Kansas State 24<sup>OT</sup>",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "69",
+    "n": [
+     69
+    ]
+   },
+   "series": {
+    "quote": "Colorado leads, 46–22–1"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     27,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Colorado–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366957506",
+   "a": "colorado",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 17, 1898 / Nebraska, 23–10",
+    "dates": [
+     "1898-11-17"
+    ],
+    "years": [
+     1898
+    ]
+   },
+   "latest": {
+    "quote": "September 7, 2024 / Nebraska, 28–10",
+    "date": "2024-09-07"
+   },
+   "meetings": {
+    "quote": "73",
+    "n": [
+     73
+    ]
+   },
+   "series": {
+    "quote": "Nebraska leads, 50–21–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Crab Bowl Classic",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1370831691",
+   "a": "maryland",
+   "b": "navy",
+   "first": {
+    "quote": "October 25, 1905 / Navy 17, Maryland 0",
+    "dates": [
+     "1905-10-25"
+    ],
+    "years": [
+     1905
+    ]
+   },
+   "latest": {
+    "quote": "September 6, 2010 / Maryland 17, Navy 14",
+    "date": "2010-09-06"
+   },
+   "meetings": {
+    "quote": "21",
+    "n": [
+     21
+    ]
+   },
+   "series": {
+    "quote": "Navy leads, 14–7"
+   },
+   "recent": []
+  },
+  {
+   "title": "Deep South's Oldest Rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381643363",
+   "a": "auburn",
+   "b": "georgia",
+   "first": {
+    "quote": "February 20, 1892 / Auburn, 10–0",
+    "dates": [
+     "1892-02-20"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Auburn, 27–24",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "131",
+    "n": [
+     131
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads, 66–57–8"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     27,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Dick Tomey Legacy Game",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378722321",
+   "a": "san-jose-state",
+   "b": "hawaii",
+   "first": {
+    "quote": "December 11, 1936 / San Jose State, 13–8",
+    "dates": [
+     "1936-12-11"
+    ],
+    "years": [
+     1936
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / San Jose State, 20–16",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "48",
+    "n": [
+     48
+    ]
+   },
+   "series": {
+    "quote": "San Jose State leads, 25–22–1"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     20,
+     16,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Duke–Georgia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381654487",
+   "a": "duke",
+   "b": "georgia-tech",
+   "first": {
+    "quote": "December 2, 1933 / Georgia Tech, 6–0",
+    "dates": [
+     "1933-12-02"
+    ],
+    "years": [
+     1933
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Georgia Tech, 28–25",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "93",
+    "n": [
+     93
+    ]
+   },
+   "series": {
+    "quote": "Georgia Tech leads, 57–35–1"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     25,
+     28,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Duke–NC State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384477669",
+   "a": "duke",
+   "b": "nc-state",
+   "first": {
+    "quote": "September 27, 1924 / NC State 14, Duke 0",
+    "dates": [
+     "1924-09-27"
+    ],
+    "years": [
+     1924
+    ]
+   },
+   "latest": {
+    "quote": "November 7, 2026 / Duke 41, NC State 3",
+    "date": "2026-11-07"
+   },
+   "meetings": {
+    "quote": "87",
+    "n": [
+     87
+    ]
+   },
+   "series": {
+    "quote": "Duke leads, 45–37–5"
+   },
+   "recent": [
+    [
+     "2026-11-07",
+     41,
+     3,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Duke–Virginia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381753245",
+   "a": "duke",
+   "b": "virginia",
+   "first": {
+    "quote": "November 27, 1890 / Virginia, 10–4",
+    "dates": [
+     "1890-11-27"
+    ],
+    "years": [
+     1890
+    ]
+   },
+   "latest": {
+    "quote": "October 23, 2026 / Duke, 19–16",
+    "date": "2026-10-23"
+   },
+   "meetings": {
+    "quote": "78",
+    "n": [
+     78
+    ]
+   },
+   "series": {
+    "quote": "Virginia leads, 42–36"
+   },
+   "recent": [
+    [
+     "2026-10-23",
+     19,
+     16,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Duke–Wake Forest football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1375774226",
+   "a": "duke",
+   "b": "wake-forest",
+   "first": {
+    "quote": "November 27, 1889 / Duke 8, Wake Forest 4",
+    "dates": [
+     "1889-11-27"
+    ],
+    "years": [
+     1889
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Duke 49, Wake Forest 32",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "105",
+    "n": [
+     105
+    ]
+   },
+   "series": {
+    "quote": "Duke leads, 62–41–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "East Carolina–Marshall football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1370083593",
+   "a": "east-carolina",
+   "b": "marshall",
+   "first": {
+    "quote": "November 18, 1967 / East Carolina, 29–13",
+    "dates": [
+     "1967-11-18"
+    ],
+    "years": [
+     1967
+    ]
+   },
+   "latest": {
+    "quote": "September 9, 2023 / Marshall, 31–13",
+    "date": "2023-09-09"
+   },
+   "meetings": {
+    "quote": "17",
+    "n": [
+     17
+    ]
+   },
+   "series": {
+    "quote": "East Carolina leads, 11–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "East Carolina–NC State rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1373368051",
+   "a": "east-carolina",
+   "b": "nc-state",
+   "first": {
+    "quote": "1970",
+    "dates": null,
+    "years": [
+     1970
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Egg Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379416281",
+   "a": "mississippi-state",
+   "b": "ole-miss",
+   "first": {
+    "quote": "October 28, 1901 / Mississippi A&M, 17–0",
+    "dates": [
+     "1901-10-28"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / #7 Ole Miss, 38–19",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "122",
+    "n": [
+     122
+    ]
+   },
+   "series": {
+    "quote": "Ole Miss leads, 67–46–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Florida State–Miami football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382702217",
+   "a": "florida-state",
+   "b": "miami-fl",
+   "first": {
+    "quote": "October 5, 1951 / Miami, 35–13",
+    "dates": [
+     "1951-10-05"
+    ],
+    "years": [
+     1951
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Miami, 43–35<sup>2OT</sup>",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "71",
+    "n": [
+     71
+    ]
+   },
+   "series": {
+    "quote": "Miami leads, 38–33"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     35,
+     43,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Florida–Florida State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382110278",
+   "a": "florida",
+   "b": "florida-state",
+   "first": {
+    "quote": "November 22, 1958 / Florida, 21–7",
+    "dates": [
+     "1958-11-22"
+    ],
+    "years": [
+     1958
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Florida, 40–21",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "69",
+    "n": [
+     69
+    ]
+   },
+   "series": {
+    "quote": "Florida leads, 39–28–2 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Florida–Georgia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383956182",
+   "a": "florida",
+   "b": "georgia",
+   "first": {
+    "quote": "October 15, 1904 / Georgia, 52–0 (per UGA) / November 6, 1915 / Georgia, 37–0 (per UF)",
+    "dates": [
+     "1904-10-15",
+     "1915-11-06"
+    ],
+    "years": [
+     1904,
+     1915
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Georgia, 27–8",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "104 (per Florida) / 105 (per Georgia)",
+    "n": [
+     104,
+     105
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads 58–44–2 / (per Florida) / Georgia leads 59–44–2 / (per Georgia)"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     8,
+     27,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Florida–Kentucky rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384334347",
+   "a": "florida",
+   "b": "kentucky",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Florida–LSU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383301205",
+   "a": "florida",
+   "b": "lsu",
+   "first": {
+    "quote": "September 25, 1937 / LSU, 19–0",
+    "dates": [
+     "1937-09-25"
+    ],
+    "years": [
+     1937
+    ]
+   },
+   "latest": {
+    "quote": "September 13, 2025 / LSU, 20–10",
+    "date": "2025-09-13"
+   },
+   "meetings": {
+    "quote": "72",
+    "n": [
+     72
+    ]
+   },
+   "series": {
+    "quote": "Florida leads, 34–32–3 (3 LSU wins vacated)"
+   },
+   "recent": []
+  },
+  {
+   "title": "Florida–Miami football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366960361",
+   "a": "florida",
+   "b": "miami-fl",
+   "first": {
+    "quote": "October 15, 1938 / Miami, 19–7",
+    "dates": [
+     "1938-10-15"
+    ],
+    "years": [
+     1938
+    ]
+   },
+   "latest": {
+    "quote": "September 20, 2025 / Miami, 26–7",
+    "date": "2025-09-20"
+   },
+   "meetings": {
+    "quote": "58",
+    "n": [
+     58
+    ]
+   },
+   "series": {
+    "quote": "Miami leads, 31–27 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Florida–Tennessee football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376175479",
+   "a": "florida",
+   "b": "tennessee",
+   "first": {
+    "quote": "October 28, 1916 / Tennessee, 24–0",
+    "dates": [
+     "1916-10-28"
+    ],
+    "years": [
+     1916
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / Tennessee, 31–11",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "55",
+    "n": [
+     55
+    ]
+   },
+   "series": {
+    "quote": "Florida leads, 32–23"
+   },
+   "recent": []
+  },
+  {
+   "title": "Fremont Cannon",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1372435636",
+   "a": "nevada",
+   "b": "unlv",
+   "first": {
+    "quote": "November 22, 1969 / Nevada 30, UNLV 28",
+    "dates": [
+     "1969-11-22"
+    ],
+    "years": [
+     1969
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / UNLV 42, Nevada 17",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "51",
+    "n": [
+     51
+    ]
+   },
+   "series": {
+    "quote": "Nevada leads, 29–22 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Fresno State–Hawaii football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1370008265",
+   "a": "fresno-state",
+   "b": "hawaii",
+   "first": {
+    "quote": "November 18, 1938 / Fresno State, 15–13",
+    "dates": [
+     "1938-11-18"
+    ],
+    "years": [
+     1938
+    ]
+   },
+   "latest": {
+    "quote": "September 20, 2025 / Fresno State, 23–21",
+    "date": "2025-09-20"
+   },
+   "meetings": {
+    "quote": "57",
+    "n": [
+     57
+    ]
+   },
+   "series": {
+    "quote": "Fresno State leads, 31–25–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Fresno State–San Diego State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380839123",
+   "a": "fresno-state",
+   "b": "san-diego-state",
+   "first": {
+    "quote": "November 29, 1923 / San Diego State, 12–2",
+    "dates": [
+     "1923-11-29"
+    ],
+    "years": [
+     1923
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / San Diego State, 26–23",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "64",
+    "n": [
+     64
+    ]
+   },
+   "series": {
+    "quote": "San Diego State leads, 33–27–4"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     23,
+     26,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Friends of Coal Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366960501",
+   "a": "marshall",
+   "b": "west-virginia",
+   "first": {
+    "quote": "October 28, 1911 / West Virginia, 17–15",
+    "dates": [
+     "1911-10-28"
+    ],
+    "years": [
+     1911
+    ]
+   },
+   "latest": {
+    "quote": "September 1, 2012 / West Virginia, 69–34",
+    "date": "2012-09-01"
+   },
+   "meetings": {
+    "quote": "12",
+    "n": [
+     12
+    ]
+   },
+   "series": {
+    "quote": "West Virginia leads, 12–0"
+   },
+   "recent": []
+  },
+  {
+   "title": "Gansz Trophy",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366960608",
+   "a": "navy",
+   "b": "smu",
+   "first": {
+    "quote": "November 15, 1930 / SMU, 20–7",
+    "dates": [
+     "1930-11-15"
+    ],
+    "years": [
+     1930
+    ]
+   },
+   "latest": {
+    "quote": "November 25, 2023 / SMU, 59–14",
+    "date": "2023-11-25"
+   },
+   "meetings": {
+    "quote": "25",
+    "n": [
+     25
+    ]
+   },
+   "series": {
+    "quote": "Navy leads, 13–12"
+   },
+   "recent": []
+  },
+  {
+   "title": "George Jewett Trophy",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377274891",
+   "a": "michigan",
+   "b": "northwestern",
+   "first": {
+    "quote": "October 29, 1892 / Northwestern 10, Michigan 8",
+    "dates": [
+     "1892-10-29"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "November 15, 2025 / Michigan 24, Northwestern 22",
+    "date": "2025-11-15"
+   },
+   "meetings": {
+    "quote": "78",
+    "n": [
+     78
+    ]
+   },
+   "series": {
+    "quote": "Michigan leads 61–15–2 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Georgia Tech–Tennessee football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377690077",
+   "a": "georgia-tech",
+   "b": "tennessee",
+   "first": {
+    "quote": "November 22, 1902 / Tennessee, 10–6",
+    "dates": [
+     "1902-11-22"
+    ],
+    "years": [
+     1902
+    ]
+   },
+   "latest": {
+    "quote": "September 12, 2026 / Tennessee, 45–24",
+    "date": "2026-09-12"
+   },
+   "meetings": {
+    "quote": "45",
+    "n": [
+     45
+    ]
+   },
+   "series": {
+    "quote": "Tennessee leads, 26–17–2"
+   },
+   "recent": [
+    [
+     "2026-09-12",
+     24,
+     45,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Georgia Tech–Vanderbilt football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381149956",
+   "a": "georgia-tech",
+   "b": "vanderbilt",
+   "first": {
+    "quote": "November 19, 1892 / Vanderbilt, 20–10",
+    "dates": [
+     "1892-11-19"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "December 27, 2024 / Vanderbilt, 35–27",
+    "date": "2024-12-27"
+   },
+   "meetings": {
+    "quote": "39",
+    "n": [
+     39
+    ]
+   },
+   "series": {
+    "quote": "Georgia Tech leads, 20–16–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Georgia Tech–Virginia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383300267",
+   "a": "georgia-tech",
+   "b": "virginia-tech",
+   "first": {
+    "quote": "November 10, 1990 / Georgia Tech, 6–3",
+    "dates": [
+     "1990-11-10"
+    ],
+    "years": [
+     1990
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Virginia Tech, 34–24",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "22",
+    "n": [
+     22
+    ]
+   },
+   "series": {
+    "quote": "Virginia Tech leads, 13–9"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     24,
+     34,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Georgia–South Carolina football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378542899",
+   "a": "georgia",
+   "b": "south-carolina",
+   "first": {
+    "quote": "November 3, 1894 / Georgia, 40–0",
+    "dates": [
+     "1894-11-03"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "September 16, 2023 / Georgia, 24–14",
+    "date": "2023-09-16"
+   },
+   "meetings": {
+    "quote": "76",
+    "n": [
+     76
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads 55–19–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Georgia–Tennessee football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366960730",
+   "a": "georgia",
+   "b": "tennessee",
+   "first": {
+    "quote": "November 11, 1899 / Tennessee, 5–0",
+    "dates": [
+     "1899-11-11"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "September 13, 2025 / Georgia, 44–41<sup>OT</sup>",
+    "date": "2025-09-13"
+   },
+   "meetings": {
+    "quote": "55",
+    "n": [
+     55
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads 30–23–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Georgia–Vanderbilt football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382648784",
+   "a": "georgia",
+   "b": "vanderbilt",
+   "first": {
+    "quote": "November 7, 1893 / Vanderbilt, 35–0",
+    "dates": [
+     "1893-11-07"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Georgia, 38–14",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "84",
+    "n": [
+     84
+    ]
+   },
+   "series": {
+    "quote": "Georgia leads, 62–20–2"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     38,
+     14,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Governor's Victory Bell",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379683176",
+   "a": "minnesota",
+   "b": "penn-state",
+   "first": {
+    "quote": "September 4, 1993 / Penn State 38–20",
+    "dates": [
+     "1993-09-04"
+    ],
+    "years": [
+     1993
+    ]
+   },
+   "latest": {
+    "quote": "November 23, 2024 / Penn State 26–25",
+    "date": "2024-11-23"
+   },
+   "meetings": {
+    "quote": "17",
+    "n": [
+     17
+    ]
+   },
+   "series": {
+    "quote": "Penn State leads"
+   },
+   "recent": []
+  },
+  {
+   "title": "Hawaii–Wyoming football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376906653",
+   "a": "hawaii",
+   "b": "wyoming",
+   "first": {
+    "quote": "November 18, 1978 / Hawaii, 27–22",
+    "dates": [
+     "1978-11-18"
+    ],
+    "years": [
+     1978
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / Wyoming, 27–10",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "30",
+    "n": [
+     30
+    ]
+   },
+   "series": {
+    "quote": "Wyoming leads, 18–12"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     10,
+     27,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Holy War (Boston College–Notre Dame)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366961239",
+   "a": "boston-college",
+   "b": "notre-dame",
+   "first": {
+    "quote": "September 15, 1975 / Notre Dame, 17–3",
+    "dates": [
+     "1975-09-15"
+    ],
+    "years": [
+     1975
+    ]
+   },
+   "latest": {
+    "quote": "November 1, 2025 / Notre Dame, 25–10",
+    "date": "2025-11-01"
+   },
+   "meetings": {
+    "quote": "28",
+    "n": [
+     28
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 18–9 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Holy War (BYU–Utah)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384573566",
+   "a": "byu",
+   "b": "utah",
+   "first": {
+    "quote": "April 6, 1896 / Utah, 12–4 (per Utah) / October 14, 1922 / Utah, 49–0 (per BYU)",
+    "dates": [
+     "1896-04-06",
+     "1922-10-14"
+    ],
+    "years": [
+     1896,
+     1922
+    ]
+   },
+   "latest": {
+    "quote": "November 7, 2026 / Utah, 28–20",
+    "date": "2026-11-07"
+   },
+   "meetings": {
+    "quote": "104 / (per Utah) / 98 / (per BYU)",
+    "n": [
+     104,
+     98
+    ]
+   },
+   "series": {
+    "quote": "Utah leads, 63–37–4 / (per Utah) / Utah leads, 60–34–4 / (per BYU)"
+   },
+   "recent": [
+    [
+     "2026-11-07",
+     20,
+     28,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Houston–Rice rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376314560",
+   "a": "houston",
+   "b": "rice",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Houston–SMU rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374630649",
+   "a": "houston",
+   "b": "smu",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Houston–Texas Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384589552",
+   "a": "houston",
+   "b": "texas-tech",
+   "first": {
+    "quote": "October 6, 1951 / Houston 6, Texas Tech 0",
+    "dates": [
+     "1951-10-06"
+    ],
+    "years": [
+     1951
+    ]
+   },
+   "latest": {
+    "quote": "September 18, 2026 / Texas Tech 28, Houston 26",
+    "date": "2026-09-18"
+   },
+   "meetings": {
+    "quote": "37",
+    "n": [
+     37
+    ]
+   },
+   "series": {
+    "quote": "Tied: 18–18–1"
+   },
+   "recent": [
+    [
+     "2026-09-18",
+     26,
+     28,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "I-35 Rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374791044",
+   "a": "utsa",
+   "b": "texas-state",
+   "first": {
+    "quote": "1991",
+    "dates": null,
+    "years": [
+     1991
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": [
+    [
+     "2026-09-12",
+     26,
+     31,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Illibuck",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376884856",
+   "a": "illinois",
+   "b": "ohio-state",
+   "first": {
+    "quote": "November 15, 1902 / Tie, 0–0",
+    "dates": [
+     "1902-11-15"
+    ],
+    "years": [
+     1902
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / Ohio State, 42–19",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "105",
+    "n": [
+     105
+    ]
+   },
+   "series": {
+    "quote": "Ohio State leads, 70–30–4 / <small>2010 vacated win not included</small>"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     19,
+     42,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Illinois–Indiana rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379432908",
+   "a": "illinois",
+   "b": "indiana",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Illinois–Iowa rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383967569",
+   "a": "illinois",
+   "b": "iowa",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Illinois–Michigan football series",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384353188",
+   "a": "illinois",
+   "b": "michigan",
+   "first": {
+    "quote": "November 12, 1898 / Michigan 12, Illinois 5",
+    "dates": [
+     "1898-11-12"
+    ],
+    "years": [
+     1898
+    ]
+   },
+   "latest": {
+    "quote": "October 19, 2024 / Illinois 21, Michigan 7",
+    "date": "2024-10-19"
+   },
+   "meetings": {
+    "quote": "98",
+    "n": [
+     98
+    ]
+   },
+   "series": {
+    "quote": "Michigan leads, 72–24–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Illinois–Missouri football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383658442",
+   "a": "illinois",
+   "b": "missouri",
+   "first": {
+    "quote": "October 17, 1896 / Illinois, 10–0",
+    "dates": [
+     "1896-10-17"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "September 4, 2010 / Missouri, 23–13",
+    "date": "2010-09-04"
+   },
+   "meetings": {
+    "quote": "24",
+    "n": [
+     24
+    ]
+   },
+   "series": {
+    "quote": "Missouri leads, 17–7"
+   },
+   "recent": []
+  },
+  {
+   "title": "Illinois–Northwestern football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381927294",
+   "a": "illinois",
+   "b": "northwestern",
+   "first": {
+    "quote": "October 12, 1892 / Tie, 16–16",
+    "dates": [
+     "1892-10-12"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Illinois, 20–13",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "119",
+    "n": [
+     119
+    ]
+   },
+   "series": {
+    "quote": "Illinois leads, 59–55–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Illinois–Purdue football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378321509",
+   "a": "illinois",
+   "b": "purdue",
+   "first": {
+    "quote": "November 22, 1890 / Purdue, 62–0",
+    "dates": [
+     "1890-11-22"
+    ],
+    "years": [
+     1890
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Purdue, 24–17",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "102",
+    "n": [
+     102
+    ]
+   },
+   "series": {
+    "quote": "Purdue leads, 49–47–6"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     17,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Indiana–Kentucky football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366961511",
+   "a": "indiana",
+   "b": "kentucky",
+   "first": {
+    "quote": "November 30, 1893 / Tied, 24–24",
+    "dates": [
+     "1893-11-30"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "September 17, 2005 / Indiana, 38–14",
+    "date": "2005-09-17"
+   },
+   "meetings": {
+    "quote": "36",
+    "n": [
+     36
+    ]
+   },
+   "series": {
+    "quote": "Indiana 18–17–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Indiana–Michigan State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366961532",
+   "a": "indiana",
+   "b": "michigan-state",
+   "first": {
+    "quote": "October 28, 1922 / Indiana, 14–6",
+    "dates": [
+     "1922-10-28"
+    ],
+    "years": [
+     1922
+    ]
+   },
+   "latest": {
+    "quote": "October 18, 2025 / Indiana, 38–13",
+    "date": "2025-10-18"
+   },
+   "meetings": {
+    "quote": "72",
+    "n": [
+     72
+    ]
+   },
+   "series": {
+    "quote": "Michigan State leads, 49–20–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Iowa State–Kansas State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383523460",
+   "a": "iowa-state",
+   "b": "kansas-state",
+   "first": {
+    "quote": "November 10, 1917 / Iowa State, 10–7",
+    "dates": [
+     "1917-11-10"
+    ],
+    "years": [
+     1917
+    ]
+   },
+   "latest": {
+    "quote": "August 23, 2025 / Iowa State, 24–21",
+    "date": "2025-08-23"
+   },
+   "meetings": {
+    "quote": "109",
+    "n": [
+     109
+    ]
+   },
+   "series": {
+    "quote": "Iowa State leads, 55–50–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Iowa State–Missouri football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366961638",
+   "a": "iowa-state",
+   "b": "missouri",
+   "first": {
+    "quote": "October 2, 1896 / Iowa State, 12–0",
+    "dates": [
+     "1896-10-02"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "October 15, 2011 / Missouri, 52–17",
+    "date": "2011-10-15"
+   },
+   "meetings": {
+    "quote": "104",
+    "n": [
+     104
+    ]
+   },
+   "series": {
+    "quote": "Missouri leads, 61–34–9"
+   },
+   "recent": []
+  },
+  {
+   "title": "Iowa State–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366961647",
+   "a": "iowa-state",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 19, 1896 / Nebraska, 12–4",
+    "dates": [
+     "1896-11-19"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "November 6, 2010 / Nebraska, 31–30 (OT)",
+    "date": "2010-11-06"
+   },
+   "meetings": {
+    "quote": "105",
+    "n": [
+     105
+    ]
+   },
+   "series": {
+    "quote": "Nebraska leads, 86–17–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Iowa–Iowa State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379206117",
+   "a": "iowa",
+   "b": "iowa-state",
+   "first": {
+    "quote": "October 1, 1894 / Iowa State, 16–8",
+    "dates": [
+     "1894-10-01"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "September 12, 2026 / Iowa, 16–13",
+    "date": "2026-09-12"
+   },
+   "meetings": {
+    "quote": "73",
+    "n": [
+     73
+    ]
+   },
+   "series": {
+    "quote": "Iowa leads: 48–25"
+   },
+   "recent": [
+    [
+     "2026-09-12",
+     16,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Iowa–Minnesota football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381815213",
+   "a": "iowa",
+   "b": "minnesota",
+   "first": {
+    "quote": "November 2, 1891 / Minnesota, 42–4",
+    "dates": [
+     "1891-11-02"
+    ],
+    "years": [
+     1891
+    ]
+   },
+   "latest": {
+    "quote": "October 24, 2026 / Minnesota, 13–10",
+    "date": "2026-10-24"
+   },
+   "meetings": {
+    "quote": "120",
+    "n": [
+     120
+    ]
+   },
+   "series": {
+    "quote": "Minnesota leads, /"
+   },
+   "recent": [
+    [
+     "2026-10-24",
+     10,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Iowa–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1368640844",
+   "a": "iowa",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 26, 1891 / Iowa, 20–0",
+    "dates": [
+     "1891-11-26"
+    ],
+    "years": [
+     1891
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / Iowa, 40–16",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "56",
+    "n": [
+     56
+    ]
+   },
+   "series": {
+    "quote": "Nebraska leads, 30–23–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Iowa–Wisconsin football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383102826",
+   "a": "iowa",
+   "b": "wisconsin",
+   "first": {
+    "quote": "October 29, 1894",
+    "dates": [
+     "1894-10-29"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "100",
+    "n": [
+     100
+    ]
+   },
+   "series": {
+    "quote": "49–49–2 ()"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     30,
+     0,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Iron Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381642214",
+   "a": "alabama",
+   "b": "auburn",
+   "first": {
+    "quote": "February 22, 1893 / Auburn 32, Alabama 22",
+    "dates": [
+     "1893-02-22"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Alabama 27, Auburn 20",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "90",
+    "n": [
+     90
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads 52–37–1 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Jefferson–Eppes Trophy",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378324190",
+   "a": "florida-state",
+   "b": "virginia",
+   "first": {
+    "quote": "October 31, 1992 / Florida State 13, Virginia 3",
+    "dates": [
+     "1992-10-31"
+    ],
+    "years": [
+     1992
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Florida State 38, Virginia 7",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "21",
+    "n": [
+     21
+    ]
+   },
+   "series": {
+    "quote": "Florida State leads, 15–5"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     38,
+     7,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Kansas State–Missouri football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378942456",
+   "a": "kansas-state",
+   "b": "missouri",
+   "first": {
+    "quote": "October 9, 1909 / Missouri, 3–0",
+    "dates": [
+     "1909-10-09"
+    ],
+    "years": [
+     1909
+    ]
+   },
+   "latest": {
+    "quote": "September 16, 2023 / Missouri, 30–27",
+    "date": "2023-09-16"
+   },
+   "meetings": {
+    "quote": "99",
+    "n": [
+     99
+    ]
+   },
+   "series": {
+    "quote": "Missouri leads, 61–33–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Kansas State–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366962056",
+   "a": "kansas-state",
+   "b": "nebraska",
+   "first": {
+    "quote": "October 14, 1911 / Nebraska, 59–0",
+    "dates": [
+     "1911-10-14"
+    ],
+    "years": [
+     1911
+    ]
+   },
+   "latest": {
+    "quote": "October 7, 2010 / Nebraska, 48–13",
+    "date": "2010-10-07"
+   },
+   "meetings": {
+    "quote": "95",
+    "n": [
+     95
+    ]
+   },
+   "series": {
+    "quote": "Nebraska leads, 78–15–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Kansas–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366962069",
+   "a": "kansas",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 12, 1892 / Kansas, 12–0",
+    "dates": [
+     "1892-11-12"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "November 13, 2010 / Nebraska, 20–3",
+    "date": "2010-11-13"
+   },
+   "meetings": {
+    "quote": "117",
+    "n": [
+     117
+    ]
+   },
+   "series": {
+    "quote": "Nebraska leads, 91–23–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Kentucky–Louisville rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366962086",
+   "a": "kentucky",
+   "b": "louisville",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Kentucky–Tennessee football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384408442",
+   "a": "kentucky",
+   "b": "tennessee",
+   "first": {
+    "quote": "October 21, 1893 / Kentucky, 56–0",
+    "dates": [
+     "1893-10-21"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "November 7, 2026 / Tennessee, 34–6",
+    "date": "2026-11-07"
+   },
+   "meetings": {
+    "quote": "122",
+    "n": [
+     122
+    ]
+   },
+   "series": {
+    "quote": "Tennessee leads, 86–26–9"
+   },
+   "recent": [
+    [
+     "2026-11-07",
+     6,
+     34,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Kentucky–Vanderbilt football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381883445",
+   "a": "kentucky",
+   "b": "vanderbilt",
+   "first": {
+    "quote": "October 10, 1896 / Vanderbilt, 6–0",
+    "dates": [
+     "1896-10-10"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "October 24, 2026 / Kentucky, 34–17",
+    "date": "2026-10-24"
+   },
+   "meetings": {
+    "quote": "99",
+    "n": [
+     99
+    ]
+   },
+   "series": {
+    "quote": "Kentucky, 49–45–4"
+   },
+   "recent": [
+    [
+     "2026-10-24",
+     34,
+     17,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Little Brown Jug (college football trophy)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381152404",
+   "a": "michigan",
+   "b": "minnesota",
+   "first": {
+    "quote": "October 17, 1892 / Minnesota, 14–6",
+    "dates": [
+     "1892-10-17"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "October 3, 2026 / Minnesota, 20–14",
+    "date": "2026-10-03"
+   },
+   "meetings": {
+    "quote": "107",
+    "n": [
+     107
+    ]
+   },
+   "series": {
+    "quote": "Michigan leads, 78–26–3 ()"
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     14,
+     20,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Louisiana Tech vs. Louisiana–Monroe football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380839761",
+   "a": "louisiana-tech",
+   "b": "louisiana-monroe",
+   "first": {
+    "quote": "September 26, 1953 / Louisiana Tech, 61–6",
+    "dates": [
+     "1953-09-26"
+    ],
+    "years": [
+     1953
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Louisiana Tech, 24–0",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "44",
+    "n": [
+     44
+    ]
+   },
+   "series": {
+    "quote": "Louisiana Tech leads, 30–14"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     24,
+     0,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Louisiana–Louisiana Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383425466",
+   "a": "louisiana",
+   "b": "louisiana-tech",
+   "first": {
+    "quote": "1910 / Louisiana Tech, 75–0",
+    "dates": null,
+    "years": [
+     1910
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Louisiana Tech, 32–31",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "88",
+    "n": [
+     88
+    ]
+   },
+   "series": {
+    "quote": "Louisiana Tech leads, 49–33–6"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     32,
+     31,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Louisville–Miami football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1369949572",
+   "a": "louisville",
+   "b": "miami-fl",
+   "first": {
+    "quote": "November 11, 1933 / Miami, 33–7",
+    "dates": [
+     "1933-11-11"
+    ],
+    "years": [
+     1933
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2025 / Louisville, 24–21",
+    "date": "2025-10-17"
+   },
+   "meetings": {
+    "quote": "18",
+    "n": [
+     18
+    ]
+   },
+   "series": {
+    "quote": "Miami leads, 12–5–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "LSU–Mississippi State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380989496",
+   "a": "lsu",
+   "b": "mississippi-state",
+   "first": {
+    "quote": "November 20, 1896 / LSU, 52–0",
+    "dates": [
+     "1896-11-20"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / LSU, 31–0",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "118",
+    "n": [
+     118
+    ]
+   },
+   "series": {
+    "quote": "LSU leads 76–36–3"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     31,
+     0,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "LSU–Texas A&M football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376953722",
+   "a": "lsu",
+   "b": "texas-am",
+   "first": {
+    "quote": "December 2, 1899 / Texas A&M, 52–0",
+    "dates": [
+     "1899-12-02"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / LSU, 35–6",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "65",
+    "n": [
+     65
+    ]
+   },
+   "series": {
+    "quote": "LSU leads, 33–25–3"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     35,
+     6,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Magnolia Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1376836915",
+   "a": "lsu",
+   "b": "ole-miss",
+   "first": {
+    "quote": "December 3, 1894 / Ole Miss, 26–6",
+    "dates": [
+     "1894-12-03"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Ole Miss, 32–24",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "115",
+    "n": [
+     115
+    ]
+   },
+   "series": {
+    "quote": "LSU leads, 64–44–4"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     24,
+     32,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Maryland–Penn State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380875275",
+   "a": "maryland",
+   "b": "penn-state",
+   "first": {
+    "quote": "November 17, 1917 / Penn State, 57–0",
+    "dates": [
+     "1917-11-17"
+    ],
+    "years": [
+     1917
+    ]
+   },
+   "latest": {
+    "quote": "November 30, 2024 / Penn State, 44–7",
+    "date": "2024-11-30"
+   },
+   "meetings": {
+    "quote": "48",
+    "n": [
+     48
+    ]
+   },
+   "series": {
+    "quote": "Penn State leads, 44–3–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Maryland–Rutgers football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381020531",
+   "a": "maryland",
+   "b": "rutgers",
+   "first": {
+    "quote": "October 2, 1920 / Rutgers 6, Maryland 0",
+    "dates": [
+     "1920-10-02"
+    ],
+    "years": [
+     1920
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Rutgers 37, Maryland 30",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "22 / (played annually since 2014)",
+    "n": [
+     22
+    ]
+   },
+   "series": {
+    "quote": "Maryland leads, 12–10"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     30,
+     37,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Maryland–Virginia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384385506",
+   "a": "maryland",
+   "b": "virginia",
+   "first": {
+    "quote": "October 11, 1919 / Maryland, 13–0",
+    "dates": [
+     "1919-10-11"
+    ],
+    "years": [
+     1919
+    ]
+   },
+   "latest": {
+    "quote": "September 14, 2024 / Maryland, 27–13",
+    "date": "2024-09-14"
+   },
+   "meetings": {
+    "quote": "80",
+    "n": [
+     80
+    ]
+   },
+   "series": {
+    "quote": "Maryland leads, 46–32–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Maryland–West Virginia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1368837496",
+   "a": "maryland",
+   "b": "west-virginia",
+   "first": {
+    "quote": "October 18, 1919 / West Virginia, 27–0",
+    "dates": [
+     "1919-10-18"
+    ],
+    "years": [
+     1919
+    ]
+   },
+   "latest": {
+    "quote": "September 4, 2021 / Maryland, 30–24",
+    "date": "2021-09-04"
+   },
+   "meetings": {
+    "quote": "53",
+    "n": [
+     53
+    ]
+   },
+   "series": {
+    "quote": "West Virginia leads, 28–23–2 (.528)"
+   },
+   "recent": []
+  },
+  {
+   "title": "Memphis–Ole Miss football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377103494",
+   "a": "memphis",
+   "b": "ole-miss",
+   "first": {
+    "quote": "October 1, 1921 / Ole Miss, 82–0",
+    "dates": [
+     "1921-10-01"
+    ],
+    "years": [
+     1921
+    ]
+   },
+   "latest": {
+    "quote": "August 31, 2019 / Memphis, 15–10",
+    "date": "2019-08-31"
+   },
+   "meetings": {
+    "quote": "63",
+    "n": [
+     63
+    ]
+   },
+   "series": {
+    "quote": "Ole Miss leads, 47–12–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Miami–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1367754982",
+   "a": "miami-fl",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 30, 1951 / Miami, 19–7",
+    "dates": [
+     "1951-11-30"
+    ],
+    "years": [
+     1951
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2015 / Miami, 36–33",
+    "date": "2015-09-19"
+   },
+   "meetings": {
+    "quote": "12",
+    "n": [
+     12
+    ]
+   },
+   "series": {
+    "quote": "Tied, 6–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Miami–Virginia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963031",
+   "a": "miami-fl",
+   "b": "virginia-tech",
+   "first": {
+    "quote": "November 13, 1953 / Miami, 26–0",
+    "dates": [
+     "1953-11-13"
+    ],
+    "years": [
+     1953
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / Miami, 34–17",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "42",
+    "n": [
+     42
+    ]
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Michigan State–Notre Dame football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1375874398",
+   "a": "michigan-state",
+   "b": "notre-dame",
+   "first": {
+    "quote": "November 25, 1897 / Notre Dame, 34–6",
+    "dates": [
+     "1897-11-25"
+    ],
+    "years": [
+     1897
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Notre Dame, 27–10",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "80",
+    "n": [
+     80
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 48–29–1 ()"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     10,
+     27,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Michigan State–Penn State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380093987",
+   "a": "michigan-state",
+   "b": "penn-state",
+   "first": {
+    "quote": "November 13, 1914 / Michigan Agricultural, 6–3",
+    "dates": [
+     "1914-11-13"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "November 15, 2025 / Penn State, 28–10",
+    "date": "2025-11-15"
+   },
+   "meetings": {
+    "quote": "39",
+    "n": [
+     39
+    ]
+   },
+   "series": {
+    "quote": "Penn State leads, 20–18–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Michigan–Michigan State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384624573",
+   "a": "michigan",
+   "b": "michigan-state",
+   "first": {
+    "quote": "October 12, 1898 / Michigan, 39–0",
+    "dates": [
+     "1898-10-12"
+    ],
+    "years": [
+     1898
+    ]
+   },
+   "latest": {
+    "quote": "November 7, 2026 / Michigan State, 15–6",
+    "date": "2026-11-07"
+   },
+   "meetings": {
+    "quote": "119",
+    "n": [
+     119
+    ]
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": [
+    [
+     "2026-11-07",
+     15,
+     6,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Michigan–Notre Dame football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379226862",
+   "a": "michigan",
+   "b": "notre-dame",
+   "first": {
+    "quote": "November 23, 1887 / Michigan 8, Notre Dame 0",
+    "dates": [
+     "1887-11-23"
+    ],
+    "years": [
+     1887
+    ]
+   },
+   "latest": {
+    "quote": "October 26, 2019 / Michigan 45, Notre Dame 14",
+    "date": "2019-10-26"
+   },
+   "meetings": {
+    "quote": "44",
+    "n": [
+     44
+    ]
+   },
+   "series": {
+    "quote": "Michigan leads 25–17–1 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Michigan–Ohio State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383957899",
+   "a": "michigan",
+   "b": "ohio-state",
+   "first": {
+    "quote": "October 16, 1897 / Michigan 34, Ohio State 0 / Regents Field (Ann Arbor, Michigan)",
+    "dates": [
+     "1897-10-16"
+    ],
+    "years": [
+     1897
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Ohio State 27, Michigan 9 / Michigan Stadium",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "121",
+    "n": [
+     121
+    ]
+   },
+   "series": {
+    "quote": "Michigan: 62–52–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Michigan–Penn State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380799019",
+   "a": "michigan",
+   "b": "penn-state",
+   "first": {
+    "quote": "October 16, 1993 / Michigan 21–13",
+    "dates": [
+     "1993-10-16"
+    ],
+    "years": [
+     1993
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Michigan 21–18",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "28",
+    "n": [
+     28
+    ]
+   },
+   "series": {
+    "quote": "Michigan leads, 18–10"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     21,
+     18,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Minnesota–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1375696527",
+   "a": "minnesota",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 29, 1900 / Minnesota, 20–12",
+    "dates": [
+     "1900-11-29"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2025 / Minnesota, 24–6",
+    "date": "2025-10-17"
+   },
+   "meetings": {
+    "quote": "65",
+    "n": [
+     65
+    ]
+   },
+   "series": {
+    "quote": "Minnesota leads, 38–25–2 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Minnesota–Wisconsin football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963356",
+   "a": "minnesota",
+   "b": "wisconsin",
+   "first": {
+    "quote": "November 15, 1890 / Minnesota, 63–0",
+    "dates": [
+     "1890-11-15"
+    ],
+    "years": [
+     1890
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Minnesota, 17–7",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "135",
+    "n": [
+     135
+    ]
+   },
+   "series": {
+    "quote": "Minnesota leads, 64–63–8 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Missouri–Nebraska football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963391",
+   "a": "missouri",
+   "b": "nebraska",
+   "first": {
+    "quote": "November 5, 1892 / Nebraska, 1–0 (forfeit)",
+    "dates": [
+     "1892-11-05"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "October 30, 2010",
+    "date": "2010-10-30"
+   },
+   "meetings": {
+    "quote": "104",
+    "n": [
+     104
+    ]
+   },
+   "series": {
+    "quote": "Nebraska leads, 65–36–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Missouri–Oklahoma football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381745938",
+   "a": "missouri",
+   "b": "oklahoma",
+   "first": {
+    "quote": "November 12, 1902 / Missouri, 22–5",
+    "dates": [
+     "1902-11-12"
+    ],
+    "years": [
+     1902
+    ]
+   },
+   "latest": {
+    "quote": "November 22, 2025 / Oklahoma, 17–6",
+    "date": "2025-11-22"
+   },
+   "meetings": {
+    "quote": "98",
+    "n": [
+     98
+    ]
+   },
+   "series": {
+    "quote": "Oklahoma leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Navy–Notre Dame football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384542626",
+   "a": "navy",
+   "b": "notre-dame",
+   "first": {
+    "quote": "October 15, 1927 / Notre Dame, 19–6",
+    "dates": [
+     "1927-10-15"
+    ],
+    "years": [
+     1927
+    ]
+   },
+   "latest": {
+    "quote": "October 31, 2026 / Notre Dame, 35–13",
+    "date": "2026-10-31"
+   },
+   "meetings": {
+    "quote": "99",
+    "n": [
+     99
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 83–13–1 ()"
+   },
+   "recent": [
+    [
+     "2026-10-31",
+     13,
+     35,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "NC State–Wake Forest rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1379567155",
+   "a": "nc-state",
+   "b": "wake-forest",
+   "first": {
+    "quote": "October 19, 1895 / North Carolina A&M 4, Wake Forest 4",
+    "dates": [
+     "1895-10-19"
+    ],
+    "years": [
+     1895
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Wake Forest 38, NC State 14",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "120",
+    "n": [
+     120
+    ]
+   },
+   "series": {
+    "quote": "NC State leads, 70–44–6"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     14,
+     38,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Nebraska–Oklahoma football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963612",
+   "a": "nebraska",
+   "b": "oklahoma",
+   "first": {
+    "quote": "November 23, 1912 / Nebraska 13, Oklahoma 9",
+    "dates": [
+     "1912-11-23"
+    ],
+    "years": [
+     1912
+    ]
+   },
+   "latest": {
+    "quote": "September 17, 2022 / Oklahoma 49, Nebraska 14",
+    "date": "2022-09-17"
+   },
+   "meetings": {
+    "quote": "88",
+    "n": [
+     88
+    ]
+   },
+   "series": {
+    "quote": "Oklahoma leads, 47–38–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Nebraska–Wisconsin football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963642",
+   "a": "nebraska",
+   "b": "wisconsin",
+   "first": {
+    "quote": "November 2, 1901 / Wisconsin, 18–0",
+    "dates": [
+     "1901-11-02"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "November 23, 2024 / Nebraska 44, Wisconsin 25",
+    "date": "2024-11-23"
+   },
+   "meetings": {
+    "quote": "18",
+    "n": [
+     18
+    ]
+   },
+   "series": {
+    "quote": "Wisconsin leads, 13–5 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "North Carolina–NC State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963805",
+   "a": "north-carolina",
+   "b": "nc-state",
+   "first": {
+    "quote": "October 12, 1894 / North Carolina, 44–0",
+    "dates": [
+     "1894-10-12"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / NC State, 42–19",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "115",
+    "n": [
+     115
+    ]
+   },
+   "series": {
+    "quote": "North Carolina leads, /"
+   },
+   "recent": []
+  },
+  {
+   "title": "North Carolina–South Carolina football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1369118835",
+   "a": "north-carolina",
+   "b": "south-carolina",
+   "first": {
+    "quote": "October 10, 1903 / North Carolina, 17–0",
+    "dates": [
+     "1903-10-10"
+    ],
+    "years": [
+     1903
+    ]
+   },
+   "latest": {
+    "quote": "September 2, 2023 / North Carolina, 31–17",
+    "date": "2023-09-02"
+   },
+   "meetings": {
+    "quote": "60",
+    "n": [
+     60
+    ]
+   },
+   "series": {
+    "quote": "North Carolina leads, 36–20–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "North Carolina–Wake Forest rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382160623",
+   "a": "north-carolina",
+   "b": "wake-forest",
+   "first": {
+    "quote": "1888 (football)",
+    "dates": null,
+    "years": [
+     1888
+    ]
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Northwestern–Notre Dame football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366963921",
+   "a": "northwestern",
+   "b": "notre-dame",
+   "first": {
+    "quote": "November 14, 1889 / Notre Dame 9, Northwestern 0",
+    "dates": [
+     "1889-11-14"
+    ],
+    "years": [
+     1889
+    ]
+   },
+   "latest": {
+    "quote": "November 3, 2018 / #3 Notre Dame 31, Northwestern 21",
+    "date": "2018-11-03"
+   },
+   "meetings": {
+    "quote": "49",
+    "n": [
+     49
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 38–9–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Notre Dame–Pittsburgh football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377701699",
+   "a": "notre-dame",
+   "b": "pittsburgh",
+   "first": {
+    "quote": "October 30, 1909 / Notre Dame, 6–0",
+    "dates": [
+     "1909-10-30"
+    ],
+    "years": [
+     1909
+    ]
+   },
+   "latest": {
+    "quote": "November 15, 2025 / Notre Dame, 37–15",
+    "date": "2025-11-15"
+   },
+   "meetings": {
+    "quote": "74",
+    "n": [
+     74
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 51–21–1 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Notre Dame–Purdue football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383644992",
+   "a": "notre-dame",
+   "b": "purdue",
+   "first": {
+    "quote": "November 14, 1896 / Purdue 28, Notre Dame 22",
+    "dates": [
+     "1896-11-14"
+    ],
+    "years": [
+     1896
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / Notre Dame 49, Purdue 10",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "90",
+    "n": [
+     90
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 60–26–2 ()"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     49,
+     10,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Notre Dame–Stanford football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384542879",
+   "a": "notre-dame",
+   "b": "stanford",
+   "first": {
+    "quote": "January 1, 1925 / Notre Dame 27, Stanford 10",
+    "dates": [
+     "1925-01-01"
+    ],
+    "years": [
+     1925
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Notre Dame 58, Stanford 7",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "40",
+    "n": [
+     40
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, 25–14 ()"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     58,
+     7,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Notre Dame–USC football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384396249",
+   "a": "notre-dame",
+   "b": "usc",
+   "first": {
+    "quote": "December 4, 1926 / Los Angeles Memorial Coliseum / Notre Dame, 13–12",
+    "dates": [
+     "1926-12-04"
+    ],
+    "years": [
+     1926
+    ]
+   },
+   "latest": {
+    "quote": "October 18, 2025 / Notre Dame Stadium / Notre Dame, 34–24",
+    "date": "2025-10-18"
+   },
+   "meetings": {
+    "quote": "96",
+    "n": [
+     96
+    ]
+   },
+   "series": {
+    "quote": "Notre Dame leads, / 51–37–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "O'Rourke–McFadden Trophy",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366964068",
+   "a": "boston-college",
+   "b": "clemson",
+   "first": {
+    "quote": "January 1, 1940 / Clemson 6–3",
+    "dates": [
+     "1940-01-01"
+    ],
+    "years": [
+     1940
+    ]
+   },
+   "latest": {
+    "quote": "October 11, 2025 / Clemson 41–10",
+    "date": "2025-10-11"
+   },
+   "meetings": {
+    "quote": "33",
+    "n": [
+     33
+    ]
+   },
+   "series": {
+    "quote": "Clemson leads, 22–9–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Ohio State–Penn State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366964119",
+   "a": "ohio-state",
+   "b": "penn-state",
+   "first": {
+    "quote": "November 16, 1912 / Penn State, 37–0",
+    "dates": [
+     "1912-11-16"
+    ],
+    "years": [
+     1912
+    ]
+   },
+   "latest": {
+    "quote": "November 1, 2025 / Ohio State, 38–14",
+    "date": "2025-11-01"
+   },
+   "meetings": {
+    "quote": "41",
+    "n": [
+     41
+    ]
+   },
+   "series": {
+    "quote": "Ohio State: 26–14"
+   },
+   "recent": []
+  },
+  {
+   "title": "Oklahoma State–Tulsa football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374437591",
+   "a": "oklahoma-state",
+   "b": "tulsa",
+   "first": {
+    "quote": "October 16, 1914 / Oklahoma A&M 13, Kendall 6",
+    "dates": [
+     "1914-10-16"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "September 5, 2026 / Tulsa 24, Oklahoma State 10",
+    "date": "2026-09-05"
+   },
+   "meetings": {
+    "quote": "78",
+    "n": [
+     78
+    ]
+   },
+   "series": {
+    "quote": "Oklahoma State leads, 44–29–5"
+   },
+   "recent": [
+    [
+     "2026-09-05",
+     10,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Old Oaken Bucket",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366964209",
+   "a": "indiana",
+   "b": "purdue",
+   "first": {
+    "quote": "November 14, 1891 / Purdue 60, Indiana 0",
+    "dates": [
+     "1891-11-14"
+    ],
+    "years": [
+     1891
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / Indiana 56, Purdue 3",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "127 / (played annually since 1920)",
+    "n": [
+     127
+    ]
+   },
+   "series": {
+    "quote": "Purdue leads, 77–44–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "Ole Miss–Tulane football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382272534",
+   "a": "ole-miss",
+   "b": "tulane",
+   "first": {
+    "quote": "December 2, 1893 / Ole Miss 12, Tulane 4",
+    "dates": [
+     "1893-12-02"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "December 20, 2025 / Ole Miss 41, Tulane 10",
+    "date": "2025-12-20"
+   },
+   "meetings": {
+    "quote": "75",
+    "n": [
+     75
+    ]
+   },
+   "series": {
+    "quote": "Ole Miss leads, 45–28 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Ole Miss–Vanderbilt football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1382528262",
+   "a": "ole-miss",
+   "b": "vanderbilt",
+   "first": {
+    "quote": "November 10, 1894 / Vanderbilt 40, Ole Miss 0",
+    "dates": [
+     "1894-11-10"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Ole Miss 52, Vanderbilt 17",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "99",
+    "n": [
+     99
+    ]
+   },
+   "series": {
+    "quote": "Ole Miss leads, 55–40–2"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     52,
+     17,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Oregon–Oregon State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383188774",
+   "a": "oregon",
+   "b": "oregon-state",
+   "first": {
+    "quote": "November 3, 1894 / / OAC 16, Oregon 0",
+    "dates": [
+     "1894-11-03"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "September 20, 2025 / Oregon 41, Oregon State 7",
+    "date": "2025-09-20"
+   },
+   "meetings": {
+    "quote": "129",
+    "n": [
+     129
+    ]
+   },
+   "series": {
+    "quote": "Oregon leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Oregon–Stanford football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1370176438",
+   "a": "oregon",
+   "b": "stanford",
+   "first": {
+    "quote": "November 10, 1900 / Stanford, 34–0",
+    "dates": [
+     "1900-11-10"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "September 30, 2023 / Oregon, 42–6",
+    "date": "2023-09-30"
+   },
+   "meetings": {
+    "quote": "87",
+    "n": [
+     87
+    ]
+   },
+   "series": {
+    "quote": "Stanford leads, 50–36–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Oregon–USC football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384069256",
+   "a": "oregon",
+   "b": "usc",
+   "first": {
+    "quote": "November 8, 1915 / Oregon, 34–0",
+    "dates": [
+     "1915-11-08"
+    ],
+    "years": [
+     1915
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / Oregon, 41–27",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "65",
+    "n": [
+     65
+    ]
+   },
+   "series": {
+    "quote": "USC leads, 38–25–2 (+1 Vacated Win)"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     41,
+     27,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Oregon–Washington football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384343000",
+   "a": "oregon",
+   "b": "washington",
+   "first": {
+    "quote": "December 1, 1900 / Oregon, 43–0",
+    "dates": [
+     "1900-12-01"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Oregon, 26–14",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "118",
+    "n": [
+     118
+    ]
+   },
+   "series": {
+    "quote": "Washington leads, /"
+   },
+   "recent": []
+  },
+  {
+   "title": "Paint Bucket Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1373915442",
+   "a": "arkansas-state",
+   "b": "memphis",
+   "first": {
+    "quote": "October 27, 1914 / First District 18, West Tennessee 6",
+    "dates": [
+     "1914-10-27"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "September 5, 2026 / Memphis 42, Arkansas State 24",
+    "date": "2026-09-05"
+   },
+   "meetings": {
+    "quote": "63",
+    "n": [
+     63
+    ]
+   },
+   "series": {
+    "quote": "Memphis leads, 34–23–5"
+   },
+   "recent": [
+    [
+     "2026-09-05",
+     24,
+     42,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Penn State–Pittsburgh football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1377455657",
+   "a": "penn-state",
+   "b": "pittsburgh",
+   "first": {
+    "quote": "November 6, 1893 / Penn State 32, Pittsburgh 0",
+    "dates": [
+     "1893-11-06"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "September 14, 2019 / Penn State 17, Pittsburgh 10",
+    "date": "2019-09-14"
+   },
+   "meetings": {
+    "quote": "100",
+    "n": [
+     100
+    ]
+   },
+   "series": {
+    "quote": "Penn State leads, 53–43–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Penn State–Syracuse football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366964551",
+   "a": "penn-state",
+   "b": "syracuse",
+   "first": {
+    "quote": "October 28, 1922 / Tie, 0–0",
+    "dates": [
+     "1922-10-28"
+    ],
+    "years": [
+     1922
+    ]
+   },
+   "latest": {
+    "quote": "August 31, 2013 / Penn State, 23–17",
+    "date": "2013-08-31"
+   },
+   "meetings": {
+    "quote": "71",
+    "n": [
+     71
+    ]
+   },
+   "series": {
+    "quote": "Penn State leads, 43–23–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Penn State–West Virginia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1375075277",
+   "a": "penn-state",
+   "b": "west-virginia",
+   "first": {
+    "quote": "October 15, 1904",
+    "dates": [
+     "1904-10-15"
+    ],
+    "years": [
+     1904
+    ]
+   },
+   "latest": {
+    "quote": "August 31, 2024",
+    "date": "2024-08-31"
+   },
+   "meetings": {
+    "quote": "61",
+    "n": [
+     61
+    ]
+   },
+   "series": {
+    "quote": "Penn State leads, 50–9–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Pittsburgh–Syracuse football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1375593152",
+   "a": "pittsburgh",
+   "b": "syracuse",
+   "first": {
+    "quote": "October 21, 1916 / Pittsburgh, 30–0",
+    "dates": [
+     "1916-10-21"
+    ],
+    "years": [
+     1916
+    ]
+   },
+   "latest": {
+    "quote": "September 17, 2026 / Pittsburgh, 27–13",
+    "date": "2026-09-17"
+   },
+   "meetings": {
+    "quote": "82",
+    "n": [
+     82
+    ]
+   },
+   "series": {
+    "quote": "Pittsburgh leads, 46–32–3"
+   },
+   "recent": [
+    [
+     "2026-09-17",
+     27,
+     13,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Red River Rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1383754761",
+   "a": "oklahoma",
+   "b": "texas",
+   "first": {
+    "quote": "October 10, 1900 / Texas 28, Oklahoma 2",
+    "dates": [
+     "1900-10-10"
+    ],
+    "years": [
+     1900
+    ]
+   },
+   "latest": {
+    "quote": "October 10, 2026 / Oklahoma 27, Texas 24",
+    "date": "2026-10-10"
+   },
+   "meetings": {
+    "quote": "122",
+    "n": [
+     122
+    ]
+   },
+   "series": {
+    "quote": "Texas leads:"
+   },
+   "recent": [
+    [
+     "2026-10-10",
+     27,
+     24,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Rice–SMU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366965218",
+   "a": "rice",
+   "b": "smu",
+   "first": {
+    "quote": "November 17, 1916 / Rice 146, SMU 3",
+    "dates": [
+     "1916-11-17"
+    ],
+    "years": [
+     1916
+    ]
+   },
+   "latest": {
+    "quote": "November 4, 2023 / SMU 36, Rice 31",
+    "date": "2023-11-04"
+   },
+   "meetings": {
+    "quote": "91",
+    "n": [
+     91
+    ]
+   },
+   "series": {
+    "quote": "SMU leads, 49–41–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Rice–Texas football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378158605",
+   "a": "rice",
+   "b": "texas",
+   "first": {
+    "quote": "October 17, 1914 / Texas 41, Rice 0",
+    "dates": [
+     "1914-10-17"
+    ],
+    "years": [
+     1914
+    ]
+   },
+   "latest": {
+    "quote": "September 2, 2023 / Texas 37, Rice 10",
+    "date": "2023-09-02"
+   },
+   "meetings": {
+    "quote": "97",
+    "n": [
+     97
+    ]
+   },
+   "series": {
+    "quote": "Texas leads, 75–21–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Rio Grande Rivalry (football)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381263717",
+   "a": "new-mexico",
+   "b": "new-mexico-state",
+   "first": {
+    "quote": "January 1, 1894 / New Mexico 18, New Mexico A&M 6",
+    "dates": [
+     "1894-01-01"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "September 26, 2026 / New Mexico 42, New Mexico State 18",
+    "date": "2026-09-26"
+   },
+   "meetings": {
+    "quote": "116",
+    "n": [
+     116
+    ]
+   },
+   "series": {
+    "quote": "New Mexico leads, 76–35–5 ()"
+   },
+   "recent": [
+    [
+     "2026-09-26",
+     42,
+     18,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Rivalry in Dixie",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366965309",
+   "a": "louisiana-tech",
+   "b": "southern-miss",
+   "first": {
+    "quote": "November 28, 1935 / Louisiana Tech 27–0",
+    "dates": [
+     "1935-11-28"
+    ],
+    "years": [
+     1935
+    ]
+   },
+   "latest": {
+    "quote": "September 20, 2025 / Louisiana Tech 30–20",
+    "date": "2025-09-20"
+   },
+   "meetings": {
+    "quote": "55",
+    "n": [
+     55
+    ]
+   },
+   "series": {
+    "quote": "Southern Miss leads 36–18"
+   },
+   "recent": []
+  },
+  {
+   "title": "Rocky Mountain Showdown",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384366785",
+   "a": "colorado",
+   "b": "colorado-state",
+   "first": {
+    "quote": "February 10, 1893 / Colorado 70–6",
+    "dates": [
+     "1893-02-10"
+    ],
+    "years": [
+     1893
+    ]
+   },
+   "latest": {
+    "quote": "September 14, 2024 / Colorado 28–9",
+    "date": "2024-09-14"
+   },
+   "meetings": {
+    "quote": "93",
+    "n": [
+     93
+    ]
+   },
+   "series": {
+    "quote": "Colorado, 69–22–2"
+   },
+   "recent": []
+  },
+  {
+   "title": "Rumble in the Rockies",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381081733",
+   "a": "colorado",
+   "b": "utah",
+   "first": {
+    "quote": "October 3, 1903 / Colorado, 22–0",
+    "dates": [
+     "1903-10-03"
+    ],
+    "years": [
+     1903
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Utah, 27–24",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "73",
+    "n": [
+     73
+    ]
+   },
+   "series": {
+    "quote": "Utah,"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     24,
+     27,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Safeway Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366965587",
+   "a": "north-texas",
+   "b": "smu",
+   "first": {
+    "quote": "October 7, 1922 / SMU 66, North Texas State Normal 0",
+    "dates": [
+     "1922-10-07"
+    ],
+    "years": [
+     1922
+    ]
+   },
+   "latest": {
+    "quote": "November 10, 2023 / SMU 45, North Texas 21",
+    "date": "2023-11-10"
+   },
+   "meetings": {
+    "quote": "43",
+    "n": [
+     43
+    ]
+   },
+   "series": {
+    "quote": "SMU leads 36–6–1 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Sam Houston–Texas State football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1368334047",
+   "a": "sam-houston",
+   "b": "texas-state",
+   "first": {
+    "quote": "November 20, 1915 / Tied, 0–0",
+    "dates": [
+     "1915-11-20"
+    ],
+    "years": [
+     1915
+    ]
+   },
+   "latest": {
+    "quote": "September 28, 2024 / Sam Houston, 40–39",
+    "date": "2024-09-28"
+   },
+   "meetings": {
+    "quote": "93",
+    "n": [
+     93
+    ]
+   },
+   "series": {
+    "quote": "Texas State leads, 50–38–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Shula Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378039013",
+   "a": "florida-atlantic",
+   "b": "florida-international",
+   "first": {
+    "quote": "November 23, 2002 / Florida Atlantic 31, FIU 21",
+    "dates": [
+     "2002-11-23"
+    ],
+    "years": [
+     2002
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Florida Atlantic 16, FIU 10",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "24",
+    "n": [
+     24
+    ]
+   },
+   "series": {
+    "quote": "Florida Atlantic leads, 18–5"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     16,
+     10,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "SMU–TCU football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1373721354",
+   "a": "smu",
+   "b": "tcu",
+   "first": {
+    "quote": "October 18, 1915 / TCU 43, SMU 0",
+    "dates": [
+     "1915-10-18"
+    ],
+    "years": [
+     1915
+    ]
+   },
+   "latest": {
+    "quote": "September 20, 2025 / TCU 35, SMU 24",
+    "date": "2025-09-20"
+   },
+   "meetings": {
+    "quote": "104",
+    "n": [
+     104
+    ]
+   },
+   "series": {
+    "quote": "TCU leads, 54–43–7"
+   },
+   "recent": []
+  },
+  {
+   "title": "South Alabama–Troy football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366966018",
+   "a": "south-alabama",
+   "b": "troy",
+   "first": {
+    "quote": "September 29, 2012 / Troy 31, South Alabama 10",
+    "dates": [
+     "2012-09-29"
+    ],
+    "years": [
+     2012
+    ]
+   },
+   "latest": {
+    "quote": "October 4, 2025 / Troy 31, South Alabama 24<sup>OT</sup>",
+    "date": "2025-10-04"
+   },
+   "meetings": {
+    "quote": "14",
+    "n": [
+     14
+    ]
+   },
+   "series": {
+    "quote": "Troy leads, 10–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "South Florida–UCF football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380174799",
+   "a": "south-florida",
+   "b": "ucf",
+   "first": {
+    "quote": "September 17, 2005 / South Florida 31, UCF 14",
+    "dates": [
+     "2005-09-17"
+    ],
+    "years": [
+     2005
+    ]
+   },
+   "latest": {
+    "quote": "November 26, 2022 / UCF 46, South Florida 39",
+    "date": "2022-11-26"
+   },
+   "meetings": {
+    "quote": "14",
+    "n": [
+     14
+    ]
+   },
+   "series": {
+    "quote": "UCF leads 8–6"
+   },
+   "recent": []
+  },
+  {
+   "title": "South's Oldest Rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366966121",
+   "a": "north-carolina",
+   "b": "virginia",
+   "first": {
+    "quote": "October 22, 1892 / Virginia 30, North Carolina 18",
+    "dates": [
+     "1892-10-22"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "October 25, 2025 / Virginia 17, North Carolina 16<sup>OT</sup>",
+    "date": "2025-10-25"
+   },
+   "meetings": {
+    "quote": "130",
+    "n": [
+     130
+    ]
+   },
+   "series": {
+    "quote": "North Carolina leads, 66–60–4"
+   },
+   "recent": []
+  },
+  {
+   "title": "Stanford–UCLA football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381552937",
+   "a": "stanford",
+   "b": "ucla",
+   "first": {
+    "quote": "November 14, 1925 / Stanford, 82–0",
+    "dates": [
+     "1925-11-14"
+    ],
+    "years": [
+     1925
+    ]
+   },
+   "latest": {
+    "quote": "October 21, 2023 / UCLA, 42–7",
+    "date": "2023-10-21"
+   },
+   "meetings": {
+    "quote": "95",
+    "n": [
+     95
+    ]
+   },
+   "series": {
+    "quote": "UCLA leads, 49–43–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Stanford–USC football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1370177516",
+   "a": "stanford",
+   "b": "usc",
+   "first": {
+    "quote": "November 4, 1905 / Stanford 16, USC 0",
+    "dates": [
+     "1905-11-04"
+    ],
+    "years": [
+     1905
+    ]
+   },
+   "latest": {
+    "quote": "September 9, 2023 / USC 56, Stanford 10",
+    "date": "2023-09-09"
+   },
+   "meetings": {
+    "quote": "103",
+    "n": [
+     103
+    ]
+   },
+   "series": {
+    "quote": "USC leads, 65–34–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Syracuse–UConn rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378321261",
+   "a": "syracuse",
+   "b": "uconn",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": [
+    [
+     "2026-10-03",
+     41,
+     42,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Syracuse–West Virginia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366966416",
+   "a": "syracuse",
+   "b": "west-virginia",
+   "first": {
+    "quote": "October 12, 1945 / Syracuse, 12–0",
+    "dates": [
+     "1945-10-12"
+    ],
+    "years": [
+     1945
+    ]
+   },
+   "latest": {
+    "quote": "December 28, 2018 / Syracuse, 34–18",
+    "date": "2018-12-28"
+   },
+   "meetings": {
+    "quote": "61",
+    "n": [
+     61
+    ]
+   },
+   "series": {
+    "quote": "Syracuse leads, 34–27"
+   },
+   "recent": []
+  },
+  {
+   "title": "TCU–Texas A&M football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366966423",
+   "a": "tcu",
+   "b": "texas-am",
+   "first": {
+    "quote": "November 13, 1897 / TCU 30, Texas A&M 6",
+    "dates": [
+     "1897-11-13"
+    ],
+    "years": [
+     1897
+    ]
+   },
+   "latest": {
+    "quote": "December 28, 2001 / Texas A&M 28, TCU 9",
+    "date": "2001-12-28"
+   },
+   "meetings": {
+    "quote": "92",
+    "n": [
+     92
+    ]
+   },
+   "series": {
+    "quote": "Texas A&M leads, 56–29–7"
+   },
+   "recent": []
+  },
+  {
+   "title": "TCU–Texas football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374684339",
+   "a": "tcu",
+   "b": "texas",
+   "first": {
+    "quote": "November 3, 1897 / Texas 18, TCU 10",
+    "dates": [
+     "1897-11-03"
+    ],
+    "years": [
+     1897
+    ]
+   },
+   "latest": {
+    "quote": "November 11, 2023 / Texas 29, TCU 26",
+    "date": "2023-11-11"
+   },
+   "meetings": {
+    "quote": "94",
+    "n": [
+     94
+    ]
+   },
+   "series": {
+    "quote": "Texas leads, 65–28–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "TCU–Texas Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381081791",
+   "a": "tcu",
+   "b": "texas-tech",
+   "first": {
+    "quote": "October 30, 1926 / TCU 28, Texas Tech 16",
+    "dates": [
+     "1926-10-30"
+    ],
+    "years": [
+     1926
+    ]
+   },
+   "latest": {
+    "quote": "October 26, 2024 / TCU 35, Texas Tech 34",
+    "date": "2024-10-26"
+   },
+   "meetings": {
+    "quote": "67",
+    "n": [
+     67
+    ]
+   },
+   "series": {
+    "quote": "Texas Tech leads, 33–31–3"
+   },
+   "recent": []
+  },
+  {
+   "title": "Tennessee–Vanderbilt football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1384604418",
+   "a": "tennessee",
+   "b": "vanderbilt",
+   "first": {
+    "quote": "October 21, 1892 / Vanderbilt, 22–4",
+    "dates": [
+     "1892-10-21"
+    ],
+    "years": [
+     1892
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Vanderbilt, 45–24",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "120",
+    "n": [
+     120
+    ]
+   },
+   "series": {
+    "quote": "Tennessee leads, 79–33–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Texas A&M–Texas Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1378547814",
+   "a": "texas-am",
+   "b": "texas-tech",
+   "first": {
+    "quote": "October 27, 1927 / Texas A&M 47, Texas Tech 6",
+    "dates": [
+     "1927-10-27"
+    ],
+    "years": [
+     1927
+    ]
+   },
+   "latest": {
+    "quote": "October 8, 2011 / Texas A&M 45, Texas Tech 40",
+    "date": "2011-10-08"
+   },
+   "meetings": {
+    "quote": "70",
+    "n": [
+     70
+    ]
+   },
+   "series": {
+    "quote": "Texas A&M leads: 37–32–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Texas–Texas A&M football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1374683855",
+   "a": "texas",
+   "b": "texas-am",
+   "first": {
+    "quote": "October 19, 1894 / Texas 38, Texas A&M 0",
+    "dates": [
+     "1894-10-19"
+    ],
+    "years": [
+     1894
+    ]
+   },
+   "latest": {
+    "quote": "November 28, 2025 / Texas 27, Texas A&M 17",
+    "date": "2025-11-28"
+   },
+   "meetings": {
+    "quote": "120",
+    "n": [
+     120
+    ]
+   },
+   "series": {
+    "quote": "Texas leads, 78–37–5"
+   },
+   "recent": []
+  },
+  {
+   "title": "Texas–Texas Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381193688",
+   "a": "texas",
+   "b": "texas-tech",
+   "first": {
+    "quote": "October 6, 1928 / Texas 12, Texas Tech 0",
+    "dates": [
+     "1928-10-06"
+    ],
+    "years": [
+     1928
+    ]
+   },
+   "latest": {
+    "quote": "November 24, 2023 / Texas 57, Texas Tech 7",
+    "date": "2023-11-24"
+   },
+   "meetings": {
+    "quote": "73",
+    "n": [
+     73
+    ]
+   },
+   "series": {
+    "quote": "Texas leads, 55–18 (75.3%)"
+   },
+   "recent": []
+  },
+  {
+   "title": "Textile Bowl",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366966576",
+   "a": "clemson",
+   "b": "nc-state",
+   "first": {
+    "quote": "November 18, 1899 / Clemson 24, North Carolina A&M 0",
+    "dates": [
+     "1899-11-18"
+    ],
+    "years": [
+     1899
+    ]
+   },
+   "latest": {
+    "quote": "September 21, 2024 / Clemson 59, NC State 35",
+    "date": "2024-09-21"
+   },
+   "meetings": {
+    "quote": "92",
+    "n": [
+     92
+    ]
+   },
+   "series": {
+    "quote": "Clemson leads, 61–30–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "The Keg of Nails",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366966657",
+   "a": "cincinnati",
+   "b": "louisville",
+   "first": {
+    "quote": "October 2, 1929 / Cincinnati 7, Louisville 0",
+    "dates": [
+     "1929-10-02"
+    ],
+    "years": [
+     1929
+    ]
+   },
+   "latest": {
+    "quote": "December 17, 2022 / Louisville 24, Cincinnati 7",
+    "date": "2022-12-17"
+   },
+   "meetings": {
+    "quote": "54",
+    "n": [
+     54
+    ]
+   },
+   "series": {
+    "quote": "Cincinnati leads, 30–23–1 ()"
+   },
+   "recent": []
+  },
+  {
+   "title": "Third Saturday in October",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381236120",
+   "a": "alabama",
+   "b": "tennessee",
+   "first": {
+    "quote": "November 28, 1901 / Tennessee 6, Alabama 6",
+    "dates": [
+     "1901-11-28"
+    ],
+    "years": [
+     1901
+    ]
+   },
+   "latest": {
+    "quote": "October 17, 2026 / Tennessee 26, Alabama 10",
+    "date": "2026-10-17"
+   },
+   "meetings": {
+    "quote": "109",
+    "n": [
+     109
+    ]
+   },
+   "series": {
+    "quote": "Alabama leads, 60–41–7"
+   },
+   "recent": [
+    [
+     "2026-10-17",
+     10,
+     26,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "UConn–UMass rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381988526",
+   "a": "uconn",
+   "b": "umass",
+   "first": {
+    "quote": "",
+    "dates": null,
+    "years": []
+   },
+   "latest": {
+    "quote": "",
+    "date": null
+   },
+   "meetings": {
+    "quote": "",
+    "n": []
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Utah State–Wyoming football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1372031244",
+   "a": "utah-state",
+   "b": "wyoming",
+   "first": {
+    "quote": "November 23, 1903 / Utah A.C. 46, Wyoming 0",
+    "dates": [
+     "1903-11-23"
+    ],
+    "years": [
+     1903
+    ]
+   },
+   "latest": {
+    "quote": "October 26, 2024 / Utah State 27, Wyoming 25",
+    "date": "2024-10-26"
+   },
+   "meetings": {
+    "quote": "73",
+    "n": [
+     73
+    ]
+   },
+   "series": {
+    "quote": "Utah State leads,"
+   },
+   "recent": []
+  },
+  {
+   "title": "Victory Bell (Cincinnati–Miami)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1380376063",
+   "a": "cincinnati",
+   "b": "miami-oh",
+   "first": {
+    "quote": "December 8, 1888 / Cincinnati 0, Miami 0",
+    "dates": [
+     "1888-12-08"
+    ],
+    "years": [
+     1888
+    ]
+   },
+   "latest": {
+    "quote": "September 19, 2026 / Cincinnati 35, Miami 31",
+    "date": "2026-09-19"
+   },
+   "meetings": {
+    "quote": "129",
+    "n": [
+     129
+    ]
+   },
+   "series": {
+    "quote": "Cincinnati, 62–60–7"
+   },
+   "recent": [
+    [
+     "2026-09-19",
+     35,
+     31,
+     null
+    ]
+   ]
+  },
+  {
+   "title": "Virginia Tech–West Virginia football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366967039",
+   "a": "virginia-tech",
+   "b": "west-virginia",
+   "first": {
+    "quote": "November 16, 1912 / VPI 41, West Virginia 0",
+    "dates": [
+     "1912-11-16"
+    ],
+    "years": [
+     1912
+    ]
+   },
+   "latest": {
+    "quote": "September 22, 2022 / West Virginia 33, Virginia Tech 10",
+    "date": "2022-09-22"
+   },
+   "meetings": {
+    "quote": "54",
+    "n": [
+     54
+    ]
+   },
+   "series": {
+    "quote": "West Virginia leads, 30–23–1"
+   },
+   "recent": []
+  },
+  {
+   "title": "Virginia–Virginia Tech football rivalry",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1366967048",
+   "a": "virginia",
+   "b": "virginia-tech",
+   "first": {
+    "quote": "October 5, 1895 / Virginia, 38–0",
+    "dates": [
+     "1895-10-05"
+    ],
+    "years": [
+     1895
+    ]
+   },
+   "latest": {
+    "quote": "November 29, 2025 / Virginia, 27–7",
+    "date": "2025-11-29"
+   },
+   "meetings": {
+    "quote": "106",
+    "n": [
+     106
+    ]
+   },
+   "series": {
+    "quote": ""
+   },
+   "recent": []
+  },
+  {
+   "title": "Wagon Wheel (trophy)",
+   "url": "https://en.wikipedia.org/w/index.php?oldid=1381833248",
+   "a": "akron",
+   "b": "kent-state",
+   "first": {
+    "quote": "1923 / Akron 32, Kent State 0",
+    "dates": null,
+    "years": [
+     1923
+    ]
+   },
+   "latest": {
+    "quote": "October 24, 2026 / Kent State 35, Akron 20",
+    "date": "2026-10-24"
+   },
+   "meetings": {
+    "quote": "69",
+    "n": [
+     69
+    ]
+   },
+   "series": {
+    "quote": "Akron leads, 37–30–2"
+   },
+   "recent": [
+    [
+     "2026-10-24",
+     20,
+     35,
+     null
+    ]
+   ]
+  }
+ ]
+}

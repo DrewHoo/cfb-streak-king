@@ -310,6 +310,7 @@ export default function App({ initial } = {}) {
         <SeriesPage
           ti={series} oi={seriesOpp} todayEp={todayEp} isMobile={isMobile} copied={copied}
           on={{
+            board: () => dispatch({ type: 'board' }),
             team: (ti) => openTeam(ti, 'series'),
             game: (ti, g) => openGame(ti, g, 'series'),
             series: (ti, oi) => openSeries(ti, oi, 'series'),

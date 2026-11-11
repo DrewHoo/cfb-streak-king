@@ -242,20 +242,40 @@ describe('prerender + hydrate', () => {
     await page.unmount();
   });
 
-  test("a series page hydrates from one team's side, says the record and the last meeting, and links the other side; a team page lists its series", async () => {
+  test("a series page is the series': the same lead from either side, every game a winner's mark that says its score and opens its game; a team page lists its series", async () => {
     const al = teams.findIndex((t) => t.id === 'alabama'), ut = teams.findIndex((t) => t.id === 'tennessee');
     const { root, errors, unmount } = await hydrate({ series: { ti: al, oi: ut } }, '/team/alabama/vs/tennessee/');
     expect(errors).toEqual([]);
     expect(root.querySelector('h1').textContent).toBe('Alabama vs Tennessee all-time record');
-    expect(root.querySelector('.ser-lead').textContent).toMatch(/^Alabama leads Tennessee \d+-\d+-7 in \d+ games since 1903\./);
-    // every game is a square and a ledger row; the ones since 1936 open their game pages
-    const n = root.querySelectorAll('.ser-squares .sq').length;
-    expect(n).toBeGreaterThanOrEqual(108);
-    expect(root.querySelectorAll('.ser-ledger .xrow').length).toBe(n);
-    expect(root.querySelectorAll('.ser-ledger button.game-row').length).toBeGreaterThan(80);
-    expect(root.querySelector('.tpg-opp-more a[href="/team/tennessee/vs/alabama/"]').textContent).toBe('Tennessee vs Alabama all-time record ›');
+    const lead = root.querySelector('.ser-lead').textContent;
+    expect(lead).toMatch(/^Alabama leads Tennessee 60-41-7 in 109 games since their first meeting in 1901\./);
+    // the scoreboard: each team's wins beside its name, in the address's order
+    expect([...root.querySelectorAll('.ser-side span')].map((e) => e.textContent)).toEqual(['Alabama', 'Tennessee']);
+    expect(root.querySelector('.ser-mid').textContent).toBe('7 ties');
+    // every game is a mark whose words carry the score; the ones since 1936 are links to their game pages, the older ones aren't
+    const marks = [...root.querySelectorAll('.ser-grid .ser-mk')];
+    expect(marks.length).toBeGreaterThanOrEqual(109);
+    expect(marks[0].tagName).toBe('SPAN');
+    expect(marks[0].textContent).toMatch(/^1901: Alabama 6, Tennessee 6, a tie, (at|neutral)/);
+    // the score as played, with the ruling beside it
+    expect(marks.find((m) => m.textContent.startsWith('1993:')).textContent).toMatch(/Tennessee by forfeit/);
+    expect(marks.find((m) => m.textContent.startsWith('2005:')).textContent).toMatch(/Alabama's win vacated/);
+    const links = root.querySelectorAll('.ser-grid a.ser-mk');
+    expect(links.length).toBeGreaterThan(80);
+    expect(links[0].getAttribute('href')).toMatch(/^\/game\/1936-\d\d-\d\d\/(alabama|tennessee)-(at|vs)-(alabama|tennessee)\/$/);
+    // the line shows the last meeting at first, with its four-digit year, and the last mark is the one lit
+    expect(root.querySelector('.ser-line .ser-ld').textContent).toMatch(/^\d{1,2}\/\d{1,2}\/20\d\d$/);
+    expect(marks[marks.length - 1].classList.contains('on')).toBe(true);
+    expect(root.querySelector('.ser-site tbody th').textContent).toBe('Alabama');
+    expect(root.querySelector('.tpg-opp-more, .ser-note')).toBeNull();
     expect(window.location.pathname).toBe('/team/alabama/vs/tennessee/');
     await unmount();
+    // the other address is the same page with the teams swapped: the same lead, Tennessee on the left
+    const other = await hydrate({ series: { ti: ut, oi: al } }, '/team/tennessee/vs/alabama/');
+    expect(other.errors).toEqual([]);
+    expect(other.root.querySelector('.ser-lead').textContent).toBe(lead);
+    expect([...other.root.querySelectorAll('.ser-side span')].map((e) => e.textContent)).toEqual(['Tennessee', 'Alabama']);
+    await other.unmount();
     const page = await hydrate({ page: al, crowns: { active: [], all: [] } }, '/team/alabama/');
     expect(page.errors).toEqual([]);
     const link = page.root.querySelector('.tpg-series a[href="/team/alabama/vs/tennessee/"]');

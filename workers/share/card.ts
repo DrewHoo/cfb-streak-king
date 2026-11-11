@@ -118,50 +118,55 @@ export function renderCard(card: Card): Response {
 }
 
 export interface SeriesCard {
-  /** "Alabama", "Tennessee": the side the record is read from first. */
+  /** "Alabama", "Tennessee": the page's order, left to right. */
   name: string;
   opp: string;
   logo: string | null;
   oppLogo: string | null;
-  /** "61-40-7" */
-  record: string;
-  /** "ALABAMA'S RECORD SINCE 1903 · 108 GAMES" */
+  /** [name's wins, opp's wins, ties] */
+  rec: [number, number, number];
+  /** "ALL-TIME SERIES SINCE 1903 · 108 GAMES" */
   sub: string;
   /** the lead's second sentence: who won the last one */
   words: string;
-  /** the last ten meetings, oldest first, from the first side */
-  last: { r: 'W' | 'L' | 'T'; year: number }[];
+  /** the last ten meetings, oldest first: whose win it was (0 name, 1 opp, null a tie) and the season */
+  last: { winner: 0 | 1 | null; year: number }[];
   footer: string;
 }
 
-/** A series card: both marks, the record in Graduate numbers, the last ten meetings as the board's squares. */
+/** A series card, read as the series': each team's win count beside its mark, and the last ten meetings as the winner's mark over the year. */
 export function renderSeriesCard(c: SeriesCard): Response {
-  const mark = (src: string | null, name: string) => (src
-    ? `<img src="${src}" width="84" height="84" />`
-    : `<div style="display:flex; justify-content:center; align-items:center; width:84px; height:84px; font-family:'Graduate'; font-size:40px; color:${MUTED};">${esc(name[0] ?? '?')}</div>`);
-  const square = (g: { r: string; year: number }) => {
-    const box = g.r === 'W' ? `background-color:${CREAM};` : g.r === 'L' ? `background-color:#322a30; border:1px solid ${LINE};` : `border:1px dashed ${FAINT};`;
-    return `<div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-      <div style="display:flex; justify-content:center; align-items:center; width:56px; height:56px; border-radius:4px; ${box} font-family:'Graduate'; font-size:22px; color:${g.r === 'W' ? '#241d12' : MUTED};">${g.r}</div>
+  const mark = (src: string | null, name: string, size: number) => (src
+    ? `<img src="${src}" width="${size}" height="${size}" />`
+    : `<div style="display:flex; justify-content:center; align-items:center; width:${size}px; height:${size}px; font-family:'Graduate'; font-size:${Math.round(size / 2)}px; color:${MUTED};">${esc(name[0] ?? '?')}</div>`);
+  const [w, l, t] = c.rec;
+  const count = (n: number, lead: boolean) => `<div style="display:flex; font-family:'Graduate'; font-size:110px; line-height:1; color:${lead ? CREAM : MUTED};">${n}</div>`;
+  const side = (src: string | null, name: string) => `<div style="display:flex; flex-direction:column; align-items:center; gap:8px; width:200px;">
+      ${mark(src, name, 92)}
+      <div style="display:flex; font-family:'Source Serif 4'; font-size:24px; color:${INK};">${esc(name)}</div>
+    </div>`;
+  const game = (g: SeriesCard['last'][number]) => `<div style="display:flex; flex-direction:column; align-items:center; gap:6px; width:62px;">
+      ${g.winner == null
+        ? `<div style="display:flex; width:48px; height:48px; margin:4px; border:2px dashed ${FAINT}; border-radius:5px;"></div>`
+        : mark(g.winner === 0 ? c.logo : c.oppLogo, g.winner === 0 ? c.name : c.opp, 56)}
       <div style="display:flex; font-family:'IBM Plex Mono'; font-size:12px; color:${FAINT};">${g.year}</div>
     </div>`;
-  };
   const html = `
   <div style="display:flex; flex-direction:column; align-items:center; width:1200px; height:630px; background-color:${BG}; padding:40px 0 32px;
               background-image: radial-gradient(circle at 600px -126px, rgba(243,226,188,0.13) 0%, rgba(243,226,188,0) 65%);">
     <div style="display:flex; font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; letter-spacing:4px; color:${RUST};">COLLEGE FOOTBALL STREAK KING · ALL-TIME SERIES</div>
-    <div style="display:flex; flex-direction:row; align-items:center; justify-content:center; gap:28px; margin-top:22px; width:720px;">
-      ${mark(c.logo, c.name)}
-      <div style="display:flex; flex-direction:column; align-items:center;">
-        <div style="display:flex; font-family:'Graduate'; font-size:96px; line-height:1; color:${CREAM};">${esc(c.record)}</div>
-        <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${MUTED}; margin-top:10px; white-space:nowrap;">${esc(c.sub.toUpperCase())}</div>
-      </div>
-      ${mark(c.oppLogo, c.opp)}
+    <div style="display:flex; flex-direction:row; align-items:center; justify-content:center; gap:30px; margin-top:24px;">
+      ${side(c.logo, c.name)}
+      ${count(w, w >= l)}
+      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:15px; letter-spacing:3px; color:${FAINT}; width:90px; justify-content:center;">${t ? `${t} ${t === 1 ? 'TIE' : 'TIES'}` : 'WINS'}</div>
+      ${count(l, l >= w)}
+      ${side(c.oppLogo, c.opp)}
     </div>
-    <div style="display:flex; font-family:'Source Serif 4'; font-size:24px; color:${INK}; margin-top:18px; max-width:720px; text-align:center;">${esc(c.words)}</div>
+    <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${MUTED}; margin-top:14px;">${esc(c.sub.toUpperCase())}</div>
+    <div style="display:flex; font-family:'Source Serif 4'; font-size:24px; color:${INK}; margin-top:10px; max-width:820px; text-align:center;">${esc(c.words)}</div>
     <div style="display:flex; flex-direction:column; align-items:center; flex-grow:1; justify-content:center;">
-      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:3px; color:${FAINT}; margin-bottom:10px;">THE LAST ${c.last.length} · ${esc(c.name.toUpperCase())}'S SIDE</div>
-      <div style="display:flex; flex-direction:row; gap:10px;">${c.last.map(square).join('')}</div>
+      <div style="display:flex; font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:3px; color:${FAINT}; margin-bottom:10px;">THE LAST ${c.last.length} · EACH THE WINNER</div>
+      <div style="display:flex; flex-direction:row; gap:10px;">${c.last.map(game).join('')}</div>
     </div>
     <div style="display:flex; font-family:'IBM Plex Mono'; font-size:14px; letter-spacing:2px; color:${FAINT};">${esc(c.footer.toUpperCase())}</div>
   </div>`;

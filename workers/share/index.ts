@@ -39,7 +39,7 @@ import { BREAK, breakCat, breakPoints, rankOrder } from '../../src/lib/breakScor
 import { isTrivia } from '../../src/lib/trivia.ts';
 import { renderCard, renderSeriesCard } from './card.ts';
 import { createSeries } from '../../src/lib/seriesCore.ts';
-import { seriesLead, recText } from '../../src/lib/seriesWords.ts';
+import { seriesLead } from '../../src/lib/seriesWords.ts';
 import early from '../../src/data/series-early.json';
 import type { CardRow } from './card.ts';
 
@@ -133,7 +133,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-11-02a';
+const CARD_VERSION = '2026-11-10b';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -490,7 +490,7 @@ async function logoUri(espn: string | null | undefined): Promise<string | null> 
 
 // the series on a model, made once per model
 const seriesBy = new WeakMap<Model, ReturnType<typeof createSeries>>();
-/** A series card (series.ts): ?series=<id>&vs=<opp>, the record from the first team's side and the last ten meetings. */
+/** A series card (series.ts): ?series=<id>&vs=<opp>, each team's wins beside its mark and the last ten meetings' winners, the teams in the address's order. */
 async function seriesCard(id: string, oppId: string): Promise<Response> {
   const m = await loadModel();
   const ti = m.teams.findIndex((t) => t.id === id), oi = m.teams.findIndex((t) => t.id === oppId);
@@ -499,13 +499,13 @@ async function seriesCard(id: string, oppId: string): Promise<Response> {
   if (!s) throw new Error(`no series ${id} vs ${oppId}`);
   const t = m.teams[ti], o = m.teams[oi];
   const last = s.games[s.games.length - 1];
-  const lead = seriesLead(t.name, o.name, s.rec, s.since, s.now, last);
+  const lead = seriesLead(t.name, o.name, s.rec, s.games.length, s.since, s.now, last);
   return buffered(renderSeriesCard({
     name: t.name, opp: o.name, logo: await logoUri(t.espn), oppLogo: await logoUri(o.espn),
-    record: recText(s.rec),
-    sub: `${t.name}'s record since ${s.since} · ${s.games.length} games`,
+    rec: s.rec,
+    sub: `All-time series since ${s.since} · ${s.games.length} games`,
     words: lead.slice(lead.indexOf('. ') + 2),
-    last: s.games.slice(-10).map((g) => ({ r: g.r, year: g.se })),
+    last: s.games.slice(-10).map((g) => ({ winner: g.r === 'W' ? 0 : g.r === 'L' ? 1 : null, year: g.se })),
     footer: 'drewhoover.com/cfb-streak-king',
   }));
 }

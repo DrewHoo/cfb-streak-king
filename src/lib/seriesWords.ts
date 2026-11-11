@@ -21,11 +21,12 @@ export const seriesH1 = (name: string, opp: string) => `${name} vs ${opp} all-ti
 /** The <title> before the site's name. */
 export const seriesTitle = (name: string, opp: string, rec: Rec, since: number) => `${seriesH1(name, opp)}: ${recSentence(name, opp, rec)} since ${since}`;
 
-// "Alabama leads Tennessee 61-39-7", "Tennessee trails Alabama 39-61-7", "Army and Navy are tied 55-55-7"
+// the leader first from either side: "Alabama leads Tennessee 61-39-7" on both
+// pages, and a tie in the page's order, "Army and Navy are tied 55-55-7"
 function recSentence(name: string, opp: string, rec: Rec): string {
   const [w, l, t] = rec;
   if (w === l) return `${name} and ${opp} are tied ${recText(rec)}`;
-  return `${name} ${w > l ? 'leads' : 'trails'} ${opp} ${recText([w, l, t])}`;
+  return w > l ? `${name} leads ${opp} ${recText(rec)}` : `${opp} leads ${name} ${recText([l, w, t])}`;
 }
 
 export interface StreakNow {
@@ -35,13 +36,14 @@ export interface StreakNow {
 }
 
 /**
- * The lead: the record from the first meeting the ledger has, then who won
- * the last one and how many in a row. "Alabama leads Tennessee 61-39-7 in
- * 107 games since 1903. Tennessee won the last meeting, 26-10 in 2026."
+ * The lead: the record since the first meeting, then who won the last one and
+ * how many in a row. "Alabama leads Tennessee 60-41-7 in 109 games since their
+ * first meeting in 1901. Tennessee won the last meeting, 26-10 in 2026."
+ * `n` counts every meeting, a vacated win too, which the record leaves out.
+ * The same sentence from either side.
  */
-export function seriesLead(name: string, opp: string, rec: Rec, since: number, now: StreakNow, last: { us: number; them: number; se: number }): string {
-  const n = rec[0] + rec[1] + rec[2];
-  const head = `${recSentence(name, opp, rec)} in ${games(n)} since ${since}.`;
+export function seriesLead(name: string, opp: string, rec: Rec, n: number, since: number, now: StreakNow, last: { us: number; them: number; se: number }): string {
+  const head = `${recSentence(name, opp, rec)} in ${games(n)} since their first meeting in ${since}.`;
   const winner = now.r === 'W' ? name : opp;
   const score = now.r === 'W' ? `${last.us}-${last.them}` : `${last.them}-${last.us}`;
   const tail = now.r === 'T'
