@@ -27,7 +27,7 @@ export type ViewAction =
   | { type: 'dir'; dir: Dir }
   | { type: 'week'; on: boolean }
   | { type: 'streak'; chips: (string | ChipRef)[]; dir: Dir; scope: Scope; team?: number | null; run?: number | null }
-  | { type: 'as'; team: number | null; dir?: Dir; scope?: Scope; vs?: number | null; run?: number | null }
+  | { type: 'as'; team: number | null; dir?: Dir; scope?: Scope; vs?: number | null; run?: number | null; active?: ChipRef[] }
   | { type: 'pick'; row: BoardRow }
   | { type: 'close' }
   | { type: 'page'; team: number }
@@ -92,10 +92,12 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
     case 'as': {
       // the by-opponent board of a team (null: back to the board of every
       // team), keeping the definition less any "vs [team]"; from a team
-      // page it comes with one opponent's column open
+      // page it comes with one opponent's column open, on the definition its
+      // rows were counted under (every game), not the one the board held
       const scope = a.scope ?? v.scope;
+      const active = a.active ?? v.active;
       return {
-        ...v, as: a.team, active: a.team != null && hasVs(v.active) ? v.active.filter((c) => c.key !== 'vsteam') : v.active, dir: a.dir ?? v.dir, scope,
+        ...v, as: a.team, active: a.team != null && hasVs(active) ? active.filter((c) => c.key !== 'vsteam') : active, dir: a.dir ?? v.dir, scope,
         team: a.vs ?? null, run: a.vs != null && scope === 'all' ? a.run ?? null : null, limit: DESKTOP_CAP, week: scope === 'all' ? false : v.week,
         page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null, front: false,
       };

@@ -185,9 +185,10 @@ export default function App({ initial } = {}) {
     as: (ti) => { dispatch({ type: 'as', team: ti }); track('as team', { team: teams[ti].id, from: 'sentence' }); },
     unas: () => dispatch({ type: 'as', team: null }),
   };
-  // a team page's streaks by opponent: that team's by-opponent board, with the row's column open
+  // a team page's streaks by opponent: that team's by-opponent board in every
+  // game (the rows' definition, and the page asUrl names), with the row's column open
   function openAs(ti, d, row, from) {
-    dispatch({ type: 'as', team: ti, dir: d, scope: 'all', vs: row?.vs ?? null, run: row?.s.start?.ep ?? null });
+    dispatch({ type: 'as', team: ti, dir: d, scope: 'all', active: [], vs: row?.vs ?? null, run: row?.s.start?.ep ?? null });
     track('as team', { team: teams[ti].id, dir: d, from });
   }
   function pickRow(row) {

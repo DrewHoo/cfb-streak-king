@@ -153,6 +153,9 @@ describe('view: the by-opponent board ("as [team]")', () => {
     // from a team page: that team's board with one opponent's column open, and the page closed
     const fromPage = viewReducer({ ...initialView(4), scope: 'active' }, { type: 'as', team: 4, dir: 'L', scope: 'all', vs: 9, run: 100 });
     expect(fromPage).toMatchObject({ as: 4, dir: 'L', scope: 'all', team: 9, run: 100, page: null, week: false });
+    // whatever definition the board held: the team page's rows are every game, and so is the board they open
+    const held = viewReducer({ ...initialView(4), active: [{ key: 'ranked' }] }, { type: 'as', team: 4, dir: 'W', scope: 'all', active: [], vs: 9, run: 100 });
+    expect(held).toMatchObject({ as: 4, active: [], team: 9, run: 100 });
   });
 
   test('a column is its opponent: picking opens it by the opponent, and "vs [team]" or a streak leaves the board', () => {
