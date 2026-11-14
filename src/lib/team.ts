@@ -7,10 +7,8 @@
 // game that qualifies, so a matchup and the at-risk digest know which runs
 // a game puts on the line.
 
-import type { Crown, Dir, GameRow, MinedCrown, UpcomingRow } from './types.ts';
-import { P, teams, fbsNow, gamesOf, upcomingOf } from './model.ts';
-import { chipByKey, qualifiesPregame } from './chips.ts';
-import type { PregameChip } from './chips.ts';
+import type { Crown, Dir, GameRow, MinedCrown, NextHow, UpcomingRow } from './types.ts';
+import { P, teams, fbsNow, gamesOf, upcomingOf, nextGame } from './model.ts';
 import { refsOf } from './minedChips.ts';
 import { MINED_MARGIN, marginDir } from './outcome.ts';
 import { ordinal } from './sentence.ts';
@@ -53,8 +51,12 @@ export const lastMeeting = (ti: number, opp: number): GameRow | null => gamesOf(
 
 /** One of a team's current runs with the game that next puts it on the line, as a file keeps it (no score). */
 export type TeamRun<T extends MinedCrown = MinedCrown> = T & {
-  /** The next scheduled game that qualifies; null when none does, or when a condition can't be known before kickoff. */
+  /** The next scheduled game that qualifies, sure or likely; null when none does, or when it can't be told before kickoff. */
   next: UpcomingRow | null;
+  /** How sure `next` is, or (`open`) that `maybe` counts only if the game goes a certain way; null with neither. */
+  how: NextHow | null;
+  /** The next game that counts only on a condition settled during it (a one-score game, the half); null otherwise. */
+  maybe: UpcomingRow | null;
   /** The season the run started in. */
   since: number;
 };
@@ -69,18 +71,16 @@ export const LEN_FLOOR = 4;
 export const SHEET_DIRS: Dir[] = ['W', 'L', 'C', 'N', marginDir('W', MINED_MARGIN), marginDir('L', MINED_MARGIN)];
 
 /**
- * The first scheduled game of `ti`'s that every chip of the definition
- * admits; null when a chip can't be known before kickoff. A scheduled game
- * counts past its date, as the board's does (createModel's nextQualifying):
+ * The first scheduled game of `ti`'s that the definition admits before
+ * kickoff, sure or likely (createModel's nextGame, the board's too); null
+ * when none does or it can't be told. A scheduled game counts past its date:
  * no build has recorded its result yet, so it is unknown, not gone. Cutting
  * at today emptied the at-risk list whenever a build ran after midnight UTC
  * on a game day (Saturday evening in the US) with the day's games unrecorded.
  */
 export function nextQualifying(ti: number, chips: readonly string[], _todayEp?: number): UpcomingRow | null {
-  const refs = refsOf(chips);
-  const cs = refs.map((r) => ({ c: chipByKey.get(r.key)!, p: r.param }));
-  if (cs.some(({ c }) => !c.pregame)) return null;
-  return upcomingOf(ti).find((u) => cs.every(({ c, p }) => qualifiesPregame(c as PregameChip, u, p))) ?? null;
+  const n = nextGame(ti, refsOf(chips));
+  return n && n.how !== 'open' ? n.next : null;
 }
 
 /**
@@ -92,7 +92,10 @@ export function teamStreaks<T extends MinedCrown>(ti: number, todayEp: number, c
   if (!crowns) return [];
   return crowns
     .filter((c) => c.scope === 'active' && SHEET_DIRS.includes(c.dir))
-    .map((c) => ({ ...c, next: nextQualifying(ti, c.chips, todayEp), since: c.startSe ?? P.currentSeason }));
+    .map((c) => {
+      const n = nextGame(ti, refsOf(c.chips));
+      return { ...c, next: n && n.how !== 'open' ? n.next : null, how: n?.how ?? null, maybe: n?.how === 'open' ? n.next : null, since: c.startSe ?? P.currentSeason };
+    });
 }
 
 /** The streaks a scheduled game puts on the line: the ones whose next qualifying game it is. */

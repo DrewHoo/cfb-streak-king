@@ -1,12 +1,13 @@
 import React from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath, asTeamFromPath, seriesFromPath } from './lib/url.ts'
+import { frontFromPath, teamFromPath, gamesFromPath, weekFromPath, seasonFromPath, riskFromPath, breakersFromPath, breakerFromPath, breakersSeasonFromPath, landingFromPath, asTeamFromPath, seriesFromPath } from './lib/url.ts'
 import { gameFromPath } from './lib/game.ts'
 import { decodeSeason } from './lib/seasonFile.ts'
 import { decodeCrowns } from './lib/crownsFile.ts'
 import { decodeDigests } from './lib/digests.ts'
 import { decodeBreakers } from './lib/breakers.ts'
+import { decodeFront } from './lib/front.ts'
 import './styles.css'
 
 // The markup is already in the HTML: scripts/prerender.mjs bakes it in at
@@ -25,6 +26,8 @@ const embedded = document.getElementById('crowns-data')
 const digests = document.getElementById('digests-data')
 const seasonRows = document.getElementById('season-data')
 const breakers = document.getElementById('breakers-data')
+// the front page embeds each team's best current runs (front.ts)
+const frontRuns = document.getElementById('front-data')
 // a team's by-opponent page (/team/<id>/losing-streaks-by-opponent/), prerendered on that board
 const asPage = page == null && !game ? asTeamFromPath(window.location.pathname) : null
 // a team page's embed: its active file and its all-time simple list's runs (scripts/prerender.mjs)
@@ -48,6 +51,9 @@ const initial = {
   digests: page == null && digests ? decodeDigests(JSON.parse(digests.textContent)) : null,
   seasonRows: seasonRows ? decodeSeason(JSON.parse(seasonRows.textContent)) : null,
   breaks: breakers ? decodeBreakers(JSON.parse(breakers.textContent)) : null,
+  // the front page, by the path alone: an old root link with a builder param hydrates the front page, then opens the builder after mount
+  front: frontFromPath(window.location.pathname),
+  frontRuns: frontRuns ? decodeFront(JSON.parse(frontRuns.textContent)) : null,
 }
 
 const root = document.getElementById('root')

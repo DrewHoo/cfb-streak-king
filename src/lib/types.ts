@@ -147,6 +147,11 @@ export interface UpcomingRow extends GameContext {
   wk: number;
 }
 
+/** How sure it is that a scheduled game counts under a definition: `sure`, `likely` (it read the line, which moves until kickoff), or `open` (a condition settled during the game). */
+export type NextHow = 'sure' | 'likely' | 'open';
+/** A team's next scheduled game a definition admits, and how sure that is. */
+export interface NextGame { next: UpcomingRow; how: NextHow }
+
 export interface ChipRef {
   key: string;
   param?: string | number;

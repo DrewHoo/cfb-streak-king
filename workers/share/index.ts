@@ -133,7 +133,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-11-10b';
+const CARD_VERSION = '2026-11-14';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -176,7 +176,7 @@ interface WeeklyRow { count: string; team: string; bad: boolean; claim: string; 
 /** `total` is every row the digest holds (list and more), what the card's rows are the top of. */
 interface WeeklyCard { wk: number; lo: number; hi: number; ofNote?: number; total?: number; rows: WeeklyRow[] }
 interface BreakerCard { season: number; name: string; n: number; rank: number; rows: WeeklyRow[] }
-interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null; breakers?: { season: number; teams?: number; rows: WeeklyRow[] }; breaker?: Record<string, BreakerCard> }
+interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: WeeklyCard | null; front?: { heading?: string; on: number; rows: WeeklyRow[] }; breakers?: { season: number; teams?: number; rows: WeeklyRow[] }; breaker?: Record<string, BreakerCard> }
 const fmtN = (n: number) => n.toLocaleString('en-US');
 /** "+134 more broken", or nothing when the rows are all there is. */
 const moreLine = (total: number | undefined, shown: number, word: string) => (total != null && total > shown ? `+${fmtN(total - shown)} more ${word}` : null);
@@ -260,6 +260,30 @@ async function weekCard(kind: 'broken' | 'risk', wk: number): Promise<Response> 
       : kind === 'risk' ? `${spanOf(card.lo, card.hi)} · by what the game can take away` : `${spanOf(card.lo, card.hi)} · ${card.ofNote ?? rows.length} of note`,
     rows,
     more: moreLine(card.total, rows.length, kind === 'risk' ? 'at stake' : 'broken'),
+    dense: true,
+    footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
+  });
+  const png = await res.arrayBuffer();
+  if (!png.byteLength) throw new Error('empty render');
+  return new Response(png, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=3600, s-maxage=43200' } });
+}
+
+/** The front page's card: the streaks this week's games put on the line that stand out. */
+async function frontCard(): Promise<Response> {
+  const [weekly, m] = await Promise.all([loadWeekly(), loadModel()]);
+  const card = weekly.front;
+  if (!card?.rows.length) throw new Error('no front card');
+  const byId = new Map(m.teams.map((t) => [t.id, t]));
+  const rows: CardRow[] = [];
+  for (const r of card.rows.slice(0, 7)) {
+    const t = byId.get(r.team);
+    rows.push({ count: r.count, name: r.claim, sub: r.sub, bad: r.bad, live: false, span: '', logo: await logoUri(t?.espn), initial: t?.name[0] ?? '?' });
+  }
+  const res = renderCard({
+    heading: card.heading ?? 'On the line this week',
+    words: 'College football streaks this week’s games can end',
+    rows,
+    more: null,
     dense: true,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,
   });
@@ -604,9 +628,11 @@ export default {
         // the season: ?breakers=<season>, or a team's ?breaker=<id>&season=<season>; absent, the running one
         const seParam = url.searchParams.get('season') ?? url.searchParams.get('breakers');
         const breakSe = seParam && /^\d{4}$/.test(seParam) ? Number(seParam) : null;
-        report(env, ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: series ? 'series' : game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
+        report(env, ctx, request, 'share card', { ...urlProps(url), cached: !!cached, kind: url.searchParams.has('front') ? 'front' : series ? 'series' : game ? 'game' : breakers ? 'breakers' : url.searchParams.has('risk') ? 'risk' : url.searchParams.has('broken') ? 'broken' : 'board' });
         if (cached) return cached;
-        const res = series && /^[a-z0-9-]+$/.test(series) && /^[a-z0-9-]+$/.test(url.searchParams.get('vs') ?? '')
+        const res = url.searchParams.has('front')
+          ? await frontCard()
+          : series && /^[a-z0-9-]+$/.test(series) && /^[a-z0-9-]+$/.test(url.searchParams.get('vs') ?? '')
           ? await seriesCard(series, url.searchParams.get('vs')!)
           : game
           ? await gameCard(game)

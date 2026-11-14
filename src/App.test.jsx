@@ -10,6 +10,8 @@ import { hydrateRoot } from 'react-dom/client';
 import App from './App.jsx';
 import { P, teams, gamesOf, upcomingOf } from './lib/model.ts';
 import { seasonWeeks } from './lib/game.ts';
+import { CTX, LIST } from './lib/list.ts';
+import { FRONT, frontList } from './lib/front.ts';
 import { matchingGames } from './components/GamesPage.jsx';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -22,6 +24,7 @@ const empty = (url) => (
     : /digests\.json/.test(url) ? { v: 1, builtAt: '', broken: {}, atRisk: null, onLine: {} }
       : /games\/\d{4}\.json/.test(url) ? { v: 1, season: Number(/(\d{4})\.json/.exec(url)[1]), builtAt: '', games: {} }
         : /breakers\/\d{4}\.json/.test(url) ? { v: 1, season: 2026, builtAt: '', teams: {}, ranks: {} }
+        : /front\.json/.test(url) ? { v: 1, builtAt: '', rows: [] }
         : null
 );
 globalThis.fetch = async (url) => {
@@ -46,15 +49,62 @@ async function hydrate(initial, url = '/cfb-streak-king/') {
 }
 
 describe('prerender + hydrate', () => {
-  test('the root page hydrates without a mismatch', async () => {
-    const { html, errors, unmount } = await hydrate({ page: null });
+  test('the builder hydrates without a mismatch', async () => {
+    const { html, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/build/');
     expect(html).toContain('<h1>Streak King</h1>');
     expect(errors).toEqual([]);
     await unmount();
   });
 
+  // a team's current runs, as the front page's file keeps them: any will do, front.test covers the rule. No conditions, so the
+  // team's next game puts each on the line, for teams that play within the week; a postseason run's next game is a bowl, so it isn't
+  const builtEp = Math.floor(Date.parse(P.builtAt) / 86400000);
+  const playing = teams.map((_, ti) => ti).filter((ti) => upcomingOf(ti)[0] && upcomingOf(ti)[0].ep - builtEp <= 8);
+  const frontRuns = () => {
+    const se = P.currentSeason;
+    const crown = (chips, dir, len, extra = {}) => ({ chips, dir, scope: 'active', len, unsure: false, field: 130, rank: 1, tied: 1, second: 3, startSe: se - 3, endSe: se, live: true, also: 0, p: 0.5, n: 10000, hT: 10, nT: 20, gT: 20, ...extra });
+    const [a, b, c, d, e] = playing;
+    return new Map([
+      [a, [crown([], 'W', 40, { p: 0.4 })]],
+      [b, [crown([], 'L', 25, { p: 0.4 })]],
+      [c, [crown([], 'W', 12)]],
+      [d, [crown([], 'W', 6)]],
+      // not on the line this week, however long
+      [e, [crown(['postseason'], 'W', 90, { p: 0.3 })]],
+    ]);
+  };
+
+  test('the front page hydrates without a mismatch, its rows in the prerender', async () => {
+    const runs = frontRuns();
+    const { html, root, errors, unmount } = await hydrate({ page: null, front: true, frontRuns: runs }, '/');
+    expect(errors).toEqual([]);
+    expect(html).toContain('<h1>Streak King</h1>');
+    const rows = frontList(runs, Math.floor(Date.parse(P.builtAt) / 86400000), CTX, LIST, FRONT);
+    expect(rows.length).toBe(4);
+    // the claims are in the prerendered HTML, in order, and the frozen run isn't
+    const claims = [...root.querySelectorAll('.fr-list .fr-txt > span')].map((e) => e.textContent);
+    expect(claims.length).toBe(rows.length);
+    expect(claims[0]).toBe(`${teams[playing[0]].name} has won 40 straight games`);
+    expect(claims.some((c) => c.startsWith(teams[playing[4]].name))).toBe(false);
+    expect(root.querySelector('h2.fr-h').textContent).toMatch(/^On the line (in Week \d+|this week)$/);
+    // the builder is a link away, and isn't on the page
+    expect(root.querySelector('a.fr-build').getAttribute('href')).toBe('/build/');
+    expect(root.querySelector('.colwrap')).toBeNull();
+    expect(root.querySelector('.landings h2').textContent).toBe('Longest streaks by category');
+    await unmount();
+  });
+
+  test('an old root link with a definition hydrates as the front page, then opens the builder at /build/', async () => {
+    const { root, errors, unmount } = await hydrate({ page: null, front: true, frontRuns: frontRuns() }, '/?c=road%2Cnight&dir=L');
+    expect(errors).toEqual([]);
+    expect(root.textContent).toContain('on the road');
+    expect(root.querySelector('.fr-list')).toBeNull();
+    expect(window.location.pathname).toBe('/build/');
+    await unmount();
+  });
+
   test("a column says its run in words, as its button's own text, and hides its pictures from screen readers", async () => {
-    const { root, unmount } = await hydrate({ page: null });
+    const { root, unmount } = await hydrate({ page: null }, '/cfb-streak-king/build/');
     for (const col of [...root.querySelectorAll('.colwrap > .colbtn')].slice(0, 8)) {
       const btn = col.matches('button') ? col : col.querySelector('.colbody');
       expect(btn.getAttribute('aria-label')).toBeNull();
@@ -177,7 +227,7 @@ describe('prerender + hydrate', () => {
   });
 
   test('a URL with a definition hydrates first, then applies it', async () => {
-    const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?c=road&dir=L');
+    const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/build/?c=road&dir=L');
     expect(errors).toEqual([]);
     expect(root.textContent).toContain('on the road');
     await unmount();
@@ -189,7 +239,7 @@ describe('prerender + hydrate', () => {
     expect(errors).toEqual([]);
     expect(root.querySelector('h1').textContent).toBe('Streak King');
     expect(root.querySelector('.panel-name').textContent).toBe('Alabama');
-    expect(window.location.pathname + window.location.search).toBe('/?c=fullmoon&t=alabama');
+    expect(window.location.pathname + window.location.search).toBe('/build/?c=fullmoon&t=alabama');
     await unmount();
   });
 
@@ -206,7 +256,7 @@ describe('prerender + hydrate', () => {
     expect(window.location.pathname + window.location.search).toBe('/longest-home-win-streaks/');
     // the board arriving at a named definition by an old link lands on its path
     await unmount();
-    const old = await hydrate({ page: null }, '/?c=road&scope=active&t=alabama');
+    const old = await hydrate({ page: null, front: true, frontRuns: frontRuns() }, '/?c=road&scope=active&t=alabama');
     expect(old.errors).toEqual([]);
     expect(old.root.querySelector('h1').textContent).toBe('Longest active road win streaks in college football');
     expect(window.location.pathname + window.location.search).toBe('/longest-road-win-streaks/?t=alabama');
@@ -284,7 +334,7 @@ describe('prerender + hydrate', () => {
   });
 
   test('on desktop the open streak is a card in the grid; ← → move it along the columns and Escape closes it', async () => {
-    const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?t=alabama');
+    const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/build/?t=alabama');
     expect(errors).toEqual([]);
     const card = root.querySelector('.colwrap .card');
     expect(card).not.toBeNull();
@@ -311,7 +361,7 @@ describe('prerender + hydrate', () => {
     const wide = window.matchMedia;
     window.matchMedia = (query) => ({ matches: /max-width: 640px/.test(query), media: query, addEventListener() {}, removeEventListener() {} });
     try {
-      const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/?t=alabama');
+      const { root, errors, unmount } = await hydrate({ page: null }, '/cfb-streak-king/build/?t=alabama');
       expect(errors).toEqual([]);
       // the board stays in the page, its column lit; the panel is in the sheet (a portal), not the rail
       expect(root.querySelector('.colwrap')).not.toBeNull();

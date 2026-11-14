@@ -921,3 +921,38 @@ b.ser-tlogo.ser-ini { font-size: 14px; }
   .ser-site td { font-size: 18px; }
   .ser-site tbody th { font-size: 14px; }
 }
+
+/* the front page (Front.jsx): the few active streaks that stand out. A place, the length, the team's mark, the claim, and
+   what the team's next game does to it; a streak on the line this week gets a rust rule, as the board's open column does */
+.fr-list { list-style: none; max-width: 700px; margin: 22px auto 0; padding: 0; border-top: 1px dotted var(--line); }
+.fr-loading { min-height: 260px; }
+.fr-row { grid-template-columns: 18px 46px 30px minmax(0, 1fr) auto; gap: 0 10px; padding: 11px 0; }
+.fr-row.on::before { content: ''; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px; border-radius: 2px; background: var(--rust); }
+.fr-place { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); text-align: right; }
+.fr-len { font-size: 24px; }
+.fr-logo { width: 30px; height: 30px; }
+.fr-txt { font-size: 15.5px; gap: 3px; }
+.fr-txt > span { white-space: normal; }
+.fr-txt small { white-space: normal; font-size: 10.5px; line-height: 1.5; }
+.fr-txt small a.fr-game { position: relative; z-index: 2; color: var(--ink-muted); text-decoration: underline dotted; text-underline-offset: 2px; }
+.fr-txt small a.fr-game:hover, .fr-txt small a.fr-game:focus-visible { color: var(--cream); outline: none; }
+.fr-txt small a.fr-game i { font-style: normal; font-weight: 600; color: var(--rust); }
+.fr-acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; margin: 26px auto 0; }
+.fr-build, .fr-teams {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 4px;
+  background: transparent; color: var(--cream); font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; text-decoration: none; cursor: pointer;
+}
+.fr-build:hover, .fr-build:focus-visible, .fr-teams:hover, .fr-teams:focus-visible { border-color: var(--ink-faint); background: rgba(243, 226, 188, 0.05); outline: none; }
+.fr-build svg { color: var(--ink-faint); }
+@media (max-width: 640px) {
+  .fr-row { grid-template-columns: 12px 38px 26px minmax(0, 1fr) auto; gap: 0 8px; }
+  .fr-row.on::before { left: -8px; }
+  .fr-len { font-size: 20px; }
+  .fr-logo { width: 26px; height: 26px; }
+  .fr-txt { font-size: 14.5px; }
+}
+.fr-h { max-width: 700px; margin: 28px auto 0; font-size: 19px; }
+.fr-h + .fr-list { margin-top: 10px; }
+.fr-empty { max-width: 700px; margin: 10px auto 0; color: var(--ink-muted); font-size: 14px; }
+.fr-more { max-width: 700px; margin: 0 auto; }

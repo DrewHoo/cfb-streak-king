@@ -74,7 +74,8 @@ export interface DigestsFile {
 const toStreak = (ti: number, s: TeamRun, gameI: number): [number, CrownRow, number] => [ti, toCrownRow(s), gameI];
 const fromStreak = (ti: number, c: CrownRow, gameI: number): TeamRun => {
   const crown = fromCrownRow('active')(c);
-  return { ...crown, next: upcomingOf(ti).find((u) => u.i === gameI) ?? null, since: crown.startSe ?? P.currentSeason };
+  const next = upcomingOf(ti).find((u) => u.i === gameI) ?? null;
+  return { ...crown, next, how: next ? 'sure' : null, maybe: null, since: crown.startSe ?? P.currentSeason };
 };
 const toRisk = (r: AtRiskInput): RiskRow => [...toStreak(r.ti, r.s, r.game.i), +r.p.toFixed(3)];
 const fromRisk = ([ti, c, gameI, p]: RiskRow): AtRiskInput | null => {

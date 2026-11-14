@@ -38,7 +38,7 @@ const serveBuilt = {
       // the build's data files, and the static pages only the prerender writes
       // (the posts, their index and feed, the data page): without them the dev
       // server's SPA fallback would show the board at /blog/
-      const m = new RegExp(`^/${pkg.name}/(crowns/[\\w.-]+\\.json|games/(?:digests|\\d{4})\\.json|breakers/\\d{4}\\.json|blog/feed\\.xml|assets/[\\w.-]+\\.(?:css|js|png|woff2?)|(?:blog(?:/[\\w-]+)?|data)/)$`).exec(url)
+      const m = new RegExp(`^/${pkg.name}/(front\\.json|crowns/[\\w.-]+\\.json|games/(?:digests|\\d{4})\\.json|breakers/\\d{4}\\.json|blog/feed\\.xml|assets/[\\w.-]+\\.(?:css|js|png|woff2?)|(?:blog(?:/[\\w-]+)?|data)/)$`).exec(url)
       if (!m) return next()
       const file = path.join(server.config.root, 'dist', m[1].endsWith('/') ? `${m[1]}index.html` : m[1])
       if (!fs.existsSync(file)) return next()

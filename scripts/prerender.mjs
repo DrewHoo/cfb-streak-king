@@ -34,7 +34,9 @@ const vite = await createServer({
   logLevel: 'warn',
 })
 const { default: App } = await vite.ssrLoadModule('/src/App.jsx')
-const { P, teams, fbsNow, allTimeBoard, asBoard, todayEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { P, teams, fbsNow, allTimeBoard, asBoard, todayEpochDay, builtEpochDay, windowStartOf } = await vite.ssrLoadModule('/src/lib/model.ts')
+const { frontRuns, frontList, frontNext, encodeFront, decodeFront } = await vite.ssrLoadModule('/src/lib/front.ts')
+const { frontClaim, nextWords, frontHeading } = await vite.ssrLoadModule('/src/components/Front.jsx')
 const { AS_SLUGS, asPath, asH1, asTitle, asDescription, asLead } = await vite.ssrLoadModule('/src/lib/asTeam.ts')
 const { DEFAULT_CHIPS } = await vite.ssrLoadModule('/src/lib/definition.ts')
 const { seriesOf, seriesOpponents, SERIES_MIN } = await vite.ssrLoadModule('/src/lib/series.ts')
@@ -91,7 +93,7 @@ const imageSize = (image) => (image.includes('/share/og.png') ? [1200, 630] : [1
  * static page instead (a post): that markup in the root, the site's styles,
  * and no app script, so nothing hydrates over it.
  */
-function page({ initial, body, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, shell = false, ogType = 'website' }) {
+function page({ initial, body, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, front, shell = false, ogType = 'website' }) {
   // the shell (dist/404.html) carries no markup: the app boots from an empty root on whatever address reached it
   const appHtml = body ?? (shell ? '' : renderToString(React.createElement(App, { initial })))
   const head = `
@@ -132,7 +134,7 @@ function page({ initial, body, url, title, description, image, imageAlt, jsonLd,
   }
   // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
   const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('breakers-data', breakers)}`)
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('breakers-data', breakers)}${json('front-data', front)}`)
   return { html, appHtml }
 }
 
@@ -165,29 +167,32 @@ const sportsEvent = (key, url, played) => {
   return ev
 }
 
-// --- the root page: the default board (its top ten as a list) ---
+// --- the builder (/build/): the default definition's board, its top ten as a list. The root is the front page (below, once the crowns are mined) ---
 const todayEp = todayEpochDay()
 // the root's title carries the head term; everywhere else config.title is the site's name
 const ROOT_TITLE = `${config.title}: longest winning and losing streaks`
-const root = page({
-  initial: {},
-  url: SITE,
-  title: ROOT_TITLE,
-  description: config.description,
-  image: `${SITE}og.png`,
-  imageAlt: config.ogImageAlt,
-  jsonLd: {
-    '@context': 'https://schema.org',
-    '@graph': [
-      webPage(SITE, ROOT_TITLE, config.description),
-      breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE]]),
-      itemList('Longest all-time win streaks vs unranked opponents', allTimeBoard(DEFAULT_CHIPS, 'W', todayEp).slice(0, 10).map((r) => [`${teams[r.ti].name}: ${r.s.len} straight`, `${SITE}team/${teams[r.ti].id}/`])),
-    ],
-  },
-})
-fs.writeFileSync(OUT, root.html)
-const words = root.appHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
-console.log(`prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root (~${words} words); head written for ${SITE}`)
+{
+  const url = `${SITE}build/`
+  const title = `Build your own college football streak · ${config.title}`
+  const build = page({
+    initial: {},
+    url,
+    title,
+    description: config.description,
+    image: `${SITE}og.png`,
+    imageAlt: config.ogImageAlt,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        webPage(url, title, config.description),
+        breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE], ['Build your own streak', url]]),
+        itemList('Longest all-time win streaks vs unranked opponents', allTimeBoard(DEFAULT_CHIPS, 'W', todayEp).slice(0, 10).map((r) => [`${teams[r.ti].name}: ${r.s.len} straight`, `${SITE}team/${teams[r.ti].id}/`])),
+      ],
+    },
+  })
+  fs.mkdirSync(path.join(ROOT, 'dist', 'build'), { recursive: true })
+  fs.writeFileSync(path.join(ROOT, 'dist', 'build', 'index.html'), build.html)
+}
 
 // --- crowns: mined here, one file per team ---
 const t0 = Date.now()
@@ -260,6 +265,41 @@ const seasonSlice = (season, keys) => {
 }
 const currentWeeks = seasonWeeks(P.currentSeason)
 const weekKeys = (wk) => (currentWeeks.find((w) => w.wk === wk)?.games ?? []).map((g) => keyString(g.key))
+// --- the front page (/): each team's best streak on the line this week, the first ten (front.ts). The file keeps each team's
+// best few runs, so the tuner has rows to reorder; the root embeds it and renders from the decoded file, so the hydrate matches ---
+const frontFile = encodeFront([...fbsNow].map((ti) => [ti, frontRuns(ti, crownsActive.get(ti) ?? [], builtEpochDay)]))
+fs.writeFileSync(path.join(ROOT, 'dist', 'front.json'), JSON.stringify(frontFile))
+const frontDecoded = decodeFront(frontFile)
+const frontRows = frontList(frontDecoded, builtEpochDay)
+// a row's next game in words, as the page says it
+const frontSub = (r) => { const w = nextWords(frontNext(r.ti, r.s, builtEpochDay)); return `since ${r.s.since} · ${w.lead}${w.words ? ` ${w.words}` : ''}${w.tail ? ` · ${w.tail}` : ''}` }
+const frontOn = frontRows.filter((r) => frontNext(r.ti, r.s, builtEpochDay).kind === 'on').length
+{
+  const claims = frontRows.map((r) => frontClaim(r.ti, r.s))
+  const description = frontRows.length
+    ? `${frontHeading()}: ${claims.slice(0, 3).join('. ')}. Every college football streak you can possibly think of.`
+    : config.description
+  const root = page({
+    initial: { front: true, frontRuns: frontDecoded },
+    front: frontFile,
+    url: SITE,
+    title: ROOT_TITLE,
+    description,
+    image: `${SITE}share/og.png?front=1`,
+    imageAlt: `${frontHeading()}: the college football streaks this week's games can end, on a dark leaderboard.`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        webPage(SITE, ROOT_TITLE, description),
+        breadcrumb([[config.domain, `${ORIGIN}/`], [config.title, SITE]]),
+        itemList(`${frontHeading()}: college football streaks`, frontRows.map((r, i) => [claims[i], `${SITE}team/${teams[r.ti].id}/`])),
+      ],
+    },
+  })
+  fs.writeFileSync(OUT, root.html)
+  const words = root.appHtml.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
+  console.log(`front page: ${frontRows.length} streaks, ${frontOn} on the line; prerendered ${(root.appHtml.length / 1024).toFixed(0)}KB into #root (~${words} words); dist/front.json ${(JSON.stringify(frontFile).length / 1024).toFixed(0)}KB`)
+}
 console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken streaks, ${digests.atRisk ? `week ${digests.atRisk.wk} at risk (${digests.atRisk.rows.length} rows)` : 'nothing at risk'}, ${Object.keys(digests.onLine).length} games with a streak on the line`)
 
 // --- the schedule: every scheduled game, by week ---
@@ -292,7 +332,8 @@ console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken stre
 // path, /games/week/<n>/. Its image is the share worker's, drawn from the
 // rows this build writes to dist/share/weekly.json (below), so a fresh week
 // has a card the moment the site deploys.
-const weekly = { builtAt: P.builtAt, broken: {}, atRisk: null }
+// the front page's rows for its card (the worker's og.png?front=1)
+const weekly = { builtAt: P.builtAt, broken: {}, atRisk: null, front: { heading: frontHeading(), on: frontOn, rows: frontRows.map((r) => ({ count: `${r.s.len}${r.s.unsure ? '†' : ''}`, team: teams[r.ti].id, bad: baseDir(r.s.dir) === 'L' || r.s.dir === 'N', claim: frontClaim(r.ti, r.s), sub: frontSub(r) })) } }
 // a broken run or an at-risk one as a card row: the count, the team, the claim, the small print
 const wordsOf = (chips) => chips.map(chipLabel).join(' · ')
 const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
@@ -571,7 +612,7 @@ fs.writeFileSync(path.join(ROOT, 'dist', 'breakers', `${P.currentSeason}.json`),
 
 // --- one page per current FBS team ---
 const board = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
-const urls = [SITE, `${SITE}games/`, `${SITE}breakers/`, ...breakerUrls, ...weekUrls, ...gameUrls]
+const urls = [SITE, `${SITE}build/`, `${SITE}games/`, `${SITE}breakers/`, ...breakerUrls, ...weekUrls, ...gameUrls]
 let teamPages = 0
 for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b].name))) {
   const t = teams[ti]
@@ -790,7 +831,7 @@ const posts = readPosts(path.join(ROOT, 'content', 'posts'))
 {
   const chevron = '<svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M7 1 2 6l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
   const bar = `<div class="tpg-bar"><a class="crumb" href="${SITE}">${chevron} Streak King</a><a class="crumb" href="${SITE}blog/">All posts</a></div>`
-  const foot = `<footer><a href="${ORIGIN}/">drewhoover.com</a> · <a href="${SITE}">the board</a> · <a href="${SITE}games/">this week's games</a> · <a href="${FEED}">RSS</a></footer>`
+  const foot = `<footer><a href="${ORIGIN}/">drewhoover.com</a> · <a href="${SITE}">Streak King</a> · <a href="${SITE}games/">this week's games</a> · <a href="${FEED}">RSS</a></footer>`
   const person = { '@type': 'Person', name: 'Drew Hoover', url: `${ORIGIN}/` }
   for (const [i, p] of posts.entries()) {
     const url = `${SITE}blog/${p.slug}/`
@@ -881,6 +922,7 @@ ${items}
   const files = [
     ['share/payload.json', `Every game in the window, ${first}–${last}: date, teams, site, score, closing line, AP ranks, conference, coach, kickoff, and the flags the chips read. One file. The field layout and sentinels are <code>src/lib/schema.ts</code>; <code>createModel.ts</code> decodes it.`, [`${SITE}share/payload.json`]],
     [`games/&lt;season&gt;.json`, `For each game of a season, the streaks it ended (with the run's length, its definition, how long the longest ever under that definition is) and the definitions under which a team became the sole leader because of it. One file per season, ${first}–${last}; the running season from definitions of up to four conditions, older seasons up to two. Format: <code>src/lib/seasonFile.ts</code>.`, [`${SITE}games/${SEASON}.json`, `${SITE}games/${SEASON - 1}.json`]],
+    ['front.json', 'The front page\'s rows: each current FBS team\'s best few active streaks under the list rule, whose last game was this season or last. Format: <code>src/lib/front.ts</code>.', [`${SITE}front.json`]],
     ['games/digests.json', 'The running season: every completed week\'s broken streaks, the coming week\'s streaks at risk with the line and the chance the game ends each, and the streak most on the line in every scheduled game. Format: <code>src/lib/digests.ts</code>.', [`${SITE}games/digests.json`]],
     ['crowns/&lt;team&gt;.json, crowns/&lt;team&gt;.all.json', `Every streak a team leads: its longest active runs (<code>.json</code>) and its longest ever (<code>.all.json</code>) under every definition of up to four conditions, each with its rank, the size of the field and the longest other run. One pair per current FBS team (${teamIds.length}). Format: <code>src/lib/crownsFile.ts</code>.`, [`${SITE}crowns/${ex}.json`, `${SITE}crowns/${ex}.all.json`]],
     [`breakers/${SEASON}.json`, 'The season\'s streak-breakers: every streak a team ended by beating its owner, whose it was, and the ranking they make. Format: <code>src/lib/breakers.ts</code>.', [`${SITE}breakers/${SEASON}.json`]],
@@ -888,7 +930,7 @@ ${items}
   ]
   const chevron = '<svg viewBox="0 0 8 12" width="7" height="11" aria-hidden="true"><path d="M7 1 2 6l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'
   const bar = `<div class="tpg-bar"><a class="crumb" href="${SITE}">${chevron} Streak King</a></div>`
-  const foot = `<footer><a href="${ORIGIN}/">drewhoover.com</a> · <a href="${SITE}">the board</a> · <a href="${SITE}games/">this week's games</a> · <a href="${SITE}blog/">weekly posts</a></footer>`
+  const foot = `<footer><a href="${ORIGIN}/">drewhoover.com</a> · <a href="${SITE}">Streak King</a> · <a href="${SITE}games/">this week's games</a> · <a href="${SITE}blog/">weekly posts</a></footer>`
   const repo = `https://github.com/DrewHoo/${SLUG}`
   const body = `<main class="post">${bar}<article><h1 class="post-h1">The data</h1><p class="post-meta">${first}–${last} · rebuilt weekly in season · <a href="${repo}">source</a></p><div class="post-body">
 <p>Everything the site shows is computed at build time from one payload and written to static JSON files. They are free to use under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>: take the rows, and credit <em>${config.title} (${config.domain})</em> with a link. The game results themselves come from the sources named in the site's notes (Warren Repole's files, James Howell's scores, cfbfastR, College Poll Archive and CollegeFootballData), whose own terms cover them; the 78 corrections to Repole's files are published separately as <a href="https://github.com/DrewHoo/repole-errata">repole-errata</a>, CC0.</p>
@@ -945,7 +987,13 @@ ${urls.map((u) => `  <url>\n    <loc>${u}</loc>\n    <lastmod>${lastmod}</lastmo
 
 > ${config.description}
 
-A streak under a definition counts only the games that fit it: "road wins in a row" skips home games rather than ending at them. Every FBS team is ranked by its longest run under the definition, active (still going) or all-time, from every game since 1936 (closing lines since 1978). The board at ${SITE} takes any definition of up to four conditions (home or road, vs ranked or unranked opponents, as the favorite or the underdog, in conference, after a loss, by a margin, and hundreds more); the pages below are the definitions people search for. It updates weekly in season, and the data is published under CC BY 4.0. Credit as "per Streak King" with the page's link.
+A streak under a definition counts only the games that fit it: "road wins in a row" skips home games rather than ending at them. Every FBS team is ranked by its longest run under the definition, active (still going) or all-time, from every game since 1936 (closing lines since 1978). The builder at ${SITE}build/ takes any definition of up to four conditions (home or road, vs ranked or unranked opponents, as the favorite or the underdog, in conference, after a loss, by a margin, and hundreds more); the pages below are the definitions people search for. It updates weekly in season, and the data is published under CC BY 4.0. Credit as "per Streak King" with the page's link.
+
+## ${frontHeading()}
+
+The front page, ${SITE}: the streaks this week's games put on the line that stand out from the rest, each team's best.
+
+${frontRows.map((r) => `- [${frontClaim(r.ti, r.s)}](${SITE}team/${teams[r.ti].id}/): ${frontSub(r)}`).join('\n')}
 
 ## Active streaks (${SEASON})
 

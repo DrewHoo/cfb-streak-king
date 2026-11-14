@@ -3,7 +3,7 @@
 // model from a fixture. model.ts builds the one the app uses. Streak
 // semantics live in streaks.ts.
 
-import type { BoardRow, ChipRef, Dir, GameContext, GameRow, Payload, Stint, UpcomingRow } from './types.ts';
+import type { BoardRow, ChipRef, Dir, GameContext, GameRow, NextGame, NextHow, Payload, Stint, UpcomingRow } from './types.ts';
 import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
 import { activeRun, runsOf, decided, matches, againstSpread } from './streaks.ts';
@@ -232,20 +232,50 @@ export function createModel(P: Payload) {
     });
     return (x: GameRow) => fns.every((f) => f(x));
   }
-  /** Whether a scheduled game qualifies; null when a chip can't be decided before kickoff. */
-  function makePre(active: ChipRef[]) {
-    const fns = active.map(({ key, param }) => {
-      const c = chipByKey.get(key)!;
-      return c.pregame ? (x: GameContext) => qualifiesPregame(c, x, param) : null;
-    });
-    if (fns.some((f) => !f)) return null;
-    return (x: GameContext) => fns.every((f) => f!(x));
+  /**
+   * A team's next scheduled game that a definition admits, and how sure that
+   * is (`NextHow`). A pregame chip reads the game itself. A chip that reads
+   * the game before it (after a loss, a win, a bye) can be read for the
+   * team's next game, from its last result. A betting chip reads the line as
+   * of the build, which moves until kickoff, so the game is `likely`. A chip
+   * settled during the game (the score, the half, the clock) leaves it
+   * `open`. Null when no scheduled game qualifies, or when one can't be told
+   * (a later game after a loss, a game without a line). A scheduled game
+   * stays the next one until a build records its result, even past its
+   * date: the payload is rebuilt weekly, and a game played Saturday is
+   * unknown until then, not gone.
+   */
+  function nextGame(ti: number, active: readonly ChipRef[]): NextGame | null {
+    const cs = active.map(({ key, param }) => ({ c: chipByKey.get(key)!, p: param }));
+    const ups = upcomingOf(ti);
+    const last = gamesOf(ti).at(-1) ?? null;
+    for (let k = 0; k < ups.length; k++) {
+      const u = ups[k];
+      let how: NextHow = 'sure';
+      let ok = true;
+      for (const { c, p } of cs) {
+        if (c.pregame) { if (!qualifiesPregame(c, u, p)) { ok = false; break; } continue; }
+        if (c.group === 'context') {
+          // the game before a later one is unplayed
+          if (k > 0) return null;
+          const x = { ...u, prevR: last && last.se >= u.se - 1 ? last.r : null, rest: last ? u.ep - last.ep : null } as unknown as GameRow;
+          if (!c.test(x, p)) { ok = false; break; }
+        } else if (c.group === 'betting') {
+          if (u.sp == null) return null;
+          if (!c.test(u as unknown as GameRow, p)) { ok = false; break; }
+          if (how === 'sure') how = 'likely';
+        } else {
+          how = 'open';
+        }
+      }
+      if (ok) return { next: u, how };
+    }
+    return null;
   }
-  // A scheduled game stays the next one until a build records its result,
-  // even past its date: the payload is rebuilt weekly, and a game played
-  // Saturday is unknown until then, not gone.
-  function nextQualifying(ti: number, pre: ((x: GameContext) => boolean) | null, todayEp: number) {
-    const next = pre ? upcomingOf(ti).find((u) => pre(u)) ?? null : null;
+  // the board's next game: one a definition admits before kickoff, sure or likely, and whether it's within 8 days
+  function nextQualifying(ti: number, active: readonly ChipRef[], todayEp: number) {
+    const n = nextGame(ti, active);
+    const next = n && n.how !== 'open' ? n.next : null;
     return { next, onTheLine: !!next && next.ep - todayEp <= 8 };
   }
 
@@ -256,14 +286,13 @@ export function createModel(P: Payload) {
   function activeBoard(active: ChipRef[], dir: Dir, todayEp: number): BoardRow[] {
     const rows: BoardRow[] = [];
     const filter = makeFilter(active);
-    const pre = makePre(active);
     for (const ti of fbsNow) {
       const qual = gamesOf(ti).filter((g) => filter(g) && decided(dir, g));
       if (!qual.length) continue;
       const run = activeRun(qual, dir);
       if (!run) continue;
       const s = { ...run, unsure: daggerOf(ti, qual, active, dir).unsure(qual.length - run.len, qual.length - 1) };
-      rows.push({ ti, s, qual, ...nextQualifying(ti, pre, todayEp) });
+      rows.push({ ti, s, qual, ...nextQualifying(ti, active, todayEp) });
     }
     const enderEp = (r: BoardRow) => (r.s.ender ? r.s.ender.ep : EDGE);
     rows.sort((a, b) => b.s.len - a.s.len || enderEp(a) - enderEp(b));
@@ -279,7 +308,6 @@ export function createModel(P: Payload) {
   function allTimeBoard(active: ChipRef[], dir: Dir, todayEp: number): BoardRow[] {
     const rows: BoardRow[] = [];
     const filter = makeFilter(active);
-    const pre = makePre(active);
     for (const ti of fbsNow) {
       const qual = gamesOf(ti).filter((g) => filter(g) && decided(dir, g));
       const dagger = daggerOf(ti, qual, active, dir);
@@ -290,7 +318,7 @@ export function createModel(P: Payload) {
           ender: startIdx > 0 ? qual[startIdx - 1] : null,
           start: qual[startIdx], end: qual[endIdx], startIdx, endIdx,
         };
-        const nx = live ? nextQualifying(ti, pre, todayEp) : { next: null, onTheLine: false };
+        const nx = live ? nextQualifying(ti, active, todayEp) : { next: null, onTheLine: false };
         rows.push({ ti, s, qual, ...nx, ended: live ? null : qual[endIdx + 1], live, key: `${teams[ti].id}:${s.start.ep}` });
       }
     }
@@ -312,7 +340,6 @@ export function createModel(P: Payload) {
     const opps = [...new Set(gamesOf(ti).map((g) => g.oppIdx))];
     for (const vs of opps) {
       const def = [...active.filter((a) => a.key !== 'vsteam'), { key: 'vsteam', param: vs }];
-      const pre = makePre(def);
       const qual = gamesOf(ti).filter((g) => g.oppIdx === vs && filter(g) && decided(dir, g));
       if (!qual.length) continue;
       const oppId = teams[vs].id;
@@ -321,7 +348,7 @@ export function createModel(P: Payload) {
         const run = activeRun(qual, dir);
         if (!run) continue;
         const s = { ...run, unsure: dagger.unsure(qual.length - run.len, qual.length - 1) };
-        rows.push({ ti, vs, s, qual, ...nextQualifying(ti, pre, todayEp), key: `as:${oppId}` });
+        rows.push({ ti, vs, s, qual, ...nextQualifying(ti, def, todayEp), key: `as:${oppId}` });
         continue;
       }
       for (const [startIdx, endIdx] of runsOf(qual, dir)) {
@@ -331,7 +358,7 @@ export function createModel(P: Payload) {
           ender: startIdx > 0 ? qual[startIdx - 1] : null,
           start: qual[startIdx], end: qual[endIdx], startIdx, endIdx,
         };
-        const nx = live ? nextQualifying(ti, pre, todayEp) : { next: null, onTheLine: false };
+        const nx = live ? nextQualifying(ti, def, todayEp) : { next: null, onTheLine: false };
         rows.push({ ti, vs, s, qual, ...nx, ended: live ? null : qual[endIdx + 1], live, key: `as:${oppId}:${s.start.ep}` });
       }
     }
@@ -398,5 +425,5 @@ export function createModel(P: Payload) {
     };
   }
 
-  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, activeBoard, allTimeBoard, asBoard, baseRate, edgeFor, unsureWhy };
+  return { P, teams, confs, firstSeason, fbsNow, confOf, windowStartOf, gamesOf, upcomingOf, nextGame, activeBoard, allTimeBoard, asBoard, baseRate, edgeFor, unsureWhy };
 }

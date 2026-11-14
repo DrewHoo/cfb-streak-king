@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { P, teams, fbsNow, upcomingOf } from './model.ts';
-import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, asUrl, seriesUrl, hrefOf, landingFromPath, landingOf } from './url.ts';
+import { DEFAULT_VIEW, parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, teamFromPath, breakersUrl, boardUrl, asUrl, seriesUrl, hrefOf, landingFromPath, landingOf, frontUrl, buildUrl, frontFromPath } from './url.ts';
 import type { View } from './url.ts';
 import { LANDINGS } from './landing.ts';
 
@@ -10,9 +10,29 @@ const search = (params: Record<string, string | null>) =>
 const roundTrip = (v: View) => { const u = toUrl(v); return parseUrl(`/cfb-streak-king/${u.path}`, search(u.params)); };
 
 describe('url', () => {
-  test('a bare URL is the default view', () => {
-    expect(parseUrl('/cfb-streak-king/', '')).toEqual(DEFAULT_VIEW);
-    expect(toUrl(DEFAULT_VIEW)).toEqual({ path: '', params: expect.objectContaining({ c: null, dir: null, scope: null, week: null, run: null }) });
+  test('a bare URL is the front page, and /build/ the builder on its default view', () => {
+    expect(parseUrl('/cfb-streak-king/', '')).toEqual({ ...DEFAULT_VIEW, front: true });
+    expect(toUrl({ ...DEFAULT_VIEW, front: true })).toEqual({ path: '', params: expect.objectContaining({ c: null, dir: null, scope: null, week: null, run: null, t: null }) });
+    expect(hrefOf('/cfb-streak-king/', frontUrl())).toBe('/cfb-streak-king/');
+    expect(parseUrl('/cfb-streak-king/build/', '')).toEqual(DEFAULT_VIEW);
+    expect(toUrl(DEFAULT_VIEW)).toEqual({ path: 'build/', params: expect.objectContaining({ c: null, dir: null, scope: null, week: null, run: null }) });
+    expect(hrefOf('/cfb-streak-king/', buildUrl())).toBe('/cfb-streak-king/build/');
+    // the front page says nothing of the builder, whatever definition it holds
+    expect(toUrl({ ...DEFAULT_VIEW, front: true, active: [{ key: 'road' }], dir: 'L', team: idx('alabama') }).params).toMatchObject({ c: null, dir: null, t: null });
+  });
+
+  test('an old root link with a builder param opens the builder, at /build/', () => {
+    for (const q of ['?c=road', '?dir=L', '?scope=active', '?t=georgia', '?team=georgia', '?as=auburn', '?run=100', '?week=1']) {
+      expect(parseUrl('/cfb-streak-king/', q).front).toBe(false);
+      expect(frontFromPath('/cfb-streak-king/', q)).toBe(false);
+    }
+    expect(hrefOf('/cfb-streak-king/', toUrl(parseUrl('/cfb-streak-king/', '?c=fullmoon&t=alabama')))).toBe('/cfb-streak-king/build/?t=alabama&c=fullmoon');
+    // every other address is its own page, not the front page
+    for (const p of ['/cfb-streak-king/build/', '/cfb-streak-king/team/alabama/', '/cfb-streak-king/games/', '/cfb-streak-king/breakers/', '/cfb-streak-king/longest-home-win-streaks/', '/cfb-streak-king/team/auburn/losing-streaks-by-opponent/', '/cfb-streak-king/team/alabama/vs/tennessee/']) {
+      expect(frontFromPath(p)).toBe(false);
+    }
+    expect(frontFromPath('/cfb-streak-king/')).toBe(true);
+    expect(landingFromPath('/cfb-streak-king/build/')).toBeNull();
   });
 
   test('views round-trip', () => {
@@ -28,6 +48,7 @@ describe('url', () => {
       { ...DEFAULT_VIEW, game: { ep: 20473, home: idx('miami-fl'), away: idx('indiana'), neutral: true } },
       { ...DEFAULT_VIEW, games: true },
       { ...DEFAULT_VIEW, games: true, bwk: 5 },
+      { ...DEFAULT_VIEW, front: true },
       { ...DEFAULT_VIEW, games: true, bwk: 5, season: 1987 },
       { ...DEFAULT_VIEW, games: true, season: 1987 },
       { ...DEFAULT_VIEW, games: true, risk: true },
@@ -62,7 +83,7 @@ describe('url', () => {
     expect(parseUrl('/cfb-streak-king/team/georgia/', '')).toMatchObject({ page: idx('georgia'), team: null, game: null });
     expect(teamUrl(idx('georgia'))).toMatchObject({ path: 'team/georgia/', params: { t: null, c: null } });
     const panel = toUrl({ ...DEFAULT_VIEW, team: idx('georgia') });
-    expect([panel.path, panel.params.t]).toEqual(['', 'georgia']);
+    expect([panel.path, panel.params.t]).toEqual(['build/', 'georgia']);
     expect(parseUrl('/cfb-streak-king/', '?t=georgia').team).toBe(idx('georgia'));
   });
 
@@ -134,7 +155,7 @@ describe('url', () => {
   test('a broken run’s all-time link is the board under its definition, no team open', () => {
     const u = boardUrl(['fullmoon'], 'W', 'all');
     expect(u.params.t ?? null).toBeNull();
-    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/?c=fullmoon');
+    expect(hrefOf('/cfb-streak-king/', u)).toBe('/cfb-streak-king/build/?c=fullmoon');
     expect(parseUrl('/cfb-streak-king/', '?c=fullmoon')).toMatchObject({ scope: 'all', team: null });
     expect(hrefOf('/x/', { path: 'games/', params: { a: null, b: '' } })).toBe('/x/games/');
   });
@@ -158,8 +179,8 @@ describe('url', () => {
     expect(landingFromPath('/cfb-streak-king/team/alabama/')).toBeNull();
     expect(landingFromPath('/cfb-streak-king/games/')).toBeNull();
     expect(landingFromPath('/cfb-streak-king/not-a-page/')).toBeNull();
-    // the default definition is the root, not a landing
-    expect(hrefOf('/cfb-streak-king/', toUrl(DEFAULT_VIEW))).toBe('/cfb-streak-king/');
+    // the default definition is the builder's own address, not a landing
+    expect(hrefOf('/cfb-streak-king/', toUrl(DEFAULT_VIEW))).toBe('/cfb-streak-king/build/');
     expect(landingOf(DEFAULT_VIEW)).toBeNull();
     // every landing round-trips
     for (const l of LANDINGS) {
@@ -184,9 +205,9 @@ describe('url: the by-opponent board ("as [team]", asTeam.ts)', () => {
     expect(parseUrl('/cfb-streak-king/team/not-a-team/losing-streaks-by-opponent/', '')).toMatchObject({ as: null, page: null });
   });
 
-  test('every other state is the root with ?as=, its conditions said outright (none = no c)', () => {
+  test('every other state is the builder with ?as=, its conditions said outright (none = no c)', () => {
     const v: View = { ...DEFAULT_VIEW, as: auburn, active: [{ key: 'home' }], dir: 'L', scope: 'active' };
-    expect(toUrl(v)).toMatchObject({ path: '', params: { as: 'auburn', c: 'home', dir: 'L', scope: 'active' } });
+    expect(toUrl(v)).toMatchObject({ path: 'build/', params: { as: 'auburn', c: 'home', dir: 'L', scope: 'active' } });
     expect(roundTrip(v)).toEqual(v);
     const plain: View = { ...DEFAULT_VIEW, as: auburn, active: [], dir: 'L', scope: 'active' };
     expect(toUrl(plain).params.c).toBeNull();

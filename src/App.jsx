@@ -3,6 +3,8 @@ import { P, teams, firstSeason, activeBoard, allTimeBoard, asBoard, edgeFor as e
 import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
 import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, seriesUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
+import { frontPage } from './lib/front.ts';
+import { CTX } from './lib/list.ts';
 import { seriesH1 } from './lib/seriesWords.ts';
 import { landingBySlug, leadSentence, leadRows } from './lib/landing.ts';
 import { asPageDir, asH1, asLead, asDescription } from './lib/asTeam.ts';
@@ -17,6 +19,8 @@ import { useIsMobile } from './hooks/useIsMobile.js';
 import { useDigests } from './hooks/useDigests.ts';
 import { useSeason } from './hooks/useSeason.ts';
 import { useBreakers } from './hooks/useBreakers.ts';
+import { useFront } from './hooks/useFront.ts';
+import { FrontPage, frontClaim, frontHeading } from './components/Front.jsx';
 import { BreakersPage, BreakerPage } from './components/BreakersPage.jsx';
 import { useStarred } from './hooks/useStarred.ts';
 import { useShare } from './hooks/useShare.ts';
@@ -45,14 +49,15 @@ const BASE = import.meta.env.BASE_URL;
 // /games/week/<n>/ on that week; a landing page (/<slug>/, `landing`) on
 // that named definition's board; a by-opponent page (`as`, `asDir`) on that
 // team's all-time board by opponent; a series page (`series`: { ti, oi }) on
-// that series.
+// that series; the front page (`front`) on its rows (`frontRuns`, each team's
+// best current runs, front.ts).
 export default function App({ initial } = {}) {
   const [view, dispatch] = useReducer(viewReducer, initial, (i) => {
     const l = i?.landing ? landingBySlug.get(i.landing) : null;
-    const def = l ? landingView(l) : i?.as != null ? { as: i.as, dir: i.asDir ?? 'L', scope: 'all', active: [] } : i?.series ? { series: i.series.ti, seriesOpp: i.series.oi } : {};
+    const def = l ? landingView(l) : i?.as != null ? { as: i.as, dir: i.asDir ?? 'L', scope: 'all', active: [] } : i?.series ? { series: i.series.ti, seriesOpp: i.series.oi } : { front: !!i?.front };
     return initialView(i?.page ?? null, !!i?.games, i?.bwk ?? null, !!i?.risk, i?.game ?? null, i?.season ?? null, !!i?.breakers, i?.breaker ?? null, def);
   });
-  const { active, dir, scope, week, team, as, run, limit, page, game, games, bwk, season, risk, breakers, breaker, series, seriesOpp } = view;
+  const { active, dir, scope, week, team, as, run, limit, page, game, games, bwk, season, risk, breakers, breaker, series, seriesOpp, front } = view;
   const [todayEp, setTodayEp] = useState(builtEpochDay);
   const [addOpen, setAddOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -118,14 +123,14 @@ export default function App({ initial } = {}) {
     const was = last.current;
     last.current = view;
     const { path, params } = toUrl(view);
-    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.breakers !== breakers || was.breaker !== breaker || was.series !== series || was.seriesOpp !== seriesOpp);
+    const moved = !!was && (was.page !== page || was.game !== game || was.games !== games || was.bwk !== bwk || was.season !== season || was.risk !== risk || was.breakers !== breakers || was.breaker !== breaker || was.series !== series || was.seriesOpp !== seriesOpp || was.front !== front);
     const opened = !!was && (page == null && game == null && team != null && was.team == null);
     const pushed = writeUrl(BASE, path, params, moved || opened ? { under: window.location.href } : null);
     // a move between the schedule's own sections keeps its place (the at-risk section scrolls itself into view)
     if (pushed && moved && !(was.games && games)) window.scrollTo(0, 0);
-    if (page == null && game == null && !games && series == null) track('definition', { chips: encodeChips(active) || 'overall', dir, scope, ...(as != null ? { as: teams[as].id } : {}) });
+    if (page == null && game == null && !games && series == null && !front) track('definition', { chips: encodeChips(active) || 'overall', dir, scope, ...(as != null ? { as: teams[as].id } : {}) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, dir, scope, week, team, as, run, page, game, games, bwk, season, risk, breakers, breaker, series, seriesOpp, hydrated]);
+  }, [active, dir, scope, week, team, as, run, page, game, games, bwk, season, risk, breakers, breaker, series, seriesOpp, front, hydrated]);
 
   // Closing a panel: step back when that lands exactly on what's
   // underneath, so Back and the close button agree; otherwise close in place.
@@ -134,6 +139,17 @@ export default function App({ initial } = {}) {
     if (window.history.state?.under === after) window.history.back();
     else dispatch(action);
   }
+
+  // the front page's rows: each team's best current streak, cut where the scores drop (front.ts)
+  const frontRuns = useFront(front, initial);
+  const frontRowsAll = useMemo(() => (frontRuns ? frontPage(frontRuns, todayEp, CTX, tuneCtx.knobs) : null), [frontRuns, todayEp, tuneCtx.knobs]);
+  const frontRows = frontRowsAll?.list ?? null;
+  const frontTracked = useRef(false);
+  useEffect(() => {
+    if (!front || !frontRows || frontTracked.current) return;
+    frontTracked.current = true;
+    track('front', { rows: frontRows.length, more: frontRowsAll.more.length });
+  }, [front, frontRows]);
 
   // the board: every team's run under the definition, or, as one team, its run against each opponent
   const rows = useMemo(
@@ -253,6 +269,14 @@ export default function App({ initial } = {}) {
     track('share', { team: teams[ti].id, page: true });
     share(`${teams[ti].name}’s streaks, record and next game`, absoluteUrl(BASE, teamUrl(ti)));
   }
+  function openBuild(from) {
+    track('build', { from });
+    dispatch({ type: 'build' });
+  }
+  function shareFront() {
+    track('share', { front: true });
+    share(frontRows?.[0] ? `${frontHeading()}: ${frontClaim(frontRows[0].ti, frontRows[0].s)}, and the other college football streaks this week's games can end` : `${frontHeading()}: the college football streaks this week's games can end`, absoluteUrl(BASE, toUrl({ ...view, front: true })));
+  }
   function openGames(from) {
     track('games', from ? { from } : undefined);
     dispatch({ type: 'games' });
@@ -284,6 +308,16 @@ export default function App({ initial } = {}) {
       onTeam={(ti) => openTeam(ti, 'panel')} onGame={(ti, g) => openGame(ti, g, 'panel')}
     />
   );
+
+  const landingList = (
+    <Landings current={front ? null : landing} todayEp={todayEp} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), as: null, team: null, run: null, week: false, front: false }))} onOpen={openLanding} />
+  );
+  const frontOn = {
+    streak: (s, ti) => openStreak(s, ti, 'front'),
+    game: (ti, g) => openGame(ti, g, 'front'),
+    build: () => openBuild('front'),
+    more: (shown) => track('show more', { from: 'front', shown }),
+  };
 
   return (
     <TuneContext.Provider value={tuneCtx}>
@@ -355,6 +389,8 @@ export default function App({ initial } = {}) {
             share: shareGames,
           }}
         />
+      ) : front ? (
+        <FrontPage rows={frontRows} more={frontRowsAll?.more ?? null} todayEp={todayEp} on={frontOn} nav={nav} onShare={shareFront} copied={copied} isMobile={isMobile} landings={landingList} />
       ) : (
         <>
           {/* the star saves a definition, which a by-opponent board isn't */}
@@ -375,7 +411,7 @@ export default function App({ initial } = {}) {
           />
 
           <Starred starred={star.starred} todayEp={todayEp} onApply={applyStarred} onRemove={star.remove} />
-          <Landings current={landing} todayEp={todayEp} hrefOf={(l) => hrefOf(BASE, toUrl({ ...view, ...landingView(l), as: null, team: null, run: null, week: false }))} onOpen={openLanding} />
+          {landingList}
         </>
       )}
 

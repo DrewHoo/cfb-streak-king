@@ -49,8 +49,8 @@ export function Landings({ current, todayEp, hrefOf, onOpen }) {
     </a>
   );
   return (
-    <nav className="landings" aria-label="Streak boards">
-      <h2>Streak boards</h2>
+    <nav className="landings" aria-label="Longest streaks by category">
+      <h2>Longest streaks by category</h2>
       <div className="landings-rows">
         {ROWS.map((r) => (
           <div className="landings-row" key={r.what}>

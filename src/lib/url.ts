@@ -3,6 +3,9 @@
 // writeUrl() in urlState.js. Read it only after mount (the prerender has no
 // window), except the team in the path, which main.jsx passes as `initial`.
 //
+//   /               the front page (front.ts): the active streaks that stand out
+//   /build/         the builder: any definition's streaks, every team at once
+//                   (an old root link with a definition param opens it too)
 //   /team/<id>/     the team's page (prerendered, with its own preview)
 //   /game/<date>/<away>-at-<home>/
 //                   one game's page: what it ended and who it made a leader,
@@ -76,9 +79,11 @@ export interface View {
   /** A series, /team/<id>/vs/<opp>/: the team whose side it's read from, and the opponent. */
   series: number | null;
   seriesOpp: number | null;
+  /** The front page, /, in place of the builder. */
+  front: boolean;
 }
 
-export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, as: null, run: null, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null };
+export const DEFAULT_VIEW: View = { active: DEFAULT_CHIPS, dir: 'W', scope: DEFAULT_SCOPE, week: false, team: null, as: null, run: null, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null, front: false };
 
 const teamById = (id: string | null) => {
   const ti = id ? teams.findIndex((t) => t.id === id) : -1;
@@ -96,6 +101,16 @@ export const weekFromPath = (pathname: string) => {
 export const seasonFromPath = (pathname: string) => {
   const m = /\/games\/(\d{4})(?:\/week\/\d{1,2})?\/?$/.exec(pathname);
   return m ? Number(m[1]) : null;
+};
+/** Whether a path is the builder, /cfb-streak-king/build/. */
+export const buildFromPath = (pathname: string) => /\/build\/?$/.test(pathname);
+// the builder's params: any of them on the root is an old link to the builder
+const BUILD_PARAMS = ['c', 'dir', 'scope', 't', 'team', 'as', 'run', 'week'];
+/** Whether a path is the front page: the root, or any address nothing else claims, with no builder param. */
+export const frontFromPath = (pathname: string, search = '') => {
+  const q = new URLSearchParams(search);
+  return !BUILD_PARAMS.some((k) => q.has(k)) && !buildFromPath(pathname) && teamFromPath(pathname) == null && !/\/team\//.test(pathname)
+    && !gameFromPath(pathname) && !gamesFromPath(pathname) && !breakersFromPath(pathname) && !asFromPath(pathname) && !seriesIdsFromPath(pathname) && !landingAt(pathname);
 };
 /** Whether a path is the schedule's at-risk streaks, /cfb-streak-king/games/at-risk/. */
 export const riskFromPath = (pathname: string) => /\/games\/at-risk\/?$/.test(pathname);
@@ -140,7 +155,7 @@ export function seriesFromPath(pathname: string): { ti: number; oi: number } | n
   return ti != null && oi != null && hasSeries(ti, oi) ? { ti, oi } : null;
 }
 /** The named definition at a path like /cfb-streak-king/longest-home-win-streaks/ (landing.ts); null for every other address. */
-export const landingFromPath = (pathname: string): Landing | null => (teamFromPath(pathname) != null || gameFromPath(pathname) || gamesFromPath(pathname) || breakersFromPath(pathname) || asFromPath(pathname) || seriesIdsFromPath(pathname) ? null : landingAt(pathname));
+export const landingFromPath = (pathname: string): Landing | null => (buildFromPath(pathname) || teamFromPath(pathname) != null || gameFromPath(pathname) || gamesFromPath(pathname) || breakersFromPath(pathname) || asFromPath(pathname) || seriesIdsFromPath(pathname) ? null : landingAt(pathname));
 /** The definition a landing opens on. */
 export const landingView = (l: Landing): Pick<View, 'active' | 'dir' | 'scope'> => ({ active: chipsFromParam(l.c), dir: l.dir, scope: l.scope });
 /** The landing a board is on, when its definition has one. */
@@ -191,6 +206,7 @@ export function parseUrl(pathname: string, search: string): View {
     breaker: inPath == null && !game ? breakerFromPath(pathname) : null,
     series: series?.ti ?? null,
     seriesOpp: series?.oi ?? null,
+    front: frontFromPath(pathname, search),
   };
 }
 
@@ -198,14 +214,14 @@ export interface UrlParts { path: string; params: Record<string, string | null> 
 
 /** The path under the site base and the params; null params are removed. */
 export function toUrl(v: View): UrlParts {
-  // a team page or a game page is its own address; the board's definition stays in memory
-  const board = v.page == null && v.game == null && !v.games && !v.breakers && v.series == null;
+  // a team page or a game page is its own address; the board's definition stays in memory, and the front page says nothing of it either
+  const board = v.page == null && v.game == null && !v.games && !v.breakers && v.series == null && !v.front;
   // a board on a named definition is at that definition's path, which says the definition
   const landing = board && v.as == null ? landingOf(v) : null;
   // a by-opponent board on one of its two named definitions is at that page's path (asTeam.ts)
   const asPage = board && v.as != null ? asPageDir(v.active.length, v.dir, v.scope) : null;
   return {
-    path: v.series != null && v.seriesOpp != null ? seriesPath(teams[v.series].id, teams[v.seriesOpp].id) : v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : asPage ? asPath(teams[v.as!].id, asPage) : landing ? `${landing.slug}/` : '',
+    path: v.series != null && v.seriesOpp != null ? seriesPath(teams[v.series].id, teams[v.seriesOpp].id) : v.game != null ? gamePath(v.game) : v.page != null ? `team/${teams[v.page].id}/` : v.breakers ? `breakers/${v.season != null ? `${v.season}/` : ''}${v.breaker != null ? `${teams[v.breaker].id}/` : ''}` : v.games ? (v.risk ? 'games/at-risk/' : `games/${v.season != null ? `${v.season}/` : ''}${v.bwk != null ? `week/${v.bwk}/` : ''}`) : v.front ? '' : asPage ? asPath(teams[v.as!].id, asPage) : landing ? `${landing.slug}/` : 'build/',
     params: {
       vs: null, // the old matchup param
       as: board && v.as != null && !asPage ? teams[v.as].id : null,
@@ -222,6 +238,11 @@ export function toUrl(v: View): UrlParts {
     },
   };
 }
+
+/** The front page. */
+export const frontUrl = (): UrlParts => toUrl({ ...DEFAULT_VIEW, front: true });
+/** The builder on its default definition. */
+export const buildUrl = (): UrlParts => toUrl(DEFAULT_VIEW);
 
 /** The board under a definition, no team open (a broken digest's "now the all-time longest" link). */
 export const boardUrl = (chips: string[], dir: Dir, scope: Scope): UrlParts => toUrl({ ...DEFAULT_VIEW, active: refsOf(chips), dir, scope });
