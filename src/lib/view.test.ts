@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { BoardRow } from './types.ts';
 import { viewReducer, initialView, isOpen, DESKTOP_CAP } from './view.ts';
 import type { ViewState } from './view.ts';
+import { buildUrl, toUrl } from './url.ts';
 
 const row = (ti: number, startEp: number) => ({ ti, s: { start: { ep: startEp } } }) as unknown as BoardRow;
 
@@ -185,3 +186,14 @@ describe('view: a series', () => {
   });
 });
 
+
+describe('view: the builder link', () => {
+  test('opens the builder at the address its link names, whatever board was last open', () => {
+    // a by-opponent page, then home, then "Build your own streak" (href /build/)
+    const asPage = viewReducer(initialView(), { type: 'as', team: 4, dir: 'W', scope: 'all', active: [], vs: 9, run: 100 });
+    const home = viewReducer({ ...asPage, active: [{ key: 'ranked' }], week: true }, { type: 'board' });
+    const built = viewReducer(home, { type: 'build' });
+    expect(toUrl(built)).toEqual(buildUrl());
+    expect(built).toMatchObject({ as: null, team: null, run: null, front: false });
+  });
+});

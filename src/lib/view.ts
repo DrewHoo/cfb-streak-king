@@ -122,8 +122,9 @@ function reduce(v: ViewState, a: ViewAction): ViewState {
       // home: the front page (the builder is a step from it)
       return { ...v, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null, front: true, team: null, run: null };
     case 'build':
-      // the builder, on whatever definition it holds
-      return { ...v, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null, front: false };
+      // the builder on the default definition, the address its link names
+      // (/build/), not whatever board was last open (a by-opponent page)
+      return { ...v, active: DEFAULT_VIEW.active, dir: DEFAULT_VIEW.dir, scope: DEFAULT_VIEW.scope, week: false, as: null, team: null, run: null, limit: DESKTOP_CAP, page: null, game: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null, front: false };
     case 'game':
       // a game's page, in place of whatever is showing
       return { ...v, game: a.key, page: null, games: false, bwk: null, season: null, risk: false, breakers: false, breaker: null, series: null, seriesOpp: null, front: false };
