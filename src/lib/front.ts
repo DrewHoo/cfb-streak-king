@@ -15,9 +15,10 @@ import type { MinedCrown, UpcomingRow } from './types.ts';
 import { P, upcomingOf } from './model.ts';
 import { CTX, LIST, admitted, listCrowns, pick } from './list.ts';
 import type { Knobs, RankContext } from './list.ts';
-import { scheduledGames, teamStreaks } from './team.ts';
+import { teamStreaks } from './team.ts';
 import type { TeamStreak } from './team.ts';
 import { chipByKey } from './chips.ts';
+import { inSlate, slateWeek } from './game.ts';
 import { baseKey } from './minedChips.ts';
 import { fromCrownRow, toCrownRow } from './crownsFile.ts';
 import type { CrownRow } from './crownsFile.ts';
@@ -50,8 +51,8 @@ export function currentStreaks(ti: number, list: readonly MinedCrown[], todayEp:
 /** Whether the team's next scheduled game is the one that puts the run on the line, whatever the date. */
 const nextIsIt = (ti: number, s: Pick<TeamStreak, 'next'>) => s.next != null && s.next.i === upcomingOf(ti)[0]?.i;
 
-/** The week the page is about: the first scheduled week, the at-risk page's (its heading says "On the line in Week 10"). */
-export const frontWeek = (): number | null => scheduledGames()[0]?.wk ?? null;
+/** The week the page is about, the at-risk page's (its heading says "On the line in Week 10"): `slateWeek`. */
+export const frontWeek = (): number | null => slateWeek();
 
 /**
  * The runs the page can show for a team: its current streaks, and with
@@ -61,7 +62,7 @@ export const frontWeek = (): number | null => scheduledGames()[0]?.wk ?? null;
  */
 export function frontStreaks(ti: number, list: readonly MinedCrown[], todayEp: number, ctx: RankContext = CTX, w: Knobs = LIST, f: FrontKnobs = FRONT): TeamStreak[] {
   const cur = currentStreaks(ti, list, todayEp, ctx, w, f);
-  return f.onLine ? cur.filter((s) => nextIsIt(ti, s) && s.next!.wk === frontWeek() && frontNext(ti, s, todayEp).kind === 'on') : cur;
+  return f.onLine ? cur.filter((s) => nextIsIt(ti, s) && inSlate(s.next!.wk) && frontNext(ti, s, todayEp).kind === 'on') : cur;
 }
 
 /**

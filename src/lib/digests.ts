@@ -17,6 +17,7 @@ import { brokenWeeks } from './broken.ts';
 import { atRiskRows } from './atRisk.ts';
 import type { AtRiskInput } from './atRisk.ts';
 import { scheduledGames, topOnLine } from './team.ts';
+import { inSlate, slateWeek } from './game.ts';
 import type { TeamRun } from './team.ts';
 import { toCrownRow, fromCrownRow } from './crownsFile.ts';
 import type { CrownRow } from './crownsFile.ts';
@@ -28,7 +29,7 @@ export interface Digests {
   builtAt: string;
   /** Every completed week's broken runs, by the schedule's week number. */
   broken: Record<number, BrokenWeekRows>;
-  /** The first scheduled week's runs at risk; null when no game has a line. */
+  /** The slate's runs at risk (`slateWeek`, a game left over from an earlier week included); null when no game has a line. */
   atRisk: { wk: number; lo: number; hi: number; rows: AtRiskInput[] } | null;
   /** The streak most on the line in each scheduled game (the build's pick), and how many it puts on the line, by the game's id. */
   onLine: Record<number, { ti: number; s: TeamRun; n: number }>;
@@ -40,8 +41,8 @@ export type CrownsOf<T extends MinedCrown = MinedCrown> = (ti: number) => T[] | 
 /** The digests from the mined runs: what the prerender writes, and the dev server works out in the page. `listed` is the rule's rows, for the pick per game. */
 export function buildDigests(todayEp: number, mined: Parameters<typeof brokenWeeks>[0], crownsOf: CrownsOf, listed: CrownsOf<Crown>): Digests {
   const games = scheduledGames();
-  const wk = games[0]?.wk;
-  const week = games.filter((g) => g.wk === wk);
+  const wk = slateWeek();
+  const week = games.filter((g) => inSlate(g.wk));
   const risk = week.length ? atRiskRows(week, todayEp, crownsOf) : null;
   const onLine: Digests['onLine'] = {};
   for (const g of games) {
@@ -54,7 +55,7 @@ export function buildDigests(todayEp: number, mined: Parameters<typeof brokenWee
   return {
     builtAt: P.builtAt,
     broken: Object.fromEntries(brokenWeeks(mined)),
-    atRisk: risk && risk.rows.length ? { wk, lo: week[0].ep, hi: week[week.length - 1].ep, rows: risk.rows } : null,
+    atRisk: risk && risk.rows.length ? { wk: wk!, lo: week[0].ep, hi: week[week.length - 1].ep, rows: risk.rows } : null,
     onLine,
   };
 }

@@ -12,7 +12,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { P, teams } from '../lib/model.ts';
 import { lineText } from '../lib/team.ts';
 import { boardUrl, hrefOf } from '../lib/url.ts';
-import { seasons, seasonWeeks, scoreOf, keyString } from '../lib/game.ts';
+import { seasons, seasonWeeks, scoreOf, keyString, slateWeek } from '../lib/game.ts';
 import { BROKEN_CAP, brokenDigest, listBroken } from '../lib/broken.ts';
 import { AT_RISK_CAP, atRiskWeek } from '../lib/atRisk.ts';
 import { useKnobs } from '../tune.ts';
@@ -251,11 +251,11 @@ function Week({ week, games, digests, seasonRows, onGame }) {
 }
 
 /**
- * The week a season's schedule opens on: the running season's first
- * scheduled week (the one about to be played), a past season's first week.
+ * The week a season's schedule opens on: the running season's slate (the week
+ * about to be played, `slateWeek`), a past season's first week.
  */
 export function defaultWeek(season, weeks) {
-  if (season === P.currentSeason) return weeks.find((w) => w.games.some((g) => g.scheduled))?.wk ?? weeks.at(-1)?.wk ?? null;
+  if (season === P.currentSeason) return slateWeek() ?? weeks.at(-1)?.wk ?? null;
   return weeks[0]?.wk ?? null;
 }
 

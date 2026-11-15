@@ -4,6 +4,7 @@ import { mineCrowns } from './crowns.ts';
 import { CTX, LIST, listCrowns } from './list.ts';
 import { scheduledGames, teamStreaks } from './team.ts';
 import { atRiskRows, atRiskWeek } from './atRisk.ts';
+import { inSlate, seasonWeeks, slateWeek } from './game.ts';
 import { FRONT, SOON, currentStreaks, frontBest, frontList, frontNext, frontPage, frontRuns, frontStreaks, frontWeek, encodeFront, decodeFront } from './front.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
@@ -20,18 +21,36 @@ describe('the front page', () => {
       const n = frontNext(r.ti, r.s, today);
       expect(n.kind).toBe('on');
       expect(n.kind === 'on' && n.game).toBe(upcomingOf(r.ti)[0]);
-      // the heading's week, whatever today's date reaches
-      expect(r.s.next!.wk).toBe(frontWeek());
+      // the heading's week, or a game left over from a week before it, whatever today's date reaches
+      expect(inSlate(r.s.next!.wk)).toBe(true);
     }
-    for (const r of frontBest(all(), today + 7)) expect(r.s.next!.wk).toBe(frontWeek());
-    // Alabama's 90 straight at home against unranked opponents is its best current run, and its next game isn't one
+    for (const r of frontBest(all(), today + 7)) expect(inSlate(r.s.next!.wk)).toBe(true);
+    // Alabama's 90 straight at home against unranked opponents is its best current run, on the page only in a week its
+    // next game is one (week 11 at Oklahoma wasn't; week 12, Chattanooga at home, is)
     const al = idx('alabama');
     const best = currentStreaks(al, crowns.get(al) ?? [], today)[0];
     expect([best.len, best.chips.slice().sort()]).toEqual([90, ['home', 'unranked']]);
-    expect(rows.some((r) => r.ti === al && r.s.len === 90)).toBe(false);
+    const tested = frontNext(al, best, today).kind === 'on' && best.next != null && inSlate(best.next.wk);
+    expect(frontBest(all(), today).some((r) => r.ti === al && r.s.len === 90)).toBe(tested);
     // with the knob off, the page is every team's best current run, and Alabama's 90 leads it
     const off = frontList(all(), today, CTX, LIST, { ...FRONT, onLine: false });
     expect([teams[off[0].ti].id, off[0].s.len]).toEqual(['alabama', 90]);
+  });
+
+  // Drew, 2026-11-15: Ole Miss at Oklahoma, moved to the Sunday after week 11, made the page "Week 11" with one game
+  test('the week is the first one still mostly to play; a game left over from a week before it counts with it', () => {
+    const open = seasonWeeks(P.currentSeason).filter((w) => w.games.some((g) => g.scheduled));
+    const unplayed = (w: (typeof open)[number]) => w.games.filter((g) => g.scheduled).length;
+    expect(frontWeek()).toBe(slateWeek());
+    if (!open.length) return expect(slateWeek()).toBeNull();
+    const at = open.findIndex((w) => w.wk === slateWeek());
+    expect(at).toBeGreaterThanOrEqual(0);
+    if (at < open.length - 1) expect(unplayed(open[at]) * 2).toBeGreaterThanOrEqual(open[at].games.length);
+    for (const w of open.slice(0, at)) {
+      expect(unplayed(w) * 2).toBeLessThan(w.games.length);
+      for (const g of w.games) if (g.scheduled) expect(inSlate(g.scheduled.wk)).toBe(true);
+    }
+    for (const w of open.slice(at + 1)) expect(inSlate(w.wk)).toBe(false);
   });
 
   test('one row per team, the first ten by default, best first', () => {
@@ -79,14 +98,12 @@ describe('the front page', () => {
   });
 
   test('a row on the line this week is a row of the week’s at-risk digest', () => {
-    const games = scheduledGames();
-    const wk = games[0]?.wk;
-    const week = games.filter((g) => g.wk === wk);
+    const week = scheduledGames().filter((g) => inSlate(g.wk));
     const risk = atRiskWeek(atRiskRows(week, today, (ti) => crowns.get(ti) ?? []), CTX, LIST);
     const atRisk = new Set([...risk.list, ...risk.more, ...risk.subStreaks].map((r) => `${r.ti}|${key(r.s)}`));
     for (const r of frontBest(all(), today)) {
       const n = frontNext(r.ti, r.s, today);
-      if (n.kind === 'on' && n.game.sp != null && n.game.wk === wk) expect(atRisk.has(`${r.ti}|${key(r.s)}`), `${teams[r.ti].name} ${key(r.s)}`).toBe(true);
+      if (n.kind === 'on' && n.game.sp != null && inSlate(n.game.wk)) expect(atRisk.has(`${r.ti}|${key(r.s)}`), `${teams[r.ti].name} ${key(r.s)}`).toBe(true);
     }
   });
 

@@ -131,6 +131,27 @@ export function seasonWeeks(season: number): SeasonWeek[] {
   return out;
 }
 
+/**
+ * The week the front page, the at-risk digest and the schedule are about: the
+ * running season's first scheduled week, past a week whose games are mostly
+ * played. A game moved after its week (Ole Miss at Oklahoma, the Sunday after
+ * week 11) left "Week 11" with one game on all three (Drew, 2026-11-15); it
+ * still counts, with its week's (`inSlate`). Null when nothing is scheduled.
+ */
+let slate: number | null | undefined;
+export function slateWeek(): number | null {
+  if (slate !== undefined) return slate;
+  const open = seasonWeeks(P.currentSeason).filter((w) => w.games.some((g) => g.scheduled));
+  const unplayed = (w: SeasonWeek) => w.games.filter((g) => g.scheduled).length;
+  slate = (open.find((w) => unplayed(w) * 2 >= w.games.length) ?? open.at(-1))?.wk ?? null;
+  return slate;
+}
+/** A scheduled game of week `wk` is on the slate: the slate's week, or one before it the game was left over from. */
+export const inSlate = (wk: number): boolean => {
+  const s = slateWeek();
+  return s != null && wk <= s;
+};
+
 /** The score from the listed home team's side: [home, away]. */
 export function scoreOf(p: { ti: number; row: GameRow }): [number, number] {
   return p.row.home ? [p.row.us, p.row.them] : [p.row.them, p.row.us];

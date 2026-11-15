@@ -54,7 +54,7 @@ const { buildDigests, encodeDigests, decodeDigests } = await vite.ssrLoadModule(
 const { buildSeasons } = await vite.ssrLoadModule('/src/lib/seasons.ts')
 const { encodeSeason, decodeSeason } = await vite.ssrLoadModule('/src/lib/seasonFile.ts')
 const { breakersFromSeason, encodeBreakers, decodeBreakers, breakersSlice, breakRanking, breakRows, listBreaks } = await vite.ssrLoadModule('/src/lib/breakers.ts')
-const { seasonWeeks, keyString, gamePath, isoDate, scoreOf } = await vite.ssrLoadModule('/src/lib/game.ts')
+const { seasonWeeks, keyString, gamePath, isoDate, scoreOf, slateWeek } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { chipLabel } = await vite.ssrLoadModule('/src/lib/minedChips.ts')
 const { dirWord, marginWords, siteWord, spreadText, monthDay } = await vite.ssrLoadModule('/src/lib/format.ts')
 const { baseDir } = await vite.ssrLoadModule('/src/lib/outcome.ts')
@@ -307,7 +307,7 @@ console.log(`digests: ${Object.keys(digests.broken).length} weeks of broken stre
   const url = `${SITE}games/`
   const title = `This week's college football games and the streaks at stake · ${config.title}`
   const description = `Every scheduled FBS game this week, with the line and the streak most on the line in it; every past week's results and the streaks they broke.`
-  const first = currentWeeks.find((w) => w.games.some((g) => g.scheduled))?.wk ?? currentWeeks.at(-1)?.wk
+  const first = slateWeek() ?? currentWeeks.at(-1)?.wk
   const slice = seasonSlice(P.currentSeason, weekKeys(first))
   const { html } = page({
     initial: { games: true, digests, seasonRows: slice.rows },
