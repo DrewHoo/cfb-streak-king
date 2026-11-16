@@ -167,9 +167,13 @@ npm run build                          # vite build + prerender: the board, 24 n
 The window's first season is `FIRST_SEASON` in `scripts/lib/window.mjs`; the
 client reads it from the payload.
 
-CI runs only `build-current.mjs` (it fetches the current schedule CSV, AP
-poll pages, and CFBD lines, coaches and box scores) before `npm run build`,
-on push and on a cron three mornings a week in season (Thursday, Friday, Sunday).
+The committed `src/data/payload.json` is the payload. On a cron three
+mornings a week in season (Thursday, Friday, Sunday; daily in December and
+January) and on a manual run, CI runs `build-current.mjs` (it fetches the
+current schedule CSV, AP poll pages, and CFBD lines, coaches and box scores),
+builds, tests, commits the payload to main as "the refresh" and deploys that
+commit. A push builds the payload main holds and fetches nothing. A refresh
+that fails commits and deploys nothing and opens an issue.
 
 Search: `dist/sitemap.xml` lists every prerendered page, and the index site's
 `sitemap-index.xml` (the one registered in Search Console) lists it, from the

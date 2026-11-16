@@ -21,8 +21,16 @@ on:
     - cron: '0 13 * 12 *'
     - cron: '0 13 1-27 1 *'
 
+# The committed payload is the payload. A scheduled or manual run refreshes
+# src/data/payload.json, tests it, commits it to main and deploys that commit;
+# a push builds the payload main holds. Nothing ships that isn't committed, so
+# no deploy can put an older week back (until 2026-11-16 a refresh deployed
+# without committing, and a push replayed its inputs from the Actions cache).
+# A push made with the workflow's own token starts no workflow, so the data
+# commit doesn't deploy twice.
 permissions:
-  contents: read
+  contents: write
+  issues: write
   pages: write
   id-token: write
 
@@ -33,61 +41,73 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.built.outputs.sha }}
     env:
       # The build's prerender mines every team's streaks (the slow part, about
       # ten minutes here) and writes the raw result to this file; the tests
       # read it instead of mining again, so the mine runs once per push.
       STREAK_MINED: data/build/mined.json
     steps:
+      # main's tip, not the commit that started the run: a push queued behind
+      # a refresh builds the payload the refresh just committed
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      # Refresh the in-progress season (schedule + AP poll) onto the committed
-      # payload base — only on the scheduled/manual refreshes. A push ships the
-      # committed payload and spends no CFBD calls (October 2026: 78 push
-      # deploys at ~17 calls each ate the key's 1,000-call monthly quota, and
-      # three refreshes silently shipped stale data). A refresh that can't
-      # fetch fails the run, so a dead key is an email, not a quiet stale week.
+      # Refresh the in-progress season (schedule, AP poll, lines) onto the
+      # committed payload base, on the scheduled and manual runs only. A push
+      # spends no CFBD calls (October 2026: 78 push deploys at ~17 calls each
+      # ate the key's 1,000-call monthly quota). A refresh that can't fetch
+      # fails the run and the site keeps what it has.
       - if: github.event_name != 'push'
         run: node scripts/data/build-current.mjs
         env:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
-      # A push replays the newest refresh's inputs onto its own committed base,
-      # with no CFBD calls: without this a push shipped the committed payload
-      # and rolled the live site back to the week it was committed (November
-      # 2026: a Tuesday push put week 9 back on the schedule as unplayed).
-      - if: github.event_name != 'push'
-        uses: actions/cache/save@v4
-        with:
-          path: data/build/current-inputs.json
-          key: current-inputs-${{ github.run_id }}
-      - if: github.event_name == 'push'
-        id: inputs
-        uses: actions/cache/restore@v4
-        with:
-          path: data/build/current-inputs.json
-          key: current-inputs-${{ github.run_id }}
-          restore-keys: current-inputs-
-      - if: github.event_name == 'push' && steps.inputs.outputs.cache-matched-key != ''
-        run: node scripts/data/build-current.mjs
-        env:
-          REPLAY: data/build/current-inputs.json
-      # Check and test the payload that ships: the refreshed one on a
-      # schedule/dispatch run, the replayed one on a push (the committed one
-      # when no refresh is cached or the commit is newer).
+      # Check and test the payload that ships
       - run: npm run typecheck
       # Every ruling-file receipt against its committed page (data/research/pages)
       - run: npm run check:receipts
       # The build first, since its mine feeds the tests (STREAK_MINED above);
-      # a failing test still stops the upload.
+      # a failing test still stops the commit and the upload.
       - run: npm run build
       - run: npm test
+      # No deploy takes the live site back to an older payload
+      - run: node scripts/data/check-not-older-than-live.mjs
+        env:
+          ALLOW_OLDER_DATA: ${{ contains(github.event.head_commit.message, '[older data]') && '1' || '' }}
+      # The refreshed payload, committed before it deploys: the next push
+      # builds from it. A commit pushed meanwhile is rebased under; one that
+      # rewrote the payload conflicts and fails the run before anything ships.
+      - if: github.event_name != 'push'
+        run: |
+          git add src/data/payload.json
+          git diff --quiet --cached && exit 0
+          git -c user.name="the refresh" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "The data at $(date -u +%Y-%m-%d)"
+          git checkout -- .
+          git pull -q --rebase origin main
+          git push -q origin HEAD:main
+      - id: built
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
+      # nobody reads a failed run: a refresh that fails opens an issue, and a
+      # second failure comments on the open one
+      - if: failure() && github.event_name != 'push'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="The data refresh failed"
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          open=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then gh issue comment "$open" --body "Failed again. $run"
+          else gh issue create --title "$title" --body "The site keeps the data it had. $run" --assignee DrewHoo; fi
 
   deploy:
     environment:
@@ -108,6 +128,8 @@ jobs:
     needs: deploy
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -120,10 +142,13 @@ jobs:
   # worker code, so it skips this.
   worker:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: [build, deploy]
     if: github.event_name != 'schedule'
     steps:
+      # the commit the site was built from
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
