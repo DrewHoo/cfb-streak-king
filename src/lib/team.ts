@@ -87,13 +87,20 @@ export function nextQualifying(ti: number, chips: readonly string[], _todayEp?: 
  * A team's current streaks, in the order given: its active crowns under the
  * outcomes a sheet shows (the list rule's rows, or a file's raw ones), each
  * with its next qualifying game. Empty while the crowns load.
+ *
+ * A file's raw run has two wordings of the same games, its own chips and
+ * `highest`'s, and they part ways at the next game: San Diego State's four
+ * wins "at home as an underdog" are also its four "as an underdog at night",
+ * and a night game at Boise State tests only the second. `shownChips` is the
+ * wording the reader will see (the list's pick), so the next game is the one
+ * those words admit; without it, the run's own chips.
  */
-export function teamStreaks<T extends MinedCrown>(ti: number, todayEp: number, crowns: T[] | null): TeamRun<T>[] {
+export function teamStreaks<T extends MinedCrown>(ti: number, todayEp: number, crowns: T[] | null, shownChips: (c: T) => readonly string[] = (c) => c.chips): TeamRun<T>[] {
   if (!crowns) return [];
   return crowns
     .filter((c) => c.scope === 'active' && SHEET_DIRS.includes(c.dir))
     .map((c) => {
-      const n = nextGame(ti, refsOf(c.chips));
+      const n = nextGame(ti, refsOf(shownChips(c)));
       return { ...c, next: n && n.how !== 'open' ? n.next : null, how: n?.how ?? null, maybe: n?.how === 'open' ? n.next : null, since: c.startSe ?? P.currentSeason };
     });
 }

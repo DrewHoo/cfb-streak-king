@@ -84,14 +84,15 @@ export interface AtRiskWeek {
  * The streaks on the line in these games, as the build keeps them: every run
  * a crowns file carries that a lined game puts on the line, once (a team's
  * run appears once, with its game). `crownsOf` is each team's runs from its
- * file.
+ * file. A run is on the line under the words the digest shows it in (the
+ * list's pick), as it is on the front page and the team's own page.
  */
-export function atRiskRows(games: ScheduledGame[], todayEp: number, crownsOf: (ti: number) => MinedCrown[] | null): AtRiskRows {
+export function atRiskRows(games: ScheduledGame[], todayEp: number, crownsOf: (ti: number) => MinedCrown[] | null, w: Knobs = LIST): AtRiskRows {
   const rows: AtRiskInput[] = [];
   const seen = new Set<string>();
   for (const game of games) {
     for (const { ti, row } of game.sides) {
-      for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti)), row)) {
+      for (const s of streaksOn(teamStreaks(ti, todayEp, crownsOf(ti), (c) => pick(c, w).chips), row)) {
         const p = pBreak(s.dir, row.sp);
         if (p == null) continue;
         // a run once, whichever of the team's games this week it rides on: the same games, under the same words

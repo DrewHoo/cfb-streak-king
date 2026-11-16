@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { P } from './model.ts';
 import { mineCrowns } from './crowns.ts';
-import { scheduledGames, streaksOn, teamStreaks } from './team.ts';
+import { scheduledGames, nextQualifying } from './team.ts';
 import { Phi, pBreak, atRiskRows, atRiskWeek, AT_RISK_CAP } from './atRisk.ts';
 import { LIST } from './list.ts';
 
@@ -56,9 +56,10 @@ describe('atRiskWeek', () => {
       expect(r.s.rank).toBeLessThanOrEqual(LIST.admit.rank); // only what the list rule admits
       expect(r.row.sp).not.toBeNull();
       expect(r.game.sides.some((x) => x.ti === r.ti && x.row === r.row)).toBe(true);
-      // the streak really is on the line in that game
-      const on = streaksOn(teamStreaks(r.ti, today, crownsOf(r.ti)), r.row);
-      expect(on.some((s) => s.dir === r.s.dir && s.len === r.s.len && s.since === r.s.since)).toBe(true);
+      // the streak really is on the line in that game, under the words the row shows: a run reads two ways
+      // (San Diego State's four wins at home as an underdog are its four as an underdog at night), and the
+      // game has to be the next one the shown words admit (2026-11-16: the digest read the other wording)
+      expect(nextQualifying(r.ti, r.s.chips)?.i, `${r.ti} ${r.s.dir}|${r.s.len}|${r.s.chips.join('+')}`).toBe(r.row.i);
     }
     const keys = all.map((r) => `${r.ti}|${r.s.dir}|${r.s.len}|${r.s.since}|${r.s.endSe}|${r.s.chips.join('+')}`); // a run once: the same games under the same words
     expect(new Set(keys).size).toBe(keys.length);
