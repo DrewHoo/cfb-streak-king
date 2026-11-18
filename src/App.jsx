@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { P, teams, firstSeason, activeBoard, allTimeBoard, asBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
+import { P, teams, fbsNow, firstSeason, activeBoard, allTimeBoard, asBoard, edgeFor as edgeForDefinition, todayEpochDay, builtEpochDay } from './lib/model.ts';
 import { definitionPhrase } from './lib/sentence.ts';
 import { encodeChips, decodeChips, withChip, swapChip, withoutChip, withParam } from './lib/definition.ts';
 import { parseUrl, toUrl, teamUrl, gamesUrl, gameUrl, breakersUrl, seriesUrl, landingView, landingOf, hrefOf } from './lib/url.ts';
@@ -38,6 +38,7 @@ import { Landings } from './components/Landings.jsx';
 import { Notes, KOFI_URL } from './components/Notes.jsx';
 import { Tuner } from './components/Tuner.jsx';
 import { TuneContext, readTuneOn, readOverrides, writeOverrides, knobsOf } from './tune.ts';
+import { setSubject } from './lib/readNext.ts';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -112,6 +113,14 @@ export default function App({ initial } = {}) {
     return () => window.removeEventListener('popstate', onPop);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // What to read next is about the team the reader is looking at (the back-bar
+  // embed reads it off <html>): the page's team, the by-opponent board's, a
+  // series' first, the open row's, the breaker's, a game's FBS side (home first), or the
+  // opponent a `vs [team]` chip names. FBS teams only: PUN keeps a list for those.
+  const vsChip = active.find((c) => c.key === 'vsteam')?.param;
+  const subject = [page, as, series, team, breaker, game?.home, game?.away, vsChip].find((ti) => typeof ti === 'number' && fbsNow.has(ti)) ?? null;
+  useEffect(() => { setSubject(subject != null ? teams[subject].id : null); }, [subject]);
 
   // state -> URL. A change of definition replaces the entry. Opening a
   // streak, or moving to a team page, a game page or back to the board,

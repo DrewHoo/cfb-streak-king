@@ -8,6 +8,7 @@ import { decodeCrowns } from './lib/crownsFile.ts'
 import { decodeDigests } from './lib/digests.ts'
 import { decodeBreakers } from './lib/breakers.ts'
 import { decodeFront } from './lib/front.ts'
+import { setBaked } from './lib/readNext.ts'
 import './styles.css'
 
 // The markup is already in the HTML: scripts/prerender.mjs bakes it in at
@@ -55,6 +56,10 @@ const initial = {
   front: frontFromPath(window.location.pathname),
   frontRuns: frontRuns ? decodeFront(JSON.parse(frontRuns.textContent)) : null,
 }
+
+// What to read next as the prerender baked it, so the hydrate starts from the same list
+const readNext = document.getElementById('readnext-data')
+if (readNext) setBaked(JSON.parse(readNext.textContent))
 
 const root = document.getElementById('root')
 const app = (

@@ -1,7 +1,7 @@
 // What to read next, and the Method notes: the page's static copy.
 
 import { P, firstSeason, fbsNow } from '../lib/model.ts';
-import { SIBLINGS } from '../lib/siblings.ts';
+import { ReadNext } from './ReadNext.jsx';
 import { PLAIN_CHIPS, PLAIN_DEFINITIONS, PLAIN_STREAK_KINDS } from '../lib/chips.ts';
 import { ALL_DEFINITIONS } from '../lib/definition.ts';
 import { track } from '../lib/analytics.ts';
@@ -11,12 +11,7 @@ export const KOFI_URL = 'https://ko-fi.com/drewhooverdotcom';
 export function Notes() {
   return (
     <>
-      <h2>What to read next</h2>
-      <div className="notes">
-        {SIBLINGS.map((s) => (
-          <p key={s.url}><a href={s.url}>{s.name}</a>{s.links ? ': ' : ' — '}{s.words}.{s.links?.map((l, i) => <span key={l.url}>{i ? ' | ' : ' '}<a href={l.url}>{l.name}</a></span>)}</p>
-        ))}
-      </div>
+      <ReadNext />
 
       <h2>Using a streak from here</h2>
       <div className="notes">

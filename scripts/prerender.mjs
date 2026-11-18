@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 import config from '../site.config.js'
 import pkg from '../package.json' with { type: 'json' }
 import { readPosts, longDate, rfc822 } from './lib/posts.mjs'
+import { readNextLinks, readNextMany, bakeReadNext, READ_NEXT_ORIGIN } from './lib/readNext.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SLUG = pkg.name
@@ -64,6 +65,14 @@ const { activeBoard } = await vite.ssrLoadModule('/src/lib/model.ts')
 const { seasons } = await vite.ssrLoadModule('/src/lib/game.ts')
 const { brokenFromRows } = await vite.ssrLoadModule('/src/components/GamesPage.jsx')
 const { longDate: longIso } = await vite.ssrLoadModule('/src/lib/shareWords.ts')
+const { setBaked, punSlug } = await vite.ssrLoadModule('/src/lib/readNext.ts')
+
+// What to read next, baked: the sport's list on every page, a team's own on its page (scripts/lib/readNext.mjs)
+const readNextFbs = [...fbsNow]
+const readNextNational = await readNextLinks('/cfb/links.json', SLUG)
+const readNextTeams = new Map((await readNextMany(readNextFbs.map((ti) => `/cfb/teams/${punSlug(teams[ti].id)}/links.json`), SLUG)).map((links, i) => [readNextFbs[i], links]))
+const READ_NEXT = bakeReadNext(readNextNational)
+console.log(`read next: ${READ_NEXT.length} baked from ${READ_NEXT_ORIGIN}/cfb/links.json, ${[...readNextTeams.values()].filter((l) => l.length).length} of ${readNextFbs.length} teams' files`)
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 const FEED = `${SITE}blog/feed.xml`
@@ -93,7 +102,9 @@ const imageSize = (image) => (image.includes('/share/og.png') ? [1200, 630] : [1
  * static page instead (a post): that markup in the root, the site's styles,
  * and no app script, so nothing hydrates over it.
  */
-function page({ initial, body, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, front, shell = false, ogType = 'website' }) {
+function page({ initial, body, url, title, description, image, imageAlt, jsonLd, embed, digests, season, breakers, front, shell = false, ogType = 'website', readNext = READ_NEXT, subject = null }) {
+  // What to read next renders from the baked list, and main.jsx hydrates from the same list in the page
+  setBaked(body == null ? readNext : [])
   // the shell (dist/404.html) carries no markup: the app boots from an empty root on whatever address reached it
   const appHtml = body ?? (shell ? '' : renderToString(React.createElement(App, { initial })))
   const head = `
@@ -117,13 +128,15 @@ function page({ initial, body, url, title, description, image, imageAlt, jsonLd,
     <meta name="twitter:image" content="${image}" />
 
     <!-- Cross-site chrome served by the index site: back bar, comments, analytics. -->
-    <script src="${ORIGIN}/embed/back-bar.js" data-section="sports" async></script>
+    <script src="${ORIGIN}/embed/back-bar.js" data-section="sports" data-read-next="cfb" async></script>
     <script src="${ORIGIN}/embed/giscus.js" async></script>
     <script src="${ORIGIN}/embed/analytics.js" async></script>
 
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   </head>`
   let html = template
+  // a team page names its team for the back-bar embed before the app runs (App.jsx keeps it after), so the bar's first draw is the team's
+  if (subject) html = html.replace(/<html([^>]*)>/, `<html$1 data-dh-subject="${esc(subject)}">`)
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
   html = html.replace('</head>', head)
   // a static page keeps the styles and drops the app: main.jsx would otherwise hydrate the board over it
@@ -134,7 +147,7 @@ function page({ initial, body, url, title, description, image, imageAlt, jsonLd,
   }
   // embedded data main.jsx reads before hydrating (a team page's crowns, a games page's digests)
   const json = (id, v) => (v ? `<script type="application/json" id="${id}">${JSON.stringify(v).replace(/</g, '\\u003c')}</script>` : '')
-  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('breakers-data', breakers)}${json('front-data', front)}`)
+  html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>${json('crowns-data', embed)}${json('digests-data', digests)}${json('season-data', season)}${json('breakers-data', breakers)}${json('front-data', front)}${body == null ? json('readnext-data', readNext.length ? readNext : null) : ''}`)
   return { html, appHtml }
 }
 
@@ -629,6 +642,8 @@ for (const ti of [...fbsNow].sort((a, b) => teams[a].name.localeCompare(teams[b]
     initial: { page: ti, crowns: { active: decodeCrowns(activeOf(ti)).rows, allSimple: { rows: decodeCrowns(allSimpleOf(ti)).rows, trivia: allSimpleOf(ti).trivia }, all: null }, breaks: decodeBreakers(encodeBreakers(breakersSlice(breakers, ti))) },
     embed: { active: activeOf(ti), allSimple: allSimpleOf(ti) },
     breakers: encodeBreakers(breakersSlice(breakers, ti)),
+    readNext: bakeReadNext(readNextTeams.get(ti), readNextNational),
+    subject: `team:${punSlug(t.id)}`,
     url,
     title,
     description,
