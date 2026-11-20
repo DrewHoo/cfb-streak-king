@@ -302,7 +302,7 @@ describe('prerender + hydrate', () => {
     // the scoreboard: each team's wins beside its name, in the address's order
     expect([...root.querySelectorAll('.ser-side span')].map((e) => e.textContent)).toEqual(['Alabama', 'Tennessee']);
     expect(root.querySelector('.ser-mid').textContent).toBe('7 ties');
-    // every game is a mark whose words carry the score; the ones since 1936 are links to their game pages, the older ones aren't
+    // every game is a mark whose words carry the score; the running season's is a link to its game page, the older ones aren't
     const marks = [...root.querySelectorAll('.ser-grid .ser-mk')];
     expect(marks.length).toBeGreaterThanOrEqual(109);
     expect(marks[0].tagName).toBe('SPAN');
@@ -311,8 +311,9 @@ describe('prerender + hydrate', () => {
     expect(marks.find((m) => m.textContent.startsWith('1993:')).textContent).toMatch(/Tennessee by forfeit/);
     expect(marks.find((m) => m.textContent.startsWith('2005:')).textContent).toMatch(/Alabama's win vacated/);
     const links = root.querySelectorAll('.ser-grid a.ser-mk');
-    expect(links.length).toBeGreaterThan(80);
-    expect(links[0].getAttribute('href')).toMatch(/^\/game\/1936-\d\d-\d\d\/(alabama|tennessee)-(at|vs)-(alabama|tennessee)\/$/);
+    expect(links.length).toBe(1);
+    expect(links[0].getAttribute('href')).toMatch(new RegExp(`^/game/${P.currentSeason}-\\d\\d-\\d\\d/(alabama|tennessee)-(at|vs)-(alabama|tennessee)/$`));
+    expect(marks.find((m) => m.textContent.startsWith('1936:')).tagName).toBe('SPAN');
     // the line shows the last meeting at first, with its four-digit year, and the last mark is the one lit
     expect(root.querySelector('.ser-line .ser-ld').textContent).toMatch(/^\d{1,2}\/\d{1,2}\/20\d\d$/);
     expect(marks[marks.length - 1].classList.contains('on')).toBe(true);

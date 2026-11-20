@@ -3,11 +3,13 @@
 // a word or a mark, and the address only decides who's on the left. The
 // record as a scoreboard, every game as the winner's mark on a calendar (a
 // row per decade, a slot per season), the record at each site, and the
-// longest run each way. A mark shows its game in the line above the grid and
-// opens the game's page; a meeting before 1936 is jhowell.net's and has none.
+// longest run each way. A mark shows its game in the line above the grid; one
+// of the running season opens the game's page. An older meeting's mark isn't a
+// link (Drew, 2026-11-20): crawlers followed 36,000 of them to pages nobody
+// read, each a cold model in the share worker.
 
 import { useMemo, useRef, useState } from 'react';
-import { teams } from '../lib/model.ts';
+import { P, teams } from '../lib/model.ts';
 import { seriesOf } from '../lib/series.ts';
 import { seriesH1, seriesLead } from '../lib/seriesWords.ts';
 import { fullDate, dayOf, monthDay, kickOf, spreadText } from '../lib/format.ts';
@@ -99,7 +101,8 @@ function Games({ ti, oi, s, onGame }) {
   const shown = hov ?? sel;
   const pointer = useRef('mouse');
   const marks = useRef([]);
-  const hrefOf_ = (g) => (g.row ? hrefOf(BASE, gameUrl(keyOf(g.side, g.row))) : null);
+  // only the running season's games have pages the build writes
+  const hrefOf_ = (g) => (g.row && g.se === P.currentSeason ? hrefOf(BASE, gameUrl(keyOf(g.side, g.row))) : null);
   const open = (g) => onGame(g.side, g.row);
 
   function move(e, i) {

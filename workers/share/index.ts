@@ -7,15 +7,22 @@
 //                   (?vs=...) gets its own title, description and og tags,
 //                   worded by src/lib/shareWords.ts (pure) plus
 //                   dist/share/meta.json, published by the prerender.
-//   /game/<date>/<teams>/, /games/<season>/..., /breakers/<season>/...
+//   /games/<season>/..., /breakers/<season>/...
 //                   an address the origin has no file for (a past season's
-//                   game or streak-breakers; a past season's schedule is
+//                   streak-breakers; a past season's schedule is
 //                   prerendered, so that branch is a fallback) is answered
 //                   with the app shell (dist/404.html) as a 200 and its own
-//                   head, JSON-LD and, for a game or a season's
-//                   streak-breakers, card from the season file
-//                   (dist/games/<season>.json); a prerendered page passes
-//                   through with its card. A named definition's page
+//                   head, JSON-LD and, for a season's streak-breakers, card
+//                   from the season file (dist/games/<season>.json); a
+//                   prerendered page passes through with its card.
+//   /game/<date>/<teams>/
+//                   a running-season game is prerendered and passes through
+//                   with its card. An older game has no file and no head
+//                   here: the origin's 404 (the app shell, which still opens
+//                   the game in a browser) passes through untouched. Wording
+//                   one took the whole model, 300-800 ms of CPU on a cold
+//                   isolate, and crawlers asked for tens of thousands a day
+//                   that nobody read (Drew, 2026-11-20). A named definition's page
 //                   (/longest-home-win-streaks/, landing.ts) is prerendered;
 //                   a panel open on one (?t=) is worded from its definition.
 //   /share/og.png   the definition's board drawn on demand (card.ts): the
@@ -26,7 +33,7 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, defWords, decodeRefs, gameFromShare, gameText, rowWords, teamName, pastWeekText, isTriviaBoard, streaksWord } from '../../src/lib/shareWords.ts';
+import { shareText, defWords, decodeRefs, gameFromShare, rowWords, teamName, pastWeekText, isTriviaBoard, streaksWord } from '../../src/lib/shareWords.ts';
 import { landingFromPath } from '../../src/lib/landing.ts';
 import { asFromPath } from '../../src/lib/asTeam.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
@@ -656,15 +663,14 @@ export default {
     let res = await fetch(new Request(`${ORIGIN}${url.pathname}${url.search}`, request));
     try {
       if (request.method !== 'GET') return res;
-      // a game or a past season's schedule the build didn't prerender: the
-      // shell, as a 200, and for a game its own head and card
+      // a game the build didn't prerender (any before the running season): the origin's 404, as it came
+      if (res.status === 404 && /\/game\//.test(url.pathname)) return res;
       const meta = await loadMeta();
-      const game = gameFromShare(url.pathname, meta);
       // a past season's schedule the prerender didn't write (every season since 1936 has pages; this is the fallback)
       const pastSeason = /\/games\/(\d{4})(?:\/week\/(\d{1,2}))?\/?$/.exec(url.pathname);
       // a past season's streak-breakers (/breakers/<season>/, /breakers/<season>/<id>/), or the page's first address (/stoppers/)
       const bk = /\/(breakers|stoppers)(?:\/(\d{4}))?(?:\/([a-z0-9-]+))?\/?$/.exec(url.pathname);
-      if (res.status === 404 && (game || pastSeason || bk)) {
+      if (res.status === 404 && (pastSeason || bk)) {
         await res.body?.cancel();
         const shell = await fetch(`${ORIGIN}${BASE}/404.html?d=${dayKey()}`, edge(3600));
         if (!shell.ok) { await shell.body?.cancel(); return new Response('not found', { status: 404 }); }
@@ -672,16 +678,12 @@ export default {
         report(env, ctx, request, 'share unfurl', urlProps(url));
         const bkSe = bk ? (bk[2] ? Number(bk[2]) : (await loadModel()).P.currentSeason) : null;
         const bkId = bk?.[3] ?? null;
-        const text = game
-          ? gameText(game, meta, gameScore(game, await loadModel()), await gameRows(game.key, game.date))
-          : bk
-            ? await pastBreakersText(bkSe!, bkId, meta)
-            : pastWeekText(Number(pastSeason![1]), pastSeason![2] ? Number(pastSeason![2]) : null, meta);
-        const img = game
-          ? `${ORIGIN}${BASE}/share/og.png?game=${encodeURIComponent(game.key)}`
-          : bk
-            ? `${ORIGIN}${BASE}/share/og.png?${bkId ? `breaker=${bkId}&season=${bkSe}` : `breakers=${bkSe}`}`
-            : `${ORIGIN}${BASE}/og.png`;
+        const text = bk
+          ? await pastBreakersText(bkSe!, bkId, meta)
+          : pastWeekText(Number(pastSeason![1]), pastSeason![2] ? Number(pastSeason![2]) : null, meta);
+        const img = bk
+          ? `${ORIGIN}${BASE}/share/og.png?${bkId ? `breaker=${bkId}&season=${bkSe}` : `breakers=${bkSe}`}`
+          : `${ORIGIN}${BASE}/og.png`;
         const pageUrl = `${ORIGIN}${url.pathname}`;
         // the shell's JSON-LD describes the root; this page's describes itself
         const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebPage', '@id': pageUrl, url: pageUrl, name: text.title, description: text.description, isPartOf: { '@type': 'WebSite', url: `${ORIGIN}/`, name: 'drewhoover.com' } });

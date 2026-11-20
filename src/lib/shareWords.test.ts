@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { defWords, shareText, rowWords, gameFromShare, gameText, pastWeekText } from './shareWords.ts';
+import { defWords, shareText, rowWords, gameFromShare, pastWeekText } from './shareWords.ts';
 import type { ShareMeta } from './shareWords.ts';
 import { P, teams } from './model.ts';
 import { DEFAULT_CHIPS, PARAMS, chipWord } from './definition.ts';
@@ -108,16 +108,13 @@ describe('shareWords: landings and never-major opponents', () => {
     expect(l.title).toBe('Kansas — Longest active losing streaks · College Football Streak King');
   });
 
-  test('a game against a never-major opponent still names both sides, from the others table', () => {
+  test('a game address against a never-major opponent parses, from the others table', () => {
     const other = teams.find((t) => !t.major)!;
     const withOthers: ShareMeta = { ...meta, others: { [other.id]: other.name } };
     const path = `${BASE}game/2026-09-05/${other.id}-at-alabama/`;
     expect(gameFromShare(path, meta)).toBeNull();
     const g = gameFromShare(path, withOthers)!;
     expect(g).toMatchObject({ away: other.id, home: 'alabama', neutral: false, date: '2026-09-05' });
-    const text = gameText(g, withOthers, { home: 42, away: 7 }, []);
-    expect(text.title).toBe(`Alabama 42, ${other.name} 7 (Sep 5, 2026) · College Football Streak King`);
-    expect(gameText(g, withOthers, null, []).title).toBe(`${other.name} at Alabama, Sep 5, 2026: streaks on the line · College Football Streak King`);
     // a placeholder id carries a colon
     expect(gameFromShare(`${BASE}game/2026-08-29/x:sacramentostate-at-eastern-michigan/`, { ...meta, others: { 'x:sacramentostate': 'Sacramento State' } })).toMatchObject({ away: 'x:sacramentostate', home: 'eastern-michigan' });
   });

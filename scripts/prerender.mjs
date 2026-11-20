@@ -455,8 +455,8 @@ console.log(`prerendered ${weekUrls.length} week pages under dist/games/week/`)
 
 // --- one page per game of the running season: what it ended and who it made
 // a leader, or what it puts on the line; with its own head. Older games
-// have no file: the share worker answers their addresses with the app
-// shell (dist/404.html, below) and the game's head ---
+// have no file: GitHub Pages answers their addresses with the app shell
+// (dist/404.html, below) as a 404, and the share worker lets that through ---
 const gameUrls = []
 {
   const PAST_ENDED = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed' }
@@ -515,9 +515,10 @@ const gameUrls = []
 }
 
 // --- the app shell for an address with no file (an older game's page, a
-// past season's schedule): GitHub Pages serves 404.html for it and the app
-// boots on the address; the share worker turns that into a 200 with the
-// page's own head ---
+// past season's streak-breakers): GitHub Pages serves 404.html for it and the
+// app boots on the address; the share worker turns a past season's
+// streak-breakers into a 200 with the page's own head, and leaves an older
+// game's 404 as it is ---
 {
   const { html } = page({
     shell: true,

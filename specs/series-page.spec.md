@@ -71,6 +71,10 @@ The section is "Games 98". It replaces both "Every game" and the ledger under it
 2026-11-10). The grid is the list: a mark shows its game on hover and opens the game's
 page on a click.
 
+Only a running-season game's mark opens its page (Drew, 2026-11-20). An older meeting's mark
+shows its game in the line and isn't a link: older games have no prerendered page, and
+crawlers followed these links to 36,000 of them (`cfb-streak-king.spec.md`, the game page).
+
 This is the exception to the board's squares. Each game is the winner's one-color mark
 (`public/logos/<espn>.png`) drawn in cream on the page, with no square behind it. A tie is
 a dashed empty square. There's no legend line.

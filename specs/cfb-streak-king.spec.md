@@ -491,10 +491,13 @@ keep theirs.
 
 The build prerenders a page per current-season game (about 900 a season), with its own head
 and `share/og.png?game=<date>/<away>-at-<home>` as the image. Older games have no file:
-the share worker answers a `/game/` path the origin 404s with the app shell, status 200, and
-the game's own title, description and canonical read from the season file, and `public/404.html`
-boots the app for anyone reaching the origin without the worker. A crawler that runs no JS gets
-an old game's head and no rows; current-season pages are the ones that get shared.
+GitHub Pages answers a `/game/` path it lacks with `public/404.html`, which boots the app on
+the address, and the share worker passes that 404 through untouched. Until 2026-11-20 the
+worker answered it as a 200 with the game's own head read from the season file. That took
+the whole model, 300–800 ms of CPU on a cold isolate, and crawlers following the series
+pages' links asked for tens of thousands a day (17.8M CPU ms on 2026-11-19), for pages with
+11 real views and no search impressions in eight weeks. So no prerendered page links to an
+older game, and the worker words none (Drew, 2026-11-20).
 
 ### The page
 

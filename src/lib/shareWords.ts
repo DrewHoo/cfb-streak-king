@@ -132,7 +132,6 @@ export function gameFromShare(pathname: string, meta: ShareMeta): { date: string
   return null;
 }
 
-const PAST = { W: 'had won', L: 'had lost', C: 'had covered', N: 'had missed', U: 'was undefeated in' } as Record<string, string>;
 const marginOfDir = (dir: string) => { const by = Number(dir.slice(1)); return by ? ` by ${by}+ points` : ''; };
 /** One row of a season file's game: the fields the words need. */
 export interface GameRowWords { team: string; chips: string; dir: string; len: number; unsure: boolean; rank: number; tied?: number; field: number; since: number; leader?: boolean; everLen?: number; everN?: number }
@@ -143,26 +142,6 @@ export function rowWords(r: GameRowWords, meta: ShareMeta): string {
   return `${r.len}${r.unsure ? '†' : ''} straight${marginOfDir(r.dir)}${w.length ? ` ${w.join(' · ')}` : ''}`;
 }
 
-/**
- * Title and description for a game's page, from the season file's rows for
- * it: the score when played, the top runs it ended and the leaders it made.
- */
-export function gameText(g: NonNullable<ReturnType<typeof gameFromShare>>, meta: ShareMeta, score: { home: number; away: number } | null, rows: GameRowWords[]): ShareText {
-  const away = teamName(meta, g.away) ?? g.away, home = teamName(meta, g.home) ?? g.home;
-  const at = g.neutral ? 'vs' : 'at';
-  const when = longDate(g.date);
-  const title = score
-    ? `${score.home > score.away ? `${home} ${score.home}, ${away} ${score.away}` : `${away} ${score.away}, ${home} ${score.home}`} (${when}) · ${meta.site}`
-    : `${away} ${at} ${home}, ${when}: streaks on the line · ${meta.site}`;
-  const words = (r: GameRowWords) => rowWords(r, meta);
-  const ended = rows.filter((r) => !r.leader).slice(0, 3).map((r) => `${teamName(meta, r.team) ?? r.team} ${PAST[r.dir[0]] ?? 'had won'} ${words(r)}`);
-  const led = rows.filter((r) => r.leader).slice(0, 2).map((r) => `${teamName(meta, r.team) ?? r.team} now leads: ${words(r)}`);
-  const parts = [...ended, ...led];
-  const description = score
-    ? (parts.length ? `${parts.join('. ')}. Every streak this college football game ended, and every field it handed a new leader.` : `${away} ${at} ${home}, ${when}: no streak that led its field ended in this college football game.`)
-    : `Every streak on the line when ${away} play ${at} ${home}, ${when}.`;
-  return { title, description };
-}
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** "Oct 28, 2023" from "2023-10-28". */
