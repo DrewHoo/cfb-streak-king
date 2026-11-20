@@ -4,7 +4,7 @@
 // receipt). A team with no game that week skips that release; a release in
 // the offseason (Grand Theft Auto IV, April 2008) has no games at all.
 
-import releases from '../../data/ref/gta-releases.json';
+import releases from '../../data/ref/gta-releases.json' with { type: 'json' }; // the attribute: indexnow.mjs loads this under plain Node
 
 export const GTA_WEEK_DAYS = 7;
 /** Each mainline release, its title and first day as an epoch day, oldest first. */
