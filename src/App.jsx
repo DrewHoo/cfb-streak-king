@@ -27,6 +27,7 @@ import { useShare } from './hooks/useShare.ts';
 import { Dateline } from './components/Dateline.jsx';
 import { Sentence } from './components/Sentence.jsx';
 import { BaseRate } from './components/BaseRate.jsx';
+import { GtaMethod } from './components/GtaMethod.jsx';
 import { Grid } from './components/Grid.jsx';
 import { TeamPanel } from './components/TeamPanel.jsx';
 import { TeamPage } from './components/TeamPage.jsx';
@@ -414,6 +415,7 @@ export default function App({ initial } = {}) {
             isMobile={isMobile} addOpen={addOpen} setAddOpen={setAddOpen} on={on}
           />
           <BaseRate active={active} dir={dir} as={as} />
+          {as == null && active.some((a) => a.key === 'gta') && <GtaMethod />}
 
           <Grid
             rows={shown} curTeam={team} openKey={teamRow ? rowKey(teamRow) : null} onPick={pickRow} onGame={(ti, g) => openGame(ti, g, 'column')} onClose={() => close({ type: 'close' })} edgeFor={edgeFor} isMobile={isMobile}

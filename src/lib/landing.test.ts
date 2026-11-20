@@ -61,6 +61,14 @@ describe('landing', () => {
     }
   });
 
+  test('a definition that starts later than 1936 says so', () => {
+    const l = landingBySlug.get('longest-gta-release-week-losing-streaks-ever')!;
+    expect(l.since).toBe(1997);
+    expect(l.description).toMatch(/since 1997/);
+    expect(leadSentence(l, [{ name: 'Duke', len: 5, unsure: false, live: true, startEp: Date.parse('1999-10-23') / 86400000 }])).toMatch(/since 1997/);
+    expect(landingBySlug.get('longest-home-win-streaks')!.since).toBe(1936);
+  });
+
   test('a definition with a chip choice (a month) has a page, found by its spelling', () => {
     expect(landingFor('month:10', 'W', 'active')?.slug).toBe('longest-win-streaks-in-october');
     expect(landingFor('all', 'C', 'active')?.slug).toBe('longest-active-cover-streaks');

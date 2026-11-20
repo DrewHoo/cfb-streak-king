@@ -88,6 +88,7 @@ export const SLOTS: Record<string, SlotRow> = {
   fullmoon: ['kind', 'werewolf'],
   weekend: ['when', 'on weekends'],
   weekday: ['when', 'on weekdays'],
+  gta: ['when', 'in GTA release weeks'],
   overtime: ['kind', 'overtime'],
   shootout: ['noun', 'shootouts', 'in shootouts'],
   struggle: ['noun', 'rock fights', 'in rock fights'],

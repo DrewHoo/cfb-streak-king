@@ -121,7 +121,7 @@ export type Knobs = typeof LIST;
 const TIERS: Record<Tier, string[]> = {
   brag: ['home', 'road', 'confgame', 'ranked', 'top10', 'top5', 'rivalry', 'postseason', 'night', 'dog', 'dog7', 'dog14', 'afterloss', 'vsteam', 'vsconf'],
   plain: ['unranked', 'whileranked', 'whileunranked', 'nonconf', 'power', 'member', 'instate', 'neutral', 'away', 'fav', 'close', 'curcoach', 'newcoach', 'opener', 'finale', 'leadhalf', 'trailhalf'],
-  trivia: ['fullmoon', 'weekday', 'weekend', 'vsnewcoach', 'afterbye', 'afterwin', 'vscolor', 'vsmascot', 'month', 'state'],
+  trivia: ['fullmoon', 'gta', 'weekday', 'weekend', 'vsnewcoach', 'afterbye', 'afterwin', 'vscolor', 'vsmascot', 'month', 'state'],
   ingame: ['wonpos', 'lostpos', 'onescore', 'shootout', 'struggle', 'overtime'],
 };
 const tierByKey = new Map<string, Tier>();

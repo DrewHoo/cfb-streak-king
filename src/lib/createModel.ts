@@ -8,6 +8,7 @@ import { FLAG, NO_LINE, RANK_UNKNOWN, UNKNOWN } from './schema.ts';
 import { chipByKey, qualifies, qualifiesPregame } from './chips.ts';
 import { activeRun, runsOf, decided, matches, againstSpread } from './streaks.ts';
 import { underFullMoon } from './moon.ts';
+import { inGtaWeek } from './gta.ts';
 import { daggerFor } from './dagger.ts';
 import { isPowerConf, isPowerOpp } from './power.ts';
 
@@ -117,6 +118,7 @@ export function createModel(P: Payload) {
       month: monthOf(cols.ep[i]),
       wday: ((cols.ep[i] % 7) + 11) % 7, // 1970-01-01 was a Thursday
       moon: underFullMoon(cols.ep[i]),
+      gta: inGtaWeek(cols.ep[i]),
       oppConf,
       ownConf: confOf(ti, se),
       oppPower: isPowerOpp(teams[oppIdx]?.id, oppConf, se),
@@ -408,20 +410,24 @@ export function createModel(P: Payload) {
    * Where a streak that reaches the start of a team's list actually stops:
    * the latest data floor among the definition's chips (kickoff times from
    * 2002, say) or the outcome's (a spread streak needs lines, from 1978),
-   * else the team's first FBS season, else the first season in the data.
-   * `what` names the missing data; `joined` says it's the team's FBS entry.
+   * or the first season a chip's condition can hold at all (the first GTA,
+   * 1997), else the team's first FBS season, else the first season in the
+   * data. `what` names the missing data; `joined` says it's the team's FBS
+   * entry; `begins` says nothing earlier could qualify.
    */
   function edgeFor(active: ChipRef[], dir: Dir = 'W') {
     let floor = firstSeason;
     let what: string | null = null;
+    let begins = false;
     if (againstSpread(dir) && LINES_FROM > floor) { floor = LINES_FROM; what = 'closing-line'; }
     for (const a of active) {
-      const f = chipByKey.get(a.key)?.floor;
-      if (f && f.season > floor) { floor = f.season; what = f.what; }
+      const c = chipByKey.get(a.key);
+      if (c?.floor && c.floor.season > floor) { floor = c.floor.season; what = c.floor.what; begins = false; }
+      if (c?.begins != null && c.begins > floor) { floor = c.begins; what = null; begins = true; }
     }
     return (ti: number) => {
       const joined = windowStartOf(ti);
-      return joined > floor ? { year: joined, word: null, joined: true } : { year: floor, word: what, joined: false };
+      return joined > floor ? { year: joined, word: null, joined: true, begins: false } : { year: floor, word: what, joined: false, begins };
     };
   }
 

@@ -1,0 +1,93 @@
+{
+ "about": "The mainline Grand Theft Auto games and the day each first came out anywhere, for the 'in a GTA release week' chip (src/lib/gta.ts). Mainline means the numbered games and the two 3D-era games between them (Vice City, San Andreas); expansions, handheld spin-offs, ports and remasters don't count. Every date but the first is also the North American date; Grand Theft Auto reached North America on 24 March 1998.",
+ "rows": [
+  {
+   "game": "Grand Theft Auto",
+   "date": "1997-11-28",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto_(video_game)",
+     "quote": "The MS-DOS and Windows versions were published in Europe by BMG Interactive on 28 November 1997",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto 2",
+   "date": "1999-10-22",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto_2",
+     "quote": "Grand Theft Auto 2 was released for the PlayStation and Windows on 22 October 1999",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto III",
+   "date": "2001-10-23",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto_III",
+     "quote": "The game was released for the PlayStation 2 on 23 October 2001 in North America",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto: Vice City",
+   "date": "2002-10-29",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto:_Vice_City",
+     "quote": "Release 29 October 2002 PlayStation 2 NA: 29 October 2002",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto: San Andreas",
+   "date": "2004-10-26",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto:_San_Andreas",
+     "quote": "Release 26 October 2004 PlayStation 2 NA: 26 October 2004",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto IV",
+   "date": "2008-04-29",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto_IV",
+     "quote": "Release PlayStation 3, Xbox 360 WW: 29 April 2008",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto V",
+   "date": "2013-09-17",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto_V",
+     "quote": "Release 17 September 2013 PS3, Xbox 360 17 September 2013",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  },
+  {
+   "game": "Grand Theft Auto VI",
+   "date": "2026-11-19",
+   "receipts": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Grand_Theft_Auto_VI",
+     "quote": "released on 19 November 2026 for the PlayStation 5 and Xbox Series X/S",
+     "retrieved": "2026-11-19"
+    }
+   ]
+  }
+ ]
+}

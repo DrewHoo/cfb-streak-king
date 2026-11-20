@@ -761,7 +761,7 @@ const llmsBoards = [] // each page's h1, address and lead sentence, for llms.txt
     const board = v.scope === 'all' ? allTimeBoard(v.active, v.dir, todayEp) : activeBoard(v.active, v.dir, todayEp)
     const rows = board.slice(0, 10)
     const url = `${SITE}${l.slug}/`
-    const title = `${l.title} (${l.scope === 'all' ? 'since 1936' : SEASON}) · ${config.title}`
+    const title = `${l.title} (${l.scope === 'all' ? `since ${l.since}` : SEASON}) · ${config.title}`
     const lead = leadSentence(l, leadRows(board, (ti) => teams[ti].name))
     const description = `${lead ? `${lead} ` : ''}${l.description}`
     const img = new URLSearchParams({ c: l.c })

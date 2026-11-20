@@ -97,6 +97,8 @@ export interface GameContext {
   wday: number;
   /** The moon is full within a day of the game's evening (moon.ts). */
   moon: boolean;
+  /** Played in the seven days from a mainline GTA game's release (gta.ts). */
+  gta: boolean;
   /** The opponent's conference that season. */
   oppConf: string | null;
   /** The team's own conference that season ("Independent" for an independent; the conference chips can't read such a game). */

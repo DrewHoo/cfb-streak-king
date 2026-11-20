@@ -27,7 +27,7 @@ export const GROUP_NOTES: Record<string, string> = {
   half: 'Halftime scores are known from 2001 and solid from 2003. Earlier games can’t qualify.',
   possession: 'Time of possession is known from 2004. Earlier games can’t qualify.',
   kickoff: 'Kickoff times are known from 2002 and solid from 2014. Earlier games can’t qualify as night games.',
-  almanac: 'Weekend and weekday go by the game’s date. A full-moon game is played within a day of the moment the moon is full, counted from 8pm Eastern on game day, with full moons worked out to the minute by Meeus’s lunar-phase method.',
+  almanac: 'Weekend and weekday go by the game’s date. A full-moon game is played within a day of the moment the moon is full, counted from 8pm Eastern on game day, with full moons worked out to the minute by Meeus’s lunar-phase method. A GTA release week is the seven days starting on the day a mainline Grand Theft Auto first came out, from November 1997 to GTA VI on November 19, 2026.',
   shape: 'Overtime comes from quarter-by-quarter line scores, known from 2001 and solid from 2002. FBS overtime began in 1996, but no source here marks 1996–2000 overtime games, so they can’t qualify.',
 };
 

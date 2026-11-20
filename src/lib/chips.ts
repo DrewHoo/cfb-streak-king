@@ -32,6 +32,7 @@
 
 import type { Dir, GameContext, GameRow } from './types.ts';
 import { marginOf } from './outcome.ts';
+import { GTA_BEGINS } from './gta.ts';
 
 export type ParamKind = 'state' | 'conf' | 'team' | 'month' | 'hmargin' | 'mascot' | 'color';
 export type Param = string | number | undefined;
@@ -137,6 +138,8 @@ export const CHIPS: Chip[] = [
   pre({ key: 'weekend', label: 'on a weekend', group: 'almanac', exclusive: true, test: (x) => x.wday === 0 || x.wday === 6 }),
   pre({ key: 'weekday', label: 'on a weekday', group: 'almanac', exclusive: true, test: (x) => x.wday >= 1 && x.wday <= 5 }),
   pre({ key: 'fullmoon', label: 'under a full moon', group: 'almanac', test: (x) => x.moon }),
+  // the seven days from a mainline GTA release's first day (gta.ts)
+  pre({ key: 'gta', label: 'in a GTA release week', group: 'almanac', begins: GTA_BEGINS, test: (x) => x.gta }),
   pre({ key: 'night', label: 'night game (6pm+)', group: 'kickoff', known: (x) => x.hh !== 31, test: (x) => x.hh >= 18, floor: { season: 2002, what: 'kickoff-time' }, missing: { test: (g) => g.hh === 31, what: 'kickoff time' } }),
 ];
 

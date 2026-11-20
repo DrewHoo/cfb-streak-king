@@ -116,7 +116,9 @@ function Ledger({ row, edge, cover, onGame }) {
           <div className="log-note">
             {edge.word
               ? `earliest ${edge.word} data is ${edge.year}; no earlier game is known to qualify`
-              : edge.joined
+              : edge.begins
+                ? `no game before ${edge.year} can qualify`
+                : edge.joined
                 ? `${teams[row.ti].name} ${edge.year < 1978 ? 'became a major-college program' : 'joined FBS'} in ${edge.year}; every qualifying game since is in this streak, and its lower-division years don't count`
                 : `no earlier game in the data (${firstSeason} on) is known to qualify`}
           </div>

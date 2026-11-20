@@ -14,7 +14,7 @@ import type { Dir } from './types.ts';
  * The trivia chips, by catalog key: a derived chip ("vscolor:red", "leadhalf:1") goes by its own.
  * This list, not list.ts's tiers, decides trivia: the tiers are prices the miner's keep floor reads, so retiering a chip re-mines.
  */
-export const TRIVIA_CHIPS = ['fullmoon', 'weekday', 'weekend', 'vscolor', 'vsnewcoach', 'state', 'afterwin', 'leadhalf', 'trailhalf', 'wonpos', 'lostpos'];
+export const TRIVIA_CHIPS = ['fullmoon', 'gta', 'weekday', 'weekend', 'vscolor', 'vsnewcoach', 'state', 'afterwin', 'leadhalf', 'trailhalf', 'wonpos', 'lostpos'];
 /** The most conditions a simple streak has. */
 export const MAX_SIMPLE = 2;
 

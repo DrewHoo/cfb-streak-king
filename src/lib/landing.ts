@@ -11,6 +11,7 @@
 // appear here (landing.test pins it).
 
 import type { BoardRow, Dir, Scope } from './types.ts';
+import { GTA_BEGINS } from './gta.ts';
 
 export interface Landing {
   slug: string;
@@ -26,19 +27,23 @@ export interface Landing {
   what: string;
   /** The meta description, and the line under the h1. */
   description: string;
+  /** The first season the definition can count a game (1936 for most). */
+  since: number;
 }
 
 const FIRST = 1936;
 
-// what (the noun phrase: "home win streaks"), the data note a floor adds, and
+// what (the noun phrase: "home win streaks"), the data note a floor adds,
 // a <title> of its own where the searcher's words differ from the page's
-// ("cover streaks" on the page, "ATS" in the search box)
-type Row = [slug: string, c: string, dir: Dir, scope: Scope, what: string, note?: string, title?: string];
+// ("cover streaks" on the page, "ATS" in the search box), and the first
+// season it can count, where that's later than 1936
+type Row = [slug: string, c: string, dir: Dir, scope: Scope, what: string, note?: string, title?: string, since?: number];
 const LINES = 'Closing lines are known from 1978.';
 const COVER = `A cover is a win against the spread (ATS): the team beat the closing line. ${LINES}`;
 const NOCOVER = `ATS is against the spread: a loss here is a game the team didn't cover. ${LINES}`;
 const NIGHT = 'Kickoff times are known from 2002.';
 const BY10 = 'Every game in the run was won by 10 points or more.';
+const GTA = 'A release week is the seven days starting on the day a mainline Grand Theft Auto came out, eight so far, from 1997 to GTA VI on November 19, 2026. A team that didn’t play that week skips it.';
 const ANIMAL = 'An animal mascot is a creature: Bulldogs, Tigers, Gators, Eagles; not Volunteers, Rebels or Sun Devils.';
 const ROWS: Row[] = [
   // active
@@ -70,6 +75,8 @@ const ROWS: Row[] = [
   ['longest-win-streaks-in-october', 'month:10', 'W', 'active', 'October win streaks'],
   ['longest-win-streaks-in-november', 'month:11', 'W', 'active', 'November win streaks'],
   ['longest-win-streaks-vs-animal-mascots', 'vsmascot:animal', 'W', 'active', 'win streaks vs animal mascots', ANIMAL],
+  ['longest-gta-release-week-win-streaks', 'gta', 'W', 'active', 'GTA release-week win streaks', GTA, undefined, GTA_BEGINS],
+  ['longest-gta-release-week-losing-streaks', 'gta', 'L', 'active', 'GTA release-week losing streaks', GTA, undefined, GTA_BEGINS],
   // all-time: one for every active page, in the same order
   ['longest-win-streaks-in-college-football-history', 'all', 'W', 'all', 'win streaks'],
   ['longest-losing-streaks-in-college-football-history', 'all', 'L', 'all', 'losing streaks'],
@@ -98,15 +105,17 @@ const ROWS: Row[] = [
   ['longest-win-streaks-in-october-ever', 'month:10', 'W', 'all', 'October win streaks'],
   ['longest-win-streaks-in-november-ever', 'month:11', 'W', 'all', 'November win streaks'],
   ['longest-win-streaks-vs-animal-mascots-ever', 'vsmascot:animal', 'W', 'all', 'win streaks vs animal mascots', ANIMAL],
+  ['longest-gta-release-week-win-streaks-ever', 'gta', 'W', 'all', 'GTA release-week win streaks', GTA, undefined, GTA_BEGINS],
+  ['longest-gta-release-week-losing-streaks-ever', 'gta', 'L', 'all', 'GTA release-week losing streaks', GTA, undefined, GTA_BEGINS],
 ];
 
-export const LANDINGS: Landing[] = ROWS.map(([slug, c, dir, scope, what, note, title]) => ({
-  slug, c, dir, scope, what,
+export const LANDINGS: Landing[] = ROWS.map(([slug, c, dir, scope, what, note, title, since = FIRST]) => ({
+  slug, c, dir, scope, what, since,
   h1: scope === 'active' ? `Longest active ${what} in college football` : `Longest ${what} in college football history`,
   title: title ?? (scope === 'active' ? `Current longest ${winning(what)} in college football` : `Longest ${winning(what)} in college football history`),
   description: scope === 'active'
-    ? `Every FBS team's longest active ${singular(what)}, ranked, with the next game that puts it on the line. Updated weekly in season, from every game since ${FIRST}.${note ? ` ${note}` : ''}`
-    : `The longest ${what} in college football since ${FIRST}: every FBS team's best run, ranked, with every game in it.${note ? ` ${note}` : ''}`,
+    ? `Every FBS team's longest active ${singular(what)}, ranked, with the next game that puts it on the line. Updated weekly in season, from every game since ${since}.${note ? ` ${note}` : ''}`
+    : `The longest ${what} in college football since ${since}: every FBS team's best run, ranked, with every game in it.${note ? ` ${note}` : ''}`,
 }));
 
 function singular(what: string): string {
@@ -173,9 +182,9 @@ export function leadSentence(l: Landing, rows: LeadRow[]): string {
       : top.startEp != null && top.endEp != null
         ? `, ${yearOf(top.startEp)}${yearOf(top.endEp) === yearOf(top.startEp) ? '' : `–${yearOf(top.endEp)}`}`
         : '';
-    first = `${top.name} holds the longest ${thing} of any FBS team since ${FIRST}: ${games(top)}${span}.`;
+    first = `${top.name} holds the longest ${thing} of any FBS team since ${l.since}: ${games(top)}${span}.`;
   } else {
-    first = `${names(leaders)} share the longest ${thing} of any FBS team since ${FIRST}: ${games(top)}.`;
+    first = `${names(leaders)} share the longest ${thing} of any FBS team since ${l.since}: ${games(top)}.`;
   }
   const then = rows.slice(tied.length, tied.length + 2).map((r) => `${r.name} at ${r.len}${r.unsure ? '†' : ''}`);
   return then.length ? `${first} Then ${then.join(' and ')}.` : first;
