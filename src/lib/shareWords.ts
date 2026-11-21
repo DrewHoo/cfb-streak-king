@@ -80,8 +80,6 @@ export function isTriviaBoard(c: string | null, dir: Dir): boolean {
   const chips = c.split(',').slice(0, 4).map((part) => part.split(':')[0]).filter((k) => chipByKey.has(k));
   return isTrivia({ chips, dir });
 }
-/** "winning streaks", or "winning trivia streaks" for a trivia definition. */
-export const streaksWord = (dirWords: string, trivia: boolean) => `${dirWords} ${trivia ? 'trivia ' : ''}streaks`;
 
 /** The payload tables decodeRefs resolves choices against. */
 export interface RefTables {
@@ -231,9 +229,9 @@ export function shareText(pathname: string, q: URLSearchParams, meta: ShareMeta)
   const t = q.get('t');
   const who = t && meta.teams[t] ? `${meta.teams[t]} — ` : '';
   const tail = words.length ? ` · ${words.join(' · ')}` : '';
-  const trivia = isTriviaBoard(q.get('c'), parseDir(q.get('dir')) ?? 'W');
+  // no "trivia" in an unfurl, title or card (Drew, 2026-11-21): the conditions say what's odd about it
   return {
-    title: `${who}Longest ${SCOPE(q)} ${streaksWord(DIR(q), trivia)}${tail} · ${meta.site}`,
-    description: `Every current FBS team’s longest ${SCOPE(q)} ${DIR(q)} ${trivia ? 'trivia ' : ''}streak${words.length ? ` ${words.join(', ')}` : ''}, ranked since 1936. Open a column for every game in the run.`,
+    title: `${who}Longest ${SCOPE(q)} ${DIR(q)} streaks${tail} · ${meta.site}`,
+    description: `Every current FBS team’s longest ${SCOPE(q)} ${DIR(q)} streak${words.length ? ` ${words.join(', ')}` : ''}, ranked since 1936. Open a column for every game in the run.`,
   };
 }

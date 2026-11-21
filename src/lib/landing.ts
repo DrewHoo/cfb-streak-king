@@ -29,7 +29,18 @@ export interface Landing {
   description: string;
   /** The first season the definition can count a game (1936 for most). */
   since: number;
+  /** The lead sentence's own words, where a page has them; its description is then the note alone. */
+  lead?: LeadWords;
 }
+
+/**
+ * A lead sentence worded for one page: the streak as a phrase that ends the
+ * clause ("losing streak in a GTA release-week") and what a game in it is
+ * ("loss", "losses"). Drew's, 2026-11-21, for the GTA pages, whose lead read
+ * "the longest active GTA release-week losing streak in FBS: 6 games" ahead of
+ * three more sentences.
+ */
+export interface LeadWords { thing: string; game: [one: string, many: string] }
 
 const FIRST = 1936;
 
@@ -37,13 +48,15 @@ const FIRST = 1936;
 // a <title> of its own where the searcher's words differ from the page's
 // ("cover streaks" on the page, "ATS" in the search box), and the first
 // season it can count, where that's later than 1936
-type Row = [slug: string, c: string, dir: Dir, scope: Scope, what: string, note?: string, title?: string, since?: number];
+type Row = [slug: string, c: string, dir: Dir, scope: Scope, what: string, note?: string, title?: string, since?: number, lead?: LeadWords];
 const LINES = 'Closing lines are known from 1978.';
 const COVER = `A cover is a win against the spread (ATS): the team beat the closing line. ${LINES}`;
 const NOCOVER = `ATS is against the spread: a loss here is a game the team didn't cover. ${LINES}`;
 const NIGHT = 'Kickoff times are known from 2002.';
 const BY10 = 'Every game in the run was won by 10 points or more.';
-const GTA = 'A release week is the seven days starting on the day a mainline Grand Theft Auto came out, eight so far, from 1997 to GTA VI on November 19, 2026. A team that didn’t play that week skips it.';
+const GTA = 'Games only count if played in the seven days following a mainline Grand Theft Auto release.';
+const GTA_WINS: LeadWords = { thing: 'win streak in a GTA release-week', game: ['win', 'wins'] };
+const GTA_LOSSES: LeadWords = { thing: 'losing streak in a GTA release-week', game: ['loss', 'losses'] };
 const ANIMAL = 'An animal mascot is a creature: Bulldogs, Tigers, Gators, Eagles; not Volunteers, Rebels or Sun Devils.';
 const ROWS: Row[] = [
   // active
@@ -75,8 +88,8 @@ const ROWS: Row[] = [
   ['longest-win-streaks-in-october', 'month:10', 'W', 'active', 'October win streaks'],
   ['longest-win-streaks-in-november', 'month:11', 'W', 'active', 'November win streaks'],
   ['longest-win-streaks-vs-animal-mascots', 'vsmascot:animal', 'W', 'active', 'win streaks vs animal mascots', ANIMAL],
-  ['longest-gta-release-week-win-streaks', 'gta', 'W', 'active', 'GTA release-week win streaks', GTA, undefined, GTA_BEGINS],
-  ['longest-gta-release-week-losing-streaks', 'gta', 'L', 'active', 'GTA release-week losing streaks', GTA, undefined, GTA_BEGINS],
+  ['longest-gta-release-week-win-streaks', 'gta', 'W', 'active', 'GTA release-week win streaks', GTA, undefined, GTA_BEGINS, GTA_WINS],
+  ['longest-gta-release-week-losing-streaks', 'gta', 'L', 'active', 'GTA release-week losing streaks', GTA, undefined, GTA_BEGINS, GTA_LOSSES],
   // all-time: one for every active page, in the same order
   ['longest-win-streaks-in-college-football-history', 'all', 'W', 'all', 'win streaks'],
   ['longest-losing-streaks-in-college-football-history', 'all', 'L', 'all', 'losing streaks'],
@@ -105,15 +118,15 @@ const ROWS: Row[] = [
   ['longest-win-streaks-in-october-ever', 'month:10', 'W', 'all', 'October win streaks'],
   ['longest-win-streaks-in-november-ever', 'month:11', 'W', 'all', 'November win streaks'],
   ['longest-win-streaks-vs-animal-mascots-ever', 'vsmascot:animal', 'W', 'all', 'win streaks vs animal mascots', ANIMAL],
-  ['longest-gta-release-week-win-streaks-ever', 'gta', 'W', 'all', 'GTA release-week win streaks', GTA, undefined, GTA_BEGINS],
-  ['longest-gta-release-week-losing-streaks-ever', 'gta', 'L', 'all', 'GTA release-week losing streaks', GTA, undefined, GTA_BEGINS],
+  ['longest-gta-release-week-win-streaks-ever', 'gta', 'W', 'all', 'GTA release-week win streaks', GTA, undefined, GTA_BEGINS, GTA_WINS],
+  ['longest-gta-release-week-losing-streaks-ever', 'gta', 'L', 'all', 'GTA release-week losing streaks', GTA, undefined, GTA_BEGINS, GTA_LOSSES],
 ];
 
-export const LANDINGS: Landing[] = ROWS.map(([slug, c, dir, scope, what, note, title, since = FIRST]) => ({
-  slug, c, dir, scope, what, since,
+export const LANDINGS: Landing[] = ROWS.map(([slug, c, dir, scope, what, note, title, since = FIRST, lead]) => ({
+  slug, c, dir, scope, what, since, lead,
   h1: scope === 'active' ? `Longest active ${what} in college football` : `Longest ${what} in college football history`,
   title: title ?? (scope === 'active' ? `Current longest ${winning(what)} in college football` : `Longest ${winning(what)} in college football history`),
-  description: scope === 'active'
+  description: lead && note ? note : scope === 'active'
     ? `Every FBS team's longest active ${singular(what)}, ranked, with the next game that puts it on the line. Updated weekly in season, from every game since ${since}.${note ? ` ${note}` : ''}`
     : `The longest ${what} in college football since ${since}: every FBS team's best run, ranked, with every game in it.${note ? ` ${note}` : ''}`,
 }));
@@ -143,7 +156,7 @@ export interface LeadRow {
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const yearOf = (ep: number) => new Date(ep * 86400000).getUTCFullYear();
 const monthOf = (ep: number) => `${MONTHS[new Date(ep * 86400000).getUTCMonth()]} ${yearOf(ep)}`;
-const games = (r: LeadRow) => `${r.len}${r.unsure ? '†' : ''} ${r.len === 1 && !r.unsure ? 'game' : 'games'}`;
+const games = (r: LeadRow, [one, many]: LeadWords['game'] = ['game', 'games']) => `${r.len}${r.unsure ? '†' : ''} ${r.len === 1 && !r.unsure ? one : many}`;
 function names(ns: string[]): string {
   if (ns.length > 3) return `${ns.slice(0, 3).join(', ')} and ${ns.length - 3} more`;
   return ns.length < 3 ? ns.join(' and ') : `${ns[0]}, ${ns[1]} and ${ns[2]}`;
@@ -170,21 +183,24 @@ export function leadSentence(l: Landing, rows: LeadRow[]): string {
   const top = rows[0];
   const tied = rows.filter((r) => r.len === top.len && r.unsure === top.unsure);
   const leaders = [...new Set(tied.map((r) => r.name))];
-  const thing = singular(l.what);
+  const thing = l.lead?.thing ?? singular(l.what);
+  // a page's own phrase already says where; the rest say "in FBS"
+  const inFbs = l.lead ? '' : ' in FBS';
+  const count = games(top, l.lead?.game);
   let first: string;
   if (l.scope === 'active') {
     first = leaders.length === 1
-      ? `${top.name} has the longest active ${thing} in FBS: ${games(top)}${top.startEp != null && !top.unsure ? `, since ${monthOf(top.startEp)}` : ''}.`
-      : `${names(leaders)} share the longest active ${thing} in FBS: ${games(top)}.`;
+      ? `${top.name} has the longest active ${thing}${inFbs}: ${count}${top.startEp != null && !top.unsure ? `, since ${monthOf(top.startEp)}` : ''}.`
+      : `${names(leaders)} share the longest active ${thing}${inFbs}: ${count}.`;
   } else if (tied.length === 1) {
     const span = top.live
       ? (top.startEp != null ? `, from ${yearOf(top.startEp)} and still going` : ', still going')
       : top.startEp != null && top.endEp != null
         ? `, ${yearOf(top.startEp)}${yearOf(top.endEp) === yearOf(top.startEp) ? '' : `–${yearOf(top.endEp)}`}`
         : '';
-    first = `${top.name} holds the longest ${thing} of any FBS team since ${l.since}: ${games(top)}${span}.`;
+    first = `${top.name} holds the longest ${thing} of any FBS team since ${l.since}: ${count}${span}.`;
   } else {
-    first = `${names(leaders)} share the longest ${thing} of any FBS team since ${l.since}: ${games(top)}.`;
+    first = `${names(leaders)} share the longest ${thing} of any FBS team since ${l.since}: ${count}.`;
   }
   const then = rows.slice(tied.length, tied.length + 2).map((r) => `${r.name} at ${r.len}${r.unsure ? '†' : ''}`);
   return then.length ? `${first} Then ${then.join(' and ')}.` : first;

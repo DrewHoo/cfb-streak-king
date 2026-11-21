@@ -118,6 +118,14 @@ describe('shareWords: landings and never-major opponents', () => {
     expect(boardQuery(`${BASE}build/`, q('?c=road&dir=L')).toString()).toBe('c=road&dir=L');
   });
 
+  // Drew, 2026-11-21: "I want the OG renderer to not include the word trivia"
+  test('an unfurl of a trivia definition says its conditions, not "trivia"', () => {
+    const gta = shareText(`${BASE}longest-gta-release-week-losing-streaks/`, q('?t=duke'), meta)!;
+    expect(gta.title).toBe('Duke — Longest active losing streaks · in a GTA release week · College Football Streak King');
+    const three = shareText(`${BASE}build/`, q('?c=home,night,ranked'), meta)!;
+    expect(`${gta.title} ${gta.description} ${three.title} ${three.description}`).not.toMatch(/trivia/i);
+  });
+
   test('a game address against a never-major opponent parses, from the others table', () => {
     const other = teams.find((t) => !t.major)!;
     const withOthers: ShareMeta = { ...meta, others: { [other.id]: other.name } };

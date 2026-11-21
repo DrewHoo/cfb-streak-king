@@ -33,8 +33,8 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, boardQuery, defWords, decodeRefs, gameFromShare, rowWords, teamName, pastWeekText, isTriviaBoard, streaksWord } from '../../src/lib/shareWords.ts';
-import { landingFromPath } from '../../src/lib/landing.ts';
+import { shareText, boardQuery, defWords, decodeRefs, gameFromShare, rowWords, teamName, pastWeekText, isTriviaBoard } from '../../src/lib/shareWords.ts';
+import { landingFor, landingFromPath } from '../../src/lib/landing.ts';
 import { asFromPath } from '../../src/lib/asTeam.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
 import type { ShareMeta } from '../../src/lib/shareWords.ts';
@@ -140,7 +140,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-11-14';
+const CARD_VERSION = '2026-11-21';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -582,10 +582,15 @@ async function ogCard(q: URLSearchParams): Promise<Response> {
       next: nx ? { word: siteWord(nx), logo: await logoUri(m.teams[nx.oppIdx]?.espn), initial: m.teams[nx.oppIdx]?.name[0] ?? '?', date: monthDay(nx.ep) } : null,
     });
   }
+  // The card never says "trivia" (Drew, 2026-11-21). A trivia definition with a
+  // page of its own (the GTA pages) is headed as that page is, "Longest active
+  // GTA release-week losing streaks in college football", with no line of
+  // conditions under it: the heading has said them.
+  const c = q.get('c') ?? DEFAULT_C;
+  const named = asTi < 0 && isTriviaBoard(c, dir) ? landingFor(c, dir, scope) : null;
   const res = renderCard({
-    // a trivia definition says so (trivia.ts); a by-opponent board's opponent is its axis, not a condition
-    heading: `Longest ${scope === 'all' ? 'all-time' : 'active'} ${streaksWord(dirWord(dir), asTi < 0 && isTriviaBoard(q.get('c') ?? DEFAULT_C, dir))}${asTi >= 0 ? ` as ${m.teams[asTi].name}` : ''}`,
-    words: asTi >= 0 ? `${m.teams[asTi].name} against each opponent · ${words.length ? words.join(' · ') : 'all games'}` : words.length ? words.join(' · ') : 'all games, no conditions',
+    heading: named ? named.h1 : `Longest ${scope === 'all' ? 'all-time' : 'active'} ${dirWord(dir)} streaks${asTi >= 0 ? ` as ${m.teams[asTi].name}` : ''}`,
+    words: named ? '' : asTi >= 0 ? `${m.teams[asTi].name} against each opponent · ${words.length ? words.join(' · ') : 'all games'}` : words.length ? words.join(' · ') : 'all games, no conditions',
     logo: asTi >= 0 ? await logoUri(m.teams[asTi].espn) : null,
     rows: cardRows,
     footer: `${m.firstSeason}–${m.P.currentSeason} · ${m.P.games.se.length.toLocaleString('en-US')} games · drewhoover.com`,

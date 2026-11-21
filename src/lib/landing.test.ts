@@ -64,9 +64,29 @@ describe('landing', () => {
   test('a definition that starts later than 1936 says so', () => {
     const l = landingBySlug.get('longest-gta-release-week-losing-streaks-ever')!;
     expect(l.since).toBe(1997);
-    expect(l.description).toMatch(/since 1997/);
     expect(leadSentence(l, [{ name: 'Duke', len: 5, unsure: false, live: true, startEp: Date.parse('1999-10-23') / 86400000 }])).toMatch(/since 1997/);
     expect(landingBySlug.get('longest-home-win-streaks')!.since).toBe(1936);
+  });
+
+  // Drew, 2026-11-21: the GTA pages' lead ran four sentences and "read like slop"; these are his words
+  test("a GTA page's lead is the leader, the next two and one line on what counts", () => {
+    const ep = (d: string) => Date.parse(d) / 86400000;
+    const losing = landingBySlug.get('longest-gta-release-week-losing-streaks')!;
+    const rows = [
+      { name: 'Duke', len: 6, unsure: false, startEp: ep('1999-10-23') },
+      { name: 'San Diego State', len: 5, unsure: false },
+      { name: 'Tulane', len: 4, unsure: false },
+    ];
+    expect(`${leadSentence(losing, rows)} ${losing.description}`).toBe(
+      'Duke has the longest active losing streak in a GTA release-week: 6 losses, since October 1999. Then San Diego State at 5 and Tulane at 4. ' +
+        'Games only count if played in the seven days following a mainline Grand Theft Auto release.',
+    );
+    const winning = landingBySlug.get('longest-gta-release-week-win-streaks')!;
+    expect(leadSentence(winning, [{ name: 'Navy', len: 1, unsure: false }])).toBe('Navy has the longest active win streak in a GTA release-week: 1 win.');
+    const ever = landingBySlug.get('longest-gta-release-week-losing-streaks-ever')!;
+    expect(leadSentence(ever, [{ ...rows[0], live: true }])).toBe('Duke holds the longest losing streak in a GTA release-week of any FBS team since 1997: 6 losses, from 1999 and still going.');
+    // every other named page keeps its own
+    expect(landingBySlug.get('longest-home-win-streaks')!.description).toMatch(/^Every FBS team's longest active home win streak, ranked/);
   });
 
   test('a definition with a chip choice (a month) has a page, found by its spelling', () => {

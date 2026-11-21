@@ -68,3 +68,7 @@ A knob and a scope in `list.ts`, the pills and the folded lines in four componen
 ## Open
 
 - The word on the board. "Trivia" is Drew's and it's what readers called it. The sentence has to carry it without sounding like an apology; "the longest trivia streak in home games under a full moon vs red schools" reads fine to me.
+
+## 2026-11-21: no "trivia" in an unfurl
+
+Drew, on the card for `/longest-gta-release-week-losing-streaks/`: "I want the OG renderer to not include the word trivia". The card and the share title and description say the conditions and no more. The board's sentence on the page still carries the word. A trivia definition with a named page heads its card with that page's h1, "Longest active GTA release-week losing streaks in college football", which is the text he asked for. Whether the share title and description drop the word too was the agent's call (agent, 2026-11-21): they sit under the card in the same unfurl.
