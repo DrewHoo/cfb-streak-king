@@ -54,11 +54,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'npm'
-      - run: npm ci
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
       # Refresh the in-progress season (schedule, AP poll, lines) onto the
       # committed payload base, on the scheduled and manual runs only. A push
       # spends no CFBD calls (October 2026: 78 push deploys at ~17 calls each
@@ -69,13 +70,13 @@ jobs:
         env:
           CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
       # Check and test the payload that ships
-      - run: npm run typecheck
+      - run: pnpm run typecheck
       # Every ruling-file receipt against its committed page (data/research/pages)
-      - run: npm run check:receipts
+      - run: pnpm run check:receipts
       # The build first, since its mine feeds the tests (STREAK_MINED above);
       # a failing test still stops the commit and the upload.
-      - run: npm run build
-      - run: npm test
+      - run: pnpm run build
+      - run: pnpm test
       # No deploy takes the live site back to an older payload
       - run: node scripts/data/check-not-older-than-live.mjs
         env:
@@ -149,11 +150,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.build.outputs.sha }}
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'npm'
-      - run: npm ci
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

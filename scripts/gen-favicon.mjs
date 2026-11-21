@@ -1,5 +1,5 @@
 // The favicon is drewhoover.com's own mark, the same files every sibling site
-// ships, copied from the index repo. Run: npm run gen:favicon [path-to-index-repo]
+// ships, copied from the index repo. Run: pnpm run gen:favicon [path-to-index-repo]
 // Outputs are committed; CI does not regenerate them.
 import { copyFileSync, existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'

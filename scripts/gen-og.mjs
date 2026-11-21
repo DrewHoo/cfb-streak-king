@@ -1,4 +1,4 @@
-// Generate the social preview images. Run: npm run gen:og
+// Generate the social preview images. Run: pnpm run gen:og
 // Each is laid out on a 1200-wide canvas (1200x630, or 1200x750 for the 8:5
 // cover) and rasterized at 96 dpi, so the files are 4/3 of that: 1600x840
 // and 1600x1000. The prerender declares those sizes (og:image:width/height).
@@ -7,7 +7,7 @@
 //   public/og/team/<id>.png  1600x840, one per current FBS team, used by /team/<id>/
 //   public/og/week/<n>.png   1600x840, one per completed week: its broken
 //                            streaks, used by /games/week/<n>/. A week's digest
-//                            is final once the week is, so `npm run gen:og --
+//                            is final once the week is, so `pnpm run gen:og --
 //                            --weeks` after the weekly payload refresh renders
 //                            just these without touching the board or team cards.
 //
@@ -88,7 +88,7 @@ const todayEp = todayEpochDay()
 const rows = allTimeBoard(DEFAULT_CHIPS, 'W', todayEp)
 const crowns = await mineCrowns('active')
 const brokenByWeek = brokenWeeks(await mineBroken())
-const args = process.argv.slice(2) // `npm run gen:og -- alabama` renders one card; `-- --weeks` only the week cards
+const args = process.argv.slice(2) // `pnpm run gen:og -- alabama` renders one card; `-- --weeks` only the week cards
 const weeksOnly = args.includes('--weeks')
 const teamIds = args.filter((a) => !a.startsWith('--'))
 

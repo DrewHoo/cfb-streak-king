@@ -9,8 +9,8 @@
     "preview": "vite preview",
     "gen:og": "node scripts/gen-og.mjs",
     "gen:favicon": "node scripts/gen-favicon.mjs",
-    "worker:dev": "npx wrangler dev -c workers/share/wrangler.jsonc --local --var ORIGIN:http://localhost:4173 --var NO_REPORT:1",
-    "worker:deploy": "npx wrangler deploy -c workers/share/wrangler.jsonc",
+    "worker:dev": "pnpm exec wrangler dev -c workers/share/wrangler.jsonc --local --var ORIGIN:http://localhost:4173 --var NO_REPORT:1",
+    "worker:deploy": "pnpm exec wrangler deploy -c workers/share/wrangler.jsonc",
     "test": "vitest run",
     "typecheck": "tsc -p . && tsc -p tsconfig.worker.json",
     "check:receipts": "node scripts/data/check-receipts.mjs --offline data/ref",
@@ -39,5 +39,12 @@
     "vitest": "^5.0.2",
     "workers-og": "^0.0.27",
     "wrangler": "4.151.3"
+  },
+  "packageManager": "pnpm@10.29.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ]
   }
 }

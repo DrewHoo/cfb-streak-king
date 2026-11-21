@@ -1,6 +1,6 @@
 {
   // The share worker: per-definition <head> rewrites in front of GitHub
-  // Pages. Deploy with: npx wrangler deploy -c workers/share/wrangler.jsonc
+  // Pages. Deploy with: pnpm exec wrangler deploy -c workers/share/wrangler.jsonc
   "name": "streak-king-share",
   "main": "index.ts",
   "compatibility_date": "2026-10-04",

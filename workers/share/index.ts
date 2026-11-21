@@ -50,7 +50,7 @@ import { seriesLead } from '../../src/lib/seriesWords.ts';
 import early from '../../src/data/series-early.json';
 import type { CardRow } from './card.ts';
 
-// Set per request from the deploy's vars: `npm run worker:dev` points it at a
+// Set per request from the deploy's vars: `pnpm run worker:dev` points it at a
 // local vite preview (ORIGIN) and silences the analytics (NO_REPORT); the
 // deployed worker has neither, so it reads the live site and reports.
 interface Env { ORIGIN?: string; NO_REPORT?: string }

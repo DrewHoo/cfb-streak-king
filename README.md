@@ -112,10 +112,10 @@ reported, never dropped.
   `data/ref/extra-games.json`.
 - Every researched row carries `receipts`: `{ url, quote, note?, retrieved? }`
   for a claim with a page behind it, or `{ sources: [...] }` for one that is a
-  vote across named datasets (the Repole errata). `npm run check:receipts`
+  vote across named datasets (the Repole errata). `pnpm run check:receipts`
   requires each quote to appear, whitespace-collapsed, in the page text saved
   under `data/research/pages/` (committed, so the check runs offline in CI
-  and survives the page changing). `npm run coverage` counts the rows that
+  and survives the page changing). `pnpm run coverage` counts the rows that
   still lack one and lists the open rows of `data/research/triage.json`
   (disputes between sources) and `leads.json` (things a research pass raised
   outside its brief).
@@ -124,11 +124,11 @@ reported, never dropped.
 
 ## Validation
 
-`npm test` (Vitest) runs against the payload that ships, in CI after the
+`pnpm test` (Vitest) runs against the payload that ships, in CI after the
 season refresh: the known answers below through the client's own decode, a
 sweep of every parameterless definition through the sentence builder, URL
 round-trips for every chip, crowns cross-checked against the boards, and a
-prerender-then-hydrate check that fails on any mismatch. `npm run typecheck`
+prerender-then-hydrate check that fails on any mismatch. `pnpm run typecheck`
 checks `src/lib` (TypeScript; components are still JSX).
 
 Known-answer checks also run inside `build-payload.mjs` and fail the build
@@ -160,8 +160,8 @@ node scripts/data/check-receipts.mjs data/ref  # every receipt's quote against i
 node scripts/data/build-current.mjs    # + in-progress season -> src/data/payload.json (CACHE=1 for offline)
 node scripts/data/export-errata.mjs <dir>  # -> the DrewHoo/repole-errata checkout
 node scripts/gen-logos.mjs             # one-color marks -> public/logos/<espnId>.png, color -> public/logos-color/ (then build-current again)
-npm run gen:og                         # og.png, card.png, public/og/team/<id>.png (committed)
-npm run build                          # vite build + prerender: the board, 24 named definition pages, 136 team pages, every running-season game and week, every past season's weeks, the posts (content/posts/), the sitemap
+pnpm run gen:og                         # og.png, card.png, public/og/team/<id>.png (committed)
+pnpm run build                          # vite build + prerender: the board, 24 named definition pages, 136 team pages, every running-season game and week, every past season's weeks, the posts (content/posts/), the sitemap
 ```
 
 The window's first season is `FIRST_SEASON` in `scripts/lib/window.mjs`; the

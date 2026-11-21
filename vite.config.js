@@ -53,7 +53,7 @@ export default defineConfig({
   base: `/${pkg.name}/`,
   plugins: [trimRulings, serveBuilt, react()],
   // a preview tool that hands out ports sets PORT; hold to it so the preview
-  // opens where the server is. Plain `npm run dev` keeps 5173.
+  // opens where the server is. Plain `pnpm run dev` keeps 5173.
   server: process.env.PORT ? { port: Number(process.env.PORT), strictPort: true } : {},
   // the suite walks the real 63k-game payload; CI runners are a few times
   // slower than a laptop, so the 5s default is too tight

@@ -431,7 +431,7 @@ build's `dist/crowns/` and digests when they exist and mines in the page otherwi
 | browser walk on a team page or the schedule | 80 single-chip passes | none |
 
 The suite's mining tests share one worker and module cache (`fileParallelism: false`,
-`isolate: false` in `vite.config.js`), so the mine runs once per `npm test`.
+`isolate: false` in `vite.config.js`), so the mine runs once per `pnpm test`.
 
 ### What the lists look like
 
@@ -577,7 +577,7 @@ active streak"), then since when, then the game that ended it without its date
 
 ### Build and the worker
 
-The history pass adds to the build and to `npm test`; CI is 25 minutes per push today with
+The history pass adds to the build and to `pnpm test`; CI is 25 minutes per push today with
 the mine run twice (tests, then build). Separate change, worth doing with this: the test job
 reads the build's output rather than mining again. The worker gets a `game` route (shell +
 head + card) with `CARD_VERSION` bumped; `shareWords.ts` grows the game's sentence.
@@ -601,7 +601,7 @@ As specced, with these particulars:
   share it, second, count) is one typed-array pass per team, so placing a broken run and
   spotting a new leader cost nothing more per week.
 - Measured on Drew's 10-core Mac: the mine 47s (365s of CPU; it was 257s single-threaded
-  for three readings over the running season only), `npm run build` 2:48 in all, `npm test`
+  for three readings over the running season only), `pnpm run build` 2:48 in all, `pnpm test`
   75s against the build's mine. `dist/` is 84 MB: 885 game pages (32 MB), 91 season files
   (21 MB raw; the 2026 file 95 KB gzipped, 1987's 44 KB), `data/build/mined.json` 253 MB.
 - A new leader's row says what happened: "Ohio State now leads: Alabama's 13 ended" when the
