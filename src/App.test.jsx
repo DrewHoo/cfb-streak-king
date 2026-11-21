@@ -9,7 +9,7 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import App from './App.jsx';
 import { P, teams, gamesOf, upcomingOf } from './lib/model.ts';
-import { seasonWeeks } from './lib/game.ts';
+import { inSlate, seasonWeeks } from './lib/game.ts';
 import { CTX, LIST } from './lib/list.ts';
 import { FRONT, frontList } from './lib/front.ts';
 import { matchingGames } from './components/GamesPage.jsx';
@@ -57,9 +57,11 @@ describe('prerender + hydrate', () => {
   });
 
   // a team's current runs, as the front page's file keeps them: any will do, front.test covers the rule. No conditions, so the
-  // team's next game puts each on the line, for teams that play within the week; a postseason run's next game is a bowl, so it isn't
+  // team's next game puts each on the line, for teams that play in the page's week; a postseason run's next game is a bowl, so it isn't.
+  // The week is the slate's, not the next eight days: a Saturday build has Friday's teams a week from their next game, and a
+  // fixture that took them expected four rows where the page had two (2026-11-21, the refresh failed on it)
   const builtEp = Math.floor(Date.parse(P.builtAt) / 86400000);
-  const playing = teams.map((_, ti) => ti).filter((ti) => upcomingOf(ti)[0] && upcomingOf(ti)[0].ep - builtEp <= 8);
+  const playing = teams.map((_, ti) => ti).filter((ti) => upcomingOf(ti)[0] && upcomingOf(ti)[0].ep - builtEp <= 8 && inSlate(upcomingOf(ti)[0].wk));
   const frontRuns = () => {
     const se = P.currentSeason;
     const crown = (chips, dir, len, extra = {}) => ({ chips, dir, scope: 'active', len, unsure: false, field: 130, rank: 1, tied: 1, second: 3, startSe: se - 3, endSe: se, live: true, also: 0, p: 0.5, n: 10000, hT: 10, nT: 20, gT: 20, ...extra });
