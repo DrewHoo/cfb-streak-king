@@ -165,6 +165,32 @@ const DIR = (q: URLSearchParams) => dirWord(parseDir(q.get('dir')) ?? 'W');
  * prerendered head is already right (the bare board, team pages, the
  * schedule and its weeks).
  */
+/**
+ * The board a URL opens, as a query: a by-opponent page and a named
+ * definition's page say theirs in the path, so the path's words go in beside
+ * the query's. The title and the card both read this one: a card drawn from
+ * the query alone was the site's default board on
+ * /longest-gta-release-week-losing-streaks/?t=duke (Drew, 2026-11-21).
+ */
+export function boardQuery(pathname: string, q: URLSearchParams): URLSearchParams {
+  const asPage = asFromPath(pathname);
+  const landing = landingFromPath(pathname);
+  if (!asPage && !landing) return q;
+  const out = new URLSearchParams(q);
+  if (asPage) {
+    out.set('as', asPage.id);
+    out.set('dir', asPage.dir);
+    out.delete('c');
+    out.delete('scope');
+  }
+  if (landing) {
+    out.set('c', landing.c);
+    out.set('dir', landing.dir);
+    out.set('scope', landing.scope);
+  }
+  return out;
+}
+
 export function shareText(pathname: string, q: URLSearchParams, meta: ShareMeta): ShareText | null {
   // a matchup: /team/<id>/?vs=<id>|next
   const team = /\/team\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1];
@@ -180,25 +206,13 @@ export function shareText(pathname: string, q: URLSearchParams, meta: ShareMeta)
 
   // a team's by-opponent page (asTeam.ts) is prerendered with its own head; a column open on one (?t=) is worded from its definition
   const asPage = asFromPath(pathname);
-  if (asPage) {
-    if (!meta.teams[asPage.id] || !q.has('t')) return null;
-    q = new URLSearchParams(q);
-    q.set('as', asPage.id);
-    q.set('dir', asPage.dir);
-    q.delete('c');
-    q.delete('scope');
-  }
+  if (asPage && (!meta.teams[asPage.id] || !q.has('t'))) return null;
   // the board: only its base path, and only when the URL says something
   if (!asPage && (!/\/$/.test(pathname) || /\/(team|games)\//.test(pathname) || /\/games\/?$/.test(pathname))) return null;
   // a named definition's page (landing.ts) is prerendered with its own head; a panel open on it reads from its definition
   const landing = landingFromPath(pathname);
-  if (landing) {
-    if (!['t', 'run', 'week'].some((k) => q.has(k))) return null;
-    q = new URLSearchParams(q);
-    q.set('c', landing.c);
-    q.set('dir', landing.dir);
-    q.set('scope', landing.scope);
-  }
+  if (landing && !['t', 'run', 'week'].some((k) => q.has(k))) return null;
+  q = boardQuery(pathname, q);
   if (!['c', 'dir', 'scope', 't', 'run', 'week', 'as'].some((k) => q.has(k))) return null;
   // the by-opponent board: one team's streaks against each opponent; its default definition has no conditions
   const as = q.get('as');

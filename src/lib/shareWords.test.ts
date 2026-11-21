@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { defWords, shareText, rowWords, gameFromShare, pastWeekText } from './shareWords.ts';
+import { boardQuery, defWords, shareText, rowWords, gameFromShare, pastWeekText } from './shareWords.ts';
 import type { ShareMeta } from './shareWords.ts';
 import { P, teams } from './model.ts';
 import { DEFAULT_CHIPS, PARAMS, chipWord } from './definition.ts';
@@ -106,6 +106,16 @@ describe('shareWords: landings and never-major opponents', () => {
     expect(t.description).toContain('longest active winning streak at home');
     const l = shareText(`${BASE}longest-active-losing-streaks/`, q('?t=kansas'), meta)!;
     expect(l.title).toBe('Kansas — Longest active losing streaks · College Football Streak King');
+  });
+
+  // Drew, 2026-11-21: /longest-gta-release-week-losing-streaks/?t=duke unfurled with the site's default board
+  test("the card of a panel open on a named page or a by-opponent page is that page's board, not the query's alone", () => {
+    const gta = boardQuery(`${BASE}longest-gta-release-week-losing-streaks/`, q('?t=duke'));
+    expect([gta.get('c'), gta.get('dir'), gta.get('scope'), gta.get('t')]).toEqual(['gta', 'L', 'active', 'duke']);
+    const as = boardQuery(`${BASE}team/auburn/losing-streaks-by-opponent/`, q('?t=georgia-tech'));
+    expect([as.get('as'), as.get('dir'), as.get('c'), as.get('t')]).toEqual(['auburn', 'L', null, 'georgia-tech']);
+    // the builder's address says everything in its query
+    expect(boardQuery(`${BASE}build/`, q('?c=road&dir=L')).toString()).toBe('c=road&dir=L');
   });
 
   test('a game address against a never-major opponent parses, from the others table', () => {

@@ -33,7 +33,7 @@
 // Anything else — and anything that goes wrong — passes through untouched:
 // this worker must never be the reason the site is down.
 
-import { shareText, defWords, decodeRefs, gameFromShare, rowWords, teamName, pastWeekText, isTriviaBoard, streaksWord } from '../../src/lib/shareWords.ts';
+import { shareText, boardQuery, defWords, decodeRefs, gameFromShare, rowWords, teamName, pastWeekText, isTriviaBoard, streaksWord } from '../../src/lib/shareWords.ts';
 import { landingFromPath } from '../../src/lib/landing.ts';
 import { asFromPath } from '../../src/lib/asTeam.ts';
 import type { GameRowWords } from '../../src/lib/shareWords.ts';
@@ -715,7 +715,7 @@ export default {
         .on('meta[name="twitter:title"]', content(text.title))
         .on('meta[name="twitter:description"]', content(text.description));
       if (board) {
-        const img = ogImageUrl(url.searchParams);
+        const img = ogImageUrl(boardQuery(url.pathname, url.searchParams));
         out = out
           .on('meta[property="og:image"]', content(img))
           .on('meta[name="twitter:image"]', content(img))
