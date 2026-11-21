@@ -11,9 +11,9 @@
 // as every long list on the site does. The page shows a place, never the
 // score.
 
-import type { MinedCrown, UpcomingRow } from './types.ts';
-import { P, upcomingOf } from './model.ts';
-import { CTX, LIST, admitted, listCrowns, pick } from './list.ts';
+import type { Dir, MinedCrown, UpcomingRow } from './types.ts';
+import { P, teams, upcomingOf } from './model.ts';
+import { CTX, LIST, admitted, finish, listCrowns, pick } from './list.ts';
 import type { Knobs, RankContext } from './list.ts';
 import { teamStreaks } from './team.ts';
 import type { TeamStreak } from './team.ts';
@@ -38,7 +38,24 @@ export type FrontKnobs = typeof FRONT;
 /** A team's next game is "the upcoming game" within this many days, the builder's `onTheLine` window. */
 export const SOON = 8;
 
-export interface FrontRow { ti: number; s: TeamStreak }
+/** A row of the page; `pinned` when Drew put it there by hand (`PINS`) and the list rule didn't. */
+export interface FrontRow { ti: number; s: TeamStreak; pinned?: true }
+
+/**
+ * A run Drew put on the page by hand, for one week: readers were arriving for
+ * it and the list rule doesn't admit it, since its team isn't first in its
+ * field. It is the one place a view shows a run the rule leaves out, so each
+ * one is his call, with its date. It leads the page under its own words, takes
+ * its team's row, and still has to be on the line in its team's next game. It
+ * is on no other list. The season and week keep it from coming back the next
+ * time its team meets such an opponent.
+ */
+export interface Pin { team: string; dir: Dir; chips: string[]; season: number; week: number }
+export const PINS: Pin[] = [
+  // Drew, 2026-11-21: Nebraska's 31 straight losses to ranked opponents, second to Rutgers's 46, with Ohio State in
+  // Lincoln and readers arriving for it
+  { team: 'nebraska', dir: 'L', chips: ['ranked'], season: 2026, week: 12 },
+];
 
 const key = (c: Pick<MinedCrown, 'dir' | 'len' | 'startSe' | 'endSe' | 'chips'>) => `${c.dir}|${c.len}|${c.startSe}|${c.endSe}|${c.chips.join('+')}`;
 const isCurrent = (s: Pick<MinedCrown, 'endSe'>, f: FrontKnobs) => s.endSe != null && s.endSe >= P.currentSeason - f.seasons;
@@ -46,6 +63,22 @@ const isCurrent = (s: Pick<MinedCrown, 'endSe'>, f: FrontKnobs) => s.endSe != nu
 /** A team's current streaks as its Active section lists them, best first, sub-streaks left with their runs. */
 export function currentStreaks(ti: number, list: readonly MinedCrown[], todayEp: number, ctx: RankContext = CTX, w: Knobs = LIST, f: FrontKnobs = FRONT): TeamStreak[] {
   return teamStreaks(ti, todayEp, listCrowns(list, ctx, w)).filter((s) => !s.subStreak && isCurrent(s, f));
+}
+
+const sameChips = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((k) => b.includes(k));
+/** The pin `c` is this week, if any: its team's run under the pin's own words, in the pin's season and week. */
+const pinOf = (ti: number, c: Pick<MinedCrown, 'dir' | 'chips' | 'scope'>): Pin | undefined => PINS.find((p) => (
+  p.team === teams[ti]?.id && p.season === P.currentSeason && p.week === slateWeek() && c.scope === 'active' && p.dir === c.dir && sameChips(p.chips, c.chips)
+));
+
+/** A team's pinned run as a row, when its next game puts it on the line this week; null otherwise. */
+export function pinnedStreak(ti: number, list: readonly MinedCrown[], todayEp: number, ctx: RankContext = CTX, w: Knobs = LIST): TeamStreak | null {
+  const run = list.find((c) => pinOf(ti, c));
+  if (!run) return null;
+  // under the pin's own words, whatever the rule would pick
+  const { highest: _h, ...own } = run;
+  const [s] = teamStreaks(ti, todayEp, [{ ...finish(own, ctx, w), subStreak: false }]);
+  return s && nextIsIt(ti, s) && inSlate(s.next!.wk) && frontNext(ti, s, todayEp).kind === 'on' ? s : null;
 }
 
 /** Whether the team's next scheduled game is the one that puts the run on the line, whatever the date. */
@@ -74,17 +107,20 @@ export function frontRuns(ti: number, list: readonly MinedCrown[], todayEp: numb
   // on the line by the schedule, not the date: the page reads the date, the build only keeps the rows
   const cur = currentStreaks(ti, list, todayEp, ctx, w, f);
   const want = new Set((f.onLine ? cur.filter((s) => nextIsIt(ti, s)) : cur).slice(0, f.keep).map(key));
-  return list.filter((c) => admitted(c, w) && want.has(key(pick(c, w))));
+  return list.filter((c) => (admitted(c, w) && want.has(key(pick(c, w)))) || pinOf(ti, c));
 }
 
-/** Every team's best streak the page can show, best first. */
+/** Every team's best streak the page can show, best first, after the week's pinned rows. */
 export function frontBest(runs: Iterable<[number, readonly MinedCrown[]]>, todayEp: number, ctx: RankContext = CTX, w: Knobs = LIST, f: FrontKnobs = FRONT): FrontRow[] {
   const best: FrontRow[] = [];
+  const pinned: FrontRow[] = [];
   for (const [ti, list] of runs) {
-    const s = frontStreaks(ti, list, todayEp, ctx, w, f)[0];
-    if (s) best.push({ ti, s });
+    const pin = pinnedStreak(ti, list, todayEp, ctx, w);
+    const s = pin ?? frontStreaks(ti, list, todayEp, ctx, w, f)[0];
+    if (pin) pinned.push({ ti, s: pin, pinned: true });
+    else if (s) best.push({ ti, s });
   }
-  return best.sort((a, b) => b.s.score - a.s.score || b.s.len - a.s.len);
+  return [...pinned, ...best.sort((a, b) => b.s.score - a.s.score || b.s.len - a.s.len)];
 }
 
 /** The front page: the first `top` rows, and the rest behind "see more". */

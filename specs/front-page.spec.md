@@ -35,6 +35,8 @@ The front page is a view of the list rule. It admits nothing and re-words nothin
 5. **Order.** The score. The page shows a place (1, 2, 3), never points.
 6. **Ten, then "see more".** The first `FRONT.top` (10) rows show; the rest page behind "see more", 25 at a time (Drew, 2026-11-14). This replaced a cut at the largest drop in score between neighbors (at least 3, at most 10), which kept three or four rows a week.
 
+7. **A pinned row.** `PINS` in `front.ts` holds a run Drew put on the page by hand for one week (Drew, 2026-11-21). It's the one place a view shows a run the list rule doesn't admit. The first is Nebraska's 31 straight losses to ranked opponents in week 12 of 2026, with Ohio State in Lincoln: readers were arriving for it, and it's second in its field to Rutgers's 46, so no list had it. A pinned row leads the page under its own words and takes its team's row. It still has to be on the line in its team's next game, and its season and week keep it from coming back the next time the team meets such an opponent. It's on the root's card, description and `llms.txt` line, since those read the page's rows. It isn't on the team page, the at-risk digest or a game's "N on the line", which stay the list rule's alone. A pin is Drew's call each time; an agent doesn't add one.
+
 On the 2026-11-03 build, before the on-the-line rule and with the old cut, that was four rows:
 
 | | streak | since | score (not shown) | week 10 |

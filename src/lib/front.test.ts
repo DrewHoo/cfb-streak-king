@@ -5,7 +5,7 @@ import { CTX, LIST, listCrowns } from './list.ts';
 import { scheduledGames, teamStreaks } from './team.ts';
 import { atRiskRows, atRiskWeek } from './atRisk.ts';
 import { inSlate, seasonWeeks, slateWeek } from './game.ts';
-import { FRONT, SOON, currentStreaks, frontBest, frontList, frontNext, frontPage, frontRuns, frontStreaks, frontWeek, encodeFront, decodeFront } from './front.ts';
+import { FRONT, PINS, SOON, currentStreaks, frontBest, frontList, frontNext, frontPage, frontRuns, frontStreaks, frontWeek, encodeFront, decodeFront } from './front.ts';
 
 const idx = (id: string) => teams.findIndex((t) => t.id === id);
 const today = builtEpochDay;
@@ -32,9 +32,9 @@ describe('the front page', () => {
     expect([best.len, best.chips.slice().sort()]).toEqual([90, ['home', 'unranked']]);
     const tested = frontNext(al, best, today).kind === 'on' && best.next != null && inSlate(best.next.wk);
     expect(frontBest(all(), today).some((r) => r.ti === al && r.s.len === 90)).toBe(tested);
-    // with the knob off, the page is every team's best current run, and Alabama's 90 leads it
-    const off = frontList(all(), today, CTX, LIST, { ...FRONT, onLine: false });
-    expect([teams[off[0].ti].id, off[0].s.len]).toEqual(['alabama', 90]);
+    // with the knob off, the page is every team's best current run, and Alabama's 90 leads it (after a pinned row, its week)
+    const off = frontList(all(), today, CTX, LIST, { ...FRONT, onLine: false }).find((r) => !r.pinned)!;
+    expect([teams[off.ti].id, off.s.len]).toEqual(['alabama', 90]);
   });
 
   // Drew, 2026-11-15: Ole Miss at Oklahoma, moved to the Sunday after week 11, made the page "Week 11" with one game
@@ -53,12 +53,33 @@ describe('the front page', () => {
     for (const w of open.slice(at + 1)) expect(inSlate(w.wk)).toBe(false);
   });
 
-  test('one row per team, the first ten by default, best first', () => {
+  test('one row per team, the first ten by default, best first after the week’s pinned rows', () => {
     const best = frontBest(all(), today);
     expect(rows.length).toBe(Math.min(FRONT.top, best.length));
     expect(new Set(best.map((r) => r.ti)).size).toBe(best.length);
-    for (let i = 1; i < best.length; i++) expect(best[i - 1].s.score).toBeGreaterThanOrEqual(best[i].s.score);
+    const pins = best.filter((r) => r.pinned).length;
+    expect(best.slice(0, pins).every((r) => r.pinned)).toBe(true);
+    for (let i = pins + 1; i < best.length; i++) expect(best[i - 1].s.score).toBeGreaterThanOrEqual(best[i].s.score);
     expect(best.slice(0, rows.length)).toEqual(rows);
+  });
+
+  // Drew, 2026-11-21
+  test('a pinned run leads the page in its week and no other: Nebraska’s 31 straight losses to ranked opponents, with Ohio State in Lincoln', () => {
+    const best = frontBest(all(), today);
+    const live = PINS.filter((p) => p.season === P.currentSeason && p.week === slateWeek());
+    // a pin's week has passed once the payload's week moves on, and the page is the list rule's alone again
+    expect(best.filter((r) => r.pinned).length).toBeLessThanOrEqual(live.length);
+    for (const r of best.filter((x) => x.pinned)) {
+      const pin = live.find((p) => p.team === teams[r.ti].id)!;
+      expect([r.s.dir, r.s.chips]).toEqual([pin.dir, pin.chips]);
+      // the run as the team's file holds it under those words: the same length, place and field
+      const mined = (crowns.get(r.ti) ?? []).find((c) => c.dir === pin.dir && c.chips.join('+') === pin.chips.join('+'))!;
+      expect([r.s.len, r.s.rank, r.s.tied, r.s.field]).toEqual([mined.len, mined.rank, mined.tied, mined.field]);
+    }
+    if (P.currentSeason === 2026 && slateWeek() === 12) {
+      expect([teams[best[0].ti].id, best[0].pinned, best[0].s.dir, best[0].s.chips, best[0].s.len]).toEqual(['nebraska', true, 'L', ['ranked'], 31]);
+      expect(teams[best[0].s.next!.oppIdx].id).toBe('ohio-state');
+    }
   });
 
   test('nothing is cut: the rows past the first ten page behind "see more", in the same order', () => {
@@ -68,7 +89,8 @@ describe('the front page', () => {
   });
 
   test('every row is its team page’s Active row, in the same words and place', () => {
-    for (const { ti, s } of rows) {
+    // a pinned row is the one row the list rule didn't admit (the pin's own test, above)
+    for (const { ti, s } of rows.filter((r) => !r.pinned)) {
       const page = teamStreaks(ti, today, listCrowns(crowns.get(ti) ?? []));
       const same = page.find((x) => key(x) === key(s));
       expect(same, `${teams[ti].name} ${key(s)}`).toBeDefined();
@@ -101,7 +123,7 @@ describe('the front page', () => {
     const week = scheduledGames().filter((g) => inSlate(g.wk));
     const risk = atRiskWeek(atRiskRows(week, today, (ti) => crowns.get(ti) ?? []), CTX, LIST);
     const atRisk = new Set([...risk.list, ...risk.more, ...risk.subStreaks].map((r) => `${r.ti}|${key(r.s)}`));
-    for (const r of frontBest(all(), today)) {
+    for (const r of frontBest(all(), today).filter((x) => !x.pinned)) {
       const n = frontNext(r.ti, r.s, today);
       if (n.kind === 'on' && n.game.sp != null && inSlate(n.game.wk)) expect(atRisk.has(`${r.ti}|${key(r.s)}`), `${teams[r.ti].name} ${key(r.s)}`).toBe(true);
     }

@@ -140,7 +140,7 @@ const urlProps = (url: URL) => {
 };
 
 /** Bump on any change to what the card draws or how a URL reads; it keys the edge cache. */
-const CARD_VERSION = '2026-11-21';
+const CARD_VERSION = '2026-11-21b';
 
 const edge = (ttl: number) => ({ cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '400-599': 30 } } }) as RequestInit;
 // a fresh cache key each UTC day: GitHub Pages ignores query strings, and a
@@ -187,12 +187,14 @@ interface Weekly { builtAt: string; broken: Record<string, WeeklyCard>; atRisk: 
 const fmtN = (n: number) => n.toLocaleString('en-US');
 /** "+134 more broken", or nothing when the rows are all there is. */
 const moreLine = (total: number | undefined, shown: number, word: string) => (total != null && total > shown ? `+${fmtN(total - shown)} more ${word}` : null);
+// keyed by the card version too: a push that changes a card's rows the day they were built (a pinned front row) bumps it,
+// and the hour-old copy at the edge goes with the cards drawn from it
 let weeklyCache: { day: string; data: Promise<Weekly> } | null = null;
 function loadWeekly(): Promise<Weekly> {
   const day = dayKey();
   if (weeklyCache?.day !== day) {
     const data = (async () => {
-      const res = await fetch(`${ORIGIN}${BASE}/share/weekly.json?d=${day}`, edge(3600));
+      const res = await fetch(`${ORIGIN}${BASE}/share/weekly.json?d=${day}&v=${CARD_VERSION}`, edge(3600));
       if (!res.ok) { await res.body?.cancel(); throw new Error(`weekly ${res.status}`); }
       return (await res.json()) as Weekly;
     })().catch((e) => { weeklyCache = null; throw e; });
